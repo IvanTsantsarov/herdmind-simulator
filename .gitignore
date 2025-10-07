@@ -26,6 +26,9 @@ dist/
 # JetBrains IDE
 .idea/
 
+# Qt
+.build/
+
 # Unit test reports
 TEST*.xml
 
