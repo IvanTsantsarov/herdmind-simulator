@@ -21,6 +21,7 @@ SOURCES += \
 HEADERS += \
     animal.h \
     bolus/bolus.h \
+    bolus/defines.h \
     collar/collar.h \
     defines.h \
     herd.h \

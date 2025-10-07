@@ -27,7 +27,7 @@ dist/
 .idea/
 
 # Qt
-.build/
+build/
 
 # Unit test reports
 TEST*.xml

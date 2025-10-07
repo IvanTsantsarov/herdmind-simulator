@@ -15,7 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
     mHerd = new Herd();
     mHerd->generate(INITIAL_ANIMALS_COUNT, INITIAL_HERD_SPREAD);
 
-
     // create scene
     mScene = new Scene(this);
     mScene->setSceneRect(-INITIAL_MEDDOW_SIZE, -INITIAL_MEDDOW_SIZE, 2*INITIAL_MEDDOW_SIZE, 2*INITIAL_MEDDOW_SIZE);
@@ -25,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent)
     mSceneView = new SceneView(mScene, this);
     ui->mainVerticalLayout->addWidget(mSceneView);
     mSceneView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
 
     QObject::connect(&mUpdateTimer, &QTimer::timeout, this, &MainWindow::onUpdate );
     mUpdateTimer.start(HERD_UPDATE_INTERVAL);
