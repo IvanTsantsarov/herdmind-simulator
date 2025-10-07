@@ -40,7 +40,8 @@ void Herd::update( QPointF* attractor,
                   float repellingDistance,
                   float collidingDistance,
                   float maxSpeed,
-                  float friction )
+                  float friction,
+                  float rotationFading )
 {
     QVector2D vectAttr = attractor ? QVector2D(*attractor) :  QVector2D();
 
@@ -62,7 +63,7 @@ void Herd::update( QPointF* attractor,
 
     // apply
     foreach(Animal* a, mAnimals) {
-        a->updateSpeed(maxSpeed, friction);
+        a->updateSpeed(maxSpeed, friction, rotationFading);
     }
 }
 

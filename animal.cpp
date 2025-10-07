@@ -11,9 +11,11 @@ void Animal::interact(const QVector2D &p, float attractionPower, float attractio
 
     if( lensq > attractionDistance*attractionDistance ) {
         mVelocity += f.normalized() * attractionPower;
+        mRotationAngleGoal = qAtan2(mVelocity.y(), mVelocity.x());
     }else
     if( lensq < repellingDistance*repellingDistance ) {
         mVelocity -= f.normalized() * attractionPower;
+        mRotationAngleGoal = qAtan2(mVelocity.y(), mVelocity.x());
     }
 }
 
@@ -49,16 +51,20 @@ bool Animal::collide(Animal *a, float minDistance )
     mVelocity += vn * n;
     a->mVelocity -= vn * n;
 
+    mRotationAngleGoal = qAtan2(mVelocity.y(), mVelocity.x());
+
     return true;
 }
 
-void Animal::updateSpeed(float maxSpeed, float friction)
+void Animal::updateSpeed(float maxSpeed, float friction, float rotationFading)
 {
     if( mVelocity.length() > maxSpeed) {
         mVelocity = mVelocity.normalized() * maxSpeed;
     }
 
     mVelocity *= (1.0f - friction);
+
+    mRotationAngle = mRotationAngle + rotationFading * (mRotationAngleGoal - mRotationAngle);
 
     mPosition += mVelocity;
 }

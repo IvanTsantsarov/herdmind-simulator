@@ -18,7 +18,9 @@ public:
                 float attractorPower,
                 float attractionDistance, float repellingDistance,
                 float collidingDistance,
-                float maxSpeed , float friction);
+                float maxSpeed ,
+                float friction,
+                float rotationFading);
 
     inline Animal* animal(int index){ return mAnimals[index]; }
 signals:

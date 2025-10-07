@@ -17,7 +17,7 @@ public:
     explicit Scene(QObject *parent = nullptr);
 
     void create(int itemsCount);
-    void update(Herd* herd);
+    void update(Herd* herd, bool isSetColor = false, float diameter = 0.0f );
 
 
 public slots:

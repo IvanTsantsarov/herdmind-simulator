@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     mScene = new Scene(this);
     mScene->setSceneRect(-INITIAL_MEDDOW_SIZE, -INITIAL_MEDDOW_SIZE, 2*INITIAL_MEDDOW_SIZE, 2*INITIAL_MEDDOW_SIZE);
     mScene->create(INITIAL_ANIMALS_COUNT);
-    mScene->update(mHerd);
+    mScene->update(mHerd, true, INITIAL_HERD_SPREAD);
 
     mSceneView = new SceneView(mScene, this);
     ui->mainVerticalLayout->addWidget(mSceneView);
@@ -45,6 +45,7 @@ void MainWindow::onUpdate()
                   ANIMAL_REPELING_DISTANCE,
                   ANIMAL_COLLIDING_DISTANCE,
                   ANIMAL_MAX_SPEED,
-                  ANIMAL_MAX_FRICTION );
+                  ANIMAL_MAX_FRICTION,
+                  ANIMAL_ROTATION_FADING );
     mScene->update(mHerd);
 }

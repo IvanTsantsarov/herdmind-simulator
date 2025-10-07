@@ -13,6 +13,9 @@ class Animal {
 
     QVector2D mPosition;
     QVector2D mVelocity;
+    float mRotationAngle = 0.0f;
+    float mRotationAngleGoal = 0.0f;
+
 
 public:
 
@@ -20,8 +23,8 @@ public:
     inline QVector2D& v(){ return mVelocity; }
     void interact(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance);
     bool collide(Animal* a, float minDistance );
-    void updateSpeed(float maxSpeed, float friction);
-    inline float rotationAngle(){ return qAtan2(mVelocity.y(), mVelocity.x()); }
+    void updateSpeed(float maxSpeed, float friction, float rotationFading);
+    inline float rotationAngle(){ return mRotationAngle; }
     inline QPointF point(){ return QPointF(mPosition.x(), mPosition.y()); }
 
     Animal(float x, float y, bool isBolus, bool isCollar);
