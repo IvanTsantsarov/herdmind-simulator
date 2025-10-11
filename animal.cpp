@@ -1,37 +1,53 @@
 #include "animal.h"
-#include "bolus/bolus.h"
-#include "collar/collar.h"
+#include "hardware/bolus/bolus.h"
+#include "hardware/collar/collar.h"
 
 #define MIN_FLOAT 1e-6f
 
-void Animal::interact(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance)
+void Animal::updateDirection()
+{
+    mDirection = mVelocity.normalized();
+    mRotationAngle = qAtan2(mDirection.y(), mDirection.x());
+
+    if (mRotationAngle < 0)
+        mRotationAngle += static_cast<float>(M_PI * 2); // make it in range 0..pi
+
+}
+
+float Animal::distanceSq(Animal *other)
+{
+    float dx = mPosition.x() - other->mPosition.x();
+    float dy = mPosition.y() - other->mPosition.y();
+    return dx*dx + dy*dy;
+}
+
+void Animal::react(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance)
 {
     QVector2D f = QVector2D(p) - mPosition;
     float lensq = f.lengthSquared();
 
     if( lensq > attractionDistance*attractionDistance ) {
         mVelocity += f.normalized() * attractionPower;
-        mRotationAngleGoal = qAtan2(mVelocity.y(), mVelocity.x());
     }else
     if( lensq < repellingDistance*repellingDistance ) {
         mVelocity -= f.normalized() * attractionPower;
-        mRotationAngleGoal = qAtan2(mVelocity.y(), mVelocity.x());
     }
+
+    updateDirection();
 }
 
-bool Animal::collide(Animal *a, float minDistance )
+bool Animal::collide(Animal *a, float minCollideDistance  )
 {
-    float distance = (a->p() - p()).lengthSquared();
+    float distanceSqared = (a->p() - p()).lengthSquared();
 
     // if both are too far - exit
-    if( distance > (minDistance*minDistance)) {
+    if( distanceSqared > (minCollideDistance*minCollideDistance)) {
         return false;
     }
 
-
     // if both not approaching to each other
     float distanceNext = ((a->p()+a->v()) - (p()+v())).lengthSquared();
-    if( distanceNext > distance ) {
+    if( distanceNext > distanceSqared ) {
         return false;
     }
 
@@ -51,7 +67,10 @@ bool Animal::collide(Animal *a, float minDistance )
     mVelocity += vn * n;
     a->mVelocity -= vn * n;
 
-    mRotationAngleGoal = qAtan2(mVelocity.y(), mVelocity.x());
+    mDirection = mVelocity.normalized();
+    a->mDirection = a->mVelocity.normalized();
+
+    updateDirection();
 
     return true;
 }
@@ -63,21 +82,33 @@ void Animal::updateSpeed(float maxSpeed, float friction, float rotationFading)
     }
 
     mVelocity *= (1.0f - friction);
-
-    mRotationAngle = mRotationAngle + rotationFading * (mRotationAngleGoal - mRotationAngle);
-
     mPosition += mVelocity;
+}
+
+void Animal::putCollar()
+{
+    mCollar = new Collar();
+}
+
+bool Animal::isSideVisible(Animal *a, float maxCosAngle)
+{
+    // check for visibility range
+    QVector2D perp( mDirection.y(), -mDirection.x());
+    QVector2D look( a->p() - p() );
+    look.normalize();
+
+    return fabs(QVector2D::dotProduct(perp, look)) > maxCosAngle;
 }
 
 
 
-Animal::Animal(float x, float y, bool isBolus, bool isCollar)
+Animal::Animal(float x, float y )
 {
     mPosition = QVector2D(x, y);
     mVelocity = QVector2D(0, 0);
+    mDirection = QVector2D(1, 0);
 
     mBolus = new Bolus();
-    mCollar = new Collar();
 }
 
 Animal::~Animal()

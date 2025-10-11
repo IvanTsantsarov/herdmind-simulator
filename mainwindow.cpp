@@ -13,12 +13,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     // create herd
     mHerd = new Herd();
-    mHerd->generate(INITIAL_ANIMALS_COUNT, INITIAL_HERD_SPREAD);
+    mHerd->generate( ANIMAL_LENGTH, INITIAL_ANIMALS_COUNT, INITIAL_HERD_SPREAD, INITIAL_COLLAR_PERCENTAGE);
 
     // create scene
     mScene = new Scene(this);
     mScene->setSceneRect(-INITIAL_MEDDOW_SIZE, -INITIAL_MEDDOW_SIZE, 2*INITIAL_MEDDOW_SIZE, 2*INITIAL_MEDDOW_SIZE);
-    mScene->create(INITIAL_ANIMALS_COUNT);
+    mScene->create( INITIAL_ANIMALS_COUNT, mHerd->collarsCount() * mHerd->count() );
     mScene->update(mHerd, true, INITIAL_HERD_SPREAD);
 
     mSceneView = new SceneView(mScene, this);
@@ -44,6 +44,9 @@ void MainWindow::onUpdate()
                   ANIMAL_COLLIDING_DISTANCE,
                   ANIMAL_MAX_SPEED,
                   ANIMAL_MAX_FRICTION,
-                  ANIMAL_ROTATION_FADING );
+                  ANIMAL_ROTATION_FADING,
+                  BOLUS_TRANSMIT_DISTANCE,
+                  qDegreesToRadians(BOLUS_TRANSMIT_ANGLE)
+                  );
     mScene->update(mHerd);
 }

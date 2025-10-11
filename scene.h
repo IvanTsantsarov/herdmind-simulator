@@ -10,13 +10,14 @@ class Herd;
 class Scene : public QGraphicsScene
 {
     QVector<QGraphicsPolygonItem*> mItems;
+    QVector<QGraphicsLineItem*> mLines;
     QGraphicsPolygonItem* mItemSelected = nullptr;
 
     void clear();
 public:
     explicit Scene(QObject *parent = nullptr);
 
-    void create(int itemsCount);
+    void create(int itemsCount, int pairsCount);
     void update(Herd* herd, bool isSetColor = false, float diameter = 0.0f );
 
 

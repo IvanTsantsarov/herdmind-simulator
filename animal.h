@@ -13,21 +13,33 @@ class Animal {
 
     QVector2D mPosition;
     QVector2D mVelocity;
+    QVector2D mDirection;
     float mRotationAngle = 0.0f;
-    float mRotationAngleGoal = 0.0f;
 
+    void updateDirection();
 
 public:
 
     inline QVector2D& p(){ return mPosition; }
+    inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
     inline QVector2D& v(){ return mVelocity; }
-    void interact(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance);
-    bool collide(Animal* a, float minDistance );
+    float distanceSq(Animal* other);
+    void react(const QVector2D &p,
+                  float attractionPower,
+                  float attractionDistance,
+                  float repellingDistance);
+
+    // return true if info from bolus is sent to the animal
+    bool collide(Animal* a, float minCollideDistance);
     void updateSpeed(float maxSpeed, float friction, float rotationFading);
     inline float rotationAngle(){ return mRotationAngle; }
     inline QPointF point(){ return QPointF(mPosition.x(), mPosition.y()); }
 
-    Animal(float x, float y, bool isBolus, bool isCollar);
+    void putCollar();
+    bool hasCollar() const { return nullptr != mCollar; }
+    bool isSideVisible( Animal* a, float maxCosAngle );
+
+    Animal(float x, float y );
     ~Animal();
 };
 
