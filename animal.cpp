@@ -67,10 +67,8 @@ bool Animal::collide(Animal *a, float minCollideDistance  )
     mVelocity += vn * n;
     a->mVelocity -= vn * n;
 
-    mDirection = mVelocity.normalized();
-    a->mDirection = a->mVelocity.normalized();
-
     updateDirection();
+    a->updateDirection();
 
     return true;
 }

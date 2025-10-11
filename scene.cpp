@@ -12,7 +12,7 @@
 #define ITEM_PEN QPen(QColor(100, 100, 100, 100),  ITEM_PEN_WIDTH)
 #define ITEM_BRUSH QBrush(QColor(200, 100, 100, 100))
 
-#define PAIR_PEN QPen(QColor(100, 100, 100, 100),  ANIMAL_WIDTH)
+#define PAIR_PEN QPen(QColor(100, 100, 100, 100),  ITEM_PEN_WIDTH)
 
 #define ITEM_PEN_SEL QPen(QColor(100, 100, 100, 100), ITEM_PEN_WIDTH )
 #define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, 100))
