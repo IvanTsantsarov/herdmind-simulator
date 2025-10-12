@@ -95,6 +95,7 @@ void MainWindow::onUpdate()
                   qDegreesToRadians(ui->spinTransAngle->value())
                   );
     mScene->update(mHerd);
+    mSceneView->invalidateScene();
 
     for (int row = 0; row < mHerd->count(); row++) {
         Animal* a = mHerd->animal(row);
