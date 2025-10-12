@@ -1,17 +1,46 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include <QGraphicsScene>
 
+#include <QObject>
+#include <QPainter>
+#include <QGraphicsScene>
+#include <QGraphicsPolygonItem>
+
+class QStyleOptionGraphicsItem;
 class QGraphicsItem;
 
 class Herd;
 
+class AnimalItem : public QObject, public QGraphicsPolygonItem {
+    Q_OBJECT
+
+    float mScale = 0.0;
+public:
+    AnimalItem( const QPolygonF& poly) : QGraphicsPolygonItem(poly) {}
+    AnimalItem(const QRectF &rect, QGraphicsItem *parent = nullptr)
+        : QGraphicsPolygonItem(rect, parent) {}
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+    void startPulseAnimation();
+protected:
+    QVariant itemChange(GraphicsItemChange change, const QVariant &v) override {
+        if (change == ItemSelectedHasChanged) {
+            if (v.toBool()) startPulseAnimation();   // trigger when selected
+        }
+        return QGraphicsPolygonItem::itemChange(change, v);
+    }
+};
+
+
 class Scene : public QGraphicsScene
 {
-    QVector<QGraphicsPolygonItem*> mItems;
+    Q_OBJECT
+
+    QVector<AnimalItem*> mItems;
     QVector<QGraphicsLineItem*> mLines;
-    QGraphicsPolygonItem* mItemSelected = nullptr;
+    AnimalItem* mItemSelected = nullptr;
 
     void clear();
 public:
@@ -19,6 +48,8 @@ public:
 
     void create(int itemsCount, int pairsCount);
     void update(Herd* herd, bool isSetColor = false, float diameter = 0.0f );
+
+    void selectFigure(int index);
 
 
 public slots:

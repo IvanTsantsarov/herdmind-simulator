@@ -1,4 +1,6 @@
-#include <QGraphicsPolygonItem>
+#include <QStyleOptionGraphicsItem>
+#include <QVariantAnimation>
+
 #include "scene.h"
 #include "herd.h"
 #include "animal.h"
@@ -24,6 +26,9 @@ void Scene::clear()
         delete item;
     }
 
+    mItems.clear();
+    mLines.clear();
+
     mItemSelected = nullptr;
 }
 
@@ -43,14 +48,21 @@ void Scene::create(int itemsCount, int pairsCount )
     points.append(QPointF(ANIMAL_LENGTH, 0));
     QPolygonF triangle(points);
 
+    // Create animals figures
     mItems.reserve(itemsCount);
     for( auto i = 0; i < itemsCount; i ++) {
-        QGraphicsPolygonItem* item = addPolygon(triangle);
+        AnimalItem* item = new AnimalItem(triangle);
+        addItem(item);
         mItems.append(item);
+
+        item->setCacheMode(QGraphicsItem::NoCache);
         item->setPen(ITEM_PEN);
         item->setBrush(ITEM_BRUSH);
+        item->setFlag(QGraphicsItem::ItemIsSelectable, true);
+        item->setFlag(QGraphicsItem::ItemIsFocusable, false);
     }
 
+    // Create animals conenctions lines
     mLines.reserve(pairsCount);
     for( auto i = 0; i < pairsCount; i ++) {
         QGraphicsLineItem* line = addLine(0, 0, 1, 1, PAIR_PEN);
@@ -64,14 +76,14 @@ void Scene::update(Herd *herd, bool isSetColor, float diameter )
     for( auto i = 0; i < mItems.count(); i++) {
         QGraphicsPolygonItem* item = mItems[i];
         Animal* animal = herd->animal(i);
-        item->setPos(animal->point());
+        item->setPos(animal->pt());
 
         item->setRotation( qRadiansToDegrees(animal->rotationAngle()));
 
         if( isSetColor ) {
 
-            int cx = (animal->point().x() + diameter * 0.5f) / diameter * 255;
-            int cy = (animal->point().y() + diameter * 0.5f) / diameter * 255;
+            int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 255;
+            int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 255;
 
             QColor col(cx, 100, cy, 100);
             item->setBrush(col);
@@ -91,21 +103,35 @@ void Scene::update(Herd *herd, bool isSetColor, float diameter )
     int activatedLine = 0;
     foreach(Herd::AnimalPair pair, pairs) {
         QGraphicsLineItem* line = mLines[activatedLine++];
-        line->setLine(QLineF(pair.first()->pt(), pair.second()->pt()));
+        line->setLine(QLineF(pair.bolusAnimal()->pt(), pair.collarAnimal()->pt()));
         line->show();
     }
 
 }
 
+void Scene::selectFigure(int index)
+{
+    clearSelection();
+    clearFocus();
+
+    if( mItemSelected ) {
+        mItemSelected->setSelected(false);
+    }
+
+    if( index >= mItems.length() ) {
+        return;
+    }
+
+    AnimalItem* item = mItems[index];
+
+    mItemSelected = item;
+    mItemSelected->setSelected(true);
+
+    mItemSelected->ensureVisible();
+}
+
 void Scene::onFigurePick(QGraphicsPolygonItem *item, QPointF pos)
 {
-    if( mItemSelected ) {
-        mItemSelected->setPen(ITEM_PEN);
-        mItemSelected->setBrush(ITEM_BRUSH);
-    }
-    mItemSelected = item;
-    mItemSelected->setPen(ITEM_PEN_SEL);
-    mItemSelected->setBrush(ITEM_BRUSH_SEL);
 }
 
 void Scene::onFigureMove(QGraphicsPolygonItem *item, QPointF pos)
@@ -116,4 +142,52 @@ void Scene::onFigureMove(QGraphicsPolygonItem *item, QPointF pos)
 void Scene::onFigureDrop(QGraphicsPolygonItem *item, QPointF pos)
 {
 
+}
+
+void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+
+    QStyleOptionGraphicsItem opt(*option);
+    opt.state &= ~QStyle::State_Selected;   // suppress default selection outline
+    opt.state &= ~QStyle::State_HasFocus;   // suppress focus cue
+    QGraphicsPolygonItem::paint(painter, &opt, widget);
+
+    if (isSelected()) {
+        painter->save();
+
+        // Draw a custom selection border
+        QPen pen(Qt::blue);
+        pen.setWidthF(2.0);
+        pen.setCosmetic(true);            // keep width independent of zoom
+        pen.setStyle(Qt::SolidLine);    // any style you like
+        painter->setPen(pen);
+
+        const QRectF br = polygon().boundingRect();
+        const QPointF c = br.center();
+
+        painter->translate(c);
+        painter->scale(1.0 + mScale, 1.0 + mScale);
+        painter->translate(-c);
+
+        // painter->setPen(QPen(Qt::blue, ITEM_PEN_WIDTH));
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(boundingRect());
+
+        painter->restore();
+    }
+}
+
+void AnimalItem::startPulseAnimation() {
+    auto *anim = new QVariantAnimation(this);
+    anim->setDuration(1000); // ms
+    anim->setStartValue(1.0);
+    anim->setKeyValueAt(0.5, 0.0); // fade out mid-way
+    anim->setEndValue(1.0);        // fade back in
+    anim->setEasingCurve(QEasingCurve::InOutSine);
+
+    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &v) {
+        mScale = v.toReal();
+        update();
+    });
+    connect(anim, &QVariantAnimation::finished, anim, &QObject::deleteLater);
+    anim->start();
 }

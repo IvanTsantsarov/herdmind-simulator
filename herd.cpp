@@ -13,13 +13,19 @@ void Herd::clear()
         delete a;
     }
     mAnimals.clear();
+    mInfoPairs.clear();
 }
 
 Herd::Herd(QObject *parent)
     : QObject{parent}
 {}
 
-void Herd::generate(float animalSize, int count, int areaDimeter, int percentageCollars)
+Herd::~Herd()
+{
+    clear();
+}
+
+void Herd::generate(int count, float animalSize, int areaDimeter, int percentageCollars)
 {
     clear();
 
@@ -76,6 +82,10 @@ void Herd::update( QPointF* attractor,
     float animalSzSq = mAnimalSize * mAnimalSize * 0.25f;
 
     foreach(Animal* a, mAnimals) {
+
+        // clear observers list
+        a->clearObservers();
+        a->clearObserving();
 
         // interact
         if( attractor ) {
@@ -139,7 +149,7 @@ void Herd::update( QPointF* attractor,
 
                 // add it to pairs if directly visible
                 if(  !isIntersection ) {
-                    mInfoPairs.append( ap );
+                    ap.appendTo( mInfoPairs );
                 }
             }
         }
@@ -153,9 +163,10 @@ void Herd::update( QPointF* attractor,
 
 
 
-Herd::AnimalPair::AnimalPair(Animal *a1, Animal *a2) : mA1(a1), mA2(a2)
+Herd::AnimalPair::AnimalPair(Animal *collarAnimal, Animal *bolusAnimal) :
+    mCollarAnimal(collarAnimal), mBolusAnimal(bolusAnimal)
 {
-    mLine = QLineF(a1->pt(), a2->pt());
+    mLine = QLineF(collarAnimal->pt(), bolusAnimal->pt());
 }
 
 float Herd::AnimalPair::distanceSqToLine(const QPointF &pt)
@@ -177,4 +188,11 @@ float Herd::AnimalPair::distanceSqToLine(const QPointF &pt)
     float dx = pt.x() - proj.x();
     float dy = pt.y() - proj.y();
     return dx * dx + dy * dy;
+}
+
+void Herd::AnimalPair::appendTo(QList<AnimalPair> &ls)
+{
+    mBolusAnimal->addObserver(mCollarAnimal);
+    mCollarAnimal->addObserving(mBolusAnimal);
+    ls.append(*this);
 }

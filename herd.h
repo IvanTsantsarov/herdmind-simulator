@@ -10,18 +10,21 @@ class Animal;
 class Herd : public QObject
 {
 public:
+
     class AnimalPair {
-        Animal* mA1  = nullptr;
-        Animal* mA2 = nullptr;
+        Animal* mCollarAnimal  = nullptr;
+        Animal* mBolusAnimal = nullptr;
         QLineF mLine;
     public:
-        AnimalPair( Animal* a1, Animal* a2);
-        Animal* first(){ return mA1;};
-        Animal* second() { return mA2; }
+        AnimalPair( Animal* collarAnimal, Animal* bolusAnimal);
+        Animal* collarAnimal(){ return mCollarAnimal;};
+        Animal* bolusAnimal() { return mBolusAnimal; }
         float distanceSqToLine(const QPointF& pt);
+        void appendTo(QList<AnimalPair>& ls);
     };
 
     typedef QList<AnimalPair> PairsList;
+
 
 private:
     Q_OBJECT
@@ -38,7 +41,8 @@ private:
 
 public:
     explicit Herd(QObject *parent = nullptr);
-    void generate(float animalSize, int count, int areaDimeter, int percentageCollars);
+    ~Herd();
+    void generate(int count, float animalSize, int areaDimeter, int percentageCollars);
     void update(QPointF *attractor,
                 float attractorPower,
                 float attractionDistance,

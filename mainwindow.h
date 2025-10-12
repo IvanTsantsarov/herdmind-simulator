@@ -18,8 +18,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    Scene* mScene;
-    Herd* mHerd;
+    Scene* mScene = nullptr;
+    Herd* mHerd = nullptr;
     QTimer mUpdateTimer;
     SceneView* mSceneView;
 
@@ -32,5 +32,7 @@ private:
 private slots:
 
     void onUpdate();
+    void on_btnGenerate_clicked();
+    void onRowClicked(int row, int column);
 };
 #endif // MAINWINDOW_H

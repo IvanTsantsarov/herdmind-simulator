@@ -26,7 +26,6 @@ void SceneView::mousePressEvent(QMouseEvent *event)
 
     switch(event->button()) {
     case Qt::LeftButton:
-        setCursor(Qt::ClosedHandCursor);
         mIsLeftPress = true;
         mLeftPosStart = mLeftPos = mapToScene(pt);
         break;
@@ -36,6 +35,7 @@ void SceneView::mousePressEvent(QMouseEvent *event)
         mRightPosStart = mRightPos = mapToScene(pt);
         break;
     case Qt::MiddleButton:
+        setCursor(Qt::ClosedHandCursor);
         mIsMiddlePress = true;
         mMiddlePosStart = mMiddlePos = mapToScene(pt);
         break;
@@ -62,13 +62,6 @@ void SceneView::mouseMoveEvent(QMouseEvent *event)
     if( mIsLeftPress )  {
 
         mLeftPos = mapToScene(pt);
-        float dx = mLeftPos.x() - mLeftPosStart.x();
-        float dy = mLeftPos.y() - mLeftPosStart.y();
-
-        mLeftPosStart = mLeftPos;
-
-        translate(dx, dy);
-        event->accept();
     }
     if( mIsRightPress ) {
         mRightPos = mapToScene(pt);
@@ -76,6 +69,15 @@ void SceneView::mouseMoveEvent(QMouseEvent *event)
 
     if( mIsMiddlePress ) {
         mMiddlePos = mapToScene(pt);
+
+        float dx = mLeftPos.x() - mLeftPosStart.x();
+        float dy = mLeftPos.y() - mLeftPosStart.y();
+
+        mMiddlePosStart = mMiddlePos;
+
+        translate(dx, dy);
+        event->accept();
+
     }
 
      QGraphicsView::mouseMoveEvent(event);

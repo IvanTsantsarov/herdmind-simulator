@@ -2,6 +2,7 @@
 #define ANIMAL_H
 
 #include <QVector2D>
+#include <QList>
 
 class Bolus;
 class Collar;
@@ -18,6 +19,10 @@ class Animal {
 
     void updateDirection();
 
+    // count of the animals with collars that sees this animal
+    QList<Animal*> mObservers;
+    QList<Animal*> mObserving;
+
 public:
 
     inline QVector2D& p(){ return mPosition; }
@@ -33,11 +38,18 @@ public:
     bool collide(Animal* a, float minCollideDistance);
     void updateSpeed(float maxSpeed, float friction, float rotationFading);
     inline float rotationAngle(){ return mRotationAngle; }
-    inline QPointF point(){ return QPointF(mPosition.x(), mPosition.y()); }
 
     void putCollar();
     bool hasCollar() const { return nullptr != mCollar; }
     bool isSideVisible( Animal* a, float maxCosAngle );
+
+    void clearObservers(){ mObservers.clear(); }
+    void addObserver(Animal* a){ mObservers.append(a); }
+    int observersCount(){ return mObservers.count(); }
+
+    void clearObserving(){ mObserving.clear(); }
+    void addObserving(Animal* a){ mObserving.append(a); }
+    int observingCount(){ return mObserving.count(); }
 
     Animal(float x, float y );
     ~Animal();
