@@ -99,18 +99,14 @@ void MainWindow::onUpdate()
     for (int row = 0; row < mHerd->count(); row++) {
         Animal* a = mHerd->animal(row);
 
-        // set position
         QTableWidgetItem *item = ui->table->item(row, 0);
-        item->setText( QString("%1, %2")
-                        .arg(a->pt().x(), 5, 'g', 2)
-                        .arg(a->pt().y(), 5, 'g', 2) );
-
+        item->setText( QString("%1").arg(a->observersCount()) );
         // set number of observers
         item = ui->table->item(row, 1);
-        item->setText( QString("%1").arg(mHerd->animal(row)->observersCount()) );
+        item->setText( QString("%1").arg(a->observingCount()) );
 
         item = ui->table->item(row, 2);
-        item->setText( QString("%1").arg(mHerd->animal(row)->observingCount()) );
+        item->setText( QString("%1").arg(0) );
 
         // set the color connected to number of readigs
         // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
@@ -143,20 +139,18 @@ void MainWindow::on_btnGenerate_clicked()
     ui->table->clear();
     for (int row = 0; row < mHerd->count(); row++) {
         Animal* a = mHerd->animal(row);
-        QTableWidgetItem *item = new QTableWidgetItem(QString("%1").arg(row));
+        QTableWidgetItem *item = new QTableWidgetItem();
 
         // Set bold text and background color
-        if( a->hasCollar() ) {
-            item->setFont(boldFont);
-        }
-
-        // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
+        if( a->hasCollar() ) { item->setFont(boldFont); }
         ui->table->setItem(row, 0, item);
 
         item = new QTableWidgetItem(QString(""));
+        if( a->hasCollar() ) { item->setFont(boldFont); }
         ui->table->setItem(row, 1, item);
 
         item = new QTableWidgetItem(QString(""));
+        if( a->hasCollar() ) { item->setFont(boldFont); }
         ui->table->setItem(row, 2, item);
     }
 

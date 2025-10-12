@@ -1,0 +1,6 @@
+// set position
+/*
+item->setText( QString("%1, %2")
+                .arg(a->pt().x(), 5, 'g', 2)
+                .arg(a->pt().y(), 5, 'g', 2) );
+*/

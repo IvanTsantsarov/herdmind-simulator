@@ -111,6 +111,12 @@
                <property name="toolTip">
                 <string>Animals count</string>
                </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>1000</number>
+               </property>
               </widget>
              </item>
              <item row="3" column="0">
