@@ -98,16 +98,16 @@ void MainWindow::onUpdate()
     mSceneView->invalidateScene();
 
     for (int row = 0; row < mHerd->count(); row++) {
-        Animal* a = mHerd->animal(row);
+        Animal* animal = mHerd->animal(row);
 
         QTableWidgetItem *item = ui->table->item(row, 0);
-        item->setText( QString("%1").arg(a->observersCount()) );
+        item->setText( QString("%1").arg(animal->observersCount()) );
         // set number of observers
         item = ui->table->item(row, 1);
-        item->setText( QString("%1").arg(a->observingCount()) );
+        item->setText( QString("%1").arg(animal->observingCount()) );
 
         item = ui->table->item(row, 2);
-        item->setText( QString("%1").arg(0) );
+        item->setText( QString("%1").arg(animal->readings()) );
 
         // set the color connected to number of readigs
         // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
@@ -177,6 +177,13 @@ void MainWindow::on_btnGenerate_clicked()
 
 void MainWindow::onRowClicked(int row, int column)
 {
+    (void)column;
     mScene->selectFigure(row);
+}
+
+
+void MainWindow::on_checkShepard_toggled(bool checked)
+{
+    mHerd->activateShepherd(checked);
 }
 

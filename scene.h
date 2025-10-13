@@ -42,6 +42,8 @@ class Scene : public QGraphicsScene
     QVector<QGraphicsLineItem*> mLines;
     AnimalItem* mItemSelected = nullptr;
 
+    QGraphicsEllipseItem* mAttractor = nullptr;
+
     void clear();
 public:
     explicit Scene(QObject *parent = nullptr);

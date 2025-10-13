@@ -14,6 +14,23 @@ void Animal::updateDirection()
 
 }
 
+void Animal::onThisBolusSent(void *package)
+{
+    foreach( Animal* animal, mObservers) {
+        animal->onOtherBolusData(package, this);
+    }
+}
+
+void Animal::onThisCollarSent(void *package)
+{
+
+}
+
+void Animal::onOtherBolusData(void *package, Animal* from)
+{
+    from->mReadings ++;
+}
+
 float Animal::distanceSq(Animal *other)
 {
     float dx = mPosition.x() - other->mPosition.x();
@@ -75,6 +92,9 @@ bool Animal::collide(Animal *a, float minCollideDistance  )
 
 void Animal::updateSpeed(float maxSpeed, float friction, float rotationFading)
 {
+    // TODO: use it someday for smooth rotation
+    (void) rotationFading;
+
     if( mVelocity.length() > maxSpeed) {
         mVelocity = mVelocity.normalized() * maxSpeed;
     }
@@ -106,7 +126,7 @@ Animal::Animal(float x, float y )
     mVelocity = QVector2D(0, 0);
     mDirection = QVector2D(1, 0);
 
-    mBolus = new Bolus();
+    mBolus = new Bolus(this);
 }
 
 Animal::~Animal()

@@ -5,8 +5,14 @@
 
 static uint32_t COLLAR_ID = 1000;
 
+#ifdef SIMULATION
+class Animal;
+#endif
+
+
 class Collar
 {
+public:
     struct Package {
 
 #ifdef SIMULATION
@@ -18,12 +24,29 @@ class Collar
 #endif
     };
 
+private:
+#ifdef SIMULATION
+    Animal* mAnimal;
+#else
+    Collar();
+#endif
+
     Package mPackage;
 
+    void onDataReceived(const char *data, int length);
 public:
     Collar();
-private:
-    void onDataReceived(const char *data, int length);
+
+#ifdef SIMULATION
+    Collar(Animal* animal)
+    {
+        mAnimal = animal;
+        Collar();
+    }
+#endif
+
+    bool sendPackage();
+
 };
 
 #endif // COLLAR_H

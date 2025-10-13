@@ -19,7 +19,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     scene.cpp \
-    sceneview.cpp
+    sceneview.cpp \
+    shepherd.cpp
 
 HEADERS += \
     animal.h \
@@ -31,7 +32,8 @@ HEADERS += \
     herd.h \
     mainwindow.h \
     scene.h \
-    sceneview.h
+    sceneview.h \
+    shepherd.h
 
 FORMS += \
     mainwindow.ui

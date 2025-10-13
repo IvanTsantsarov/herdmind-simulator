@@ -6,6 +6,7 @@
 #include <QLineF>
 
 class Animal;
+class Shepherd;
 
 class Herd : public QObject
 {
@@ -40,7 +41,8 @@ private:
 
     bool checkTransmitVisibility(AnimalPair& ap, float maxDistanceSq, float minTransmitAngleCos);
 
-
+    Shepherd* mShepherd = nullptr;
+    bool mIsShepherdActive = false;
 public:
     explicit Herd(QObject *parent = nullptr);
     ~Herd();
@@ -61,6 +63,10 @@ public:
     PairsList infoPairs() { return mInfoPairs; };
     inline int count(){ return mAnimals.count(); }
     int collarsCount(){ return mCollars.count(); }
+
+    void activateShepherd(bool is) { mIsShepherdActive = is; };
+    bool isShepherdActive() { return mShepherd && mIsShepherdActive; };
+    QPointF shepherdPos();;
 
 signals:
 };

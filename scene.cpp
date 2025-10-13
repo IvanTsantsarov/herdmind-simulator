@@ -19,6 +19,11 @@
 #define ITEM_PEN_SEL QPen(QColor(100, 100, 100, 100), ITEM_PEN_WIDTH )
 #define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, 100))
 
+
+#define ATTRACTOR_PEN QPen(QColor(200, 0, 0, 200),  ITEM_PEN_WIDTH)
+#define ATTRACTOR_BRUSH QBrush(QColor(200, 0, 0, 100))
+
+
 void Scene::clear()
 {
     foreach(QGraphicsItem * item, items()) {
@@ -69,10 +74,19 @@ void Scene::create(int itemsCount, int pairsCount )
         mLines.append(line);
         line->hide();
     }
+
+    mAttractor = addEllipse(0, 0, ANIMAL_LENGTH, ANIMAL_LENGTH, ATTRACTOR_PEN, ATTRACTOR_BRUSH );
 }
 
 void Scene::update(Herd *herd, bool isSetColor, float diameter )
 {
+    if( herd->isShepherdActive() ) {
+        mAttractor->show();
+        mAttractor->setPos(herd->shepherdPos());
+    }else {
+        mAttractor->hide();
+    }
+
     for( auto i = 0; i < mItems.count(); i++) {
         QGraphicsPolygonItem* item = mItems[i];
         Animal* animal = herd->animal(i);
@@ -132,16 +146,20 @@ void Scene::selectFigure(int index)
 
 void Scene::onFigurePick(QGraphicsPolygonItem *item, QPointF pos)
 {
+    (void)item;
+    (void)pos;
 }
 
 void Scene::onFigureMove(QGraphicsPolygonItem *item, QPointF pos)
 {
-
+    (void)item;
+    (void)pos;
 }
 
 void Scene::onFigureDrop(QGraphicsPolygonItem *item, QPointF pos)
 {
-
+    (void)item;
+    (void)pos;
 }
 
 void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {

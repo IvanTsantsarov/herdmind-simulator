@@ -1,6 +1,9 @@
 #include "bolus.h"
-#include "defines.h"
 #include "../tools.h"
+
+#ifdef SIMULATION
+#include "../../animal.h"
+#endif
 
 
 
@@ -8,8 +11,11 @@
 //////////////////////////////////////////////////////////////
 /// Simulation
 //////////////////////////////////////////////////////////////
-Bolus::Bolus() {}
 
+void Bolus::onTimer()
+{
+    process();
+}
 
 bool Bolus::readTemperature()
 {
@@ -27,6 +33,7 @@ bool Bolus::readMotion()
 
 bool Bolus::sendPackage()
 {
+    mAnimal->onThisBolusSent(&mPackage);
     return true;
 }
 

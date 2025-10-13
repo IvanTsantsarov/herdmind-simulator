@@ -34,5 +34,6 @@ private slots:
     void onUpdate();
     void on_btnGenerate_clicked();
     void onRowClicked(int row, int column);
+    void on_checkShepard_toggled(bool checked);
 };
 #endif // MAINWINDOW_H

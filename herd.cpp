@@ -1,6 +1,7 @@
 #include <QDebug>
 
 #include "herd.h"
+#include "shepherd.h"
 #include "hardware/tools.h"
 #include "animal.h"
 
@@ -19,15 +20,23 @@ void Herd::clear()
 
 Herd::Herd(QObject *parent)
     : QObject{parent}
-{}
+{
+
+}
 
 Herd::~Herd()
 {
+    if( mShepherd ) {
+        delete mShepherd;
+        mShepherd = nullptr;
+    }
     clear();
 }
 
 void Herd::generate(int count, float animalSize, int areaDimeter, int percentageCollars)
 {
+    srand(time(NULL));
+
     clear();
 
     mAnimalSize = animalSize;
@@ -39,15 +48,13 @@ void Herd::generate(int count, float animalSize, int areaDimeter, int percentage
 
     qDebug() << "Generating" << count << "herd in radius:" << areaRadius << "and" << collarsCount << "collars";
 
-    auto rnd = [&]() {
-        return areaDimeter * rand() / RAND_MAX - areaRadius;
-    };
+    mShepherd = new Shepherd(0.001f, areaRadius);
 
     // fill animals array
     mAnimals.reserve(count);
     for( auto i = 0; i < count; i ++) {
-        float x = rnd();
-        float y = rnd();
+        float x = Tools::rnd(-areaRadius, areaRadius);
+        float y = Tools::rnd(-areaRadius, areaRadius);
         mAnimals.append(new Animal(x, y));
     }
 
@@ -91,6 +98,15 @@ void Herd::update( QPointF* attractor,
         }
     }
 
+    // process shepherd if active
+    if( mIsShepherdActive ) {
+        QPointF pt = mShepherd->step();
+        QVector2D vectorShepherd(pt);
+        foreach(Animal* animal, mAnimals) {
+            animal->react(vectorShepherd, attractorPower, attractionDistance, repellingDistance);
+        }
+    }
+
     // process collision
     foreach(Animal* animal, mAnimals) {
 
@@ -112,7 +128,6 @@ void Herd::update( QPointF* attractor,
 
 
     float maxTransmitDistanceSq = maxTransmitDistance*maxTransmitDistance;
-
 
 
     // clear statistics lists
@@ -143,6 +158,15 @@ void Herd::update( QPointF* attractor,
             }
         }
     }
+}
+
+QPointF Herd::shepherdPos()
+{
+    if( !mShepherd) {
+        return QPointF(0, 0);
+    }
+
+    return mShepherd->lastPos();
 }
 
 

@@ -9,6 +9,9 @@ class Collar;
 
 class Animal {
 
+    friend class Bolus;
+    friend class Collar;
+
     Bolus* mBolus = nullptr;
     Collar* mCollar = nullptr;
 
@@ -22,6 +25,13 @@ class Animal {
     // count of the animals with collars that sees this animal
     QList<Animal*> mObservers;
     QList<Animal*> mObserving;
+
+    void onThisBolusSent(void* package);
+    void onThisCollarSent(void* package);
+    void onOtherBolusData(void* package, Animal* from);
+
+    // how many readings from other boluses
+    uint mReadings = 0;
 
 public:
 
@@ -53,6 +63,8 @@ public:
 
     Animal(float x, float y );
     ~Animal();
+
+    uint readings(){ return mReadings; }
 };
 
 #endif // ANIMAL_H

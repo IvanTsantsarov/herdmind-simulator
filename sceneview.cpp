@@ -39,6 +39,8 @@ void SceneView::mousePressEvent(QMouseEvent *event)
         mIsMiddlePress = true;
         mMiddlePosStart = mMiddlePos = mapToScene(pt);
         break;
+    default:
+        qDebug() << "Other mouse button pressed:" << event->button();
     }
 
      QGraphicsView::mousePressEvent(event);
@@ -50,6 +52,9 @@ void SceneView::mouseReleaseEvent(QMouseEvent *event)
     case Qt::LeftButton: setCursor(Qt::ArrowCursor); mIsLeftPress = false; break;
     case Qt::RightButton: setCursor(Qt::ArrowCursor); mIsRightPress = false; break;
     case Qt::MiddleButton: setCursor(Qt::ArrowCursor); mIsMiddlePress = false; break;
+    default:
+        qDebug() << "Other mouse button released:" << event->button();
+
     }
 
      QGraphicsView::mouseReleaseEvent(event);
