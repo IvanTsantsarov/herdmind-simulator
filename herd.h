@@ -17,8 +17,8 @@ public:
         QLineF mLine;
     public:
         AnimalPair( Animal* collarAnimal, Animal* bolusAnimal);
-        Animal* collarAnimal(){ return mCollarAnimal;};
-        Animal* bolusAnimal() { return mBolusAnimal; }
+        inline Animal* collarAnimal(){ return mCollarAnimal;};
+        inline Animal* bolusAnimal() { return mBolusAnimal; }
         float distanceSqToLine(const QPointF& pt);
         void appendTo(QList<AnimalPair>& ls);
     };
@@ -29,14 +29,16 @@ public:
 private:
     Q_OBJECT
 
-    QVector<Animal*> mAnimals;
+    QVector<Animal*> mAnimals, mCollars;
 
     PairsList mInfoPairs;
 
-    int mCollarsCount = 0;
     float mAnimalSize = 0;
+    float mAnimalHalfSizeSquared = 0;
 
     void clear();
+
+    bool checkTransmitVisibility(AnimalPair& ap, float maxDistanceSq, float minTransmitAngleCos);
 
 
 public:
@@ -58,7 +60,7 @@ public:
     inline Animal* animal(int index){ return mAnimals[index]; }
     PairsList infoPairs() { return mInfoPairs; };
     inline int count(){ return mAnimals.count(); }
-    int collarsCount(){ return mCollarsCount; }
+    int collarsCount(){ return mCollars.count(); }
 
 signals:
 };

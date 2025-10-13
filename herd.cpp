@@ -13,6 +13,7 @@ void Herd::clear()
         delete a;
     }
     mAnimals.clear();
+    mCollars.clear();
     mInfoPairs.clear();
 }
 
@@ -30,36 +31,40 @@ void Herd::generate(int count, float animalSize, int areaDimeter, int percentage
     clear();
 
     mAnimalSize = animalSize;
+    mAnimalHalfSizeSquared = mAnimalSize * mAnimalSize * 0.25f;
 
-    mCollarsCount = count * percentageCollars / 100;
+    int collarsCount = count * percentageCollars / 100;
 
     float areaRadius = areaDimeter * 0.5;
 
-    qDebug() << "Generating" << count << "herd in radius:" << areaRadius << "and" << mCollarsCount << "collars";
+    qDebug() << "Generating" << count << "herd in radius:" << areaRadius << "and" << collarsCount << "collars";
 
     auto rnd = [&]() {
         return areaDimeter * rand() / RAND_MAX - areaRadius;
     };
 
+    // fill animals array
     mAnimals.reserve(count);
-
     for( auto i = 0; i < count; i ++) {
         float x = rnd();
         float y = rnd();
         mAnimals.append(new Animal(x, y));
     }
 
-    for( int i = 0; i < mCollarsCount; i ++) {
+    // fill animals with collar array
+    mCollars.reserve(collarsCount);
+    for( int i = 0; i < collarsCount; i ++) {
         int indexCollar = Tools::rnd(0, count);
-        Animal* a = mAnimals[indexCollar];
-        while(a->hasCollar()) {
+        Animal* animal = mAnimals[indexCollar];
+        while(animal->hasCollar()) {
             indexCollar ++;
             if( indexCollar >= count) {
                 indexCollar = 0;
             }
-            a = mAnimals[indexCollar];
+            animal = mAnimals[indexCollar];
         }
-        a->putCollar();
+        animal->putCollar();
+        mCollars.append(animal);
     }
 }
 
@@ -79,88 +84,109 @@ void Herd::update( QPointF* attractor,
 
     mInfoPairs.clear();
 
-    float animalSzSq = mAnimalSize * mAnimalSize * 0.25f;
-
-    foreach(Animal* a, mAnimals) {
-
-        // clear observers list
-        a->clearObservers();
-        a->clearObserving();
-
-        // interact
-        if( attractor ) {
-            a->react(vectAttr, attractorPower, attractionDistance, repellingDistance);
+    // process attractor force if available
+    if( attractor ) {
+        foreach(Animal* animal, mAnimals) {
+            animal->react(vectAttr, attractorPower, attractionDistance, repellingDistance);
         }
+    }
+
+    // process collision
+    foreach(Animal* animal, mAnimals) {
 
         // collide
-        foreach(Animal* other, mAnimals) {
-            if( other == a ) {
+        foreach(Animal* otherAnimal, mAnimals) {
+            // avoid collision with itself
+            if( otherAnimal == animal ) {
                 continue;
             }
 
-            float distanceOther = a->distanceSq(other);
-            QVector2D lookOther = a->p() - other->p();
-            lookOther.normalize();
-
-            other->collide(a, collidingDistance );
-
-            if( a->hasCollar() ) {
-                AnimalPair ap = AnimalPair(a, other);
-
-                if( distanceOther > maxTransmitDistance*maxTransmitDistance ) {
-                    continue;
-                }
-
-                if( !a->isSideVisible(other, minTransmitAngleCos ) ) {
-                    continue;
-                }
-
-                bool isIntersection = false;
-
-                // check weather the animal's bolus is directly visible by the collar
-                // without intersection with other animals
-                foreach(Animal* intersect, mAnimals) {
-                    if( intersect == a || intersect == other) {
-                        continue;
-                    }
-
-                    if( distanceOther < a->distanceSq(intersect) ) {
-                        continue;
-                    }
-
-                    if( !a->isSideVisible(intersect, minTransmitAngleCos ) ) {
-                        continue;
-                    }
-
-                    QVector2D lookIntersect = a->p() - intersect->p();
-                    lookIntersect.normalize();
-
-                    float dot = QVector2D::dotProduct(lookOther, lookIntersect);
-                    float cross = lookOther.x()*lookIntersect.x() - lookOther.y()*lookIntersect.x();
-                    float angle = std::atan2(cross, dot);
-                    if (angle < 0)
-                        angle += static_cast<float>(M_PI * 2); // make it in range 0..pi
-
-                    if( (angle < M_PI) && (ap.distanceSqToLine(intersect->pt()) < animalSzSq) ) {
-                        isIntersection = true;
-                        break;
-                    }
-                }
-
-                // add it to pairs if directly visible
-                if(  !isIntersection ) {
-                    ap.appendTo( mInfoPairs );
-                }
-            }
+            otherAnimal->collide(animal, collidingDistance );
         }
     }
 
-    // update speed
-    foreach(Animal* a, mAnimals) {
-        a->updateSpeed(maxSpeed, friction, rotationFading);
+    // update speed after attraction and collision
+    foreach(Animal* animal, mAnimals) {
+        animal->updateSpeed(maxSpeed, friction, rotationFading);
+    }
+
+
+    float maxTransmitDistanceSq = maxTransmitDistance*maxTransmitDistance;
+
+
+
+    // clear statistics lists
+    foreach(Animal* animal, mAnimals) {
+        animal->clearObservers();
+        animal->clearObserving();
+    }
+
+    // update boluses visibilities for all animals with collars
+    foreach(Animal* animal, mCollars) {
+
+        foreach(Animal* otherAnimal, mAnimals) {
+
+            float distanceOtherSq = animal->distanceSq(otherAnimal);
+
+            if( distanceOtherSq > maxTransmitDistanceSq ) {
+                continue;
+            }
+
+            if( !animal->isSideVisible(otherAnimal, minTransmitAngleCos ) ) {
+                continue;
+            }
+
+            // add it to pairs if directly visible
+            AnimalPair ap(animal, otherAnimal);
+            if(  checkTransmitVisibility(ap, distanceOtherSq, minTransmitAngleCos) ) {
+                ap.appendTo( mInfoPairs );
+            }
+        }
     }
 }
 
+
+bool Herd::checkTransmitVisibility(AnimalPair& ap, float maxDistanceSq, float minTransmitAngleCos)
+{
+    QVector2D look = ap.collarAnimal()->p() - ap.bolusAnimal()->p();
+    look.normalize();
+
+    // check weather the animal's bolus is directly visible by the collar
+    // without intersection with other animals
+    foreach(Animal* intersect, mAnimals) {
+        // skip both animals from the pair
+        if( intersect == ap.collarAnimal() || intersect == ap.bolusAnimal()) {
+            continue;
+        }
+
+        // check if it's too far
+        if( maxDistanceSq < ap.collarAnimal()->distanceSq(intersect) ) {
+            continue;
+        }
+
+        // check angle of view
+        if( !ap.collarAnimal()->isSideVisible(intersect, minTransmitAngleCos ) ) {
+            continue;
+        }
+
+        // test for the intersection with the line of vision
+        QVector2D lookIntersect = ap.collarAnimal()->p() - intersect->p();
+        lookIntersect.normalize();
+
+        float dot = QVector2D::dotProduct(look, lookIntersect);
+        float cross = look.x()*lookIntersect.x() - look.y()*lookIntersect.x();
+        float angle = std::atan2(cross, dot);
+        if (angle < 0)
+            angle += static_cast<float>(M_PI * 2); // make it in range 0..pi
+
+        if( (angle < M_PI) && (ap.distanceSqToLine(intersect->pt()) < mAnimalHalfSizeSquared) ) {
+            // animal pair is obscured by this animal
+            return false;
+        }
+    }
+
+    return true;
+}
 
 
 Herd::AnimalPair::AnimalPair(Animal *collarAnimal, Animal *bolusAnimal) :

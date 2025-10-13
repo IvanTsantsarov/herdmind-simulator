@@ -156,7 +156,7 @@ void MainWindow::on_btnGenerate_clicked()
     }
 
     QStringList hHeader;
-    hHeader << "Pos" << "Mas" << "Sl";
+    hHeader << "Seen by" << "Seeing" << "Readings";
     ui->table->setHorizontalHeaderLabels(hHeader);
 
 
