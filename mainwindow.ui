@@ -77,7 +77,37 @@
            </size>
           </property>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="2" column="0">
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkShepard">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Shepard</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLineEdit" name="editTime">
+               <property name="font">
+                <font>
+                 <pointsize>14</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="5" column="0">
             <layout class="QFormLayout" name="formLayout_5">
              <item row="1" column="0">
               <widget class="QLabel" name="label_3">
@@ -161,21 +191,21 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="0">
+           <item row="2" column="0">
             <widget class="QPushButton" name="btnGenerate">
              <property name="text">
               <string>Generate Herd</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkShepard">
-             <property name="text">
-              <string>Shepard</string>
-             </property>
-            </widget>
-           </item>
           </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkParams">
+          <property name="text">
+           <string>Parameters</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -507,7 +537,7 @@
      <x>0</x>
      <y>0</y>
      <width>442</width>
-     <height>26</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>

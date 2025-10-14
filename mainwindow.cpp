@@ -67,51 +67,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->table, &QTableWidget::cellClicked,
             this, &MainWindow::onRowClicked);
 
+
+    ui->widgetSim->setVisible(false);
     showMaximized();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::onUpdate()
-{
-    if( !mHerd) {
-        return;
-    }
-
-    QPointF attractor = mSceneView->rightPos();
-
-    mHerd->update(mSceneView->isRightPress() ? &attractor : nullptr,
-                  ui->spinAttrPower ->value(),
-                  ui->spinAttrDist ->value(),
-                  ui->spinRepDist ->value(),
-                  ui->spinCollDist ->value(),
-                  ui->spinMaxSpeed ->value(),
-                  ui->spinFriction ->value(),
-                  ui->spinRotFad ->value(),
-                  ui->spinTransDist ->value(),
-                  qDegreesToRadians(ui->spinTransAngle->value())
-                  );
-    mScene->update(mHerd);
-    mSceneView->invalidateScene();
-
-    for (int row = 0; row < mHerd->count(); row++) {
-        Animal* animal = mHerd->animal(row);
-
-        QTableWidgetItem *item = ui->table->item(row, 0);
-        item->setText( QString("%1").arg(animal->observersCount()) );
-        // set number of observers
-        item = ui->table->item(row, 1);
-        item->setText( QString("%1").arg(animal->observingCount()) );
-
-        item = ui->table->item(row, 2);
-        item->setText( QString("%1").arg(animal->readings()) );
-
-        // set the color connected to number of readigs
-        // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
-    }
 }
 
 void MainWindow::on_btnGenerate_clicked()
@@ -122,11 +85,13 @@ void MainWindow::on_btnGenerate_clicked()
         mHerd = nullptr;
     }
 
+    ui->checkShepard->setChecked(false);
+
     mHerd = new Herd();
     mHerd->generate( ui->spinAnimalsCount->value(),
-                     ui->doubleSpinAnimalSize->value(),
-                     ui->doubleSpinArea->value(),
-                     ui->spinCollarsPercentage->value() );
+                    ui->doubleSpinAnimalSize->value(),
+                    ui->doubleSpinArea->value(),
+                    ui->spinCollarsPercentage->value() );
 
     // create scene
     mScene->create( ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count() );
@@ -173,7 +138,65 @@ void MainWindow::on_btnGenerate_clicked()
 
 
     // ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    mHerdTimer.start();
+
+    ui->checkShepard->setEnabled(true);
 }
+
+void MainWindow::onUpdate()
+{
+    if( !mHerd) {
+        return;
+    }
+
+    // display elapsed time from starting the simulation
+    int seconds = mHerdTimer.elapsed() / 1000;
+    int minutes = seconds / 60;
+    int hours = seconds / 3600;
+    int minutesInHours = hours * 60;
+    minutes -= minutesInHours;
+    seconds -= (minutesInHours + minutes)*60;
+
+
+    ui->editTime->setText(QString("%1:%2:%3")
+                              .arg(hours, 2, 10, '0')
+                              .arg(minutes, 2, 10, '0')
+                              .arg(seconds, 2, 10, '0'));
+
+    QPointF attractor = mSceneView->rightPos();
+
+    mHerd->update(mSceneView->isRightPress() ? &attractor : nullptr,
+                  ui->spinAttrPower ->value(),
+                  ui->spinAttrDist ->value(),
+                  ui->spinRepDist ->value(),
+                  ui->spinCollDist ->value(),
+                  ui->spinMaxSpeed ->value(),
+                  ui->spinFriction ->value(),
+                  ui->spinRotFad ->value(),
+                  ui->spinTransDist ->value(),
+                  qDegreesToRadians(ui->spinTransAngle->value())
+                  );
+    mScene->update(mHerd);
+    mSceneView->invalidateScene();
+
+    for (int row = 0; row < mHerd->count(); row++) {
+        Animal* animal = mHerd->animal(row);
+
+        QTableWidgetItem *item = ui->table->item(row, 0);
+        item->setText( QString("%1").arg(animal->observersCount()) );
+        // set number of observers
+        item = ui->table->item(row, 1);
+        item->setText( QString("%1").arg(animal->observingCount()) );
+
+        item = ui->table->item(row, 2);
+        item->setText( QString("%1").arg(animal->readings()) );
+
+        // set the color connected to number of readigs
+        // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
+    }
+}
+
 
 void MainWindow::onRowClicked(int row, int column)
 {
@@ -184,6 +207,15 @@ void MainWindow::onRowClicked(int row, int column)
 
 void MainWindow::on_checkShepard_toggled(bool checked)
 {
-    mHerd->activateShepherd(checked);
+    if( mHerd ) {
+        mHerd->activateShepherd(checked);
+    }
+}
+
+
+
+void MainWindow::on_checkParams_toggled(bool checked)
+{
+    ui->widgetSim->setVisible(checked);
 }
 

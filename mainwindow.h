@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QElapsedTimer>
 #include <QTimer>
 
 QT_BEGIN_NAMESPACE
@@ -22,6 +23,7 @@ class MainWindow : public QMainWindow
     Herd* mHerd = nullptr;
     QTimer mUpdateTimer;
     SceneView* mSceneView;
+    QElapsedTimer mHerdTimer;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -35,5 +37,6 @@ private slots:
     void on_btnGenerate_clicked();
     void onRowClicked(int row, int column);
     void on_checkShepard_toggled(bool checked);
+    void on_checkParams_toggled(bool checked);
 };
 #endif // MAINWINDOW_H

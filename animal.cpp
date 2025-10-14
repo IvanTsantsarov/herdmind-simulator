@@ -55,7 +55,8 @@ void Animal::react(const QVector2D &p, float attractionPower, float attractionDi
 
 bool Animal::collide(Animal *a, float minCollideDistance  )
 {
-    float distanceSqared = (a->p() - p()).lengthSquared();
+    QVector2D vecDist = a->p() - p();
+    float distanceSqared = vecDist.lengthSquared();
 
     // if both are too far - exit
     if( distanceSqared > (minCollideDistance*minCollideDistance)) {
@@ -68,7 +69,7 @@ bool Animal::collide(Animal *a, float minCollideDistance  )
         return false;
     }
 
-    QVector2D n = p() - a->p();
+    QVector2D n = -vecDist;
     QVector2D rv = v() - a->v();
 
     float len = n.length();

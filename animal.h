@@ -45,13 +45,13 @@ public:
                   float repellingDistance);
 
     // return true if info from bolus is sent to the animal
-    bool collide(Animal* a, float minCollideDistance);
+    bool collide(Animal* animal, float minCollideDistanceSq);
     void updateSpeed(float maxSpeed, float friction, float rotationFading);
     inline float rotationAngle(){ return mRotationAngle; }
 
     void putCollar();
     bool hasCollar() const { return nullptr != mCollar; }
-    bool isSideVisible( Animal* a, float maxCosAngle );
+    bool isSideVisible(Animal* animal, float maxCosAngle );
 
     void clearObservers(){ mObservers.clear(); }
     void addObserver(Animal* a){ mObservers.append(a); }
