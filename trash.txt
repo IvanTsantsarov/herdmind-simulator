@@ -4,3 +4,150 @@ item->setText( QString("%1, %2")
                 .arg(a->pt().x(), 5, 'g', 2)
                 .arg(a->pt().y(), 5, 'g', 2) );
 */
+
+
+// Non elastic collision
+bool Animal::collide(Animal *a, float minCollideDistance  )
+{
+    QVector2D vecDist = a->p() - p();
+    float distanceSqared = vecDist.lengthSquared();
+
+    // if both are too far - exit
+    if( distanceSqared > (minCollideDistance*minCollideDistance)) {
+        return false;
+    }
+
+    // if both not approaching to each other
+    float distanceNext = ((a->p()+a->v()) - (p()+v())).lengthSquared();
+    if( distanceNext > distanceSqared ) {
+        return false;
+    }
+
+    QVector2D n = -vecDist;
+    QVector2D rv = v() - a->v();
+
+    float len = n.length();
+    if (len <= MIN_FLOAT) {
+        float rvLen = rv.length();
+        if (rvLen <= MIN_FLOAT) return false;
+        n = rv / rvLen;
+    } else {
+        n /= len;
+    }
+
+    float vn = -QVector2D::dotProduct(rv, n);
+    mVelocity += vn * n;
+    a->mVelocity -= vn * n;
+
+    updateDirection();
+    a->updateDirection();
+
+    return true;
+}
+
+
+bool Herd::checkTransmitVisibility(AnimalPair& ap, float maxDistanceSq, float minTransmitAngleCos)
+{
+    QVector2D look = ap.collarAnimal()->p() - ap.bolusAnimal()->p();
+    look.normalize();
+
+    // check weather the animal's bolus is directly visible by the collar
+    // without intersection with other animals
+    foreach(Animal* intersect, mAnimals) {
+        // skip both animals from the pair
+        if( intersect == ap.collarAnimal() || intersect == ap.bolusAnimal()) {
+            continue;
+        }
+
+        // check if it's too far
+        if( maxDistanceSq < ap.collarAnimal()->distanceSq(intersect) ) {
+            continue;
+        }
+
+        // check angle of view
+        if( !ap.collarAnimal()->isSideVisible(intersect, minTransmitAngleCos ) ) {
+            continue;
+        }
+
+        // test for the intersection with the line of vision
+        QVector2D lookIntersect = ap.collarAnimal()->p() - intersect->p();
+        lookIntersect.normalize();
+
+        float dot = QVector2D::dotProduct(look, lookIntersect);
+        float cross = look.x()*lookIntersect.x() - look.y()*lookIntersect.x();
+        float angle = std::atan2(cross, dot);
+        if (angle < 0)
+            angle += static_cast<float>(M_PI * 2); // make it in range 0..pi
+
+        if( (angle < M_PI) && (ap.distanceSqToLine(intersect->pt()) < mAnimalHalfSizeSquared) ) {
+            // animal pair is obscured by this animal
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool Herd::checkTransmitVisibility(AnimalPair& ap, float maxDistanceSq, float minTransmitAngleCos)
+{
+    QVector2D look = ap.collarAnimal()->p() - ap.bolusAnimal()->p();
+    look.normalize();
+
+    // check weather the animal's bolus is directly visible by the collar
+    // without intersection with other animals
+    foreach(Animal* intersect, mAnimals) {
+        // skip both animals from the pair
+        if( intersect == ap.collarAnimal() || intersect == ap.bolusAnimal()) {
+            continue;
+        }
+
+        // check if it's too far
+        if( maxDistanceSq < ap.collarAnimal()->distanceSq(intersect) ) {
+            continue;
+        }
+
+        // check angle of view
+        if( !ap.collarAnimal()->isSideVisible(intersect, minTransmitAngleCos ) ) {
+            continue;
+        }
+
+        // test for the intersection with the line of vision
+        QVector2D lookIntersect = ap.collarAnimal()->p() - intersect->p();
+        lookIntersect.normalize();
+
+        float dot = QVector2D::dotProduct(look, lookIntersect);
+        float cross = look.x()*lookIntersect.x() - look.y()*lookIntersect.x();
+        float angle = std::atan2(cross, dot);
+        if (angle < 0)
+            angle += static_cast<float>(M_PI * 2); // make it in range 0..pi
+
+        if( (angle < M_PI) && (ap.distanceSqToLine(intersect->pt()) < mAnimalHalfSizeSquared) ) {
+            // animal pair is obscured by this animal
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+
+
+// angle between two vectors
+float angle =  atan2(mDirection.x() * other->mDirection.y() - mDirection.y() * other->mDirection.x(),
+                    mDirection.x() * other->mDirection.x() + mDirection.y() * other->mDirection.y() );
+if (angle < 0)
+    angle += static_cast<float>(M_PI * 2); // make it in range 0..pi
+
+float collisionPower = 1.0f;
+
+QVector2D vectAdd = vecDist.normalized() * collisionPower;
+
+mVelocity += vectAdd;
+other->mVelocity  -= vectAdd;
+
+
+
+updateDirection();
+other->updateDirection();

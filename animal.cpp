@@ -7,10 +7,10 @@
 void Animal::updateDirection()
 {
     mDirection = mVelocity.normalized();
-    mRotationAngle = qAtan2(mDirection.y(), mDirection.x());
+    mRotationAngleTarget = qAtan2(mDirection.y(), mDirection.x());
 
-    if (mRotationAngle < 0)
-        mRotationAngle += static_cast<float>(M_PI * 2); // make it in range 0..pi
+    if (mRotationAngleTarget < 0)
+        mRotationAngleTarget += static_cast<float>(M_PI * 2); // make it in range 0..pi
 
 }
 
@@ -53,10 +53,11 @@ void Animal::react(const QVector2D &p, float attractionPower, float attractionDi
     updateDirection();
 }
 
-bool Animal::collide(Animal *a, float minCollideDistance  )
+bool Animal::collide(Animal *other, float minCollideDistance  )
 {
-    QVector2D vecDist = a->p() - p();
+    QVector2D vecDist = other->p() - p();
     float distanceSqared = vecDist.lengthSquared();
+
 
     // if both are too far - exit
     if( distanceSqared > (minCollideDistance*minCollideDistance)) {
@@ -64,29 +65,18 @@ bool Animal::collide(Animal *a, float minCollideDistance  )
     }
 
     // if both not approaching to each other
-    float distanceNext = ((a->p()+a->v()) - (p()+v())).lengthSquared();
+    float distanceNext = ((other->p()+other->v()) - (p()+v())).lengthSquared();
     if( distanceNext > distanceSqared ) {
         return false;
     }
 
-    QVector2D n = -vecDist;
-    QVector2D rv = v() - a->v();
+    // correct the position
+    mPosition = other->mPosition - vecDist.normalized() * minCollideDistance * 1.00001;
 
-    float len = n.length();
-    if (len <= MIN_FLOAT) {
-        float rvLen = rv.length();
-        if (rvLen <= MIN_FLOAT) return false;
-        n = rv / rvLen;
-    } else {
-        n /= len;
-    }
-
-    float vn = -QVector2D::dotProduct(rv, n);
-    mVelocity += vn * n;
-    a->mVelocity -= vn * n;
-
+    // change the direction
+    other->mVelocity = mVelocity = (mVelocity + other->mVelocity) * 0.5f;
     updateDirection();
-    a->updateDirection();
+    other->updateDirection();
 
     return true;
 }
@@ -100,6 +90,7 @@ void Animal::updateSpeed(float maxSpeed, float friction, float rotationFading)
         mVelocity = mVelocity.normalized() * maxSpeed;
     }
 
+    mRotationAngle = mRotationAngle + rotationFading * (mRotationAngleTarget - mRotationAngle);
     mVelocity *= (1.0f - friction);
     mPosition += mVelocity;
 }
@@ -108,6 +99,15 @@ void Animal::putCollar()
 {
     mCollar = new Collar();
 }
+
+bool Animal::isAhead(Animal *a, float maxCosAngle)
+{
+    // check for visibility range
+    QVector2D look( a->p() - p() );
+    look.normalize();
+    return fabs(QVector2D::dotProduct(mDirection, look)) > maxCosAngle;
+}
+
 
 bool Animal::isSideVisible(Animal *a, float maxCosAngle)
 {

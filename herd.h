@@ -43,6 +43,8 @@ private:
 
     Shepherd* mShepherd = nullptr;
     bool mIsShepherdActive = false;
+
+    bool processCollision(float collidingDistance);
 public:
     explicit Herd(QObject *parent = nullptr);
     ~Herd();
@@ -58,6 +60,8 @@ public:
                 float maxTransmitDistance,
                 float maxTransmitAngle
                 );
+
+
 
     inline Animal* animal(int index){ return mAnimals[index]; }
     PairsList infoPairs() { return mInfoPairs; };

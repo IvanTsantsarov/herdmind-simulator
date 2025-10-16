@@ -19,6 +19,7 @@ class Animal {
     QVector2D mVelocity;
     QVector2D mDirection;
     float mRotationAngle = 0.0f;
+    float mRotationAngleTarget = 0.0f;
 
     void updateDirection();
 
@@ -44,14 +45,17 @@ public:
                   float attractionDistance,
                   float repellingDistance);
 
-    // return true if info from bolus is sent to the animal
-    bool collide(Animal* animal, float minCollideDistanceSq);
+    // return true if info from bolus is sent to the other
+    bool collide(Animal* other, float minCollideDistance);
     void updateSpeed(float maxSpeed, float friction, float rotationFading);
     inline float rotationAngle(){ return mRotationAngle; }
+    inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 
     void putCollar();
     bool hasCollar() const { return nullptr != mCollar; }
-    bool isSideVisible(Animal* animal, float maxCosAngle );
+    bool isSideVisible(Animal *a, float maxCosAngle);
+    bool isAhead(Animal* animal, float maxCosAngle );
+
 
     void clearObservers(){ mObservers.clear(); }
     void addObserver(Animal* a){ mObservers.append(a); }

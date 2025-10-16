@@ -56,6 +56,7 @@ void Herd::generate(int count, float animalSize, int areaDimeter, int percentage
         float x = Tools::rnd(-areaRadius, areaRadius);
         float y = Tools::rnd(-areaRadius, areaRadius);
         mAnimals.append(new Animal(x, y));
+        processCollision(animalSize * 2.0f);
     }
 
     // fill animals with collar array
@@ -73,6 +74,26 @@ void Herd::generate(int count, float animalSize, int areaDimeter, int percentage
         animal->putCollar();
         mCollars.append(animal);
     }
+}
+
+bool Herd::processCollision(float collidingDistance)
+{
+    // process collision
+    bool isCollision = false;
+    foreach(Animal* animal, mAnimals) {
+         foreach(Animal* otherAnimal, mAnimals) {
+            // avoid collision with itself
+            if( otherAnimal == animal ) {
+                continue;
+            }
+
+            if( otherAnimal->collide(animal, collidingDistance ) ) {
+                isCollision = true;
+            }
+        }
+    }
+
+    return isCollision;
 }
 
 void Herd::update( QPointF* attractor,
@@ -108,17 +129,11 @@ void Herd::update( QPointF* attractor,
     }
 
     // process collision
-    foreach(Animal* animal, mAnimals) {
-
-        // collide
-        foreach(Animal* otherAnimal, mAnimals) {
-            // avoid collision with itself
-            if( otherAnimal == animal ) {
-                continue;
-            }
-
-            otherAnimal->collide(animal, collidingDistance );
-        }
+    int collisionCounter = 0;
+    while( processCollision(collidingDistance) ) {
+        if( ++collisionCounter > mAnimals.count() ) {
+            break;
+        };
     }
 
     // update speed after attraction and collision
@@ -147,15 +162,16 @@ void Herd::update( QPointF* attractor,
                 continue;
             }
 
-            if( !animal->isSideVisible(otherAnimal, minTransmitAngleCos ) ) {
+            if( !animal->isAhead(otherAnimal, minTransmitAngleCos ) ) {
                 continue;
             }
 
             // add it to pairs if directly visible
             AnimalPair ap(animal, otherAnimal);
-            if(  checkTransmitVisibility(ap, distanceOtherSq, minTransmitAngleCos) ) {
+            //if(  checkTransmitVisibility(ap, distanceOtherSq, minTransmitAngleCos) ) {
                 ap.appendTo( mInfoPairs );
-            }
+            //}
+
         }
     }
 }
