@@ -7,13 +7,14 @@
 void Animal::updateDirection()
 {
     mDirection = mVelocity.normalized();
-    mRotationAngleTarget = qAtan2(mDirection.y(), mDirection.x());
+    mRotationAngleTarget = qAtan2(mDirection.y(), mDirection.x()); // -pi..+pi
 
-    if (mRotationAngleTarget < 0)
-        mRotationAngleTarget += static_cast<float>(M_PI * 2); // make it in range 0..pi
+//    if (mRotationAngleTarget < 0)
+//        mRotationAngleTarget += static_cast<float>(M_PI * 2); // make it in range 0..pi
 
 }
 
+// When bolus from this animal sends a package
 void Animal::onThisBolusSent(void *package)
 {
     foreach( Animal* animal, mObservers) {
@@ -26,6 +27,7 @@ void Animal::onThisCollarSent(void *package)
 
 }
 
+// Count a package from other animal bolus
 void Animal::onOtherBolusData(void *package, Animal* from)
 {
     from->mReadings ++;

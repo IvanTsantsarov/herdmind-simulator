@@ -3,7 +3,12 @@
 
 #include <cstdint>
 
+
+// interval for reading the sensors
 #define BOLUS_UPDATE_INTERVAL 2000
+
+// interval for sending data to collars
+#define BOLUS_SEND_INTERVAL 20000
 
 #ifdef SIMULATION
 #include <QObject>
@@ -20,27 +25,40 @@ class Bolus
 {
 #endif
 
-public:
-    struct Package {
-
 #ifdef SIMULATION
-        // in simulation bolus id is generated here
-        uint32_t id = BOLUS_ID++;
+    // in simulation bolus id is generated here
+    uint32_t mId = BOLUS_ID++;
 #else
-        // in real mode id should be overwritten in defines.h by the programming script
-        uint32_t id;
+    // in real mode id should be overwritten in defines.h by the programming script
+    uint32_t mId;
 #endif
-        uint16_t seq;
-        int16_t t = 0;
-        int16_t ax = 0;
-        int16_t ay = 0;
-        int16_t az = 0;
+
+public:
+
+    enum Condition {
+        Unavailable = 1,
+        Unknown = 2,
+        Atony = 4,
+        Hypomotility = 8,
+        Hyperactivity = 16
+    };
+
+    // 8 bytes
+    struct Package {
+        uint32_t id = 0;    // bolus id
+        int16_t t = 0;      // temperature
+        uint8_t c = 0;      // condition flags - see Condition structure
+        uint8_t b = 0;      // battery level
     };
 
 private:
     Package mPackage;
 
+    uint16_t mSequence = 0;
+    uint8_t mCondition = 0;
     float mT = 0.0f, mAx  = 0.0f, mAy  = 0.0f, mAz  = 0.0f;
+
+    inline void setCondition(Condition cond){ mCondition |= (cond << 1); }
 
 #ifdef SIMULATION
     Animal* mAnimal = nullptr;
@@ -62,7 +80,6 @@ public:
         Bolus();
     };
 #endif
-
 
     bool readTemperature();
 

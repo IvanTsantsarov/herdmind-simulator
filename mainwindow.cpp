@@ -23,9 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->mainVerticalLayout->addWidget(mSceneView);
     mSceneView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    /// Table initialization
-    ui->table->setColumnCount(TABLE_COLS_COUNT);
-
+    // Table initialization
     ui->table->setAlternatingRowColors(true);
     ui->table->setStyleSheet("\
         QTableView { \
@@ -97,6 +95,7 @@ void MainWindow::on_btnGenerate_clicked()
     mScene->create( ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count() );
     mScene->update(mHerd, true, INITIAL_HERD_SPREAD);
 
+    ui->table->setColumnCount(TABLE_COLS_COUNT);
     ui->table->setRowCount(ui->spinAnimalsCount->value());
 
     QFont boldFont;

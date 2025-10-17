@@ -47,11 +47,8 @@ bool Bolus::sendPackage()
 
 void Bolus::preparePackage()
 {
-    mPackage.seq ++;
     mPackage.t = Tools::f2i16(mT, 100.f);
-    mPackage.ax = Tools::f2i16(mAx, 1000.f);
-    mPackage.ay = Tools::f2i16(mAy, 1000.f);
-    mPackage.az = Tools::f2i16(mAz, 1000.f);
+    mPackage.c = 0;
 }
 
 void Bolus::process()

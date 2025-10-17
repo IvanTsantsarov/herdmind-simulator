@@ -14,6 +14,7 @@ SOURCES += \
     animal.cpp \
     hardware/bolus/bolus.cpp \
     hardware/collar/collar.cpp \
+    hardware/gateway/gateway.cpp \
     hardware/tools.cpp \
     herd.cpp \
     main.cpp \
@@ -28,6 +29,7 @@ HEADERS += \
     hardware/bolus/includes.h \
     hardware/collar/collar.h \
     defines.h \
+    hardware/gateway/gateway.h \
     hardware/tools.h \
     herd.h \
     mainwindow.h \
