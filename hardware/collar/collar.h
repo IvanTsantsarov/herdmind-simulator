@@ -32,13 +32,22 @@ class Collar
     };
 
 public:
-    // 15 bytes
+    // 17 bytes
     struct PackageOut {
         uint32_t id;        // collar id
+        uint16_t seq;       // sequence
         int32_t longitude;  // positioning longitude
         int32_t latitude;   // positioning latitude
         uint8_t battery;    // battery level
-        uint16_t count;     // read boluses count
+        uint16_t count;     // boluses count (comming after this package)
+    };
+
+    // 8 bytes
+    struct PackageBolusOut {
+        uint32_t bolus_id;  // bolus id
+        uint16_t seq;       // sequence
+        uint8_t condition;  // see bolus.h
+        uint8_t battery;    // battery level
     };
 
     struct PackageIn {

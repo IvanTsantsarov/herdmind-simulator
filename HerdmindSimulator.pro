@@ -12,6 +12,7 @@ DEFINES += SIMULATION
 
 SOURCES += \
     animal.cpp \
+    hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/collar/collar.cpp \
     hardware/gateway/gateway.cpp \
@@ -25,6 +26,7 @@ SOURCES += \
 
 HEADERS += \
     animal.h \
+    hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
     hardware/collar/collar.h \

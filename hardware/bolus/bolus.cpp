@@ -1,4 +1,6 @@
+#include <bits/stdc++.h>
 #include "bolus.h"
+#include "accel.h"
 #include "../tools.h"
 
 #ifdef SIMULATION
@@ -16,7 +18,6 @@ void Bolus::onTimer()
 {
     process();
 }
-
 bool Bolus::readTemperature()
 {
     mT = Tools::rnd(36.5f,36.8f);
@@ -37,6 +38,7 @@ bool Bolus::sendPackage()
     return true;
 }
 
+
 #else
 //////////////////////////////////////////////////////////////
 /// Real conditions
@@ -44,6 +46,17 @@ bool Bolus::sendPackage()
 
 
 #endif // SIMULATION
+
+Bolus::Bolus()
+{
+    mAccel = new Accel();
+}
+
+Bolus::~Bolus()
+{
+    delete mAccel;
+}
+
 
 void Bolus::preparePackage()
 {
@@ -55,6 +68,22 @@ void Bolus::process()
 {
     readTemperature();
     readMotion();
+
+    mCondition = 0;
+    mAccel->addData(mAx, mAy, mAz);
+
+    if( mAccel->getPossibleAtony()) {
+        setCondition(Condition::Atony);
+    }
+
+    if( mAccel->getHyperactivity()) {
+        setCondition(Condition::Hyperactivity);
+    }
+
+    if( mAccel->getHypomotility()) {
+        setCondition(Condition::Hypomotility);
+    }
+
     preparePackage();
     sendPackage();
 }

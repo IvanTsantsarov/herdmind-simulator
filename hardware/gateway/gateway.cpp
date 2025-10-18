@@ -1,3 +1,6 @@
 #include "gateway.h"
 
-Gateway::Gateway() {}
+Gateway::Gateway()
+{
+
+}

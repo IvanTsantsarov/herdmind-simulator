@@ -24,16 +24,19 @@ public:
     };
 
     struct OutSubPackageBolus {
+        uint8_t battery;  // battery charge
         uint8_t status;
         int16_t temperature;
     };
 
     struct OutSubPackageCollarSmall {
+        uint8_t battery;  // battery charge
         int16_t lonDelta; // longitude delta from the cented of the herd
         int16_t latDelta; // latitude delta from the cented of the herd
     };
 
     struct OutSubPackageCollarBig {
+        uint8_t battery;  // battery charge
         uint32_t longitude; // full position longitue
         uint32_t latitude; // full position longitue
     };

@@ -3,7 +3,6 @@
 
 #include <cstdint>
 
-
 // interval for reading the sensors
 #define BOLUS_UPDATE_INTERVAL 2000
 
@@ -15,6 +14,7 @@
 #include <QTimer>
 
 class Animal;
+class Accel;
 static uint32_t BOLUS_ID = 1000;
 
 class Bolus : public QObject
@@ -46,6 +46,7 @@ public:
     // 8 bytes
     struct Package {
         uint32_t id = 0;    // bolus id
+        uint16_t s = 0;     // sequence
         int16_t t = 0;      // temperature
         uint8_t c = 0;      // condition flags - see Condition structure
         uint8_t b = 0;      // battery level
@@ -60,6 +61,8 @@ private:
 
     inline void setCondition(Condition cond){ mCondition |= (cond << 1); }
 
+    Accel* mAccel = nullptr;
+
 #ifdef SIMULATION
     Animal* mAnimal = nullptr;
     QTimer mTimer;
@@ -69,7 +72,8 @@ private slots:
 
 public:
 
-    Bolus() { };
+    Bolus();
+    ~Bolus();
 
 #ifdef SIMULATION
     Bolus(Animal* animal)
