@@ -1,19 +1,27 @@
 #include <QCoreApplication>
+#include "socketserver.h"
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QCoreApplication app(argc, argv);
 
-    // Set up code that uses the Qt event loop here.
-    // Call a.quit() or a.exit() to quit the application.
-    // A not very useful example would be including
-    // #include <QTimer>
-    // near the top of the file and calling
-    // QTimer::singleShot(5000, &a, &QCoreApplication::quit);
-    // which quits the application after 5 seconds.
+    quint16 port = AnimalServer::DEFAULT_PORT;
+    if (app.arguments().size() > 1) {
+        bool ok = false;
+        int p = app.arguments().at(1).toInt(&ok);
+        if (ok && p > 0 && p < 65536) port = static_cast<quint16>(p);
+    }
 
-    // If you do not need a running Qt event loop, remove the call
-    // to a.exec() or use the Non-Qt Plain C++ Application template.
+    AnimalServer server;
+    if (!server.Start(port, QHostAddress::Any)) {
+        qCritical() << "Failed to start AnimalServer on port" << port;
+        return 1;
+    }
 
-    return a.exec();
+    qInfo() << "AnimalServer running. Press Ctrl+C to stop.";
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, &server, [&server]() { server.Stop(); });
+
+    return app.exec();
 }
+
+
