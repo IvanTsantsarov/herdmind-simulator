@@ -40,4 +40,11 @@ private:
     QHostAddress mBindAddress;
     bool mRunning;
     QHash<QTcpSocket*, QThread*> mClientThreads;
+
+protected:
+
+    virtual void onEnter(QTcpSocket* socket) = 0;
+    virtual void onRead(QTcpSocket* socket) = 0;
+    virtual void onExit(QTcpSocket* socket) = 0;
+
 };

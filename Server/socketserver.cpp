@@ -73,29 +73,21 @@ void SocketServer::OnNewConnection() {
         socket->moveToThread(thread);
 
         // Wire up lifecycle and I/O (all run in the socket's thread)
-        connect(thread, &QThread::started, socket, [socket]() {
+        connect(thread, &QThread::started, socket, [this, socket]() {
             // Optional: per-socket initialization could go here
             // e.g., setSocketOption if needed
+            onEnter(socket);
             Q_UNUSED(socket);
         });
 
-        connect(socket, &QTcpSocket::readyRead, socket, [ socket]() {
+        connect(socket, &QTcpSocket::readyRead, socket, [ this, socket]() {
             // --- Replace this with your application protocol handling ---
-            QByteArray data = socket->read(READ_CHUNK_SIZE);
-            if (!data.isEmpty()) {
-                // Echo back
-                qint64 written = socket->write(data);
-                if (written < 0) {
-                    qWarning() << "Write error:" << socket->errorString();
-                    socket->disconnectFromHost();
-                } else {
-                    socket->flush();
-                }
-            }
+            onRead(socket);
         }, Qt::QueuedConnection);
 
-        connect(socket, &QTcpSocket::disconnected, socket, [ socket]() {
+        connect(socket, &QTcpSocket::disconnected, socket, [ this, socket]() {
             // Cleanup triggered from the socket's thread
+            onExit(socket);
             socket->deleteLater();
         }, Qt::QueuedConnection);
 
