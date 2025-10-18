@@ -76,12 +76,11 @@ public:
     ~Bolus();
 
 #ifdef SIMULATION
-    Bolus(Animal* animal)
+    Bolus(Animal* animal) : Bolus()
     {
         connect( &mTimer, &QTimer::timeout, this, &Bolus::onTimer );
         mTimer.start(BOLUS_UPDATE_INTERVAL);
         mAnimal = animal;
-        Bolus();
     };
 #endif
 

@@ -70,10 +70,9 @@ public:
     Collar();
 
 #ifdef SIMULATION
-    Collar(Animal* animal)
+    Collar(Animal* animal) : Collar()
     {
         mAnimal = animal;
-        Collar();
     }
 #endif
 
