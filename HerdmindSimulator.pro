@@ -22,7 +22,6 @@ SOURCES += \
     mainwindow.cpp \
     scene.cpp \
     sceneview.cpp \
-    server/server.cpp \
     shepherd.cpp
 
 HEADERS += \
@@ -38,7 +37,6 @@ HEADERS += \
     mainwindow.h \
     scene.h \
     sceneview.h \
-    server/server.h \
     shepherd.h
 
 FORMS += \
