@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->widgetSim->setVisible(false);
+    ui->widgetGrazing->setVisible(false);
     showMaximized();
 }
 
@@ -83,13 +84,29 @@ void MainWindow::on_btnGenerate_clicked()
         mHerd = nullptr;
     }
 
+    if( mMeadow) {
+        delete mMeadow;
+        mMeadow = nullptr;
+    }
+
+    // Generate meadow
+    mMeadow = new Meadow(QPoint(0, 0),
+                         QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
+                         ui->spinLawnRadius->value(),
+                         ui->spinMeadowCapacity->value(),
+                         ui->spinAnimalsPerLawn->value()
+                         );
+
     ui->checkShepard->setChecked(false);
 
+    // Generate herd
     mHerd = new Herd();
     mHerd->generate( ui->spinAnimalsCount->value(),
-                    ui->doubleSpinAnimalSize->value(),
                     ui->doubleSpinArea->value(),
-                    ui->spinCollarsPercentage->value() );
+                    ui->spinCollarsPercentage->value(),
+                    ui->doubleSpinAnimalSize->value(),
+                    ui->spinGrazingCapacity->value()
+                    );
 
     // create scene
     mScene->create( ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count() );
@@ -211,10 +228,14 @@ void MainWindow::on_checkShepard_toggled(bool checked)
     }
 }
 
-
-
-void MainWindow::on_checkParams_toggled(bool checked)
+void MainWindow::on_checkParamsHerding_toggled(bool checked)
 {
     ui->widgetSim->setVisible(checked);
+}
+
+
+void MainWindow::on_checkParamsG_toggled(bool checked)
+{
+    ui->widgetGrazing->setVisible(checked);
 }
 

@@ -14,6 +14,7 @@ QT_END_NAMESPACE
 class Scene;
 class SceneView;
 class Herd;
+class Meadow;
 
 class MainWindow : public QMainWindow
 {
@@ -21,6 +22,7 @@ class MainWindow : public QMainWindow
 
     Scene* mScene = nullptr;
     Herd* mHerd = nullptr;
+    Meadow* mMeadow = nullptr;
     QTimer mUpdateTimer;
     SceneView* mSceneView;
     QElapsedTimer mHerdTimer;
@@ -37,6 +39,7 @@ private slots:
     void on_btnGenerate_clicked();
     void onRowClicked(int row, int column);
     void on_checkShepard_toggled(bool checked);
-    void on_checkParams_toggled(bool checked);
+    void on_checkParamsHerding_toggled(bool checked);
+    void on_checkParamsG_toggled(bool checked);
 };
 #endif // MAINWINDOW_H

@@ -2,6 +2,7 @@
 #include "hardware/bolus/bolus.h"
 #include "hardware/collar/collar.h"
 
+
 #define MIN_FLOAT 1e-6f
 
 void Animal::updateDirection()
@@ -123,11 +124,12 @@ bool Animal::isSideVisible(Animal *a, float maxCosAngle)
 
 
 
-Animal::Animal(float x, float y )
+Animal::Animal(float x, float y , float grazingCapacity)
 {
     mPosition = QVector2D(x, y);
     mVelocity = QVector2D(0, 0);
     mDirection = QVector2D(1, 0);
+    mGrazingCapacity = grazingCapacity;
 
     mBolus = new Bolus(this);
 }
@@ -142,5 +144,22 @@ Animal::~Animal()
     if( mCollar ) {
         delete mCollar;
         mCollar = nullptr;
+    }
+}
+
+void Animal::attach(Meadow::Lawn *newLawn)
+{
+    if( mLawn ) {
+        mLawn->deattach(this);
+    }
+
+    mLawn->attach(this);
+    mLawn = newLawn;
+}
+
+void Animal::graze()
+{
+    if( mLawn) {
+        mLawn->graze(mGrazingCapacity);
     }
 }

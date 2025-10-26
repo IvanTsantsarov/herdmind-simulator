@@ -33,7 +33,7 @@ Herd::~Herd()
     clear();
 }
 
-void Herd::generate(int count, float animalSize, int areaDimeter, int percentageCollars)
+void Herd::generate(int count, int areaDimeter, int percentageCollars, float animalSize, float grazingCapacity)
 {
     srand(time(NULL));
 
@@ -55,7 +55,7 @@ void Herd::generate(int count, float animalSize, int areaDimeter, int percentage
     for( auto i = 0; i < count; i ++) {
         float x = Tools::rnd(-areaRadius, areaRadius);
         float y = Tools::rnd(-areaRadius, areaRadius);
-        mAnimals.append(new Animal(x, y));
+        mAnimals.append(new Animal(x, y, grazingCapacity));
         processCollision(animalSize * 2.0f);
     }
 

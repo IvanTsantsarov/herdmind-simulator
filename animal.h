@@ -3,6 +3,7 @@
 
 #include <QVector2D>
 #include <QList>
+#include "meadow.h"
 
 class Bolus;
 class Collar;
@@ -31,8 +32,12 @@ class Animal {
     void onThisCollarSent(void* package);
     void onOtherBolusData(void* package, Animal* from);
 
+    Meadow::Lawn* mLawn = nullptr;
+
     // how many readings from other boluses
     uint mReadings = 0;
+
+    float mGrazingCapacity; // in kilograms per 24 hours
 
 public:
 
@@ -65,10 +70,14 @@ public:
     void addObserving(Animal* a){ mObserving.append(a); }
     int observingCount(){ return mObserving.count(); }
 
-    Animal(float x, float y );
+    Animal(float x, float y, float grazingCapacity );
     ~Animal();
 
     uint readings(){ return mReadings; }
+
+    void attach(Meadow::Lawn *newLawn);
+    inline Meadow::Lawn* lawn(){ return mLawn; }
+    void graze();
 };
 
 #endif // ANIMAL_H

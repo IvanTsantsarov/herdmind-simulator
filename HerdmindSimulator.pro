@@ -20,6 +20,7 @@ SOURCES += \
     herd.cpp \
     main.cpp \
     mainwindow.cpp \
+    meadow.cpp \
     scene.cpp \
     sceneview.cpp \
     shepherd.cpp
@@ -35,6 +36,7 @@ HEADERS += \
     hardware/tools.h \
     herd.h \
     mainwindow.h \
+    meadow.h \
     scene.h \
     sceneview.h \
     shepherd.h

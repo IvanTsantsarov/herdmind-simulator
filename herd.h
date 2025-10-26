@@ -48,7 +48,11 @@ private:
 public:
     explicit Herd(QObject *parent = nullptr);
     ~Herd();
-    void generate(int count, float animalSize, int areaDimeter, int percentageCollars);
+    void generate(int count,
+                  int areaDimeter,
+                  int percentageCollars,
+                  float animalSize,
+                  float grazingCapacity );
     void update(QPointF *attractor,
                 float attractorPower,
                 float attractionDistance,

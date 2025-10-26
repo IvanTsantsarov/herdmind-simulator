@@ -43,6 +43,7 @@ class Scene : public QGraphicsScene
     AnimalItem* mItemSelected = nullptr;
 
     QGraphicsEllipseItem* mAttractor = nullptr;
+    QVector<QGraphicsEllipseItem*> mMeadow;
 
     void clear();
 public:

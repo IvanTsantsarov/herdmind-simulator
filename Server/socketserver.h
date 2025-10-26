@@ -39,6 +39,7 @@ private:
     quint16 mPort;
     QHostAddress mBindAddress;
     bool mRunning;
+
     QHash<QTcpSocket*, QThread*> mClientThreads;
 
 protected:
