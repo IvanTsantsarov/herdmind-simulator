@@ -203,6 +203,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="checkParamsHerding">
+          <property name="toolTip">
+           <string>Herding simulation parameters widget</string>
+          </property>
           <property name="text">
            <string>Parameters herding</string>
           </property>
@@ -514,6 +517,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="checkParamsG">
+          <property name="toolTip">
+           <string>Grazing and meadow parameters widget</string>
+          </property>
           <property name="text">
            <string>Parameters grazing</string>
           </property>
@@ -534,7 +540,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_15">
              <property name="text">
-              <string>Meadow radius</string>
+              <string>M. radius</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -544,14 +550,14 @@
            <item row="1" column="1">
             <widget class="QDoubleSpinBox" name="spinMeadowRadius">
              <property name="toolTip">
-              <string>Animal size in meters</string>
+              <string>Meadow (array of lawns) radius in meters</string>
              </property>
             </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_17">
              <property name="text">
-              <string>Lawn radius</string>
+              <string>L. radius</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -561,14 +567,17 @@
            <item row="2" column="1">
             <widget class="QDoubleSpinBox" name="spinLawnRadius">
              <property name="toolTip">
-              <string>Animal size in meters</string>
+              <string>Lawn radius in meters. Lawn is part of the meadow.</string>
              </property>
             </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_16">
+             <property name="toolTip">
+              <string>Meadow grass capacity in kg per square meter</string>
+             </property>
              <property name="text">
-              <string>Meadow capacity (kg/m2)</string>
+              <string>M. cap</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -585,7 +594,7 @@
            <item row="4" column="0">
             <widget class="QLabel" name="label_14">
              <property name="text">
-              <string>Animal capacity (kg/day)</string>
+              <string>A. cap</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -595,7 +604,7 @@
            <item row="4" column="1">
             <widget class="QDoubleSpinBox" name="spinGrazingCapacity">
              <property name="toolTip">
-              <string>Transmit maximum distance</string>
+              <string>Animal grazing capacity in kg per day</string>
              </property>
              <property name="decimals">
               <number>3</number>
@@ -614,17 +623,7 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>Animals per lawn</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
+           <item row="5" column="1">
             <widget class="QSpinBox" name="spinAnimalsPerLawn">
              <property name="toolTip">
               <string>Animals count</string>
@@ -637,20 +636,20 @@
              </property>
             </widget>
            </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="toolTip">
+              <string>Animals count per lawn</string>
+             </property>
+             <property name="text">
+              <string>A. per lawn</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
           </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPlainTextEdit" name="editStats">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
          </widget>
         </item>
         <item>
