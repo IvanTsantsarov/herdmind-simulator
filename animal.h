@@ -50,6 +50,10 @@ public:
                   float attractionDistance,
                   float repellingDistance);
 
+
+    bool isMoving();
+    bool walk(const QVector2D& destination, float speed, float arrivingDistance);
+
     // return true if info from bolus is sent to the other
     bool collide(Animal* other, float minCollideDistance);
     void updateSpeed(float maxSpeed, float friction, float rotationFading);
@@ -75,9 +79,13 @@ public:
 
     uint readings(){ return mReadings; }
 
-    void attach(Meadow::Lawn *newLawn);
+    void attach(Meadow::Lawn *newLawn = nullptr);
     inline Meadow::Lawn* lawn(){ return mLawn; }
-    void graze();
+
+    // return true if lawn depleted
+    bool graze(float timeFactor) { return mLawn ? mLawn->graze(timeFactor * mGrazingCapacity) : true; }
+
+    QString info();
 };
 
 #endif // ANIMAL_H

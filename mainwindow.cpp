@@ -49,14 +49,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Simulation parameters
     ui->spinAttrPower->setValue(ANIMAL_ATTRACTION_POWER);
-    ui->spinAttrDist ->setValue(ANIMAL_ATTRACTION_DISTANCE);
-    ui->spinRepDist ->setValue(ANIMAL_REPELING_DISTANCE);
-    ui->spinCollDist ->setValue(ANIMAL_COLLIDING_DISTANCE);
-    ui->spinMaxSpeed ->setValue(ANIMAL_MAX_SPEED);
-    ui->spinFriction  ->setValue(ANIMAL_FRICTION);
-    ui->spinRotFad ->setValue(ANIMAL_ROTATION_FADING);
-    ui->spinTransDist ->setValue(BOLUS_TRANSMIT_DISTANCE);
-    ui->spinTransAngle ->setValue(BOLUS_TRANSMIT_ANGLE);
+    ui->spinAttrDist->setValue(ANIMAL_ATTRACTION_DISTANCE);
+    ui->spinRepDist->setValue(ANIMAL_REPELING_DISTANCE);
+    ui->spinCollDist->setValue(ANIMAL_COLLIDING_DISTANCE);
+    ui->spinMaxSpeed->setValue(ANIMAL_MAX_SPEED);
+    ui->spinFriction->setValue(ANIMAL_FRICTION);
+    ui->spinRotFad->setValue(ANIMAL_ROTATION_FADING);
+    ui->spinTransDist->setValue(BOLUS_TRANSMIT_DISTANCE);
+    ui->spinTransAngle->setValue(BOLUS_TRANSMIT_ANGLE);
+
+    // Grazing parameters
+    ui->spinMeadowRadius->setValue(MEADOW_INITIAL_RADIUS);
+    ui->spinMeadowCapacity->setValue(MEADOW_INITIAL_CAPACITY);
+    ui->spinAnimalGrazingCapacity->setValue(ANIMAL_INITIAL_GRAZING_CAPACITY);
+    ui->spinLawnRadius->setValue(LAWN_RADIUS);
+    ui->spinAnimalsPerLawn->setValue(LAWN_ANIMALS_MAX_COUNT);
 
     QObject::connect(&mUpdateTimer, &QTimer::timeout, this, &MainWindow::onUpdate );
     mUpdateTimer.start(HERD_UPDATE_INTERVAL);
@@ -89,14 +96,6 @@ void MainWindow::on_btnGenerate_clicked()
         mMeadow = nullptr;
     }
 
-    // Generate meadow
-    mMeadow = new Meadow(QPoint(0, 0),
-                         QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
-                         ui->spinLawnRadius->value(),
-                         ui->spinMeadowCapacity->value(),
-                         ui->spinAnimalsPerLawn->value()
-                         );
-
     ui->checkShepard->setChecked(false);
 
     // Generate herd
@@ -105,12 +104,20 @@ void MainWindow::on_btnGenerate_clicked()
                     ui->doubleSpinArea->value(),
                     ui->spinCollarsPercentage->value(),
                     ui->doubleSpinAnimalSize->value(),
-                    ui->spinGrazingCapacity->value()
+                    ui->spinAnimalGrazingCapacity->value()
                     );
 
+    // Generate meadow
+    mMeadow = new Meadow(QPoint(0, 0),
+                         QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
+                         ui->spinLawnRadius->value(),
+                         ui->spinMeadowCapacity->value(),
+                         ui->spinAnimalsPerLawn->value()
+                         );
+
     // create scene
-    mScene->create( ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count() );
-    mScene->update(mHerd, true, INITIAL_HERD_SPREAD);
+    mScene->create(mHerd, ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count(), mMeadow->lawnsCount() );
+    mScene->update(mHerd, mMeadow, true, INITIAL_HERD_SPREAD);
 
     ui->table->setColumnCount(TABLE_COLS_COUNT);
     ui->table->setRowCount(ui->spinAnimalsCount->value());
@@ -182,18 +189,21 @@ void MainWindow::onUpdate()
 
     QPointF attractor = mSceneView->rightPos();
 
-    mHerd->update(mSceneView->isRightPress() ? &attractor : nullptr,
-                  ui->spinAttrPower ->value(),
-                  ui->spinAttrDist ->value(),
-                  ui->spinRepDist ->value(),
-                  ui->spinCollDist ->value(),
-                  ui->spinMaxSpeed ->value(),
-                  ui->spinFriction ->value(),
-                  ui->spinRotFad ->value(),
-                  ui->spinTransDist ->value(),
-                  qDegreesToRadians(ui->spinTransAngle->value())
+    mHerd->update( mHerdTimer.elapsed(),
+                   mMeadow,
+                   mSceneView->isRightPress() ? &attractor : nullptr,
+                   ui->spinAttrPower ->value(),
+                   ui->spinAttrDist ->value(),
+                   ui->spinRepDist ->value(),
+                   ui->spinCollDist ->value(),
+                   ui->spinMaxSpeed ->value(),
+                   ui->spinFriction ->value(),
+                   ui->spinRotFad ->value(),
+                   ui->spinTransDist ->value(),
+                   qDegreesToRadians(ui->spinTransAngle->value())
                   );
-    mScene->update(mHerd);
+
+    mScene->update(mHerd, mMeadow);
     mSceneView->invalidateScene();
 
     for (int row = 0; row < mHerd->count(); row++) {
@@ -217,7 +227,7 @@ void MainWindow::onUpdate()
 void MainWindow::onRowClicked(int row, int column)
 {
     (void)column;
-    mScene->selectFigure(row);
+    mScene->selectAnimalItem(row);
 }
 
 

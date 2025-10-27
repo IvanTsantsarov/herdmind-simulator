@@ -12,26 +12,32 @@ Meadow::Meadow(const QPointF& center,
     mLawnsDim = QSize( mAreaSize.width() / lawnDiam(),
                       mAreaSize.height() / lawnDiam() );
 
-    float qttyPerLawn = kgPerSqMeter / lawnsCount();
+    float kgPerLawn = kgPerSqMeter * (lawnR * lawnR * 4);
     float offsetW = mAreaSize.width() * 0.5f;
     float offsetH = mAreaSize.height() * 0.5f;
 
-    mLawns.reserve(lawnsCount());
+    mLawns.reserve(mLawnsDim.width() * mLawnsDim.height());
     float d = lawnDiam();
+
+    // mLawnsMatrix.reserve(mLawnsDim.height());
 
     for( auto h = 0; h < mLawnsDim.height(); h++)  {
         float rowH = h*d - offsetH;
+        // QVector<Lawn*> row;
+        // row.reserve(mLawnsDim.width());
         for( auto w = 0; w < mLawnsDim.width(); w++) {
-            Lawn* lawn = new Lawn( QPointF(w*d - offsetW, rowH ), qttyPerLawn, this );
+            Lawn* lawn = new Lawn( QPointF(w*d - offsetW, rowH ), kgPerLawn, this );
             mLawns.append(lawn);
+            // row.append(lawn);
         }
+        // mLawnsMatrix.append(row);
     }
 }
 
 Meadow::Lawn *Meadow::closestAvailable(const QPointF &pos, const Lawn* current)
 {
     Lawn* closest = nullptr;
-    float minDistSq = static_cast<float>(INT_MAX);
+    float minDistSq = static_cast<float>(mAreaSize.width()+mAreaSize.height());
     for(auto i = 0; i < mLawns.count(); i ++) {
         Lawn* lawn = mLawns[i];
 
@@ -57,19 +63,27 @@ Meadow::Lawn *Meadow::closestAvailable(const QPointF &pos, const Lawn* current)
     return closest;
 }
 
-Meadow::Lawn::Lawn(const QPointF &position, float startingQtty, Meadow *parent) :
-    mPos(position), mQttyStart(startingQtty), mMeadow(parent) {
+Meadow::Lawn::Lawn(const QPointF &position, float startingKg, Meadow *parent) :
+    mPos(position), mKgStart(startingKg), mKg(startingKg), mMeadow(parent) {
 
     mAnimals.reserve(mMeadow->animalsPerLawn());
 }
 
-bool Meadow::Lawn::graze(float q) {
-    if( !isDepleted() ) {
-        return false;
+bool Meadow::Lawn::graze(float weight) {
+    if( isDepleted() ) {
+        return true;
     }
 
-    mQtty -= q;
-    return isDepleted();
+    mKg -= weight;
+
+    if( isDepleted() ) {
+        if( mKg < 0.0f) {
+            mKg = 0.0f;
+        }
+        return true;
+    }
+
+    return false;
 }
 
 float Meadow::Lawn::distSq(const QPointF &pt)

@@ -9,20 +9,26 @@
 #define ITEM_WIDTH_HALF (ANIMAL_WIDTH * 0.5f)
 #define ITEM_LENGTH_HALF (ANIMAL_LENGTH * 0.5f)
 #define ITEM_PEN_WIDTH (ANIMAL_LENGTH * 0.1f)
-#define ITEM_PEN_WIDTH_COLLAR (ANIMAL_LENGTH * 0.5f)
+#define ITEM_PEN_WIDTH_COLLAR (ITEM_PEN_WIDTH * 2.5f)
 
-#define ITEM_PEN QPen(QColor(100, 100, 100, 100),  ITEM_PEN_WIDTH)
-#define ITEM_BRUSH QBrush(QColor(200, 100, 100, 100))
+#define ANIMAL_OPACITY 220
+#define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
+#define ITEM_BRUSH QBrush(QColor(250, 150, 150, ANIMAL_OPACITY))
 
-#define PAIR_PEN QPen(QColor(100, 100, 100, 100),  ITEM_PEN_WIDTH)
+#define PAIR_PEN QPen(QColor(100, 100, 100, 255),  ITEM_PEN_WIDTH)
 
-#define ITEM_PEN_SEL QPen(QColor(100, 100, 100, 100), ITEM_PEN_WIDTH )
-#define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, 100))
+#define ITEM_PEN_SEL QPen(QColor(100, 100, 255, ANIMAL_OPACITY), ITEM_PEN_WIDTH )
+#define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, ANIMAL_OPACITY))
 
+#define ATTRACTOR_PEN QPen(QColor(200, 0, 0, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
+#define ATTRACTOR_BRUSH QBrush(QColor(200, 0, 0, ANIMAL_OPACITY))
 
-#define ATTRACTOR_PEN QPen(QColor(200, 0, 0, 200),  ITEM_PEN_WIDTH)
-#define ATTRACTOR_BRUSH QBrush(QColor(200, 0, 0, 100))
+#define LAWN_BRUSH_OPACITY 100
+#define LAWN_BRUSH_COLOR_FULL QColor(0, 25, 10)
+#define LAWN_BRUSH_COLOR_DEPLETED QColor(20, 10, 0)
 
+#define INFO_TEXT_COLOR QColor(180, 180, 100)
+#define INFO_BACK_COLOR QColor(0, 0, 0, 180)
 
 void Scene::clear()
 {
@@ -33,6 +39,7 @@ void Scene::clear()
 
     mItems.clear();
     mLines.clear();
+    mLawns.clear();
 
     mItemSelected = nullptr;
 }
@@ -41,9 +48,25 @@ Scene::Scene(QObject *parent)
     : QGraphicsScene{parent}
 {}
 
-void Scene::create(int itemsCount, int pairsCount )
+void Scene::create(Herd* herd, int animalsCount, int pairsCount, int lawnsCount )
 {
     clear();
+
+    // Create the meadow
+    mLawns.reserve(lawnsCount);
+    for( auto i = 0; i < lawnsCount; i ++) {
+        QGraphicsRectItem* r = addRect(-LAWN_RADIUS, -LAWN_RADIUS,
+                                       LAWN_DIAMETER, LAWN_DIAMETER,
+                                       Qt::NoPen, LAWN_BRUSH_COLOR_FULL);
+
+        r->setFlag(QGraphicsItem::ItemIsSelectable, false);
+        r->setFlag(QGraphicsItem::ItemIsFocusable, false);
+        r->setFlag(QGraphicsItem::ItemIsMovable, false);
+        r->setFlag(QGraphicsItem::ItemIsFocusScope, false);
+        r->setFlag(QGraphicsItem::ItemIsPanel, false);
+        mLawns.append(r);
+
+    }
 
     // Make a triangle
     QList<QPointF> points;
@@ -54,9 +77,9 @@ void Scene::create(int itemsCount, int pairsCount )
     QPolygonF triangle(points);
 
     // Create animals figures
-    mItems.reserve(itemsCount);
-    for( auto i = 0; i < itemsCount; i ++) {
-        AnimalItem* item = new AnimalItem(triangle);
+    mItems.reserve(animalsCount);
+    for( auto i = 0; i < animalsCount; i ++) {
+        AnimalItem* item = new AnimalItem(herd->animal(i), triangle);
         addItem(item);
         mItems.append(item);
 
@@ -65,6 +88,7 @@ void Scene::create(int itemsCount, int pairsCount )
         item->setBrush(ITEM_BRUSH);
         item->setFlag(QGraphicsItem::ItemIsSelectable, true);
         item->setFlag(QGraphicsItem::ItemIsFocusable, false);
+        item->setAcceptHoverEvents(true);
     }
 
     // Create animals conenctions lines
@@ -76,10 +100,51 @@ void Scene::create(int itemsCount, int pairsCount )
     }
 
     mAttractor = addEllipse(0, 0, ANIMAL_LENGTH, ANIMAL_LENGTH, ATTRACTOR_PEN, ATTRACTOR_BRUSH );
+
+    mItemInfo = new TextItem("");
+    mItemInfo->setDefaultTextColor(INFO_TEXT_COLOR);
+    mItemInfo->setBackColor(INFO_BACK_COLOR);
+    QTransform t = mItemInfo->transform();
+    t.scale(0.1f, -0.1f);
+    mItemInfo->setTransform(t);
+    addItem(mItemInfo);
+
+    QFont font("Monospace");
+    font.setStyleHint(QFont::TypeWriter);
+    font.setPointSize(mItemInfo->font().pointSize());
+    mItemInfo->setFont(font);
+
+    setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
 
-void Scene::update(Herd *herd, bool isSetColor, float diameter )
+void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
 {
+    // update lawns
+    int lawnIndex = 0;
+
+    if( mItemSelected ) {
+        mItemInfo->show();
+        mItemInfo->setPlainText(mItemSelected->animal()->info());
+        mItemInfo->setPos(mItemSelected->pos());
+    }else {
+        mItemInfo->hide();
+    }
+
+    foreach(Meadow::Lawn* lawn, meadow->lawns()) {
+        QGraphicsRectItem* r = mLawns[lawnIndex++];
+
+        if( isInitial ) {
+            r->setPos(lawn->pos());
+        }
+
+        if( lawn->animalsCount() ) {
+            QColor color = LAWN_BRUSH_COLOR_FULL;
+            color.setAlpha( lawn->kgNorm() * 255.0f );
+            r->setBrush(color);
+        }
+    }
+
+
     if( herd->isShepherdActive() ) {
         mAttractor->show();
         mAttractor->setPos(herd->shepherdPos());
@@ -91,18 +156,18 @@ void Scene::update(Herd *herd, bool isSetColor, float diameter )
         QGraphicsPolygonItem* item = mItems[i];
         Animal* animal = herd->animal(i);
         item->setPos(animal->pt());
-
         item->setRotation( qRadiansToDegrees(animal->rotationAngle()));
+        item->setToolTip(animal->info());
 
-        if( isSetColor ) {
+        if( isInitial ) {
 
-            int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 255;
-            int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 255;
+            int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 220;
+            int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 220;
 
-            QColor col(cx, 100, cy, 100);
+            QColor col(cx, 130, cy, 200);
             item->setBrush(col);
             item->setPen( animal->hasCollar() ?
-                             QPen(Qt::black, ITEM_PEN_WIDTH_COLLAR) :
+                             QPen(Qt::white, ITEM_PEN_WIDTH_COLLAR) :
                              QPen(col, ITEM_PEN_WIDTH) );
         }
     }
@@ -123,7 +188,7 @@ void Scene::update(Herd *herd, bool isSetColor, float diameter )
 
 }
 
-void Scene::selectFigure(int index)
+void Scene::selectAnimalItem(AnimalItem *item)
 {
     clearSelection();
     clearFocus();
@@ -132,17 +197,22 @@ void Scene::selectFigure(int index)
         mItemSelected->setSelected(false);
     }
 
+    mItemSelected = item;
+
+    mItemSelected->ensureVisible();
+}
+
+
+void Scene::selectAnimalItem(int index)
+{
     if( index >= mItems.length() ) {
         return;
     }
 
     AnimalItem* item = mItems[index];
-
-    mItemSelected = item;
-    mItemSelected->setSelected(true);
-
-    mItemSelected->ensureVisible();
+    selectAnimalItem(item);
 }
+
 
 void Scene::onFigurePick(QGraphicsPolygonItem *item, QPointF pos)
 {
@@ -169,11 +239,11 @@ void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     opt.state &= ~QStyle::State_HasFocus;   // suppress focus cue
     QGraphicsPolygonItem::paint(painter, &opt, widget);
 
-    if (isSelected()) {
+    if (animalScene()->selectedAnimal() == this) {
         painter->save();
 
         // Draw a custom selection border
-        QPen pen(Qt::blue);
+        QPen pen(ITEM_PEN_SEL);
         pen.setWidthF(2.0);
         pen.setCosmetic(true);            // keep width independent of zoom
         pen.setStyle(Qt::SolidLine);    // any style you like
@@ -208,4 +278,23 @@ void AnimalItem::startPulseAnimation() {
     });
     connect(anim, &QVariantAnimation::finished, anim, &QObject::deleteLater);
     anim->start();
+}
+
+
+
+QVariant AnimalItem::itemChange(GraphicsItemChange change, const QVariant &v) {
+    if (change == ItemSelectedHasChanged) {
+        // if (v.toBool()) startPulseAnimation();   // trigger when selected
+        // setToolTip(mAnimal->info());
+        //toolTip()->sho;
+        animalScene()->selectAnimalItem(this);
+    }
+    return QGraphicsPolygonItem::itemChange(change, v);
+}
+
+void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o, QWidget *w) {
+    painter->setBrush(mBackColor);
+    painter->setPen(ITEM_PEN_SEL);
+    painter->drawRect(boundingRect());
+    QGraphicsTextItem::paint(painter, o, w);
 }

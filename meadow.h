@@ -27,23 +27,26 @@ public:
 
     class Lawn {
         QPointF mPos;
-        float mQttyStart, mQtty;
+        float mKgStart, mKg;
         Meadow* mMeadow;
         QList<Animal*> mAnimals;
     public:
 
-        Lawn(const QPointF& position, float startingQtty, Meadow* parent);
+        Lawn(const QPointF& position, float startingKg, Meadow* parent);
         inline QPointF pos(){ return mPos; }
 
-        inline bool isDepleted(){ return mQtty >= 0; }
-        bool hasSpace(){ return mAnimals.count() < mMeadow->animalsPerLawn(); }
+        inline bool isDepleted(){ return mKg <= 0.01; }
+        inline bool hasSpace(){ return mAnimals.count() < mMeadow->animalsPerLawn(); }
+        inline bool animalsCount(){ return mAnimals.count() > 0; }
 
-        bool graze(float q);
+        bool graze(float weight);
         float distSq(const QPointF &pt);
 
-        inline float qtty(){ return mQtty; };
-        qint8 qttyPercents(){ return mQtty/mQttyStart * 100; };
-        qint8 qtty255(){ return mQtty/mQttyStart * 255; };
+        inline float kg(){ return mKg; };
+        inline float kgNorm(){ return mKg/mKgStart; };
+        int kgPercents(){ return kgNorm() * 100; };
+
+        // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
         void deattach(Animal* animal);
 
@@ -51,15 +54,18 @@ public:
 
     inline float lawnRadius(){ return mLawnRadius; }
     inline float lawnDiam(){ return mLawnRadius * 2.0f; }
-    inline int lawnsCount(){ return mLawnsDim.width() * mLawnsDim.height(); }
+    inline int lawnsCount(){ return mLawns.count(); }
     Lawn* closestAvailable(const QPointF& pos, const Lawn* current = nullptr);
     inline uint animalsPerLawn(){return mAnimalsPerLawn; }
 
+
 protected:
+    QVector<QVector<Lawn*>> mLawnsMatrix;
     QVector<Lawn*> mLawns;
 
 public:
     inline QVector<Lawn*> & lawns(){ return mLawns; }
+    // inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
 
 signals:
 };

@@ -7,6 +7,7 @@
 
 class Animal;
 class Shepherd;
+class Meadow;
 
 class Herd : public QObject
 {
@@ -29,6 +30,8 @@ public:
 
 private:
     Q_OBJECT
+
+    quint64 mLastUpdateMsec = 0;
 
     QVector<Animal*> mAnimals, mCollars;
 
@@ -53,7 +56,9 @@ public:
                   int percentageCollars,
                   float animalSize,
                   float grazingCapacity );
-    void update(QPointF *attractor,
+    void update(quint64 msec,
+                Meadow *meadow,
+                QPointF *attractor,
                 float attractorPower,
                 float attractionDistance,
                 float repellingDistance,

@@ -1,6 +1,7 @@
 #include <QDebug>
 
 #include "herd.h"
+#include "defines.h"
 #include "shepherd.h"
 #include "hardware/tools.h"
 #include "animal.h"
@@ -96,7 +97,9 @@ bool Herd::processCollision(float collidingDistance)
     return isCollision;
 }
 
-void Herd::update( QPointF* attractor,
+void Herd::update( quint64 msec,
+                  Meadow* meadow,
+                  QPointF* attractor,
                   float attractorPower,
                   float attractionDistance,
                   float repellingDistance,
@@ -107,24 +110,51 @@ void Herd::update( QPointF* attractor,
                   float maxTransmitDistance,
                   float maxTransmitAngle )
 {
-    QVector2D vectAttr = attractor ? QVector2D(*attractor) :  QVector2D();
     float minTransmitAngleCos = cosf(maxTransmitAngle);
 
     mInfoPairs.clear();
 
+    // Simulate grazing
+    if( !attractor && !mIsShepherdActive) {
+        double timeDelta = msec - mLastUpdateMsec;
+        double timeFactor = timeDelta / (24.0 * 60.0 * 60.0 * 1000.0);
+        foreach(Animal* animal, mAnimals) {
+            if( !animal->lawn() ) {
+                Meadow::Lawn* lawn = meadow->closestAvailable(animal->pt());
+                if( lawn ) {
+                    animal->attach(lawn);
+                }
+            }
+
+            if( animal->lawn() ) {
+                bool isArrived = !animal->walk(QVector2D(animal->lawn()->pos()), ANIMAL_WALKING_SPEED, LAWN_RADIUS );
+                if( isArrived && !animal->isMoving() ) {
+                    if( animal->graze(5000.0f * timeFactor) ) {
+                        animal->attach();
+                    }
+                }
+            }
+        }
+
+        mLastUpdateMsec = msec;
+    }
+
     // process attractor force if available
     if( attractor ) {
+        QVector2D attractorPosition = QVector2D(*attractor);
         foreach(Animal* animal, mAnimals) {
-            animal->react(vectAttr, attractorPower, attractionDistance, repellingDistance);
+            animal->attach();
+            animal->react(attractorPosition, attractorPower, attractionDistance, repellingDistance);
         }
     }
 
     // process shepherd if active
     if( mIsShepherdActive ) {
         QPointF pt = mShepherd->step();
-        QVector2D vectorShepherd(pt);
+        QVector2D shepherdPosition(pt);
         foreach(Animal* animal, mAnimals) {
-            animal->react(vectorShepherd, attractorPower, attractionDistance, repellingDistance);
+            animal->attach();
+            animal->react(shepherdPosition, attractorPower, attractionDistance, repellingDistance);
         }
     }
 

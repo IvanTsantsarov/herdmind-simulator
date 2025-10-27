@@ -151,3 +151,32 @@ other->mVelocity  -= vectAdd;
 
 updateDirection();
 other->updateDirection();
+
+
+void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
+{
+    // update lawns
+    int lawnIndex = 0;
+    QColor colorFull = LAWN_BRUSH_COLOR_FULL;
+    QColor colorDepleted = LAWN_BRUSH_COLOR_DEPLETED;
+
+    auto interp = [](int start, int end, float k) {
+        return end + (start - end) * k;
+    };
+
+    foreach(Meadow::Lawn* lawn, meadow->lawns()) {
+        QGraphicsRectItem* r = mLawns[lawnIndex++];
+
+        if( isInitial ) {
+            r->setPos(lawn->pos());
+        }
+
+        if( lawn->animalsCount() ) {
+            float k = lawn->kgNorm();
+            r->setBrush( QColor(
+                interp( colorFull.red(), colorDepleted.red(), k ),
+                interp( colorFull.green(), colorDepleted.green(), k ),
+                interp( colorFull.blue(), colorDepleted.blue(), k ),
+                LAWN_BRUSH_OPACITY) );
+        }
+    }

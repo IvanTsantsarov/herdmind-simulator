@@ -108,7 +108,7 @@
              <item>
               <widget class="QPushButton" name="btnGenerate">
                <property name="text">
-                <string>Generate Herd</string>
+                <string>Generate </string>
                </property>
               </widget>
              </item>
@@ -193,6 +193,52 @@
                </property>
                <property name="maximum">
                 <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Center Long : Lat</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QDoubleSpinBox" name="spinCenterLong">
+               <property name="toolTip">
+                <string>Center Longitude</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_19">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string> : </string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="spinCenterLat">
+               <property name="toolTip">
+                <string>Center Latitude</string>
                </property>
               </widget>
              </item>
@@ -552,9 +598,15 @@
              <property name="toolTip">
               <string>Meadow (array of lawns) radius in meters</string>
              </property>
+             <property name="maximum">
+              <double>10000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>10.000000000000000</double>
+             </property>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item row="4" column="0">
             <widget class="QLabel" name="label_17">
              <property name="text">
               <string>L. radius</string>
@@ -564,62 +616,19 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="4" column="1">
             <widget class="QDoubleSpinBox" name="spinLawnRadius">
              <property name="toolTip">
               <string>Lawn radius in meters. Lawn is part of the meadow.</string>
              </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_16">
-             <property name="toolTip">
-              <string>Meadow grass capacity in kg per square meter</string>
-             </property>
-             <property name="text">
-              <string>M. cap</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QDoubleSpinBox" name="spinMeadowCapacity">
-             <property name="toolTip">
-              <string>Animal size in meters</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>A. cap</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QDoubleSpinBox" name="spinGrazingCapacity">
-             <property name="toolTip">
-              <string>Animal grazing capacity in kg per day</string>
-             </property>
-             <property name="decimals">
-              <number>3</number>
-             </property>
              <property name="minimum">
-              <double>1.000000000000000</double>
+              <double>0.200000000000000</double>
              </property>
              <property name="maximum">
-              <double>1000.000000000000000</double>
+              <double>10.000000000000000</double>
              </property>
              <property name="singleStep">
-              <double>1.000000000000000</double>
-             </property>
-             <property name="value">
-              <double>1.000000000000000</double>
+              <double>0.200000000000000</double>
              </property>
             </widget>
            </item>
@@ -643,6 +652,61 @@
              </property>
              <property name="text">
               <string>A. per lawn</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDoubleSpinBox" name="spinMeadowCapacity">
+             <property name="toolTip">
+              <string>Meadow capacity in kg per square meter</string>
+             </property>
+             <property name="maximum">
+              <double>100.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_16">
+             <property name="toolTip">
+              <string>Meadow grass capacity in kg per square meter</string>
+             </property>
+             <property name="text">
+              <string>M. cap</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QDoubleSpinBox" name="spinAnimalGrazingCapacity">
+             <property name="toolTip">
+              <string>Animal grazing capacity in kg per day</string>
+             </property>
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>A. cap</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>

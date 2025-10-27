@@ -1,3 +1,4 @@
+#include "defines.h"
 #include "animal.h"
 #include "hardware/bolus/bolus.h"
 #include "hardware/collar/collar.h"
@@ -56,6 +57,25 @@ void Animal::react(const QVector2D &p, float attractionPower, float attractionDi
     updateDirection();
 }
 
+bool Animal::isMoving()
+{
+    return mVelocity.lengthSquared() > (AMIMAL_MIN_SPEED * AMIMAL_MIN_SPEED);
+}
+
+// return true if still walking
+bool Animal::walk(const QVector2D &destination, float speed, float arrivingDistance)
+{
+    QVector2D f = QVector2D(destination) - mPosition;
+    float len = f.length();
+    if( len < arrivingDistance ) {
+        return false;
+    }
+
+    mVelocity = f / len * speed;
+    updateDirection();
+    return true;
+}
+
 bool Animal::collide(Animal *other, float minCollideDistance  )
 {
     QVector2D vecDist = other->p() - p();
@@ -73,11 +93,22 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
         return false;
     }
 
+    // add histeresys
+    if( distanceSqared > (minCollideDistance*minCollideDistance * 0.8f)) {
+        return false;
+    }
+
+
     // correct the position
     mPosition = other->mPosition - vecDist.normalized() * minCollideDistance * 1.00001;
 
     // change the direction
-    other->mVelocity = mVelocity = (mVelocity + other->mVelocity) * 0.5f;
+    QVector2D v = (mVelocity + other->mVelocity) * 0.5f;
+    if( v.lengthSquared() < (AMIMAL_MIN_SPEED * AMIMAL_MIN_SPEED) ) {
+        v = QVector2D( 0.0f, 0.0f);
+    }
+
+    other->mVelocity = mVelocity = v;
     updateDirection();
     other->updateDirection();
 
@@ -153,13 +184,29 @@ void Animal::attach(Meadow::Lawn *newLawn)
         mLawn->deattach(this);
     }
 
-    mLawn->attach(this);
-    mLawn = newLawn;
-}
-
-void Animal::graze()
-{
-    if( mLawn) {
-        mLawn->graze(mGrazingCapacity);
+    if( newLawn ) {
+        if( newLawn->hasSpace() ) {
+            newLawn->attach(this);
+            mLawn = newLawn;
+        }
+    }else {
+        mLawn = newLawn;
     }
 }
+
+QString Animal::info()
+{
+    float kg = mLawn ? mLawn->kg() : 0.0f;
+
+    return QString("Ptr:0x%1\nV:%2,%3\nLawn:0x%4\nKg=%5\nAnimals:%6")
+        .arg(reinterpret_cast<quint64>(this), 0, 16)
+        .arg( mVelocity.x(), 0, 'f', 2)
+        .arg( mVelocity.y(), 0, 'f', 2)
+
+        .arg(reinterpret_cast<quint64>(mLawn), 0, 16)
+        .arg(kg, 0, 'f', 2 )
+        .arg(mLawn ? mLawn->animalsCount() : 0 );
+}
+
+// return true if lawn is depleted
+
