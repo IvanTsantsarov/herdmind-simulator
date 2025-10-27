@@ -17,18 +17,22 @@
 
 #define PAIR_PEN QPen(QColor(100, 100, 100, 255),  ITEM_PEN_WIDTH)
 
-#define ITEM_PEN_SEL QPen(QColor(100, 100, 255, ANIMAL_OPACITY), ITEM_PEN_WIDTH )
+#define ITEM_PEN_SEL QPen(QColor(50, 50, 255, ANIMAL_OPACITY), ITEM_PEN_WIDTH )
 #define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, ANIMAL_OPACITY))
 
 #define ATTRACTOR_PEN QPen(QColor(200, 0, 0, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
 #define ATTRACTOR_BRUSH QBrush(QColor(200, 0, 0, ANIMAL_OPACITY))
 
 #define LAWN_BRUSH_OPACITY 100
-#define LAWN_BRUSH_COLOR_FULL QColor(0, 25, 10)
-#define LAWN_BRUSH_COLOR_DEPLETED QColor(20, 10, 0)
+//#define LAWN_BRUSH_COLOR_FULL QColor(0, 25, 10)
+//#define LAWN_BRUSH_COLOR_DEPLETED QColor(20, 10, 0)
 
-#define INFO_TEXT_COLOR QColor(180, 180, 100)
-#define INFO_BACK_COLOR QColor(0, 0, 0, 180)
+#define LAWN_BRUSH_COLOR_FULL QColor(96, 153, 98)
+#define LAWN_BRUSH_COLOR_DEPLETED QColor(115, 107, 93)
+
+
+#define INFO_TEXT_COLOR QColor(250, 220, 100)
+#define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
 void Scene::clear()
 {
@@ -161,10 +165,10 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
 
         if( isInitial ) {
 
-            int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 220;
-            int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 220;
+            int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 200;
+            int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 200;
 
-            QColor col(cx, 130, cy, 200);
+            QColor col(cx, 30, cy, 200);
             item->setBrush(col);
             item->setPen( animal->hasCollar() ?
                              QPen(Qt::white, ITEM_PEN_WIDTH_COLLAR) :
