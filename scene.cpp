@@ -15,7 +15,7 @@
 #define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
 #define ITEM_BRUSH QBrush(QColor(250, 150, 150, ANIMAL_OPACITY))
 
-#define PAIR_PEN QPen(QColor(100, 100, 100, 255),  ITEM_PEN_WIDTH)
+#define PAIR_PEN QPen(QColor(200, 100, 100, 255),  ITEM_PEN_WIDTH)
 
 #define ITEM_PEN_SEL QPen(QColor(50, 50, 255, ANIMAL_OPACITY), ITEM_PEN_WIDTH )
 #define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, ANIMAL_OPACITY))
@@ -28,8 +28,7 @@
 //#define LAWN_BRUSH_COLOR_DEPLETED QColor(20, 10, 0)
 
 #define LAWN_BRUSH_COLOR_FULL QColor(96, 153, 98)
-#define LAWN_BRUSH_COLOR_DEPLETED QColor(115, 107, 93)
-
+#define LAWN_BRUSH_COLOR_DEPLETED QColor(99, 96, 88)
 
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
@@ -114,7 +113,7 @@ void Scene::create(Herd* herd, int animalsCount, int pairsCount, int lawnsCount 
     addItem(mItemInfo);
 
     QFont font("Monospace");
-    font.setStyleHint(QFont::TypeWriter);
+    font.setStyleHint(QFont::Monospace);
     font.setPointSize(mItemInfo->font().pointSize());
     mItemInfo->setFont(font);
 
@@ -137,11 +136,13 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
     foreach(Meadow::Lawn* lawn, meadow->lawns()) {
         QGraphicsRectItem* r = mLawns[lawnIndex++];
 
-        if( isInitial ) {
-            r->setPos(lawn->pos());
-        }
 
-        if( lawn->animalsCount() ) {
+        if( isInitial || lawn->animalsCount() ) {
+
+            if( isInitial ) {
+                r->setPos(lawn->pos());
+            }
+
             QColor color = LAWN_BRUSH_COLOR_FULL;
             color.setAlpha( lawn->kgNorm() * 255.0f );
             r->setBrush(color);
@@ -168,11 +169,12 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
             int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 200;
             int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 200;
 
-            QColor col(cx, 30, cy, 200);
-            item->setBrush(col);
+            QColor colBrush(cx, 30, cy, 150);
+            QColor colPen(cx, 30, cy, 250);
+            item->setBrush(colBrush);
             item->setPen( animal->hasCollar() ?
                              QPen(Qt::white, ITEM_PEN_WIDTH_COLLAR) :
-                             QPen(col, ITEM_PEN_WIDTH) );
+                             QPen(colPen, ITEM_PEN_WIDTH) );
         }
     }
 

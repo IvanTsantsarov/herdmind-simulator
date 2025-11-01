@@ -15,6 +15,7 @@ class Scene;
 class SceneView;
 class Herd;
 class Meadow;
+class FocusAnim;
 
 class MainWindow : public QMainWindow
 {
@@ -26,11 +27,16 @@ class MainWindow : public QMainWindow
     QTimer mUpdateTimer;
     SceneView* mSceneView;
     QElapsedTimer mHerdTimer;
+    QTimer* mReminder = nullptr;
+    FocusAnim* mFocusAnim = nullptr;
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void moveEvent(QMoveEvent *);
+    void resizeEvent(QResizeEvent *);
 private:
     Ui::MainWindow *ui;
 private slots:
@@ -41,5 +47,6 @@ private slots:
     void on_checkShepard_toggled(bool checked);
     void on_checkParamsHerding_toggled(bool checked);
     void on_checkParamsG_toggled(bool checked);
+    void onConnectReminger();
 };
 #endif // MAINWINDOW_H

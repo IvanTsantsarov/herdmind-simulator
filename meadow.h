@@ -14,8 +14,10 @@ class Meadow : public QObject
 
     QSize mAreaSize;
     float mLawnRadius;
+    float mLawnDiam;
     QSize mLawnsDim;
     uint mAnimalsPerLawn;
+    float mOffsetW, mOffsetH;
 
 public:
     explicit Meadow(const QPointF &center,
@@ -25,6 +27,8 @@ public:
                     uint animalsPerLawn,
                     QObject *parent = nullptr);
 
+    ~Meadow();
+
     class Lawn {
         QPointF mPos;
         float mKgStart, mKg;
@@ -32,12 +36,12 @@ public:
         QList<Animal*> mAnimals;
     public:
 
-        Lawn(const QPointF& position, float startingKg, Meadow* parent);
+        Lawn(const QPointF& position, float currentKg, float maxKg, Meadow* parent);
         inline QPointF pos(){ return mPos; }
 
         inline bool isDepleted(){ return mKg <= 0.01; }
         inline bool hasSpace(){ return mAnimals.count() < mMeadow->animalsPerLawn(); }
-        inline bool animalsCount(){ return mAnimals.count() > 0; }
+        inline int animalsCount(){ return mAnimals.count(); }
 
         bool graze(float weight);
         float distSq(const QPointF &pt);
@@ -48,14 +52,17 @@ public:
 
         // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
-        void deattach(Animal* animal);
+        void dettach(Animal* animal);
 
     };
 
     inline float lawnRadius(){ return mLawnRadius; }
-    inline float lawnDiam(){ return mLawnRadius * 2.0f; }
+    inline float lawnDiam(){ return mLawnDiam; }
     inline int lawnsCount(){ return mLawns.count(); }
     Lawn* closestAvailable(const QPointF& pos, const Lawn* current = nullptr);
+    Lawn* bestAvailable(const QPointF& pos, const Lawn* current = nullptr);
+    Lawn* lawn(float x, float y);
+
     inline uint animalsPerLawn(){return mAnimalsPerLawn; }
 
 
@@ -65,7 +72,8 @@ protected:
 
 public:
     inline QVector<Lawn*> & lawns(){ return mLawns; }
-    // inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
+    inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
+
 
 signals:
 };

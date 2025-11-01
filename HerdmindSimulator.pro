@@ -12,6 +12,7 @@ DEFINES += SIMULATION
 
 SOURCES += \
     animal.cpp \
+    focusanim.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/collar/collar.cpp \
@@ -23,10 +24,12 @@ SOURCES += \
     meadow.cpp \
     scene.cpp \
     sceneview.cpp \
-    shepherd.cpp
+    shepherd.cpp \
+    simtools.cpp
 
 HEADERS += \
     animal.h \
+    focusanim.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
@@ -39,9 +42,11 @@ HEADERS += \
     meadow.h \
     scene.h \
     sceneview.h \
-    shepherd.h
+    shepherd.h \
+    simtools.h
 
 FORMS += \
+    focusanim.ui \
     mainwindow.ui
 
 # Default rules for deployment.

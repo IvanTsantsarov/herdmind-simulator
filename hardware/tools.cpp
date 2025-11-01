@@ -15,3 +15,4 @@ float Tools::rnd(float minv, float maxv)
 {
     return minv + (maxv - minv) * (float)rand() * (1.0f / (float)RAND_MAX);
 }
+

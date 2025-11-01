@@ -27,10 +27,14 @@ public:
 
     typedef QList<AnimalPair> PairsList;
 
+    bool mIsEnabledGrazing = true;
+    bool mIsEnabledHerding = true;
+
 
 private:
     Q_OBJECT
 
+    quint64 mMSec = 0;
     quint64 mLastUpdateMsec = 0;
 
     QVector<Animal*> mAnimals, mCollars;
@@ -56,7 +60,8 @@ public:
                   int percentageCollars,
                   float animalSize,
                   float grazingCapacity );
-    void update(quint64 msec,
+
+    void update(quint64 millissec,
                 Meadow *meadow,
                 QPointF *attractor,
                 float attractorPower,
@@ -70,7 +75,7 @@ public:
                 float maxTransmitAngle
                 );
 
-
+    inline quint64 msec(){ return mMSec; }
 
     inline Animal* animal(int index){ return mAnimals[index]; }
     PairsList infoPairs() { return mInfoPairs; };

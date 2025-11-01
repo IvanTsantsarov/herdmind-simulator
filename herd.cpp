@@ -22,7 +22,8 @@ void Herd::clear()
 Herd::Herd(QObject *parent)
     : QObject{parent}
 {
-
+    // mIsEnabledGrazing = false; // trash
+    mIsEnabledHerding = false; // trash
 }
 
 Herd::~Herd()
@@ -34,7 +35,11 @@ Herd::~Herd()
     clear();
 }
 
-void Herd::generate(int count, int areaDimeter, int percentageCollars, float animalSize, float grazingCapacity)
+void Herd::generate(int count,
+                    int areaDimeter,
+                    int percentageCollars,
+                    float animalSize,
+                    float grazingCapacity)
 {
     srand(time(NULL));
 
@@ -56,7 +61,7 @@ void Herd::generate(int count, int areaDimeter, int percentageCollars, float ani
     for( auto i = 0; i < count; i ++) {
         float x = Tools::rnd(-areaRadius, areaRadius);
         float y = Tools::rnd(-areaRadius, areaRadius);
-        mAnimals.append(new Animal(x, y, grazingCapacity));
+        mAnimals.append(new Animal(this, x, y, grazingCapacity));
         processCollision(animalSize * 2.0f);
     }
 
@@ -97,7 +102,7 @@ bool Herd::processCollision(float collidingDistance)
     return isCollision;
 }
 
-void Herd::update( quint64 msec,
+void Herd::update( quint64 millissec,
                   Meadow* meadow,
                   QPointF* attractor,
                   float attractorPower,
@@ -110,51 +115,60 @@ void Herd::update( quint64 msec,
                   float maxTransmitDistance,
                   float maxTransmitAngle )
 {
+    mMSec = millissec;
+    double msecDelta = mMSec - mLastUpdateMsec;
+    float tickSeconds = msecDelta / 1000.0f;
+    float tickDays = tickSeconds / (24.0 * 60.0 * 60.0);
+
     float minTransmitAngleCos = cosf(maxTransmitAngle);
 
     mInfoPairs.clear();
 
-    // Simulate grazing
-    if( !attractor && !mIsShepherdActive) {
-        double timeDelta = msec - mLastUpdateMsec;
-        double timeFactor = timeDelta / (24.0 * 60.0 * 60.0 * 1000.0);
-        foreach(Animal* animal, mAnimals) {
-            if( !animal->lawn() ) {
-                Meadow::Lawn* lawn = meadow->closestAvailable(animal->pt());
-                if( lawn ) {
-                    animal->attach(lawn);
-                }
-            }
+    if( mIsEnabledGrazing ) {
+        // Simulate grazing
+        if( !attractor && !mIsShepherdActive) {
 
-            if( animal->lawn() ) {
-                bool isArrived = !animal->walk(QVector2D(animal->lawn()->pos()), ANIMAL_WALKING_SPEED, LAWN_RADIUS );
-                if( isArrived && !animal->isMoving() ) {
-                    if( animal->graze(5000.0f * timeFactor) ) {
-                        animal->attach();
+            foreach(Animal* animal, mAnimals) {
+                if( !animal->lawn() && !animal->isMoving() && !animal->isResting() ) {
+                    Meadow::Lawn* lawn = meadow->bestAvailable(animal->pt());
+                    if( lawn ) {
+                        animal->walkTo(QVector2D(lawn->pos()));
+                        animal->attach(lawn);
+                    }
+                }
+
+                if( animal->lawn() && !animal->isGrazing() ) {
+                    if( animal->isArrived() ) {
+                        if( !animal->graze() ) {
+                            animal->dettach();
+                        }
+                    }else
+                    if( !animal->isMoving()) {
+                        animal->dettach();
                     }
                 }
             }
         }
-
-        mLastUpdateMsec = msec;
     }
 
     // process attractor force if available
-    if( attractor ) {
-        QVector2D attractorPosition = QVector2D(*attractor);
-        foreach(Animal* animal, mAnimals) {
-            animal->attach();
-            animal->react(attractorPosition, attractorPower, attractionDistance, repellingDistance);
+    if( mIsEnabledHerding ) {
+        if( attractor ) {
+            QVector2D attractorPosition = QVector2D(*attractor);
+            foreach(Animal* animal, mAnimals) {
+                animal->dettach();
+                animal->react(attractorPosition, attractorPower, attractionDistance, repellingDistance);
+            }
         }
-    }
 
-    // process shepherd if active
-    if( mIsShepherdActive ) {
-        QPointF pt = mShepherd->step();
-        QVector2D shepherdPosition(pt);
-        foreach(Animal* animal, mAnimals) {
-            animal->attach();
-            animal->react(shepherdPosition, attractorPower, attractionDistance, repellingDistance);
+        // process shepherd if active
+        if( mIsShepherdActive ) {
+            QPointF pt = mShepherd->step();
+            QVector2D shepherdPosition(pt);
+            foreach(Animal* animal, mAnimals) {
+                animal->dettach();
+                animal->react(shepherdPosition, attractorPower, attractionDistance, repellingDistance);
+            }
         }
     }
 
@@ -166,9 +180,9 @@ void Herd::update( quint64 msec,
         };
     }
 
-    // update speed after attraction and collision
+    // update speed and apply it to the position
     foreach(Animal* animal, mAnimals) {
-        animal->updateSpeed(maxSpeed, friction, rotationFading);
+        animal->updateMovement(tickSeconds, friction, rotationFading);
     }
 
 
@@ -204,6 +218,8 @@ void Herd::update( quint64 msec,
 
         }
     }
+
+    mLastUpdateMsec = mMSec;
 }
 
 QPointF Herd::shepherdPos()

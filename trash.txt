@@ -180,3 +180,25 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
                 LAWN_BRUSH_OPACITY) );
         }
     }
+
+
+
+float angleDelta = 0.0f;
+
+if( mRotationAngleTarget < 0.0f ) {
+    if( mRotationAngle > 0.0f ) {
+        angleDelta = mRotationAngleTarget - mRotationAngle + 2.0f*M_PI; // checked
+    }else {
+        angleDelta = mRotationAngleTarget - mRotationAngle;
+    }
+
+}else {
+    if( mRotationAngle > 0.0f ) {
+        angleDelta = mRotationAngleTarget - mRotationAngle;
+    }else {
+        angleDelta = mRotationAngleTarget - mRotationAngle;
+    }
+
+}
+
+mRotationAngle = mRotationAngle + rotationFading * angleDelta;

@@ -5,24 +5,66 @@
 #include <QList>
 #include "meadow.h"
 
+
+class Herd;
 class Bolus;
 class Collar;
 
 class Animal {
 
+    enum struct State {
+        sitting = 0,
+        resting = 1,
+        grazing = 2,
+        going = 3,
+        stopping = 4,
+        avoiding = 5
+    };
+
+    State mState = State::sitting;
+    State mStatePrev = State::sitting;
+    quint64 mStateMsec = 0;
+
+    QVector2D mDestination;
+    float mArrivingDistance;
+    Animal* mObstacle = nullptr;
+    float mStamina = 1.0f;
+
+public:
+
+    inline bool isSitting(){ return State::sitting == mState; }
+    inline bool isResting(){ return State::resting == mState; }
+    inline bool isGoing(){ return State::going == mState; }
+    inline bool isStopping(){ return State::stopping == mState; }
+    inline bool isAvoiding(){ return State::avoiding == mState; }
+    inline bool isGrazing(){ return State::grazing == mState; }
+
+    bool isMoving(){ return mState >= State::going && mState <= State::avoiding; }
+
+    inline bool wasSitting(){ return State::sitting == mStatePrev; }
+    inline bool wasGoing(){ return State::going == mStatePrev; }
+    inline bool wasStopping(){ return State::stopping == mStatePrev; }
+    inline bool wasAvoiding(){ return State::avoiding == mStatePrev; }
+    inline bool wasGrazing(){ return State::grazing == mStatePrev; }
+
+private:
+
     friend class Bolus;
     friend class Collar;
 
+    Herd* mHerd = nullptr;
     Bolus* mBolus = nullptr;
     Collar* mCollar = nullptr;
 
     QVector2D mPosition;
     QVector2D mVelocity;
     QVector2D mDirection;
+    float mSpeed = 0.0f;
     float mRotationAngle = 0.0f;
     float mRotationAngleTarget = 0.0f;
 
-    void updateDirection();
+    void updateRotationAngleTarget();
+    void updateSpeedAndDirection();
 
     // count of the animals with collars that sees this animal
     QList<Animal*> mObservers;
@@ -39,6 +81,10 @@ class Animal {
 
     float mGrazingCapacity; // in kilograms per 24 hours
 
+    void setState( State newState );
+    quint64 stateMsec();
+    int stateSec() { return stateMsec() / 1000; }
+
 public:
 
     inline QVector2D& p(){ return mPosition; }
@@ -50,13 +96,15 @@ public:
                   float attractionDistance,
                   float repellingDistance);
 
+    void setPos(float x, float y){ mPosition.setX(x), mPosition.setY(y); }
 
-    bool isMoving();
-    bool walk(const QVector2D& destination, float speed, float arrivingDistance);
+    bool goTo(const QVector2D& destination, float speed, float arrivingDistance);
+    bool walkTo(const QVector2D& destination);
+    void lookAt(const QVector2D& destination);
 
     // return true if info from bolus is sent to the other
     bool collide(Animal* other, float minCollideDistance);
-    void updateSpeed(float maxSpeed, float friction, float rotationFading);
+    void updateMovement(float tickSeconds, float friction, float rotationFading);
     inline float rotationAngle(){ return mRotationAngle; }
     inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 
@@ -64,7 +112,6 @@ public:
     bool hasCollar() const { return nullptr != mCollar; }
     bool isSideVisible(Animal *a, float maxCosAngle);
     bool isAhead(Animal* animal, float maxCosAngle );
-
 
     void clearObservers(){ mObservers.clear(); }
     void addObserver(Animal* a){ mObservers.append(a); }
@@ -74,16 +121,22 @@ public:
     void addObserving(Animal* a){ mObserving.append(a); }
     int observingCount(){ return mObserving.count(); }
 
-    Animal(float x, float y, float grazingCapacity );
+    Animal(Herd* herd, float x, float y, float grazingCapacity );
     ~Animal();
 
     uint readings(){ return mReadings; }
 
-    void attach(Meadow::Lawn *newLawn = nullptr);
+    void kick();
+    bool isCloseToDestination();
+    bool isArrived();
+
+
+    void attach(Meadow::Lawn *newLawn);
+    inline void dettach(){ attach(nullptr); };
     inline Meadow::Lawn* lawn(){ return mLawn; }
 
-    // return true if lawn depleted
-    bool graze(float timeFactor) { return mLawn ? mLawn->graze(timeFactor * mGrazingCapacity) : true; }
+    // return false if lawn depleted
+    bool graze();
 
     QString info();
 };

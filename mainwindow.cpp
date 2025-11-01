@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "focusanim.h"
 #include "ui_mainwindow.h"
 #include "scene.h"
 #include "sceneview.h"
@@ -8,6 +9,7 @@
 
 
 #define TABLE_COLS_COUNT 3
+#define REMINDER_DELAY 3000
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -76,6 +78,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->widgetSim->setVisible(false);
     ui->widgetGrazing->setVisible(false);
     showMaximized();
+
+    // ui->scrollAreaParams->setWidgetResizable(false); // chatGPT was wrong about this
+
+    // Create focus animation
+    mFocusAnim = new FocusAnim(this);
+
+    // Setup click reminder timer to show focus animation when needed
+    mReminder = new QTimer(this);
+    connect(mReminder, &QTimer::timeout, this, &MainWindow::onConnectReminger );
+    mReminder->start( REMINDER_DELAY );
 }
 
 MainWindow::~MainWindow()
@@ -85,6 +97,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnGenerate_clicked()
 {
+    mFocusAnim->stop();
+
     // create herd
     if( mHerd) {
         delete mHerd;
@@ -241,11 +255,35 @@ void MainWindow::on_checkShepard_toggled(bool checked)
 void MainWindow::on_checkParamsHerding_toggled(bool checked)
 {
     ui->widgetSim->setVisible(checked);
+    ui->scrollAreaParamsWidget->adjustSize();
+    ui->scrollAreaParamsWidget->setMinimumSize(ui->scrollAreaParamsWidget->sizeHint());
 }
 
 
 void MainWindow::on_checkParamsG_toggled(bool checked)
 {
     ui->widgetGrazing->setVisible(checked);
+    ui->scrollAreaParamsWidget->adjustSize();
+    ui->scrollAreaParamsWidget->setMinimumSize(ui->scrollAreaParamsWidget->sizeHint());
 }
 
+void MainWindow::moveEvent(QMoveEvent *)
+{
+    if( mFocusAnim ) {
+        mFocusAnim->stop();
+    }
+}
+
+void MainWindow::resizeEvent(QResizeEvent *)
+{
+    if( mFocusAnim ) {
+        mFocusAnim->stop();
+    }
+}
+
+void MainWindow::onConnectReminger()
+{
+    if( !mHerd ) {
+        mFocusAnim->start(ui->btnGenerate);
+    }
+}
