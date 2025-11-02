@@ -19,7 +19,15 @@ void Animal::updateRotationAngleTarget()
 void Animal::updateSpeedAndDirection()
 {
     mSpeed = mVelocity.length();
-    mDirection = mVelocity / mSpeed;
+
+    if( mSpeed > 0.00000001f ) {
+        mDirection = mVelocity / mSpeed;
+    }
+
+    if( mSpeed > ANIMAL_MAX_SPEED ) {
+        mSpeed = ANIMAL_MAX_SPEED;
+        mVelocity = mDirection * mSpeed;
+    }
 }
 
 // When bolus from this animal sends a package
@@ -61,7 +69,7 @@ float Animal::distanceSq(Animal *other)
     return dx*dx + dy*dy;
 }
 
-void Animal::react(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance)
+void Animal::updateRunning(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance, float friction )
 {
     QVector2D f = QVector2D(p) - mPosition;
     float lensq = f.lengthSquared();
@@ -75,7 +83,23 @@ void Animal::react(const QVector2D &p, float attractionPower, float attractionDi
 
     updateSpeedAndDirection();
     updateRotationAngleTarget();
+    mRotationAngle = mRotationAngleTarget;
 }
+
+void Animal::run(bool is)
+{
+    if( is ) {
+        if( !isRunning() ) {
+            setState(State::running);
+        }
+    }else {
+        if( isRunning() ) {
+            setState(State::stopping);
+            mVelocity = mDirection * ANIMAL_WALKING_SPEED;
+        }
+    }
+}
+
 
 void Animal::lookAt(const QVector2D &destination)
 {
@@ -135,22 +159,25 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
         return true;
     }
 
-    // change the direction
-    QVector2D v1 = SimTools::rotated(mDirection, ANIMAL_AVOID_ROTATION_ANGLE);
-    QVector2D v2 = SimTools::rotated(mDirection,-ANIMAL_AVOID_ROTATION_ANGLE);
-    mDirection = QVector2D::dotProduct(other->mDirection, v1) < 0.0f ? v1 : v2;
-    mVelocity = mDirection * mSpeed;
+    if( !isRunning() ) {
+        // change the direction
+        QVector2D v1 = SimTools::rotated(mDirection, ANIMAL_AVOID_ROTATION_ANGLE);
+        QVector2D v2 = SimTools::rotated(mDirection,-ANIMAL_AVOID_ROTATION_ANGLE);
+        mDirection = QVector2D::dotProduct(other->mDirection, v1) < 0.0f ? v1 : v2;
+        mVelocity = mDirection * mSpeed;
 
-    setState(State::avoiding);
-    mObstacle = other;
-    dettach();
+        setState(State::avoiding);
+        mObstacle = other;
+        dettach();
 
-    // kick other animal if comming from behind
-    if( QVector2D::dotProduct( -vecDist.normalized(), other->mDirection ) < 0.0f ) {
-        other->kick();
+        // kick other animal if comming from behind
+        if( QVector2D::dotProduct( -vecDist.normalized(), other->mDirection ) < 0.0f ) {
+            other->kick();
+        }
+
+        updateRotationAngleTarget();
     }
 
-    updateRotationAngleTarget();
     return true;
 }
 
@@ -282,7 +309,7 @@ QString Animal::info()
 // return true if lawn is depleted
 
 
-void Animal::updateMovement(float tickSeconds, float friction, float rotationFading)
+void Animal::updateBehavior(float tickSeconds, float friction, float rotationFading)
 {
     if( mBolus ) {
         mBolus->updateSendingMsec( tickSeconds * 1000 );
@@ -297,8 +324,7 @@ void Animal::updateMovement(float tickSeconds, float friction, float rotationFad
     mRotationAngle = fmod( mRotationAngle + rotationFading * angleDelta, 2*M_PI);
 
     if( isGrazing() ) {
-        if( mLawn->graze(tickSeconds * mGrazingCapacity / 60) )
-        {
+        if( !mLawn || mLawn->graze(tickSeconds * mGrazingCapacity / 60) ) {
             setState(State::sitting);
         }
     }
@@ -324,7 +350,7 @@ void Animal::updateMovement(float tickSeconds, float friction, float rotationFad
     }
 
     // stop if going too slow
-    if( mSpeed < (AMIMAL_MIN_SPEED * AMIMAL_MIN_SPEED) ) {
+    if( mSpeed < (ANIMAL_MIN_SPEED * ANIMAL_MIN_SPEED) ) {
 
         mVelocity = QVector2D( 0.0f, 0.0f);
         mSpeed = 0.0f;
@@ -341,7 +367,9 @@ void Animal::updateMovement(float tickSeconds, float friction, float rotationFad
 
         if( mStamina < ANIMAL_STAMINA_MIN ) {
             mStamina = 0.0f;
-            setState(State::resting);
+            if( !isRunning() ) {
+                setState(State::resting);
+            }
         }
     }else {
         mStamina += ANIMAL_STAMINA_STEP * tickSeconds;
@@ -354,9 +382,10 @@ void Animal::updateMovement(float tickSeconds, float friction, float rotationFad
             }
         }
     }
+}
 
-
-
+void Animal::updatePosition()
+{
     if( !isSitting() ) {
         mPosition += mVelocity;
     }

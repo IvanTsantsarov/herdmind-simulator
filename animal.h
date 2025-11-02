@@ -18,7 +18,8 @@ class Animal {
         grazing = 2,
         going = 3,
         stopping = 4,
-        avoiding = 5
+        avoiding = 5,
+        running = 6
     };
 
 
@@ -34,6 +35,7 @@ class Animal {
         case State::going: return QString("Going");
         case State::stopping: return QString("Stopping");
         case State::avoiding: return QString("Avoiding");
+        case State::running: return QString("Running");
         }
 
         return "Unknown!!!";
@@ -52,18 +54,21 @@ public:
 
     inline bool isSitting(){ return State::sitting == mState; }
     inline bool isResting(){ return State::resting == mState; }
+    inline bool isGrazing(){ return State::grazing == mState; }
     inline bool isGoing(){ return State::going == mState; }
     inline bool isStopping(){ return State::stopping == mState; }
     inline bool isAvoiding(){ return State::avoiding == mState; }
-    inline bool isGrazing(){ return State::grazing == mState; }
+    inline bool isRunning(){ return State::running == mState; }
 
-    bool isMoving(){ return mState >= State::going && mState <= State::avoiding; }
 
+    bool isMoving(){ return mState >= State::going && mState <= State::running; }
+
+    inline bool wasGrazing(){ return State::grazing == mStatePrev; }
     inline bool wasSitting(){ return State::sitting == mStatePrev; }
     inline bool wasGoing(){ return State::going == mStatePrev; }
     inline bool wasStopping(){ return State::stopping == mStatePrev; }
     inline bool wasAvoiding(){ return State::avoiding == mStatePrev; }
-    inline bool wasGrazing(){ return State::grazing == mStatePrev; }
+    inline bool wasRunning(){ return State::running == mState; }
 
 private:
 
@@ -109,15 +114,16 @@ public:
     inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
     inline QVector2D& v(){ return mVelocity; }
     float distanceSq(Animal* other);
-    void react(const QVector2D &p,
-                  float attractionPower,
-                  float attractionDistance,
-                  float repellingDistance);
+    void updateRunning(const QVector2D &p,
+               float attractionPower,
+               float attractionDistance,
+               float repellingDistance, float friction);
 
     inline Bolus* bolus(){ return mBolus; }
     inline Collar* colalr(){ return mCollar; }
 
     void setPos(float x, float y){ mPosition.setX(x), mPosition.setY(y); }
+    void run(bool is = true);
 
     bool goTo(const QVector2D& destination, float speed, float arrivingDistance);
     bool walkTo(const QVector2D& destination);
@@ -125,7 +131,8 @@ public:
 
     // return true if info from bolus is sent to the other
     bool collide(Animal* other, float minCollideDistance);
-    void updateMovement(float tickSeconds, float friction, float rotationFading);
+    void updateBehavior(float tickSeconds, float friction, float rotationFading);
+    void updatePosition();
     inline float rotationAngle(){ return mRotationAngle; }
     inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 
