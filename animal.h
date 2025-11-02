@@ -132,7 +132,7 @@ public:
     // return true if info from bolus is sent to the other
     bool collide(Animal* other, float minCollideDistance);
     void updateBehavior(float tickSeconds, float friction, float rotationFading);
-    void updatePosition();
+    void updateCommon(float tickSeconds);
     inline float rotationAngle(){ return mRotationAngle; }
     inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 

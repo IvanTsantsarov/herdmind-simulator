@@ -89,6 +89,8 @@ void SceneView::mouseMoveEvent(QMouseEvent *event)
 
     }
 
+    mScene->setCursorInfoPos(mapToScene(pt + QPoint(20, 20)));
+
      QGraphicsView::mouseMoveEvent(event);
 }
 

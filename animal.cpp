@@ -311,10 +311,6 @@ QString Animal::info()
 
 void Animal::updateBehavior(float tickSeconds, float friction, float rotationFading)
 {
-    if( mBolus ) {
-        mBolus->updateSendingMsec( tickSeconds * 1000 );
-    }
-
     float angleDelta = fmod(mRotationAngleTarget - mRotationAngle, 2*M_PI);
 
     if( angleDelta < -M_PI) angleDelta += 2*M_PI;
@@ -384,9 +380,13 @@ void Animal::updateBehavior(float tickSeconds, float friction, float rotationFad
     }
 }
 
-void Animal::updatePosition()
+void Animal::updateCommon(float tickSeconds)
 {
     if( !isSitting() ) {
         mPosition += mVelocity;
+    }
+
+    if( mBolus ) {
+        mBolus->updateSendingMsec( tickSeconds * 1000 );
     }
 }

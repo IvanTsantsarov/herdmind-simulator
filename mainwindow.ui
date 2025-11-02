@@ -132,14 +132,8 @@
              </item>
              <item>
               <widget class="QCheckBox" name="checkRecursiveCollision">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>If enabled this will perform a recursive collision. It can slow dramaticaly simulation!</string>
-               </property>
                <property name="text">
-                <string>Collision</string>
+                <string>Rec Coll</string>
                </property>
               </widget>
              </item>
@@ -228,8 +222,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>271</width>
-             <height>436</height>
+             <width>158</width>
+             <height>481</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -857,7 +851,7 @@
      <x>0</x>
      <y>0</y>
      <width>431</width>
-     <height>26</height>
+     <height>17</height>
     </rect>
    </property>
   </widget>

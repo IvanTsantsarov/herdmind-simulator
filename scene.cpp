@@ -110,18 +110,8 @@ void Scene::create(SceneView* view, Herd* herd, int animalsCount, int pairsCount
 
     mAttractor = addEllipse(0, 0, ANIMAL_LENGTH, ANIMAL_LENGTH, ATTRACTOR_PEN, ATTRACTOR_BRUSH );
 
-    mItemInfo = new TextItem("");
-    mItemInfo->setDefaultTextColor(INFO_TEXT_COLOR);
-    mItemInfo->setBackColor(INFO_BACK_COLOR);
-    QTransform t = mItemInfo->transform();
-    t.scale(0.1f, -0.1f);
-    mItemInfo->setTransform(t);
-    addItem(mItemInfo);
-
-    QFont font("Monospace");
-    font.setStyleHint(QFont::Monospace);
-    font.setPointSize(mItemInfo->font().pointSize());
-    mItemInfo->setFont(font);
+    mItemInfo = new TextItem("", this);
+    mCursorInfo = new TextItem("", this);
 
     setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
@@ -189,7 +179,9 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
 
     // hide all lines
     for( auto i = 0; i < mLines.count(); i ++) {
-        mLines[i]->hide();
+        QGraphicsLineItem* line = mLines[i];
+        line->setPen( PAIR_PEN );
+        line->hide();
     }
 
     // show pair lines
@@ -222,6 +214,15 @@ void Scene::selectAnimalItem(AnimalItem *item)
     mItemSelected = item;
 
     mItemSelected->ensureVisible();
+}
+
+void Scene::setCursorInfoPos(const QPointF &pt)
+{
+    if( mCursorInfo ) {
+        mCursorInfo->setPos(pt);
+        QString str = QString("%1 %2").arg( pt.x(), 0, 'f', 2).arg( pt.y(), 0, 'f', 2);
+        mCursorInfo->setPlainText(str);
+    }
 }
 
 void Scene::selectAnimalItem(int index)
@@ -314,6 +315,21 @@ QVariant AnimalItem::itemChange(GraphicsItemChange change, const QVariant &v) {
         }
     }
     return QGraphicsPolygonItem::itemChange(change, v);
+}
+
+TextItem::TextItem(const QString &text, Scene *scene) :
+    QGraphicsTextItem(text) {
+    setDefaultTextColor(INFO_TEXT_COLOR);
+    setBackColor(INFO_BACK_COLOR);
+    QTransform t = transform();
+    t.scale(0.1f, -0.1f);
+    setTransform(t);
+    scene->addItem(this);
+
+    QFont font("Monospace");
+    font.setStyleHint(QFont::Monospace);
+    font.setPointSize(font.pointSize());
+    setFont(font);
 }
 
 void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o, QWidget *w) {

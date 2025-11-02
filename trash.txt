@@ -202,3 +202,15 @@ if( mRotationAngleTarget < 0.0f ) {
 }
 
 mRotationAngle = mRotationAngle + rotationFading * angleDelta;
+
+
+class CoordsItem {
+    QGraphicsLineItem *mLineLong  = nullptr;
+    QGraphicsLineItem *mLineLat  = nullptr;
+
+    Scene* mScene = nullptr;
+    SceneView* mView = nullptr;
+public:
+    CoordsItem(Scene* scene, SceneView* view);
+
+};

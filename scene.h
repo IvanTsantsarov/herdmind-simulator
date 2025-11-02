@@ -26,7 +26,6 @@ public:
         // setFlag(QGraphicsItem::ItemClipsToShape, true);
     }
 
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     void startPulseAnimation();
@@ -46,8 +45,7 @@ class TextItem : public QGraphicsTextItem
 {
     QColor mBackColor;
 public:
-    TextItem(const QString &text) :
-        QGraphicsTextItem(text) { }
+    TextItem(const QString &text, Scene* scene);
 
     void setBackColor(const QColor& c){ mBackColor = c; }
 
@@ -60,7 +58,6 @@ class Scene : public QGraphicsScene
 {
     Q_OBJECT
 
-
     QVector<AnimalItem*> mItems;
     QVector<QGraphicsLineItem*> mLines;
     AnimalItem* mItemSelected = nullptr;
@@ -69,6 +66,7 @@ class Scene : public QGraphicsScene
     QVector<QGraphicsRectItem*> mLawns;
 
     TextItem* mItemInfo = nullptr;
+    TextItem* mCursorInfo = nullptr;
 
     SceneView* mView = nullptr;
 
@@ -83,6 +81,7 @@ public:
     void selectAnimalItem(AnimalItem* item);
 
     inline AnimalItem* selectedAnimal(){ return mItemSelected; }
+    void setCursorInfoPos(const QPointF& pt);
 
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);

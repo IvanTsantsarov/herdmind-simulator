@@ -47,10 +47,12 @@ public:
     QVBoxLayout *verticalLayoutParams;
     QWidget *widgetGen;
     QGridLayout *gridLayout;
-    QCheckBox *checkShepard;
     QHBoxLayout *horizontalLayout_3;
     QLineEdit *editTime;
     QPushButton *btnGenerate;
+    QHBoxLayout *horizontalLayout_6;
+    QCheckBox *checkShepard;
+    QCheckBox *checkRecursiveCollision;
     QGroupBox *groupBox;
     QHBoxLayout *horizontalLayout_5;
     QHBoxLayout *horizontalLayout_4;
@@ -173,12 +175,6 @@ public:
         widgetGen->setMinimumSize(QSize(0, 100));
         gridLayout = new QGridLayout(widgetGen);
         gridLayout->setObjectName("gridLayout");
-        checkShepard = new QCheckBox(widgetGen);
-        checkShepard->setObjectName("checkShepard");
-        checkShepard->setEnabled(false);
-
-        gridLayout->addWidget(checkShepard, 3, 0, 1, 1);
-
         horizontalLayout_3 = new QHBoxLayout();
         horizontalLayout_3->setObjectName("horizontalLayout_3");
         editTime = new QLineEdit(widgetGen);
@@ -195,6 +191,22 @@ public:
 
 
         gridLayout->addLayout(horizontalLayout_3, 1, 0, 1, 1);
+
+        horizontalLayout_6 = new QHBoxLayout();
+        horizontalLayout_6->setObjectName("horizontalLayout_6");
+        checkShepard = new QCheckBox(widgetGen);
+        checkShepard->setObjectName("checkShepard");
+        checkShepard->setEnabled(false);
+
+        horizontalLayout_6->addWidget(checkShepard);
+
+        checkRecursiveCollision = new QCheckBox(widgetGen);
+        checkRecursiveCollision->setObjectName("checkRecursiveCollision");
+
+        horizontalLayout_6->addWidget(checkRecursiveCollision);
+
+
+        gridLayout->addLayout(horizontalLayout_6, 2, 0, 1, 1);
 
 
         verticalLayoutParams->addWidget(widgetGen);
@@ -587,12 +599,13 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "HerdMind Simulator", nullptr));
-        checkShepard->setText(QCoreApplication::translate("MainWindow", "Shepard", nullptr));
 #if QT_CONFIG(tooltip)
         editTime->setToolTip(QCoreApplication::translate("MainWindow", "Time elapsed since the herd generation", nullptr));
 #endif // QT_CONFIG(tooltip)
         editTime->setText(QCoreApplication::translate("MainWindow", "Press ->", nullptr));
         btnGenerate->setText(QCoreApplication::translate("MainWindow", "Generate ", nullptr));
+        checkShepard->setText(QCoreApplication::translate("MainWindow", "Shepard", nullptr));
+        checkRecursiveCollision->setText(QCoreApplication::translate("MainWindow", "Rec Coll", nullptr));
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Center Long : Lat", nullptr));
 #if QT_CONFIG(tooltip)
         spinCenterLong->setToolTip(QCoreApplication::translate("MainWindow", "Center Longitude", nullptr));

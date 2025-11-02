@@ -200,9 +200,9 @@ void Herd::update( quint64 millissec,
         }
     }
 
-    // update position
+    // update position and bolus
     foreach(Animal* animal, mAnimals) {
-        animal->updatePosition();
+        animal->updateCommon(tickSeconds);
     }
 
     // Precision collision is disabled - too expensinve
