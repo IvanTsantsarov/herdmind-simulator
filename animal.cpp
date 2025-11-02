@@ -165,7 +165,7 @@ bool Animal::isAhead(Animal *a, float maxCosAngle)
     // check for visibility range
     QVector2D look( a->p() - p() );
     look.normalize();
-    return fabs(QVector2D::dotProduct(mDirection, look)) > maxCosAngle;
+    return QVector2D::dotProduct(mDirection, look) > maxCosAngle;
 }
 
 
@@ -260,7 +260,7 @@ QString Animal::info()
 {
     float kg = mLawn ? mLawn->kg() : 0.0f;
 
-    return QString("Ptr:0x%1\nV:%2,%3\nA:%4,%5\nStamina:%6\nState:%7\nLawn:0x%8\nKg=%9\nAnimals:%10")
+    return QString("Ptr:0x%1\nV:%2,%3\nA:%4,%5\nStamina:%6\nState:%7 %8\nLawn:0x%9\nKg=%10\nAnimals:%11")
         .arg(reinterpret_cast<quint64>(this), 0, 16)
         .arg( mVelocity.x(), 0, 'f', 2)
         .arg( mVelocity.y(), 0, 'f', 2)
@@ -271,6 +271,8 @@ QString Animal::info()
         .arg( mStamina, 0, 'f', 2)
 
         .arg( static_cast<int>(mState) )
+        .arg( currentStateString() )
+
 
         .arg(reinterpret_cast<quint64>(mLawn), 0, 16)
         .arg(kg, 0, 'f', 2 )
@@ -282,6 +284,10 @@ QString Animal::info()
 
 void Animal::updateMovement(float tickSeconds, float friction, float rotationFading)
 {
+    if( mBolus ) {
+        mBolus->updateSendingMsec( tickSeconds * 1000 );
+    }
+
     float angleDelta = fmod(mRotationAngleTarget - mRotationAngle, 2*M_PI);
 
     if( angleDelta < -M_PI) angleDelta += 2*M_PI;

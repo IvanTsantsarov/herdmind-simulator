@@ -130,7 +130,7 @@ void MainWindow::on_btnGenerate_clicked()
                          );
 
     // create scene
-    mScene->create(mHerd, ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count(), mMeadow->lawnsCount() );
+    mScene->create(mSceneView, mHerd, ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count(), mMeadow->lawnsCount() );
     mScene->update(mHerd, mMeadow, true, INITIAL_HERD_SPREAD);
 
     ui->table->setColumnCount(TABLE_COLS_COUNT);
@@ -195,6 +195,9 @@ void MainWindow::onUpdate()
     minutes -= minutesInHours;
     seconds -= (minutesInHours + minutes)*60;
 
+    mMeadow->update();
+
+    ui->editInfo->setText( QString("Food:%1%").arg( mMeadow->kgRatio(100), 0, 'f', 2) );
 
     ui->editTime->setText(QString("%1:%2:%3")
                               .arg(hours, 2, 10, '0')
@@ -218,7 +221,7 @@ void MainWindow::onUpdate()
                   );
 
     mScene->update(mHerd, mMeadow);
-    mSceneView->invalidateScene();
+    // mSceneView->invalidateScene();
 
     for (int row = 0; row < mHerd->count(); row++) {
         Animal* animal = mHerd->animal(row);

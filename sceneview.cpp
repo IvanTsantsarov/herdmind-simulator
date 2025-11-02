@@ -2,10 +2,14 @@
 #include <QWheelEvent>
 
 #include "sceneview.h"
+#include "scene.h"
 
+
+#define INFO_TEXT_COLOR QColor(250, 220, 100)
+#define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
 SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
-    QGraphicsView(scene, parent)
+    QGraphicsView(scene, parent), mScene(reinterpret_cast<Scene*>(scene) )
 {
     setVisible(true);
 
@@ -99,4 +103,34 @@ void SceneView::wheelEvent(QWheelEvent *event)
     scale(factor, factor);
 
      // QGraphicsView::wheelEvent(event);
+}
+
+void SceneView::resizeEvent(QResizeEvent *event)
+{
+    QGraphicsView::resizeEvent(event);
+}
+
+void SceneView::drawForeground(QPainter *painter, const QRectF &rect) {
+    QGraphicsView::drawForeground(painter, rect);
+/*
+    painter->save();
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setPen(Qt::white);
+    painter->setFont(QFont("Arial", 10));
+
+    QString text = mSceneInfo->toPlainText();
+
+    QRectF textRect = painter->boundingRect(
+        QRectF(), Qt::AlignRight | Qt::AlignTop, text
+        );
+
+    // anchor to top-right corner with a small margin
+    QPointF topRight = mapToScene(viewport()->width(), 0);
+    QPointF anchor = mapFromScene(topRight); // convert to view coordinates (optional)
+    int margin = 8;
+    painter->drawText(viewport()->width() - textRect.width() - margin,
+                      margin + textRect.height(),
+                      text);
+    painter->restore();
+*/
 }

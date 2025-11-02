@@ -18,6 +18,9 @@ class Meadow : public QObject
     QSize mLawnsDim;
     uint mAnimalsPerLawn;
     float mOffsetW, mOffsetH;
+    float mFood = 0.0f; // 0..1
+    float mKg = 0.0f;
+    float mKgMax = 0.0f;
 
 public:
     explicit Meadow(const QPointF &center,
@@ -31,7 +34,7 @@ public:
 
     class Lawn {
         QPointF mPos;
-        float mKgStart, mKg;
+        float mKgMax = 1.0f, mKg = 0.0f;
         Meadow* mMeadow;
         QList<Animal*> mAnimals;
     public:
@@ -47,8 +50,9 @@ public:
         float distSq(const QPointF &pt);
 
         inline float kg(){ return mKg; };
-        inline float kgNorm(){ return mKg/mKgStart; };
+        inline float kgNorm(){ return mKg/mKgMax; };
         int kgPercents(){ return kgNorm() * 100; };
+        inline float kgMax(){ return mKgMax; }
 
         // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
@@ -62,8 +66,14 @@ public:
     Lawn* closestAvailable(const QPointF& pos, const Lawn* current = nullptr);
     Lawn* bestAvailable(const QPointF& pos, const Lawn* current = nullptr);
     Lawn* lawn(float x, float y);
+    inline Lawn *lawn( const QPointF& pos){ return lawn(pos.x(), pos.y()); }
 
     inline uint animalsPerLawn(){return mAnimalsPerLawn; }
+    inline float kgMax(){ return mKgMax; }
+    inline float kg(){ return mKg; }
+    inline float kgRatio(float multiplyBy = 1.0f){ return multiplyBy * mKg / mKgMax; }
+
+    void update();
 
 
 protected:

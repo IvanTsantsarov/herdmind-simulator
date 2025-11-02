@@ -14,7 +14,13 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-void Bolus::onTimer()
+void Bolus::onTimerStart()
+{
+    connect( &mTimerUpdate, &QTimer::timeout, this, &Bolus::onTimerUpdate );
+    mTimerUpdate.start(BOLUS_UPDATE_INTERVAL);
+}
+
+void Bolus::onTimerUpdate()
 {
     process();
 }
@@ -34,6 +40,7 @@ bool Bolus::readMotion()
 
 bool Bolus::sendPackage()
 {
+    mSendingMsec = BOLUS_SENDING_MSEC;
     mAnimal->onThisBolusSent(&mPackage);
     return true;
 }
@@ -84,6 +91,11 @@ void Bolus::process()
         setCondition(Condition::Hypomotility);
     }
 
-    preparePackage();
-    sendPackage();
+    mSendingDelay += BOLUS_UPDATE_INTERVAL;
+
+    if( mSendingDelay >= BOLUS_SEND_INTERVAL ) {
+        preparePackage();
+        sendPackage();
+        mSendingDelay = 0;
+    }
 }

@@ -125,7 +125,7 @@ void Herd::update( quint64 millissec,
     mInfoPairs.clear();
 
     if( mIsEnabledGrazing ) {
-        // Simulate grazing
+        // Simulate behaviour of grazing
         if( !attractor && !mIsShepherdActive) {
 
             foreach(Animal* animal, mAnimals) {
@@ -143,8 +143,16 @@ void Herd::update( quint64 millissec,
                             animal->dettach();
                         }
                     }else
+                    // if it's not arrived
                     if( !animal->isMoving()) {
                         animal->dettach();
+                    }else {
+                        Meadow::Lawn* lawn = meadow->lawn(animal->pt());
+                        if( lawn && !lawn->isDepleted()) {
+                            // if there is a lawn under animal's feet just go and graze it
+                            animal->walkTo(QVector2D(lawn->pos()));
+                            animal->attach(lawn);
+                        }
                     }
                 }
             }

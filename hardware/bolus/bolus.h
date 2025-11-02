@@ -12,6 +12,7 @@
 #ifdef SIMULATION
 #include <QObject>
 #include <QTimer>
+#include "../tools.h"
 
 class Animal;
 class Accel;
@@ -28,6 +29,7 @@ class Bolus
 #ifdef SIMULATION
     // in simulation bolus id is generated here
     uint32_t mId = BOLUS_ID++;
+    #define BOLUS_SENDING_MSEC 2000
 #else
     // in real mode id should be overwritten in defines.h by the programming script
     uint32_t mId;
@@ -57,6 +59,7 @@ private:
 
     uint16_t mSequence = 0;
     uint8_t mCondition = 0;
+    uint32_t mSendingDelay = 0;
     float mT = 0.0f, mAx  = 0.0f, mAy  = 0.0f, mAz  = 0.0f;
 
     inline void setCondition(Condition cond){ mCondition |= (cond << 1); }
@@ -65,9 +68,11 @@ private:
 
 #ifdef SIMULATION
     Animal* mAnimal = nullptr;
-    QTimer mTimer;
+    QTimer mTimerUpdate;
+    int mSendingMsec;
 private slots:
-    void onTimer();
+    void onTimerStart();
+    void onTimerUpdate();
 #endif
 
 public:
@@ -78,10 +83,23 @@ public:
 #ifdef SIMULATION
     Bolus(Animal* animal) : Bolus()
     {
-        connect( &mTimer, &QTimer::timeout, this, &Bolus::onTimer );
-        mTimer.start(BOLUS_UPDATE_INTERVAL);
         mAnimal = animal;
+
+        QTimer delayTimer;
+        delayTimer.singleShot( Tools::rnd(0, BOLUS_SEND_INTERVAL), this, &Bolus::onTimerStart );
     };
+
+    void updateSendingMsec(int msec) {
+        if( mSendingMsec <= 0 ) {
+            return;
+        }
+
+        mSendingMsec -= msec;
+    }
+
+    bool isSendingData() {
+        return mSendingMsec > 0;
+    }
 #endif
 
     bool readTemperature();

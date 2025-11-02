@@ -4,7 +4,9 @@
 #include "scene.h"
 #include "herd.h"
 #include "animal.h"
+#include "sceneview.h"
 #include "defines.h"
+#include "hardware/bolus/bolus.h"
 
 #define ITEM_WIDTH_HALF (ANIMAL_WIDTH * 0.5f)
 #define ITEM_LENGTH_HALF (ANIMAL_LENGTH * 0.5f)
@@ -15,7 +17,8 @@
 #define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
 #define ITEM_BRUSH QBrush(QColor(250, 150, 150, ANIMAL_OPACITY))
 
-#define PAIR_PEN QPen(QColor(200, 100, 100, 255),  ITEM_PEN_WIDTH)
+#define PAIR_PEN QPen(QColor(250, 200, 100, 200),  ITEM_PEN_WIDTH, Qt::DashLine)
+#define PAIR_PEN_SENDING QPen(QColor(250, 250, 200, 255),  ITEM_PEN_WIDTH * 2, Qt::SolidLine)
 
 #define ITEM_PEN_SEL QPen(QColor(50, 50, 255, ANIMAL_OPACITY), ITEM_PEN_WIDTH )
 #define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, ANIMAL_OPACITY))
@@ -51,8 +54,11 @@ Scene::Scene(QObject *parent)
     : QGraphicsScene{parent}
 {}
 
-void Scene::create(Herd* herd, int animalsCount, int pairsCount, int lawnsCount )
+void Scene::create(SceneView* view, Herd* herd, int animalsCount, int pairsCount, int lawnsCount )
 {
+    // An important line - artefacts are gone with it:
+    view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+
     clear();
 
     // Create the meadow
@@ -125,6 +131,9 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
     // update lawns
     int lawnIndex = 0;
 
+    //mSceneInfo->setPlainText(QString("%1%").arg(meadow->kgRatio() * 100.0f, 0, 'f', 1));
+
+
     if( mItemSelected ) {
         mItemInfo->show();
         mItemInfo->setPlainText(mItemSelected->animal()->info());
@@ -189,6 +198,7 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
     foreach(Herd::AnimalPair pair, pairs) {
         QGraphicsLineItem* line = mLines[activatedLine++];
         line->setLine(QLineF(pair.bolusAnimal()->pt(), pair.collarAnimal()->pt()));
+        line->setPen( pair.bolusAnimal()->bolus()->isSendingData() ? PAIR_PEN_SENDING : PAIR_PEN );
         line->show();
     }
 
@@ -201,13 +211,18 @@ void Scene::selectAnimalItem(AnimalItem *item)
 
     if( mItemSelected ) {
         mItemSelected->setSelected(false);
+
+        // deselect current item
+        if( item == mItemSelected ) {
+            mItemSelected = nullptr;
+            return;
+        }
     }
 
     mItemSelected = item;
 
     mItemSelected->ensureVisible();
 }
-
 
 void Scene::selectAnimalItem(int index)
 {
@@ -238,6 +253,7 @@ void Scene::onFigureDrop(QGraphicsPolygonItem *item, QPointF pos)
     (void)pos;
 }
 
+
 void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
 
     QStyleOptionGraphicsItem opt(*option);
@@ -246,7 +262,9 @@ void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     QGraphicsPolygonItem::paint(painter, &opt, widget);
 
     if (animalScene()->selectedAnimal() == this) {
+
         painter->save();
+        painter->setRenderHint(QPainter::Antialiasing, false);
 
         // Draw a custom selection border
         QPen pen(ITEM_PEN_SEL);
@@ -291,9 +309,9 @@ void AnimalItem::startPulseAnimation() {
 QVariant AnimalItem::itemChange(GraphicsItemChange change, const QVariant &v) {
     if (change == ItemSelectedHasChanged) {
         // if (v.toBool()) startPulseAnimation();   // trigger when selected
-        // setToolTip(mAnimal->info());
-        //toolTip()->sho;
-        animalScene()->selectAnimalItem(this);
+        if( v.toBool() ) {
+            animalScene()->selectAnimalItem(this);
+        }
     }
     return QGraphicsPolygonItem::itemChange(change, v);
 }

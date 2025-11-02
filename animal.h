@@ -21,14 +21,32 @@ class Animal {
         avoiding = 5
     };
 
+
     State mState = State::sitting;
     State mStatePrev = State::sitting;
     quint64 mStateMsec = 0;
+
+    static QString stateString(Animal::State state) {
+        switch(state) {
+        case State::sitting: return QString("Sitting");
+        case State::resting: return QString("Resting");
+        case State::grazing: return QString("Grazing");
+        case State::going: return QString("Going");
+        case State::stopping: return QString("Stopping");
+        case State::avoiding: return QString("Avoiding");
+        }
+
+        return "Unknown!!!";
+    }
+
+    inline QString currentStateString(){ return Animal::stateString(mState); }
 
     QVector2D mDestination;
     float mArrivingDistance;
     Animal* mObstacle = nullptr;
     float mStamina = 1.0f;
+
+
 
 public:
 
@@ -95,6 +113,9 @@ public:
                   float attractionPower,
                   float attractionDistance,
                   float repellingDistance);
+
+    inline Bolus* bolus(){ return mBolus; }
+    inline Collar* colalr(){ return mCollar; }
 
     void setPos(float x, float y){ mPosition.setX(x), mPosition.setY(y); }
 

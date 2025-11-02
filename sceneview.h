@@ -3,6 +3,8 @@
 
 #include <QGraphicsView>
 
+class Scene;
+
 class SceneView : public QGraphicsView
 {
     QPointF mLeftPos, mRightPos, mMiddlePos;
@@ -10,6 +12,9 @@ class SceneView : public QGraphicsView
     bool mIsLeftPress = false;
     bool mIsRightPress = false;
     bool mIsMiddlePress = false;
+
+    Scene* mScene = nullptr;
+
 
 public:
     SceneView(QGraphicsScene *scene, QWidget *parent = nullptr);
@@ -27,6 +32,9 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void wheelEvent(QWheelEvent *event);
+    void resizeEvent(QResizeEvent* event);
+
+    void drawForeground(QPainter* painter, const QRectF& rect) override;
 
 };
 

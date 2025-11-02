@@ -51,6 +51,18 @@ Meadow::~Meadow()
     }
 }
 
+void Meadow::update()
+{
+    mKgMax = mKg = 0.0f;
+
+    foreach( Lawn* l, mLawns) {
+        mKg += l->kg();
+        mKgMax += l->kgMax();
+    }
+}
+
+
+
 Meadow::Lawn *Meadow::lawn(float x, float y)
 {
     int lw = (x - mOffsetW) / mLawnDiam;
@@ -127,7 +139,7 @@ Meadow::Lawn *Meadow::bestAvailable(const QPointF &pos, const Lawn *current)
 
 
 Meadow::Lawn::Lawn(const QPointF &position, float currentKg, float maxKg, Meadow *parent) :
-    mPos(position), mKgStart(maxKg), mKg(currentKg), mMeadow(parent) {
+    mPos(position), mKgMax(maxKg), mKg(currentKg), mMeadow(parent) {
 
     mAnimals.reserve(mMeadow->animalsPerLawn());
 }

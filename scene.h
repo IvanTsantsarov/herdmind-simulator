@@ -14,6 +14,7 @@ class Herd;
 class Meadow;
 class Animal;
 class Scene;
+class SceneView;
 
 class AnimalItem : public QObject, public QGraphicsPolygonItem {
     Q_OBJECT
@@ -21,11 +22,12 @@ class AnimalItem : public QObject, public QGraphicsPolygonItem {
     float mScale = 0.0;
     Animal* mAnimal = nullptr;
 public:
-    AnimalItem( Animal* animal, const QPolygonF& poly) : QGraphicsPolygonItem(poly), mAnimal(animal) {}
-    AnimalItem( Animal* animal, const QRectF &rect, QGraphicsItem *parent = nullptr)
-        : QGraphicsPolygonItem(rect, parent), mAnimal(animal) {}
+    AnimalItem( Animal* animal, const QPolygonF& poly) : QGraphicsPolygonItem(poly), mAnimal(animal) {
+        // setFlag(QGraphicsItem::ItemClipsToShape, true);
+    }
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     void startPulseAnimation();
     Animal* animal(){ return mAnimal; }
@@ -68,11 +70,13 @@ class Scene : public QGraphicsScene
 
     TextItem* mItemInfo = nullptr;
 
+    SceneView* mView = nullptr;
+
     void clear();
 public:
     explicit Scene(QObject *parent = nullptr);
 
-    void create(Herd *herd, int animalsCount, int pairsCount, int lawnsCount);
+    void create(SceneView *view, Herd *herd, int animalsCount, int pairsCount, int lawnsCount);
     void update(Herd* herd, Meadow *meadow, bool isInitial = false, float diameter = 0.0f);
 
     void selectAnimalItem(int index);
