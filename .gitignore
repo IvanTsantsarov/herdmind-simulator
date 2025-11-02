@@ -53,3 +53,8 @@ Thumbs.db
 
 # Qt
 *.user
+.qtc_clangd/
+.qmake.stash
+Makefile.*
+debug/
+release/
