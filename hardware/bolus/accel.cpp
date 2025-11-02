@@ -1,4 +1,4 @@
-#include "Accel.h"
+#include "accel.h"
 #include <stdio.h>   // for printf; remove or replace if not desired
 
 // --------- ctor ----------
