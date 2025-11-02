@@ -64,6 +64,7 @@ public:
     void update(quint64 millissec,
                 Meadow *meadow,
                 QPointF *attractor,
+                bool isCorrectCollision,
                 float attractorPower,
                 float attractionDistance,
                 float repellingDistance,

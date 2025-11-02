@@ -179,6 +179,7 @@ void MainWindow::on_btnGenerate_clicked()
     mHerdTimer.start();
 
     ui->checkShepard->setEnabled(true);
+    ui->checkCorrectCollision->setChecked(false);
 }
 
 void MainWindow::onUpdate()
@@ -208,6 +209,7 @@ void MainWindow::onUpdate()
 
     mHerd->update( mHerdTimer.elapsed(),
                    mMeadow,
+                   ui->checkRecursiveCollision->isChecked(),
                    mSceneView->isRightPress() ? &attractor : nullptr,
                    ui->spinAttrPower ->value(),
                    ui->spinAttrDist ->value(),

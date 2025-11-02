@@ -91,16 +91,6 @@
            </size>
           </property>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="3" column="0">
-            <widget class="QCheckBox" name="checkShepard">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Shepard</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
@@ -123,6 +113,33 @@
               <widget class="QPushButton" name="btnGenerate">
                <property name="text">
                 <string>Generate </string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QCheckBox" name="checkShepard">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Shepard</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkRecursiveCollision">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>If enabled this will perform a recursive collision. It can slow dramaticaly simulation!</string>
+               </property>
+               <property name="text">
+                <string>Collision</string>
                </property>
               </widget>
              </item>
@@ -211,8 +228,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>158</width>
-             <height>481</height>
+             <width>271</width>
+             <height>436</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -840,7 +857,7 @@
      <x>0</x>
      <y>0</y>
      <width>431</width>
-     <height>17</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

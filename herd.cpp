@@ -105,6 +105,7 @@ bool Herd::processCollision(float collidingDistance)
 void Herd::update( quint64 millissec,
                   Meadow* meadow,
                   QPointF* attractor,
+                  bool isCorrectCollision,
                   float attractorPower,
                   float attractionDistance,
                   float repellingDistance,
@@ -204,12 +205,17 @@ void Herd::update( quint64 millissec,
         animal->updatePosition();
     }
 
-    // process collision
-    int collisionCounter = 0;
-    while( processCollision(collidingDistance) ) {
-        if( ++collisionCounter > mAnimals.count() ) {
-            break;
-        };
+    // Precision collision is disabled - too expensinve
+    if( isCorrectCollision ) {
+        // process collision
+        int collisionCounter = 0;
+        while( processCollision(collidingDistance) ) {
+            if( ++collisionCounter > mAnimals.count() ) {
+                break;
+            };
+        }
+    }else {
+        processCollision(collidingDistance);
     }
 
 
