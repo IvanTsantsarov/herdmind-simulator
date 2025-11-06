@@ -15,30 +15,47 @@ class Meadow;
 class Animal;
 class Scene;
 class SceneView;
+class Gateway;
+class Network;
 
-class AnimalItem : public QObject, public QGraphicsPolygonItem {
+class SelectableItem : public QObject, public QGraphicsPolygonItem {
     Q_OBJECT
 
     float mScale = 0.0;
-    Animal* mAnimal = nullptr;
 public:
-    AnimalItem( Animal* animal, const QPolygonF& poly) : QGraphicsPolygonItem(poly), mAnimal(animal) {
-        // setFlag(QGraphicsItem::ItemClipsToShape, true);
-    }
+    SelectableItem( const QPolygonF& poly);
+    SelectableItem( float radius );
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     void startPulseAnimation();
-    Animal* animal(){ return mAnimal; }
-    Scene* animalScene();
+    inline Scene* parentScene() { return reinterpret_cast<Scene*>(scene()); }
 protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant &v) override;
+    virtual void onSelection() = 0;
 };
 
-inline Scene *AnimalItem::animalScene()
-{
-    return reinterpret_cast<Scene*>(scene());
-}
+
+
+class AnimalItem : public SelectableItem {
+    Q_OBJECT
+    Animal* mAnimal = nullptr;
+protected:
+    void onSelection();
+public:
+    AnimalItem( Animal* animal, const QPolygonF& poly) : SelectableItem(poly), mAnimal(animal) { }
+    Animal* animal(){ return mAnimal; }
+};
+
+class GatewayItem : public SelectableItem {
+    Q_OBJECT
+    Gateway* mGateway = nullptr;
+protected:
+    void onSelection();
+public:
+    GatewayItem( Gateway* gw, const QPolygonF& poly) : SelectableItem(poly), mGateway(gw) { }
+    Gateway* gateway(){ return mGateway; }
+};
 
 
 class TextItem : public QGraphicsTextItem
@@ -58,9 +75,13 @@ class Scene : public QGraphicsScene
 {
     Q_OBJECT
 
-    QVector<AnimalItem*> mItems;
-    QVector<QGraphicsLineItem*> mLines;
-    AnimalItem* mItemSelected = nullptr;
+    QVector<AnimalItem*> mAnimalItems;
+    AnimalItem* mAnimalItemSelected = nullptr;
+    QVector<QGraphicsLineItem*> mLinesAnimals;
+
+    QVector<GatewayItem*> mGatewayItems;
+    GatewayItem* mGatewayItemSelected = nullptr;
+    QVector<QGraphicsLineItem*> mLinesGateways;
 
     QGraphicsEllipseItem* mAttractor = nullptr;
     QVector<QGraphicsRectItem*> mLawns;
@@ -74,13 +95,16 @@ class Scene : public QGraphicsScene
 public:
     explicit Scene(QObject *parent = nullptr);
 
-    void create(SceneView *view, Herd *herd, int animalsCount, int pairsCount, int lawnsCount);
-    void update(Herd* herd, Meadow *meadow, bool isInitial = false, float diameter = 0.0f);
+    void create(SceneView *view, Herd *herd, Network* network,
+                int animalsCount, int lawnsCount, int collarPairsCount, int gatewayPairsCount);
+    void update(Herd* herd, Meadow *meadow, Network *network, bool isInitial = false, float diameter = 0.0f);
 
     void selectAnimalItem(int index);
     void selectAnimalItem(AnimalItem* item);
 
-    inline AnimalItem* selectedAnimal(){ return mItemSelected; }
+    void selectGatewayItem(GatewayItem* item);
+
+    inline AnimalItem* selectedAnimal(){ return mAnimalItemSelected; }
     void setCursorInfoPos(const QPointF& pt);
 
 public slots:

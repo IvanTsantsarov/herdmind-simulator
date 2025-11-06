@@ -73,6 +73,8 @@ public:
     QDoubleSpinBox *doubleSpinArea;
     QLabel *label_2;
     QSpinBox *spinCollarsPercentage;
+    QSpinBox *spinGateways;
+    QLabel *label_20;
     QCheckBox *checkParamsHerding;
     QWidget *widgetSim;
     QGridLayout *gridLayout_2;
@@ -313,6 +315,19 @@ public:
         spinCollarsPercentage->setMaximum(100);
 
         formLayout_5->setWidget(4, QFormLayout::ItemRole::FieldRole, spinCollarsPercentage);
+
+        spinGateways = new QSpinBox(scrollAreaParamsWidget);
+        spinGateways->setObjectName("spinGateways");
+        spinGateways->setMinimum(1);
+        spinGateways->setMaximum(100);
+
+        formLayout_5->setWidget(6, QFormLayout::ItemRole::FieldRole, spinGateways);
+
+        label_20 = new QLabel(scrollAreaParamsWidget);
+        label_20->setObjectName("label_20");
+        label_20->setAlignment(Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter);
+
+        formLayout_5->setWidget(6, QFormLayout::ItemRole::LabelRole, label_20);
 
 
         verticalLayout_2->addLayout(formLayout_5);
@@ -630,6 +645,10 @@ public:
 #if QT_CONFIG(tooltip)
         spinCollarsPercentage->setToolTip(QCoreApplication::translate("MainWindow", "Collars percentage (%)", nullptr));
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        spinGateways->setToolTip(QCoreApplication::translate("MainWindow", "Excact count of gateways. Only one will be with a SIM module.", nullptr));
+#endif // QT_CONFIG(tooltip)
+        label_20->setText(QCoreApplication::translate("MainWindow", "Gateways", nullptr));
 #if QT_CONFIG(tooltip)
         checkParamsHerding->setToolTip(QCoreApplication::translate("MainWindow", "Herding simulation parameters widget", nullptr));
 #endif // QT_CONFIG(tooltip)

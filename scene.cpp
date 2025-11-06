@@ -7,6 +7,8 @@
 #include "sceneview.h"
 #include "defines.h"
 #include "hardware/bolus/bolus.h"
+#include "hardware/gateway/gateway.h"
+#include "network.h"
 
 #define ITEM_WIDTH_HALF (ANIMAL_WIDTH * 0.5f)
 #define ITEM_LENGTH_HALF (ANIMAL_LENGTH * 0.5f)
@@ -17,8 +19,11 @@
 #define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
 #define ITEM_BRUSH QBrush(QColor(250, 150, 150, ANIMAL_OPACITY))
 
-#define PAIR_PEN QPen(QColor(250, 200, 100, 200),  ITEM_PEN_WIDTH, Qt::DashLine)
-#define PAIR_PEN_SENDING QPen(QColor(250, 250, 200, 255),  ITEM_PEN_WIDTH * 2, Qt::SolidLine)
+#define BOLUS_PAIR_PEN QPen(QColor(250, 200, 100, 200),  ITEM_PEN_WIDTH, Qt::DashLine)
+#define BOLUS_PAIR_PEN_SENDING QPen(QColor(250, 250, 200, 255),  ITEM_PEN_WIDTH * 2, Qt::SolidLine)
+
+#define GATEWAY_PAIR_PEN QPen(QColor(250, 150, 150, 200),  ITEM_PEN_WIDTH, Qt::DotLine)
+#define GATEWAY_PAIR_PEN_SENDING QPen(QColor(250, 250, 200, 255),  ITEM_PEN_WIDTH * 2, Qt::SolidLine)
 
 #define ITEM_PEN_SEL QPen(QColor(50, 50, 255, ANIMAL_OPACITY), ITEM_PEN_WIDTH )
 #define ITEM_BRUSH_SEL QBrush(QColor(200, 100, 100, ANIMAL_OPACITY))
@@ -43,18 +48,23 @@ void Scene::clear()
         delete item;
     }
 
-    mItems.clear();
-    mLines.clear();
+    mAnimalItems.clear();
+    mLinesAnimals.clear();
+
+    mGatewayItems.clear();
+    mLinesGateways.clear();
+
     mLawns.clear();
 
-    mItemSelected = nullptr;
+    mAnimalItemSelected = nullptr;
 }
 
 Scene::Scene(QObject *parent)
     : QGraphicsScene{parent}
 {}
 
-void Scene::create(SceneView* view, Herd* herd, int animalsCount, int pairsCount, int lawnsCount )
+void Scene::create(SceneView* view, Herd* herd, Network* network,
+                   int animalsCount, int lawnsCount, int collarPairsCount, int gatewayPairsCount )
 {
     // An important line - artefacts are gone with it:
     view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
@@ -77,7 +87,7 @@ void Scene::create(SceneView* view, Herd* herd, int animalsCount, int pairsCount
 
     }
 
-    // Make a triangle
+    // Create a triangle for the animal poly
     QList<QPointF> points;
     points.reserve(3);
     points.append(QPointF(-ITEM_WIDTH_HALF, +ITEM_LENGTH_HALF));
@@ -86,25 +96,47 @@ void Scene::create(SceneView* view, Herd* herd, int animalsCount, int pairsCount
     QPolygonF triangle(points);
 
     // Create animals figures
-    mItems.reserve(animalsCount);
+    mAnimalItems.reserve(animalsCount);
     for( auto i = 0; i < animalsCount; i ++) {
         AnimalItem* item = new AnimalItem(herd->animal(i), triangle);
         addItem(item);
-        mItems.append(item);
-
-        item->setCacheMode(QGraphicsItem::NoCache);
-        item->setPen(ITEM_PEN);
-        item->setBrush(ITEM_BRUSH);
-        item->setFlag(QGraphicsItem::ItemIsSelectable, true);
-        item->setFlag(QGraphicsItem::ItemIsFocusable, false);
-        item->setAcceptHoverEvents(true);
+        mAnimalItems.append(item);
     }
 
-    // Create animals conenctions lines
-    mLines.reserve(pairsCount);
-    for( auto i = 0; i < pairsCount; i ++) {
-        QGraphicsLineItem* line = addLine(0, 0, 1, 1, PAIR_PEN);
-        mLines.append(line);
+    // Create bolus-collars conenctions lines
+    mLinesAnimals.reserve(collarPairsCount);
+    for( auto i = 0; i < collarPairsCount; i ++) {
+        QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
+        mLinesAnimals.append(line);
+        line->hide();
+    }
+
+
+    // Create a hexagon for the gateway poly
+    points.clear();
+    points.reserve(6);
+    for( auto i = 0; i < 6; i++) {
+        float a = i * M_PI / 3.0f;
+        points.append(QPointF(sinf(a)*ANIMAL_WIDTH, cosf(a)*ANIMAL_WIDTH ));
+    }
+    QPolygonF poly(points);
+
+    // Create animals figures
+    mGatewayItems.reserve(network->gatewaysCount());
+    for( auto i = 0; i < network->gatewaysCount(); i ++) {
+        GatewayItem* item = new GatewayItem(network->gateway(i), poly);
+        item->setPen(ITEM_PEN);
+        item->setBrush(ITEM_BRUSH);
+        addItem(item);
+        mGatewayItems.append(item);
+    }
+
+
+    // Create collars-gateways conenctions lines
+    mLinesGateways.reserve(gatewayPairsCount);
+    for( auto i = 0; i < gatewayPairsCount; i ++) {
+        QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
+        mLinesGateways.append(line);
         line->hide();
     }
 
@@ -116,7 +148,7 @@ void Scene::create(SceneView* view, Herd* herd, int animalsCount, int pairsCount
     setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
 
-void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
+void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial, float diameter )
 {
     // update lawns
     int lawnIndex = 0;
@@ -124,17 +156,16 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
     //mSceneInfo->setPlainText(QString("%1%").arg(meadow->kgRatio() * 100.0f, 0, 'f', 1));
 
 
-    if( mItemSelected ) {
+    if( mAnimalItemSelected ) {
         mItemInfo->show();
-        mItemInfo->setPlainText(mItemSelected->animal()->info());
-        mItemInfo->setPos(mItemSelected->pos());
+        mItemInfo->setPlainText(mAnimalItemSelected->animal()->info());
+        mItemInfo->setPos(mAnimalItemSelected->pos());
     }else {
         mItemInfo->hide();
     }
 
     foreach(Meadow::Lawn* lawn, meadow->lawns()) {
         QGraphicsRectItem* r = mLawns[lawnIndex++];
-
 
         if( isInitial || lawn->animalsCount() ) {
 
@@ -156,8 +187,8 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
         mAttractor->hide();
     }
 
-    for( auto i = 0; i < mItems.count(); i++) {
-        QGraphicsPolygonItem* item = mItems[i];
+    for( auto i = 0; i < mAnimalItems.count(); i++) {
+        QGraphicsPolygonItem* item = mAnimalItems[i];
         Animal* animal = herd->animal(i);
         item->setPos(animal->pt());
         item->setRotation( qRadiansToDegrees(animal->rotationAngle()));
@@ -178,21 +209,43 @@ void Scene::update(Herd *herd, Meadow *meadow, bool isInitial, float diameter )
     }
 
     // hide all lines
-    for( auto i = 0; i < mLines.count(); i ++) {
-        QGraphicsLineItem* line = mLines[i];
-        line->setPen( PAIR_PEN );
+    for( auto i = 0; i < mLinesAnimals.count(); i ++) {
+        QGraphicsLineItem* line = mLinesAnimals[i];
+        line->setPen( BOLUS_PAIR_PEN );
         line->hide();
     }
 
     // show pair lines
-    Herd::PairsList pairs = herd->infoPairs();
+    Herd::PairsListBC& pairsBC = herd->pairs();
     int activatedLine = 0;
-    foreach(Herd::AnimalPair pair, pairs) {
-        QGraphicsLineItem* line = mLines[activatedLine++];
+    foreach(Herd::AnimalPair pair, pairsBC) {
+        QGraphicsLineItem* line = mLinesAnimals[activatedLine++];
         line->setLine(QLineF(pair.bolusAnimal()->pt(), pair.collarAnimal()->pt()));
-        line->setPen( pair.bolusAnimal()->bolus()->isSendingData() ? PAIR_PEN_SENDING : PAIR_PEN );
+        line->setPen( pair.bolusAnimal()->bolus()->isSendingSimulation() ? BOLUS_PAIR_PEN_SENDING : BOLUS_PAIR_PEN );
         line->show();
     }
+
+    for( auto i = 0; i < mGatewayItems.count(); i ++) {
+        mGatewayItems[i]->setPos( network->gateway(i)->mPos );
+    }
+
+    // hide all lines
+    for( auto i = 0; i < mLinesGateways.count(); i ++) {
+        QGraphicsLineItem* line = mLinesGateways[i];
+        line->setPen( GATEWAY_PAIR_PEN );
+        line->hide();
+    }
+
+    // show pair lines
+    Network::PairsListG& pairsG = network->pairs();
+    activatedLine = 0;
+    foreach(Network::GatewayPair pair, pairsG) {
+        QGraphicsLineItem* line = mLinesGateways[activatedLine++];
+        line->setLine(QLineF(pair.firstPt(), pair.secondPt()));
+        line->setPen( pair.isSending() ? GATEWAY_PAIR_PEN_SENDING : GATEWAY_PAIR_PEN );
+        line->show();
+    }
+
 
 }
 
@@ -201,19 +254,36 @@ void Scene::selectAnimalItem(AnimalItem *item)
     clearSelection();
     clearFocus();
 
-    if( mItemSelected ) {
-        mItemSelected->setSelected(false);
+    if( mAnimalItemSelected ) {
+        mAnimalItemSelected->setSelected(false);
 
         // deselect current item
-        if( item == mItemSelected ) {
-            mItemSelected = nullptr;
+        if( item == mAnimalItemSelected ) {
+            mAnimalItemSelected = nullptr;
             return;
         }
     }
 
-    mItemSelected = item;
+    mAnimalItemSelected = item;
 
-    mItemSelected->ensureVisible();
+    mAnimalItemSelected->ensureVisible();
+}
+
+void Scene::selectGatewayItem(GatewayItem *item)
+{
+    if( mAnimalItemSelected ) {
+        mAnimalItemSelected->setSelected(false);
+
+        // deselect current item
+        if( item == mGatewayItemSelected ) {
+            mGatewayItemSelected = nullptr;
+            return;
+        }
+    }
+
+    mGatewayItemSelected = item;
+
+    mGatewayItemSelected->ensureVisible();
 }
 
 void Scene::setCursorInfoPos(const QPointF &pt)
@@ -227,11 +297,11 @@ void Scene::setCursorInfoPos(const QPointF &pt)
 
 void Scene::selectAnimalItem(int index)
 {
-    if( index >= mItems.length() ) {
+    if( index >= mAnimalItems.length() ) {
         return;
     }
 
-    AnimalItem* item = mItems[index];
+    AnimalItem* item = mAnimalItems[index];
     selectAnimalItem(item);
 }
 
@@ -255,14 +325,24 @@ void Scene::onFigureDrop(QGraphicsPolygonItem *item, QPointF pos)
 }
 
 
-void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+SelectableItem::SelectableItem(const QPolygonF &poly) : QGraphicsPolygonItem(poly) {
+    // setFlag(QGraphicsItem::ItemClipsToShape, true);
+    setCacheMode(QGraphicsItem::NoCache);
+    setPen(ITEM_PEN);
+    setBrush(ITEM_BRUSH);
+    setFlag(QGraphicsItem::ItemIsSelectable, true);
+    setFlag(QGraphicsItem::ItemIsFocusable, false);
+    setAcceptHoverEvents(true);
+}
+
+void SelectableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
 
     QStyleOptionGraphicsItem opt(*option);
     opt.state &= ~QStyle::State_Selected;   // suppress default selection outline
     opt.state &= ~QStyle::State_HasFocus;   // suppress focus cue
     QGraphicsPolygonItem::paint(painter, &opt, widget);
 
-    if (animalScene()->selectedAnimal() == this) {
+    if (parentScene()->selectedAnimal() == this) {
 
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing, false);
@@ -289,7 +369,7 @@ void AnimalItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     }
 }
 
-void AnimalItem::startPulseAnimation() {
+void SelectableItem::startPulseAnimation() {
     auto *anim = new QVariantAnimation(this);
     anim->setDuration(1000); // ms
     anim->setStartValue(1.0);
@@ -307,11 +387,14 @@ void AnimalItem::startPulseAnimation() {
 
 
 
-QVariant AnimalItem::itemChange(GraphicsItemChange change, const QVariant &v) {
+QVariant SelectableItem::itemChange(GraphicsItemChange change, const QVariant &v) {
     if (change == ItemSelectedHasChanged) {
-        // if (v.toBool()) startPulseAnimation();   // trigger when selected
+        if (v.toBool()) {
+            startPulseAnimation();   // trigger when selected
+        }
+
         if( v.toBool() ) {
-            animalScene()->selectAnimalItem(this);
+            onSelection();
         }
     }
     return QGraphicsPolygonItem::itemChange(change, v);
@@ -337,4 +420,13 @@ void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o, QWidg
     painter->setPen(ITEM_PEN_SEL);
     painter->drawRect(boundingRect());
     QGraphicsTextItem::paint(painter, o, w);
+}
+
+void AnimalItem::onSelection() {
+    parentScene()->selectAnimalItem(this);
+}
+
+void GatewayItem::onSelection()
+{
+    parentScene()->selectGatewayItem(this);
 }

@@ -41,5 +41,6 @@
 #define ANIMAL_STAMINA_STEP 0.1f
 
 
+#define MAX_COLLAR_GATEWAY_DISTANCE 100
 
 #endif // DEFINES_H

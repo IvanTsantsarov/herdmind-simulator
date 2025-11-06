@@ -4,13 +4,15 @@
 #include <QVector2D>
 #include <QList>
 #include "meadow.h"
+#include "hardware/netnode.h"
 
 
 class Herd;
 class Bolus;
 class Collar;
 
-class Animal {
+class Animal
+{
 
     enum struct State {
         sitting = 0,
@@ -47,8 +49,6 @@ class Animal {
     float mArrivingDistance;
     Animal* mObstacle = nullptr;
     float mStamina = 1.0f;
-
-
 
 public:
 
@@ -93,10 +93,6 @@ private:
     QList<Animal*> mObservers;
     QList<Animal*> mObserving;
 
-    void onThisBolusSent(void* package);
-    void onThisCollarSent(void* package);
-    void onOtherBolusData(void* package, Animal* from);
-
     Meadow::Lawn* mLawn = nullptr;
 
     // how many readings from other boluses
@@ -120,7 +116,7 @@ public:
                float repellingDistance, float friction);
 
     inline Bolus* bolus(){ return mBolus; }
-    inline Collar* colalr(){ return mCollar; }
+    inline Collar* collar(){ return mCollar; }
 
     void setPos(float x, float y){ mPosition.setX(x), mPosition.setY(y); }
     void run(bool is = true);

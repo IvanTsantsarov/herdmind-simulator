@@ -30,25 +30,6 @@ void Animal::updateSpeedAndDirection()
     }
 }
 
-// When bolus from this animal sends a package
-void Animal::onThisBolusSent(void *package)
-{
-    foreach( Animal* animal, mObservers) {
-        animal->onOtherBolusData(package, this);
-    }
-}
-
-void Animal::onThisCollarSent(void *package)
-{
-
-}
-
-// Count a package from other animal bolus
-void Animal::onOtherBolusData(void *package, Animal* from)
-{
-    from->mReadings ++;
-}
-
 void Animal::setState(State newState) {
     mStatePrev = mState;
     mState = newState;
@@ -386,7 +367,13 @@ void Animal::updateCommon(float tickSeconds)
         mPosition += mVelocity;
     }
 
+    int msec = tickSeconds * 1000;
+
     if( mBolus ) {
-        mBolus->updateSendingMsec( tickSeconds * 1000 );
+        mBolus->updateSendingSimulation( msec );
+    }
+
+    if( mCollar ) {
+        mCollar->updateSendingSimulation( msec );
     }
 }

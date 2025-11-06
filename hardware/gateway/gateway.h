@@ -4,14 +4,30 @@
 #include <cstdint>
 #include <map>
 
+// interval for reading the sensors
+#define GATEWAY_UPDATE_INTERVAL 5000
 
+// interval for sending data to collars/gateways
+#define GATEWAY_SEND_INTERVAL 20000
+
+
+#ifdef  SIMULATION
+    #include <QPointF>
+    #include "../netnode.h"
+
+class Gateway : public NetNode
+
+#else
 class Gateway
+#endif
 {
     uint32_t mHeardId = 0;
     uint16_t mAnimalsCount = 0;
 
     std::map<uint32_t, uint32_t> mBolusesMap; // id_bolus, id_animal
     std::map<uint32_t, uint32_t> mCollarsMap; // id_collar, id_animal
+
+    bool mHasSIM = false;
 
 public:
     enum OutSubPackageType {
@@ -76,6 +92,16 @@ public:
 public:
 
     Gateway();
+    inline bool hasSim(){ return mHasSIM; }
+    void process();
+
+#ifdef  SIMULATION
+    QPointF mPos;
+
+    void onUpdate();
+    void onSend();
+#endif
+
 };
 
 #endif // GATEWAY_H

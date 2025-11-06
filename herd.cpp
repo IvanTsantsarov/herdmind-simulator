@@ -16,7 +16,7 @@ void Herd::clear()
     }
     mAnimals.clear();
     mCollars.clear();
-    mInfoPairs.clear();
+    mPairsBC.clear();
 }
 
 Herd::Herd(QObject *parent)
@@ -123,7 +123,7 @@ void Herd::update( quint64 millissec,
 
     float minTransmitAngleCos = cosf(maxTransmitAngle);
 
-    mInfoPairs.clear();
+    mPairsBC.clear();
 
     bool mustRun = mIsEnabledHerding && (attractor || mIsShepherdActive);
 
@@ -245,7 +245,7 @@ void Herd::update( quint64 millissec,
             // add it to pairs if directly visible
             AnimalPair ap(animal, otherAnimal);
             //if(  checkTransmitVisibility(ap, distanceOtherSq, minTransmitAngleCos) ) {
-                ap.appendTo( mInfoPairs );
+                ap.appendTo( mPairsBC );
             //}
 
         }

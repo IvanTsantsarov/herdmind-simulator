@@ -14,16 +14,16 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-void Bolus::onTimerStart()
+Bolus::Bolus(Animal *animal) : NetNode(BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL), mAnimal(animal)
 {
-    connect( &mTimerUpdate, &QTimer::timeout, this, &Bolus::onTimerUpdate );
-    mTimerUpdate.start(BOLUS_UPDATE_INTERVAL);
+    init();
 }
 
-void Bolus::onTimerUpdate()
+void Bolus::onUpdate()
 {
     process();
 }
+
 bool Bolus::readTemperature()
 {
     mT = Tools::rnd(36.5f,36.8f);
@@ -38,23 +38,19 @@ bool Bolus::readMotion()
     return true;
 }
 
-bool Bolus::sendPackage()
-{
-    mSendingMsec = BOLUS_SENDING_MSEC;
-    mAnimal->onThisBolusSent(&mPackage);
-    return true;
-}
 
 
 #else
 //////////////////////////////////////////////////////////////
 /// Real conditions
 //////////////////////////////////////////////////////////////
-
+Bolus::Bolus() {
+    init();
+}
 
 #endif // SIMULATION
 
-Bolus::Bolus()
+void Bolus::init()
 {
     mAccel = new Accel();
 }
@@ -90,12 +86,9 @@ void Bolus::process()
     if( mAccel->getHypomotility()) {
         setCondition(Condition::Hypomotility);
     }
+}
 
-    mSendingDelay += BOLUS_UPDATE_INTERVAL;
-
-    if( mSendingDelay >= BOLUS_SEND_INTERVAL ) {
-        preparePackage();
-        sendPackage();
-        mSendingDelay = 0;
-    }
+void Bolus::onSend()
+{
+    sendPackage(&mPackage, sizeof(mPackage));
 }

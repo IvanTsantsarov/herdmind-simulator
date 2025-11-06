@@ -16,6 +16,7 @@ class SceneView;
 class Herd;
 class Meadow;
 class FocusAnim;
+class Network;
 
 class MainWindow : public QMainWindow
 {
@@ -29,6 +30,7 @@ class MainWindow : public QMainWindow
     QElapsedTimer mHerdTimer;
     QTimer* mReminder = nullptr;
     FocusAnim* mFocusAnim = nullptr;
+    Network* mNetwork = nullptr;
 
 public:
     MainWindow(QWidget *parent = nullptr);

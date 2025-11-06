@@ -3,24 +3,24 @@
 
 #include <cstdint>
 
-static uint32_t COLLAR_ID = 1000;
+
+// interval for reading the sensors
+#define COLLAR_UPDATE_INTERVAL 5000
+
+// interval for sending data to collars/gateways
+#define COLLAR_SEND_INTERVAL 20000
+
 
 #ifdef SIMULATION
-class Animal;
-#endif
+#include <QPointF>
+#include "../netnode.h"
 
+class Collar : public NetNode
 
-class Collar
-{
-
-#ifdef SIMULATION
-    // in simulation collar id is generated here
-    uint32_t mId = COLLAR_ID++;
 #else
-    // in real mode id should be overwritten in defines.h by the programming script
-    uint32_t mId = COLLAR_ID;
+class Collar
 #endif
-
+{
     enum SoundId {
         beep1 = 1,
         beep2 = 2
@@ -59,13 +59,14 @@ public:
 private:
 #ifdef SIMULATION
     Animal* mAnimal;
+    void onUpdate();
+    void onSend();
 #else
     Collar();
 #endif
 
     PackageOut mPackage;
 
-    void onDataReceived(const char *data, int length);
 public:
     Collar();
 
@@ -76,7 +77,6 @@ public:
     }
 #endif
 
-    bool sendPackage();
 
 };
 

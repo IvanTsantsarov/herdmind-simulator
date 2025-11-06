@@ -5,23 +5,26 @@
 #endif
 
 
-Collar::Collar() {}
+
 
 #ifdef SIMULATION
 //////////////////////////////////////////////////////////////
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-bool Collar::sendPackage()
+
+Collar::Collar() : NetNode(COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL) {}
+
+void Collar::onUpdate()
 {
-    mAnimal->onThisCollarSent(&mPackage);
-    return true;
 }
 
-void Collar::onDataReceived(const char *data, int length)
+void Collar::onSend()
 {
-
+    PackageOut p;
+    sendPackage(&p, sizeof(p));
 }
+
 
 #else
 //////////////////////////////////////////////////////////////

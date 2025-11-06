@@ -25,7 +25,7 @@ public:
         void appendTo(QList<AnimalPair>& ls);
     };
 
-    typedef QList<AnimalPair> PairsList;
+    typedef QList<AnimalPair> PairsListBC;
 
     bool mIsEnabledGrazing = true;
     bool mIsEnabledHerding = true;
@@ -39,7 +39,7 @@ private:
 
     QVector<Animal*> mAnimals, mCollars;
 
-    PairsList mInfoPairs;
+    PairsListBC mPairsBC;
 
     float mAnimalSize = 0;
     float mAnimalHalfSizeSquared = 0;
@@ -79,7 +79,8 @@ public:
     inline quint64 msec(){ return mMSec; }
 
     inline Animal* animal(int index){ return mAnimals[index]; }
-    PairsList infoPairs() { return mInfoPairs; };
+    inline int animalsCount(){ return mAnimals.count(); }
+    PairsListBC& pairs() { return mPairsBC; };
     inline int count(){ return mAnimals.count(); }
     int collarsCount(){ return mCollars.count(); }
 

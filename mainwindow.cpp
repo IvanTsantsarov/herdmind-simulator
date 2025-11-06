@@ -6,6 +6,7 @@
 #include "herd.h"
 #include "defines.h"
 #include "animal.h"
+#include "network.h"
 
 
 #define TABLE_COLS_COUNT 3
@@ -99,7 +100,7 @@ void MainWindow::on_btnGenerate_clicked()
 {
     mFocusAnim->stop();
 
-    // create herd
+
     if( mHerd) {
         delete mHerd;
         mHerd = nullptr;
@@ -108,6 +109,11 @@ void MainWindow::on_btnGenerate_clicked()
     if( mMeadow) {
         delete mMeadow;
         mMeadow = nullptr;
+    }
+
+    if( mNetwork) {
+        delete mNetwork;
+        mNetwork = nullptr;
     }
 
     ui->checkShepard->setChecked(false);
@@ -129,9 +135,12 @@ void MainWindow::on_btnGenerate_clicked()
                          ui->spinAnimalsPerLawn->value()
                          );
 
+    mNetwork = new Network( ui->spinGateways->value(),  ui->doubleSpinArea->value());
+
     // create scene
-    mScene->create(mSceneView, mHerd, ui->spinAnimalsCount->value(), mHerd->collarsCount() * mHerd->count(), mMeadow->lawnsCount() );
-    mScene->update(mHerd, mMeadow, true, INITIAL_HERD_SPREAD);
+    mScene->create(mSceneView, mHerd, mNetwork,
+                   ui->spinAnimalsCount->value(), mMeadow->lawnsCount(), mHerd->collarsCount() * mHerd->count(),  mHerd->collarsCount() * mNetwork->gatewaysCount() );
+    mScene->update(mHerd, mMeadow, mNetwork, true, INITIAL_HERD_SPREAD);
 
     ui->table->setColumnCount(TABLE_COLS_COUNT);
     ui->table->setRowCount(ui->spinAnimalsCount->value());
@@ -222,7 +231,9 @@ void MainWindow::onUpdate()
                    qDegreesToRadians(ui->spinTransAngle->value())
                   );
 
-    mScene->update(mHerd, mMeadow);
+    mNetwork->update(mHerd, MAX_COLLAR_GATEWAY_DISTANCE );
+
+    mScene->update(mHerd, mMeadow, mNetwork);
     // mSceneView->invalidateScene();
 
     for (int row = 0; row < mHerd->count(); row++) {

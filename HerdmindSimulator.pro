@@ -15,6 +15,7 @@ SOURCES += \
     focusanim.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
+    hardware/netnode.cpp \
     hardware/collar/collar.cpp \
     hardware/gateway/gateway.cpp \
     hardware/tools.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     meadow.cpp \
+    network.cpp \
     scene.cpp \
     sceneview.cpp \
     shepherd.cpp \
@@ -33,6 +35,7 @@ HEADERS += \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
+    hardware/netnode.h \
     hardware/collar/collar.h \
     defines.h \
     hardware/gateway/gateway.h \
@@ -40,6 +43,7 @@ HEADERS += \
     herd.h \
     mainwindow.h \
     meadow.h \
+    network.h \
     scene.h \
     sceneview.h \
     shepherd.h \
