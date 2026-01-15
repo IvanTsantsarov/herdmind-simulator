@@ -9,6 +9,8 @@
 // interval for sending data to collars
 #define BOLUS_SEND_INTERVAL 20000
 
+#define HIGH_TEMPERATURE 39.8
+
 #ifdef SIMULATION
 #include <QObject>
 #include <QTimer>
@@ -31,14 +33,14 @@ public:
         Unknown = 2,
         Atony = 4,
         Hypomotility = 8,
-        Hyperactivity = 16
+        Hyperactivity = 16,
+        HighTemperature = 32
     };
 
     // 8 bytes
     struct Package {
         uint32_t id = 0;    // bolus id
         uint16_t s = 0;     // sequence
-        int16_t t = 0;      // temperature
         uint8_t c = 0;      // condition flags - see Condition structure
         uint8_t b = 0;      // battery level
     };

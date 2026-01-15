@@ -68,6 +68,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->spinLawnRadius->setValue(LAWN_RADIUS);
     ui->spinAnimalsPerLawn->setValue(LAWN_ANIMALS_MAX_COUNT);
 
+    ui->spinCenterLong->setValue(FARM_INITIAL_LOCATION_LONG);
+    ui->spinCenterLat->setValue(FARM_INITIAL_LOCATION_LAT);
+
     QObject::connect(&mUpdateTimer, &QTimer::timeout, this, &MainWindow::onUpdate );
     mUpdateTimer.start(HERD_UPDATE_INTERVAL);
 

@@ -18,6 +18,7 @@ SOURCES += \
     hardware/netnode.cpp \
     hardware/collar/collar.cpp \
     hardware/gateway/gateway.cpp \
+    hardware/protocol.cpp \
     hardware/tools.cpp \
     herd.cpp \
     main.cpp \
@@ -39,6 +40,7 @@ HEADERS += \
     hardware/collar/collar.h \
     defines.h \
     hardware/gateway/gateway.h \
+    hardware/protocol.h \
     hardware/tools.h \
     herd.h \
     mainwindow.h \
@@ -60,3 +62,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     trash.txt
+
+RESOURCES += \
+    res/res.qrc

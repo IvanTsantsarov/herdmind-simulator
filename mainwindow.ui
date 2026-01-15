@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>HerdMind Simulator</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="res/res.qrc">
+    <normaloff>:/gegga_logo.png</normaloff>:/gegga_logo.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
@@ -151,7 +155,7 @@
            </size>
           </property>
           <property name="title">
-           <string>Center Long : Lat</string>
+           <string>Center Long x Lat</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <property name="spacing">
@@ -176,6 +180,9 @@
                <property name="toolTip">
                 <string>Center Longitude</string>
                </property>
+               <property name="decimals">
+                <number>6</number>
+               </property>
               </widget>
              </item>
              <item>
@@ -187,7 +194,7 @@
                 </sizepolicy>
                </property>
                <property name="text">
-                <string> : </string>
+                <string>x</string>
                </property>
               </widget>
              </item>
@@ -195,6 +202,9 @@
               <widget class="QDoubleSpinBox" name="spinCenterLat">
                <property name="toolTip">
                 <string>Center Latitude</string>
+               </property>
+               <property name="decimals">
+                <number>6</number>
                </property>
               </widget>
              </item>
@@ -880,6 +890,8 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="res/res.qrc"/>
+ </resources>
  <connections/>
 </ui>

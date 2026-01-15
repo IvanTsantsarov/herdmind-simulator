@@ -17,6 +17,7 @@
 Bolus::Bolus(Animal *animal) : NetNode(BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL), mAnimal(animal)
 {
     init();
+    mPackage.b = 100;
 }
 
 void Bolus::onUpdate()
@@ -63,7 +64,7 @@ Bolus::~Bolus()
 
 void Bolus::preparePackage()
 {
-    mPackage.t = Tools::f2i16(mT, 100.f);
+    mT = Tools::f2i16(mT, 100.f);
     mPackage.c = 0;
 }
 
@@ -86,6 +87,12 @@ void Bolus::process()
     if( mAccel->getHypomotility()) {
         setCondition(Condition::Hypomotility);
     }
+
+    if( mT > HIGH_TEMPERATURE ) {
+        setCondition(Condition::HighTemperature);
+    }
+
+    mPackage.s++;
 }
 
 void Bolus::onSend()
