@@ -4,6 +4,7 @@
 #include <QSize>
 #include <QPointF>
 #include <QObject>
+#include <QGeoCoordinate>
 
 
 class Animal;
@@ -34,6 +35,7 @@ public:
 
     class Lawn {
         QPointF mPos;
+        QGeoCoordinate mCoord;
         float mKgMax = 1.0f, mKg = 0.0f;
         Meadow* mMeadow;
         QList<Animal*> mAnimals;
@@ -53,6 +55,7 @@ public:
         inline float kgNorm(){ return mKg/mKgMax; };
         int kgPercents(){ return kgNorm() * 100; };
         inline float kgMax(){ return mKgMax; }
+        inline QGeoCoordinate& coord(){ return mCoord; }
 
         // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
