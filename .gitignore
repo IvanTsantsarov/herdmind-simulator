@@ -56,5 +56,9 @@ Thumbs.db
 .qtc_clangd/
 .qmake.stash
 Makefile.*
+
+# internal files
+.data/
+
 debug/
 release/
