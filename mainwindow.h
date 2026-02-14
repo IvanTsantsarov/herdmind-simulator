@@ -17,11 +17,13 @@ class Herd;
 class Meadow;
 class FocusAnim;
 class Network;
+class SimTools;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    SimTools* mTools = nullptr;
     Scene* mScene = nullptr;
     Herd* mHerd = nullptr;
     Meadow* mMeadow = nullptr;

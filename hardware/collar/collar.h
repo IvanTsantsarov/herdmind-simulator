@@ -3,7 +3,6 @@
 
 #include <cstdint>
 
-
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 5000
 
@@ -14,6 +13,8 @@
 #ifdef SIMULATION
 #include <QPointF>
 #include "../netnode.h"
+
+
 
 class Collar : public NetNode
 
@@ -77,7 +78,12 @@ public:
     }
 #endif
 
-
 };
+
+struct CollarData {
+    Collar::PackageOut mCollar;
+    QList<Collar::PackageBolusOut> mBoluses;
+};
+
 
 #endif // COLLAR_H

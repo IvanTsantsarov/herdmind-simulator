@@ -1,10 +1,13 @@
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets positioning
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets positioning network
 
 CONFIG += c++17
 
 DEFINES += SIMULATION
+
+# Link OpenSSL
+LIBS += -lcrypto
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -61,6 +64,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    res/settings.ini \
     trash.txt
 
 RESOURCES += \

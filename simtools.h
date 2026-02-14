@@ -3,11 +3,48 @@
 
 #include <QVector>
 #include <QVector2D>
+#include <QSettings>
+#include "hardware/collar/collar.h"
 
 class SimTools
 {
 public:
-    SimTools();
+
+
+private:
+
+    //////////////////////////////////////////
+    /// Lorawan simulation
+    //////////////////////////////////////////
+
+    // Read them from settins file
+    QString mChirpIP;
+    quint16 mChirpPort;
+    QByteArray mAppSKey, mNwkSKey;
+
+
+    QByteArray buildFRMPayload(const QList<CollarData>& herd);
+
+    QByteArray encryptFRMPayload(const QByteArray& payload,
+                                 quint32 devAddr,
+                                 quint32 fCnt);
+
+    QByteArray aesCmac( const QByteArray& data );
+    QByteArray calculateMIC(
+        const QByteArray& msg,
+        quint32 devAddr,
+        quint32 fCnt);
+
+    QByteArray aes128EncryptBlock( const QByteArray& block);
+
+    QByteArray buildPHYPayload(QByteArray frmPayload,
+                               quint32 devAddr,
+                               quint32 fCnt);
+
+    void sendToChirpStack(const QByteArray& phyPayload);
+
+public:
+    SimTools(QSettings& settings);
 
     struct HarmonicsGenerator {
 
@@ -30,7 +67,6 @@ public:
     static QVector2D rotated( const QVector2D& v, float deg);
 
     static float clamped(float val, float min = 0.0f, float max = 1.0f);
-
 };
 
 #endif // SIMTOOLS_H
