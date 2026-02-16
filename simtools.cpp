@@ -8,7 +8,7 @@
 #include "simtools.h"
 #include "hardware/tools.h"
 
-#define LORAWAN_SECTION "LoraWAN"
+#define CHIRPSTACK_SECTION "Chirpstack"
 
 SimTools::HarmonicsGenerator::HarmonicsGenerator(float radius, int count,
                                                  float ampMin, float ampMax,
@@ -180,6 +180,6 @@ bool SimTools::sendToChirpStack(const QByteArray& phyPayload)
 
 SimTools::SimTools(QSettings &settings)
 {
-    mChirpIP = settings.value(LORAWAN_SECTION"/chirpIp").toString();
-    mChirpPort = settings.value(LORAWAN_SECTION"/chirpPort").toUInt();
+    mChirpIP = settings.value(CHIRPSTACK_SECTION"/ip").toString();
+    mChirpPort = settings.value(CHIRPSTACK_SECTION"/port").toUInt();
 }
