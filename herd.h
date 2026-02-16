@@ -86,7 +86,9 @@ public:
 
     void activateShepherd(bool is) { mIsShepherdActive = is; };
     bool isShepherdActive() { return mShepherd && mIsShepherdActive; };
-    QPointF shepherdPos();;
+    QPointF shepherdPos();
+
+    QString jsonDevicesList();
 
 signals:
 };

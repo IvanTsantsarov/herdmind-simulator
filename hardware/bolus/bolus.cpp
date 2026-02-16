@@ -14,7 +14,7 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-Bolus::Bolus(Animal *animal) : NetNode(BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL), mAnimal(animal)
+Bolus::Bolus(Animal *animal) : LoraDev("Bolus", LoraDev::Profile::Bolus, BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL), mAnimal(animal)
 {
     init();
     mPackage.b = 100;

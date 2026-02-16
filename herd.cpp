@@ -1,13 +1,14 @@
 #include <QDebug>
+#include <QFile>
 
 #include "herd.h"
-#include "defines.h"
 #include "shepherd.h"
 #include "hardware/tools.h"
 #include "animal.h"
 
-
 #define ANIMAL_MIN_DISTANCE 0.2
+
+#define DEVICES_LIST_FILE "devices.json"
 
 void Herd::clear()
 {
@@ -80,6 +81,19 @@ void Herd::generate(int count,
         animal->putCollar();
         mCollars.append(animal);
     }
+
+    // Save json devices list for Chirpstack
+    if( !QFile::exists(DEVICES_LIST_FILE) ) {
+        QString devList = jsonDevicesList();
+
+        QFile file( DEVICES_LIST_FILE );
+        if ( file.open(QIODevice::WriteOnly) )
+        {
+            QTextStream stream( &file );
+            stream << devList;
+        }
+    }
+
 }
 
 bool Herd::processCollision(float collidingDistance)
@@ -261,6 +275,23 @@ QPointF Herd::shepherdPos()
     }
 
     return mShepherd->lastPos();
+}
+
+QString Herd::jsonDevicesList()
+{
+    QString result = "[";
+    bool isFirst = true;
+    foreach(Animal* animal, mAnimals) {
+        if( !isFirst) {
+            result.append(",");
+        }
+        result.append(animal->jsonInfo());
+        isFirst = false;
+    }
+
+    result.append("]");
+
+    return result;
 }
 
 

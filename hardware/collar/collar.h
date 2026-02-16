@@ -10,13 +10,15 @@
 #define COLLAR_SEND_INTERVAL 20000
 
 
+struct CollarData;
+
 #ifdef SIMULATION
 #include <QPointF>
-#include "../netnode.h"
+#include "../loradev.h"
 
 
 
-class Collar : public NetNode
+class Collar : public LoraDev
 
 #else
 class Collar
@@ -59,6 +61,7 @@ public:
 
 private:
 #ifdef SIMULATION
+    quint32 mAddr = 0;
     Animal* mAnimal;
     void onUpdate();
     void onSend();
@@ -76,7 +79,13 @@ public:
     {
         mAnimal = animal;
     }
+
+    inline quint32 addr() const { return mAddr; }
+
+    PackageOut getPackageOut(){ return mPackage; };
+    QList<PackageBolusOut> getBoluses();
 #endif
+
 
 };
 

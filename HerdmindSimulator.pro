@@ -18,9 +18,9 @@ SOURCES += \
     focusanim.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
-    hardware/netnode.cpp \
     hardware/collar/collar.cpp \
     hardware/gateway/gateway.cpp \
+    hardware/loradev.cpp \
     hardware/protocol.cpp \
     hardware/tools.cpp \
     herd.cpp \
@@ -39,10 +39,11 @@ HEADERS += \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
-    hardware/netnode.h \
     hardware/collar/collar.h \
     defines.h \
+    hardware/defines.h \
     hardware/gateway/gateway.h \
+    hardware/loradev.h \
     hardware/protocol.h \
     hardware/tools.h \
     herd.h \

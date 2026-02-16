@@ -2,7 +2,7 @@
 
 #ifdef SIMULATION
 
-Gateway::Gateway() : NetNode( GATEWAY_UPDATE_INTERVAL, GATEWAY_SEND_INTERVAL )
+Gateway::Gateway() : LoraDev( "Gateway", LoraDev::Profile::Gateway, GATEWAY_UPDATE_INTERVAL, GATEWAY_SEND_INTERVAL )
 {
 
 }

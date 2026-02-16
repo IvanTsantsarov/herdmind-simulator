@@ -13,9 +13,9 @@
 
 #ifdef  SIMULATION
     #include <QPointF>
-    #include "../netnode.h"
+    #include "../loradev.h"
 
-class Gateway : public NetNode
+class Gateway : public LoraDev
 
 #else
 class Gateway

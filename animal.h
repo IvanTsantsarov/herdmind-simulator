@@ -4,7 +4,7 @@
 #include <QVector2D>
 #include <QList>
 #include "meadow.h"
-#include "hardware/netnode.h"
+#include "hardware/loradev.h"
 
 
 class Herd;
@@ -163,6 +163,7 @@ public:
     bool graze();
 
     QString info();
+    QString jsonInfo();
 };
 
 #endif // ANIMAL_H

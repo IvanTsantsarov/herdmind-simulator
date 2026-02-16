@@ -14,12 +14,12 @@
 #ifdef SIMULATION
 #include <QObject>
 #include <QTimer>
-#include "../netnode.h"
+#include "../loradev.h"
 
 class Animal;
 class Accel;
 
-class Bolus : public NetNode {
+class Bolus : public LoraDev {
     Animal* mAnimal = nullptr;
 #else
 class Bolus {}

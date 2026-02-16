@@ -12,8 +12,7 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-
-Collar::Collar() : NetNode(COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL) {}
+Collar::Collar() : LoraDev("Collar", LoraDev::Profile::Collar, COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL) {}
 
 void Collar::onUpdate()
 {

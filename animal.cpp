@@ -287,6 +287,18 @@ QString Animal::info()
         .arg(mLawn ? mLawn->animalsCount() : 0 );
 }
 
+QString Animal::jsonInfo()
+{
+    QString result = "";
+    if( hasCollar() ) {
+        result.append( mCollar->jsonInfo() );
+        result.append(",");
+    }
+
+    result.append( mBolus->jsonInfo() );
+    return result;
+}
+
 // return true if lawn is depleted
 
 

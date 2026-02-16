@@ -57,34 +57,13 @@ float SimTools::clamped(float val, float min, float max)
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Lorawan simulation
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
-QByteArray SimTools::buildFRMPayload(const QList<CollarData>& herd)
-{
-    QByteArray payload;
-    QDataStream stream(&payload, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint8)herd.size();
-
-    for (const auto& collar : herd) {
-
-        stream.writeRawData((char*)&collar.mCollar,
-                            sizeof(Collar::PackageOut));
-
-        for (const auto& bolus : collar.mBoluses) {
-            stream.writeRawData((char*)&bolus,
-                                sizeof(Collar::PackageBolusOut));
-        }
-    }
-
-    return payload;
-}
-
-
-QByteArray SimTools::aes128EncryptBlock( const QByteArray& block )
+QByteArray SimTools::encryptAES( const QByteArray& block, const QByteArray& key )
 {
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     QByteArray out(16, 0);
@@ -92,7 +71,7 @@ QByteArray SimTools::aes128EncryptBlock( const QByteArray& block )
     int outLen = 0;
 
     EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), nullptr,
-                       reinterpret_cast<const unsigned char*>(mAppSKey.data()),
+                       reinterpret_cast<const unsigned char*>(key.data()),
                        nullptr);
 
     EVP_CIPHER_CTX_set_padding(ctx, 0);
@@ -106,39 +85,8 @@ QByteArray SimTools::aes128EncryptBlock( const QByteArray& block )
     return out;
 }
 
-QByteArray SimTools::encryptFRMPayload(const QByteArray& payload,
-                             quint32 devAddr,
-                             quint32 fCnt)
-{
-    QByteArray encrypted = payload;
-    int blocks = (payload.size() + 15) / 16;
 
-    for (int i = 0; i < blocks; i++) {
-
-        QByteArray Ai(16, 0x00);
-
-        Ai[0] = 0x01;         // encryption flags
-        Ai[5] = 0x00;         // Dir = uplink
-
-        memcpy(Ai.data() + 6, &devAddr, 4);
-        memcpy(Ai.data() + 10, &fCnt, 4);
-
-        Ai[15] = i + 1;
-
-        QByteArray Si = aes128EncryptBlock(Ai);
-
-        for (int j = 0; j < 16; j++) {
-            int index = i * 16 + j;
-            if (index < encrypted.size())
-                encrypted[index] ^= Si[j];
-        }
-    }
-
-    return encrypted;
-}
-
-
-QByteArray SimTools::aesCmac( const QByteArray& data)
+QByteArray SimTools::aesCmac( const QByteArray& data, const QByteArray& key )
 {
     EVP_MAC* mac = EVP_MAC_fetch(nullptr, "CMAC", nullptr);
     EVP_MAC_CTX* ctx = EVP_MAC_CTX_new(mac);
@@ -151,8 +99,8 @@ QByteArray SimTools::aesCmac( const QByteArray& data)
     };
 
     EVP_MAC_init(ctx,
-                 reinterpret_cast<const unsigned char*>(mNwkSKey.data()),
-                 mNwkSKey.size(),
+                 reinterpret_cast<const unsigned char*>(key.data()),
+                 key.size(),
                  params);
 
     EVP_MAC_update(ctx,
@@ -170,63 +118,29 @@ QByteArray SimTools::aesCmac( const QByteArray& data)
     return QByteArray(reinterpret_cast<char*>(out), 16);
 }
 
-QByteArray SimTools::calculateMIC(
-                        const QByteArray& msg,
-                        quint32 devAddr,
-                        quint32 fCnt)
+int SimTools::gen(int minVal, int maxVal)
 {
-    QByteArray B0(16, 0x00);
+    float rnd = ((float)rand() / (float)RAND_MAX);
+    return round(minVal + ( maxVal - minVal ) * rnd);
+}
 
-    B0[0] = 0x49;
-    B0[5] = 0x00; // uplink
+QByteArray SimTools::genHex(int count)
+{
+    QByteArray result;
+    result.reserve(count);
 
-    memcpy(B0.data() + 6, &devAddr, 4);
-    memcpy(B0.data() + 10, &fCnt, 4);
+    for( auto i = 0; i < count; i ++) {
+        int v = gen(0, 15 );
+        int ch = v < 10 ? v + '0' : v + 'A' - 10;
+        result.append(ch);
+    }
 
-    B0[15] = msg.size();
-
-    QByteArray cmacInput = B0 + msg;
-
-    QByteArray fullCmac = aesCmac(cmacInput);
-
-    return fullCmac.left(4);
+    return result;
 }
 
 
-QByteArray SimTools::buildPHYPayload(QByteArray frmPayload,
-                           quint32 devAddr,
-                           quint32 fCnt)
-{
-    QByteArray phy;
 
-    quint8 MHDR = 0x40; // Unconfirmed Data Up
-    phy.append(MHDR);
-
-    // FHDR
-    phy.append((char*)&devAddr, 4);
-
-    quint8 fCtrl = 0x00;
-    phy.append(fCtrl);
-
-    quint16 fCnt16 = fCnt & 0xFFFF;
-    phy.append((char*)&fCnt16, 2);
-
-    quint8 fPort = 1;
-    phy.append(fPort);
-
-    QByteArray encrypted = encryptFRMPayload(frmPayload,  devAddr, fCnt);
-
-    phy.append(encrypted);
-
-    QByteArray mic = calculateMIC( phy, devAddr, fCnt);
-
-    phy.append(mic);
-
-    return phy;
-}
-
-
-void SimTools::sendToChirpStack(const QByteArray& phyPayload)
+bool SimTools::sendToChirpStack(const QByteArray& phyPayload)
 {
     QUdpSocket socket;
 
@@ -259,15 +173,13 @@ void SimTools::sendToChirpStack(const QByteArray& phyPayload)
 
     packet.append(json);
 
-    socket.writeDatagram(packet,
-                         QHostAddress(mChirpIP),
-                         mChirpPort);
+    qint64 sentSize = socket.writeDatagram(packet, QHostAddress(mChirpIP),mChirpPort);
+
+    return sentSize == packet.size();
 }
 
 SimTools::SimTools(QSettings &settings)
 {
     mChirpIP = settings.value(LORAWAN_SECTION"/chirpIp").toString();
     mChirpPort = settings.value(LORAWAN_SECTION"/chirpPort").toUInt();
-    mAppSKey = settings.value(LORAWAN_SECTION"/appSKey").toByteArray();
-    mNwkSKey = settings.value(LORAWAN_SECTION"/nwkSKey").toByteArray();
 }

@@ -9,9 +9,7 @@
 #include "defines.h"
 #include "animal.h"
 #include "network.h"
-#include "simtools.h"
 
-#define SETTINGS_NAME "settings.ini"
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
@@ -20,16 +18,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    if( !QFile::exists(SETTINGS_NAME) ) {
-        QFile::copy("://" SETTINGS_NAME, SETTINGS_NAME);
-    }
-
-    Q_ASSERT( QFile::exists(SETTINGS_NAME) );
-
-    QSettings settings(SETTINGS_NAME, QSettings::IniFormat);
-
-    mTools = new SimTools(settings);
 
     // create scene
     mScene = new Scene(this);

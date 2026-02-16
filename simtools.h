@@ -10,7 +10,6 @@ class SimTools
 {
 public:
 
-
 private:
 
     //////////////////////////////////////////
@@ -20,28 +19,6 @@ private:
     // Read them from settins file
     QString mChirpIP;
     quint16 mChirpPort;
-    QByteArray mAppSKey, mNwkSKey;
-
-
-    QByteArray buildFRMPayload(const QList<CollarData>& herd);
-
-    QByteArray encryptFRMPayload(const QByteArray& payload,
-                                 quint32 devAddr,
-                                 quint32 fCnt);
-
-    QByteArray aesCmac( const QByteArray& data );
-    QByteArray calculateMIC(
-        const QByteArray& msg,
-        quint32 devAddr,
-        quint32 fCnt);
-
-    QByteArray aes128EncryptBlock( const QByteArray& block);
-
-    QByteArray buildPHYPayload(QByteArray frmPayload,
-                               quint32 devAddr,
-                               quint32 fCnt);
-
-    void sendToChirpStack(const QByteArray& phyPayload);
 
 public:
     SimTools(QSettings& settings);
@@ -67,6 +44,19 @@ public:
     static QVector2D rotated( const QVector2D& v, float deg);
 
     static float clamped(float val, float min = 0.0f, float max = 1.0f);
+
+    static QByteArray encryptAES(const QByteArray& block, const QByteArray &key);
+    static QByteArray aesCmac(const QByteArray& data , const QByteArray &key);
+
+    static int gen(int minVal, int maxVal);
+    static QByteArray genHex(int count);
+    static QByteArray genAesKey(){ return genHex(16); }
+
+    bool sendToChirpStack(const QByteArray& phyPayload);
+
+    bool sendCollar(const Collar& collar);
 };
+
+extern SimTools* gSimTools;
 
 #endif // SIMTOOLS_H
