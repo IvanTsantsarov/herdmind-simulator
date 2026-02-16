@@ -21,12 +21,8 @@ LoraDev::LoraDev(const QString &name,
 {
     mName = name;
     mProfile = profile;
-    mDevAddr = ++ NODE_ADDR;
     mDevEUI = devEUI.size() ? devEUI : QByteArray::fromHex( SimTools::genHex(8) );
     mAppKey = appKey.size() ? appKey : QByteArray::fromHex( SimTools::genAesKey() );
-
-    // mDevEUI = devEUI.size() ? devEUI : SimTools::genHex(8);
-    // mAppSKey = appKey.size() ? appKey : SimTools::genAesKey();
 
     QTimer delayTimer;
     delayTimer.singleShot( Tools::rnd(0, sendInterval), this, &LoraDev::onTimerStart );
@@ -44,11 +40,13 @@ QString LoraDev::jsonInfo()
 {
     return QString( "{ \"name\":\"%1\","
                     "\"devEui\":\"%2\","
-                    "\"applicationId\":\"%3\","
-                    "\"deviceProfileId\":\"%4\","
-                    "\"applicationKey\":\"%5\" }" )
+                    "\"joinEui\":\"%3\","
+                    "\"applicationId\":\"%4\","
+                    "\"deviceProfileId\":\"%5\","
+                    "\"applicationKey\":\"%6\" }" )
         .arg(mName)
         .arg(mDevEUI.toHex())
+        .arg(mJoinEUI.toHex())
         .arg(APP_ID)
         .arg((int)mProfile)
         .arg(mAppKey.toHex());
@@ -159,6 +157,61 @@ bool LoraDev::sendToChirpstack(const QByteArray& data)
     return false;
 }
 
+
+QByteArray LoraDev::buildJoinRequest()
+{
+    QByteArray payload;
+
+    quint8 mhdr = 0x00; // JoinRequest
+    payload.append(mhdr);
+
+    payload.append(mJoinEUI);
+    payload.append(mDevEUI);
+
+    mDevNonce = QByteArray(2, 0);
+    quint16 nonce = SimTools::gen(0, 0xFFFF);
+    mDevNonce[0] = nonce & 0xFF;
+    mDevNonce[1] = (nonce >> 8) & 0xFF;
+
+    payload.append(mDevNonce);
+
+    QByteArray mic = calculateMIC(payload);
+    payload.append(mic);
+
+    return payload;
+}
+
+bool LoraDev::processJoinAccept(const QByteArray& phyPayload)
+{
+    QByteArray encrypted = phyPayload.mid(1); // remove MHDR
+
+    // Encrypt used for decrypt (LoRaWAN spec rule)
+    QByteArray decrypted = SimTools::encryptAES(encrypted, mAppKey);
+
+    QByteArray joinNonce = decrypted.mid(0, 3);
+    QByteArray netId     = decrypted.mid(3, 3);
+    QByteArray devAddr   = decrypted.mid(6, 4);
+
+    mDevAddr =
+        (quint8)devAddr[0] |
+        ((quint8)devAddr[1] << 8) |
+        ((quint8)devAddr[2] << 16) |
+        ((quint8)devAddr[3] << 24);
+
+    QByteArray block(16, 0);
+
+    block[0] = 0x02;
+    memcpy(block.data() + 1, joinNonce.data(), 3);
+    memcpy(block.data() + 4, netId.data(), 3);
+    memcpy(block.data() + 7, mDevNonce.data(), 2);
+
+    mAppSKey = SimTools::encryptAES(block, mAppKey);
+
+    block[0] = 0x01;
+    mNwkSKey = SimTools::encryptAES(block, mAppKey);
+
+    return true;
+}
 
 #else
 

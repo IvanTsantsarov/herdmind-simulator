@@ -26,15 +26,19 @@ private:
 
     static uint32_t NODE_ADDR;
 
-    QByteArray mDevEUI; // build-in 8 bytes like MAC address
+    QByteArray mDevEUI; // build-in unique 8 bytes like MAC address
     QByteArray mAppKey; // build-in 16 bytes aes key
 
-    uint32_t mDevAddr = 0; // 4 bytes - dynamic address
+    uint32_t mDevAddr = 0; // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
 
     QByteArray mAppSKey;
     QByteArray mNwkSKey;
 
     uint32_t mFCnt = 0;
+
+    QByteArray mJoinEUI; // build-in 8 bytes but only for connection - same for all gegga devices
+    QByteArray mDevNonce; // used only for joining
+
 
     uint32_t mUpdateInterval = 0;
     uint32_t mSendInterval = 0;
@@ -47,6 +51,8 @@ private:
 
     QByteArray buildPHYPayload(QByteArray frmPayload,
                                quint32 devAddr);
+
+    QByteArray buildJoinRequest();
 
     QTimer mTimerUpdate;
     int mSendingMsec = 0;
@@ -81,6 +87,8 @@ public:
     virtual void onSend() = 0; // On timeout for sending
 
     QString jsonInfo();
+
+    bool processJoinAccept(const QByteArray& phyPayload);
 
 private slots:
     void onTimerStart();

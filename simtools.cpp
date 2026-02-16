@@ -3,6 +3,7 @@
 #include <openssl/evp.h>
 #include <openssl/core_names.h>
 #include <QIODevice>
+#include <QRandomGenerator>
 #include <QUdpSocket>
 
 #include "simtools.h"
@@ -120,8 +121,7 @@ QByteArray SimTools::aesCmac( const QByteArray& data, const QByteArray& key )
 
 int SimTools::gen(int minVal, int maxVal)
 {
-    float rnd = ((float)rand() / (float)RAND_MAX);
-    return round(minVal + ( maxVal - minVal ) * rnd);
+    return QRandomGenerator::global()->bounded(minVal, maxVal);
 }
 
 QByteArray SimTools::genHex(int count)
@@ -182,4 +182,5 @@ SimTools::SimTools(QSettings &settings)
 {
     mChirpIP = settings.value(CHIRPSTACK_SECTION"/ip").toString();
     mChirpPort = settings.value(CHIRPSTACK_SECTION"/port").toUInt();
+    mJoinEUI  = settings.value(CHIRPSTACK_SECTION"/joinEUI").toByteArray();
 }

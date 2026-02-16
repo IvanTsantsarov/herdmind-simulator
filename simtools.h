@@ -19,9 +19,12 @@ private:
     // Read them from settins file
     QString mChirpIP;
     quint16 mChirpPort;
+    QByteArray mJoinEUI;
 
 public:
     SimTools(QSettings& settings);
+
+    inline QByteArray joinEUI(){ return mJoinEUI; }
 
     struct HarmonicsGenerator {
 
