@@ -46,7 +46,7 @@ QString LoraDev::jsonInfo()
                     "\"applicationKey\":\"%6\" }" )
         .arg(mName)
         .arg(mDevEUI.toHex())
-        .arg(mJoinEUI.toHex())
+        .arg(gSimTools->joinEUI().toHex())
         .arg(APP_ID)
         .arg((int)mProfile)
         .arg(mAppKey.toHex());
@@ -165,7 +165,7 @@ QByteArray LoraDev::buildJoinRequest()
     quint8 mhdr = 0x00; // JoinRequest
     payload.append(mhdr);
 
-    payload.append(mJoinEUI);
+    payload.append(gSimTools->joinEUI());
     payload.append(mDevEUI);
 
     mDevNonce = QByteArray(2, 0);

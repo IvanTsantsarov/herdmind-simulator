@@ -36,7 +36,6 @@ private:
 
     uint32_t mFCnt = 0;
 
-    QByteArray mJoinEUI; // build-in 8 bytes but only for connection - same for all gegga devices
     QByteArray mDevNonce; // used only for joining
 
 
