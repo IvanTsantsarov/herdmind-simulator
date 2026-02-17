@@ -14,10 +14,17 @@ ApiRest::ApiRest(const QSettings &settings, MainWindow *mainWindow)
 {
     mApiUrl = settings.value( CHIRPSTACK_SECTION"/apiUrl").toString();
     mApiKey = settings.value( CHIRPSTACK_SECTION"/apiKey").toString();
+    mAppId = settings.value( CHIRPSTACK_SECTION"/appId").toString();
     mApiPort = settings.value( CHIRPSTACK_SECTION"/apiPort").toUInt();
 }
 
 /*
+
+curl -X GET "http://localhost:8090/api/devices?applicationId=fc82a77f-d448-43ac-a381-7289d4e5ba2d&limit=100&offset=0" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjgwNGFjZDQ4LTFhNjAtNGNhYi1iYjRkLTQ3Mzc0YjYxZDg2YSIsInR5cCI6ImtleSJ9.cFLwX6uOmSrugrEovaLBpF3H7izuqM8Awdp-9Vx8Aqg" \
+  -H "Accept: application/json"
+
+ *
 Adding devices to ChirpStack via REST API involves authenticating with an API key, then sending a POST request to the /api/devices endpoint with the device details (DevEUI, Application ID, Device Profile ID) in JSON format. The device must be associated with an existing application and a device profile.
 Steps to Add a Device via REST API:
 Generate an API Key: Create a global API key in the ChirpStack web interface to authorize your REST calls.
@@ -52,12 +59,12 @@ void ApiRest::get(const QString &url, const QUrlQuery& query)
         urlFull.setQuery(query);
     }
 
+
     QNetworkRequest request(urlFull);
     request.setRawHeader("Authorization", QString("Bearer %1").arg(mApiKey).toLatin1() );
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("User-Agent", "Herdming-simulator/1.0");
-
 
     // Send GET request
     mReply = mManager.get(request);
@@ -131,6 +138,7 @@ void ApiRest::getPairs()
 void ApiRest::getDevices()
 {
     QUrlQuery query;
+    query.addQueryItem("applicationId", mAppId);
     get("/api/devices",query);
 }
 

@@ -13,7 +13,7 @@ class ApiRest : public QObject
 {
     Q_OBJECT
 
-    QString mApiUrl, mApiKey;
+    QString mApiUrl, mApiKey, mAppId;
     uint mApiPort = 0;
     QNetworkAccessManager mManager;
     MainWindow* mMainWindow = NULL;
