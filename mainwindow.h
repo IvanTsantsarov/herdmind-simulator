@@ -35,15 +35,14 @@ class MainWindow : public QMainWindow
     QTimer* mReminder = nullptr;
     FocusAnim* mFocusAnim = nullptr;
     Network* mNetwork = nullptr;
-    // ApiRest* mApiRest = nullptr;
-
-    void setStatus(const QString& txt);
+    ApiRest* mApiRest = nullptr;
 
 public:
     MainWindow(const QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
 
     void onError(const QString &err);
+    void setStatus(const QString& txt);
 
 protected:
     void moveEvent(QMoveEvent *);

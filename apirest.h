@@ -25,6 +25,8 @@ public:
 
     void getPairs();
 
+    void getDevices();
+
 private slots:
     void onReplyFinished();
     void onError(QNetworkReply::NetworkError code);

@@ -15,7 +15,9 @@ LIBS += -lcrypto
 
 SOURCES += \
     animal.cpp \
+    apirest.cpp \
     focusanim.cpp \
+    grpc.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/collar/collar.cpp \
@@ -35,8 +37,10 @@ SOURCES += \
 
 HEADERS += \
     animal.h \
+    apirest.h \
     defines_settings.h \
     focusanim.h \
+    grpc.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
