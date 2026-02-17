@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 #include <QElapsedTimer>
 #include <QTimer>
 
@@ -18,6 +19,7 @@ class Meadow;
 class FocusAnim;
 class Network;
 class SimTools;
+class ApiRest;
 
 class MainWindow : public QMainWindow
 {
@@ -33,10 +35,15 @@ class MainWindow : public QMainWindow
     QTimer* mReminder = nullptr;
     FocusAnim* mFocusAnim = nullptr;
     Network* mNetwork = nullptr;
+    // ApiRest* mApiRest = nullptr;
+
+    void setStatus(const QString& txt);
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(const QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
+
+    void onError(const QString &err);
 
 protected:
     void moveEvent(QMoveEvent *);

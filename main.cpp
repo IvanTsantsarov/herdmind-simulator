@@ -13,6 +13,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QString initPrint = QString("Gegga herdmind simulator\n"
+                                "Qt version:%1")
+                        .arg(qVersion());
+
+    qDebug() << initPrint;
+
     a.setWindowIcon(QIcon(":/gegga_logo.png"));
 
     if( !QFile::exists(SETTINGS_NAME) ) {
@@ -25,7 +31,7 @@ int main(int argc, char *argv[])
 
     gSimTools = new SimTools(settings);
 
-    MainWindow w;
+    MainWindow w(settings);
     w.show();
     return a.exec();
 }

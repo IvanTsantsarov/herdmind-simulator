@@ -22,7 +22,7 @@ private:
     QByteArray mJoinEUI;
 
 public:
-    SimTools(QSettings& settings);
+    SimTools(const QSettings &settings);
 
     inline QByteArray joinEUI(){ return mJoinEUI; }
 

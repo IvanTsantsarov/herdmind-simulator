@@ -35,6 +35,7 @@ SOURCES += \
 
 HEADERS += \
     animal.h \
+    defines_settings.h \
     focusanim.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \

@@ -9,11 +9,13 @@
 #include "defines.h"
 #include "animal.h"
 #include "network.h"
+// #include "apirest.h"
 
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
-MainWindow::MainWindow(QWidget *parent)
+
+MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -93,6 +95,10 @@ MainWindow::MainWindow(QWidget *parent)
     mReminder = new QTimer(this);
     connect(mReminder, &QTimer::timeout, this, &MainWindow::onConnectReminger );
     mReminder->start( REMINDER_DELAY );
+
+    // Create rest api object
+    // mApiRest = new ApiRest(settings, this);
+
 }
 
 MainWindow::~MainWindow()
@@ -305,4 +311,15 @@ void MainWindow::onConnectReminger()
     if( !mHerd ) {
         mFocusAnim->start(ui->btnGenerate);
     }
+}
+
+
+void MainWindow::setStatus(const QString &txt)
+{
+    statusBar()->showMessage(txt);
+}
+
+void MainWindow::onError(const QString &err)
+{
+    setStatus(err);
 }

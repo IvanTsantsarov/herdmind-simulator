@@ -7,9 +7,8 @@
 #include <QUdpSocket>
 
 #include "simtools.h"
+#include "defines_settings.h"
 #include "hardware/tools.h"
-
-#define CHIRPSTACK_SECTION "Chirpstack"
 
 SimTools::HarmonicsGenerator::HarmonicsGenerator(float radius, int count,
                                                  float ampMin, float ampMax,
@@ -178,7 +177,7 @@ bool SimTools::sendToChirpStack(const QByteArray& phyPayload)
     return sentSize == packet.size();
 }
 
-SimTools::SimTools(QSettings &settings)
+SimTools::SimTools(const QSettings &settings)
 {
     mChirpIP = settings.value(CHIRPSTACK_SECTION"/ip").toString();
     mChirpPort = settings.value(CHIRPSTACK_SECTION"/port").toUInt();

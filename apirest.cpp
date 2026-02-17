@@ -4,16 +4,17 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-
+#include "defines_settings.h"
 #include "mainwindow.h"
-#include "defines.h"
-#include "api_rest.h"
+#include "apirest.h"
 
 
-ApiRest::ApiRest(MainWindow *mainWindow)
+ApiRest::ApiRest(const QSettings &settings, MainWindow *mainWindow)
     : mMainWindow{mainWindow}
 {
-
+    mApiUrl = settings.value( CHIRPSTACK_SECTION"/apiUrl").toString();
+    mApiKey = settings.value( CHIRPSTACK_SECTION"/apiKey").toString();
+    mApiPort = settings.value( CHIRPSTACK_SECTION"/apiPort").toUInt();
 }
 
 /*
@@ -39,7 +40,7 @@ curl -X 'POST' \
 void ApiRest::get(const QString &url, const QUrlQuery& query)
 {
 
-    QUrl urlFull = REST_URL + url;
+    QUrl urlFull = mApiUrl + url;
     if( !query.isEmpty() ) {
         urlFull.setQuery(query);
     }

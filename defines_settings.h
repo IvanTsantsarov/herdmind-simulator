@@ -1,0 +1,7 @@
+#ifndef DEFINES_SETTINGS_H
+#define DEFINES_SETTINGS_H
+
+
+#define CHIRPSTACK_SECTION "Chirpstack"
+
+#endif // DEFINES_SETTINGS_H
