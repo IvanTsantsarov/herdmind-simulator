@@ -39,6 +39,8 @@ private:
 
     QVector<Animal*> mAnimals, mCollars;
 
+    int mMalesCount = 0;
+
     PairsListBC mPairsBC;
 
     float mAnimalSize = 0;
@@ -55,9 +57,13 @@ private:
 public:
     explicit Herd(QObject *parent = nullptr);
     ~Herd();
+
+    inline int malesCount(){ return mMalesCount;}
+    inline int femalesCount(){ return mAnimals.count() - mMalesCount;}
+
     void generate(int count,
                   int areaDimeter,
-                  int percentageCollars,
+                  int percentageCollars, int percentageMales,
                   float animalSize,
                   float grazingCapacity );
 
@@ -88,7 +94,9 @@ public:
     bool isShepherdActive() { return mShepherd && mIsShepherdActive; };
     QPointF shepherdPos();
 
-    QString jsonDevicesList();
+
+    QString jsonAnimalsList(bool isDevicesList);
+
 
 signals:
 };

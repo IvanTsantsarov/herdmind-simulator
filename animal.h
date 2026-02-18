@@ -11,8 +11,17 @@ class Herd;
 class Bolus;
 class Collar;
 
+
+#define FEMALE_NAMES_COUNT 3181
+#define MALE_NAMES_COUNT 41
+
 class Animal
 {
+    static const QString mFemaleNames[FEMALE_NAMES_COUNT];
+    static const QString mMaleNames[MALE_NAMES_COUNT];
+
+    QString mName;
+    bool mIsMale = false;
 
     enum struct State {
         sitting = 0,
@@ -70,6 +79,8 @@ public:
     inline bool wasAvoiding(){ return State::avoiding == mStatePrev; }
     inline bool wasRunning(){ return State::running == mState; }
 
+    static QList<int> namesIndices(bool isMale);
+
 private:
 
     friend class Bolus;
@@ -105,6 +116,9 @@ private:
     int stateSec() { return stateMsec() / 1000; }
 
 public:
+
+    Animal(Herd* herd, bool isMale, int nameIndex, float x, float y, float grazingCapacity );
+    ~Animal();
 
     inline QVector2D& p(){ return mPosition; }
     inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
@@ -145,9 +159,6 @@ public:
     void addObserving(Animal* a){ mObserving.append(a); }
     int observingCount(){ return mObserving.count(); }
 
-    Animal(Herd* herd, float x, float y, float grazingCapacity );
-    ~Animal();
-
     uint readings(){ return mReadings; }
 
     void kick();
@@ -163,7 +174,7 @@ public:
     bool graze();
 
     QString info();
-    QString jsonInfo();
+    QString jsonInfo(bool isDevicesList);
 };
 
 #endif // ANIMAL_H

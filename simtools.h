@@ -5,6 +5,7 @@
 #include <QVector2D>
 #include <QSettings>
 #include "hardware/collar/collar.h"
+#include "hardware/loradev.h"
 
 #define AES_BYTES_LEN 16
 
@@ -21,12 +22,15 @@ private:
     // Read them from settins file
     QString mChirpIP;
     quint16 mChirpPort;
-    QByteArray mJoinEUI;
+    QByteArray mAppId; // generated in chirpstack after creating new application, should be in settings
+    QByteArray mBolusProfileId, mCollarProfileId, mGatewayProfileId;
 
 public:
     SimTools(const QSettings &settings);
 
-    inline QByteArray joinEUI(){ return mJoinEUI; }
+    inline QByteArray appId(){ return mAppId; }
+    QByteArray profileId(LoraDev::Profile profile);
+
 
     struct HarmonicsGenerator {
 
@@ -54,11 +58,13 @@ public:
     static QByteArray aesCmac(const QByteArray& data , const QByteArray &key);
 
     static int gen(int minVal, int maxVal);
+    inline static int gen(int maxVal) { return gen(0, maxVal); }
     static QByteArray genHex(int count);
     static QByteArray genAesKey(){ return genHex(AES_BYTES_LEN); }
 
-    bool sendToChirpStack(const QByteArray& phyPayload);
+    bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
 
+    bool sendToChirpStack(const QByteArray& phyPayload);
     bool sendCollar(const Collar& collar);
 };
 

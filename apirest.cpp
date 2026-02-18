@@ -56,7 +56,7 @@ void ApiRest::onError(QNetworkReply::NetworkError code)
 
 QNetworkRequest ApiRest::createRequest(const QString &url, const QUrlQuery &query)
 {
-    QUrl urlFull = QString( "%1:%2%3" ).arg(mApiUrl).arg(mApiPort).arg(url);
+    QUrl urlFull = QString( "%1:%2/api/%3" ).arg(mApiUrl).arg(mApiPort).arg(url);
     if( !query.isEmpty() ) {
         urlFull.setQuery(query);
     }
@@ -70,28 +70,28 @@ QNetworkRequest ApiRest::createRequest(const QString &url, const QUrlQuery &quer
     return request;
 }
 
-void ApiRest::prepareReply(RequestType type)
+void ApiRest::prepareReply(QNetworkReply* reply, RequestType type)
 {
     // Too long for Lambda expression
-    connect(mReply, &QNetworkReply::finished, this, &ApiRest::onResponse);
-    connect(mReply, &QNetworkReply::errorOccurred, this, &ApiRest::onError );
-    mReply->setProperty("requestType", static_cast<int>(type));
+    connect(reply, &QNetworkReply::finished, this, &ApiRest::onResponse);
+    connect(reply, &QNetworkReply::errorOccurred, this, &ApiRest::onError );
+    reply->setProperty("requestType", static_cast<int>(type));
 }
 
 
 void ApiRest::get(const QString &url, RequestType type, const QUrlQuery& query)
 {
     QNetworkRequest request = createRequest(url, query);
-    mReply = mManager.get(request);
-    prepareReply(type);
+    QNetworkReply* reply = mManager.get(request);
+    prepareReply(reply, type);
     qDebug() << "Get request:" << request.url().toString();
 }
 
 void ApiRest::post(const QString &url, RequestType type, const QByteArray& data, const QUrlQuery &query)
 {
     QNetworkRequest request = createRequest(url, query);
-    mReply = mManager.post(request, data);
-    prepareReply(type);
+    QNetworkReply* reply = mManager.post(request, data);
+    prepareReply(reply, type);
     qDebug() << "Post request:" << request.url().toString();
 }
 
@@ -99,7 +99,13 @@ void ApiRest::getDevices()
 {
     QUrlQuery query;
     query.addQueryItem("applicationId", mAppId);
-    get("/api/devices", RequestType::Devices, query);
+    get("devices", RequestType::GetDevices, query);
+}
+
+void ApiRest::getApplications()
+{
+    QUrlQuery query;
+    get("applications", RequestType::GetApplications, query);
 }
 
 

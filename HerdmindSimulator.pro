@@ -15,6 +15,7 @@ LIBS += -lcrypto
 
 SOURCES += \
     animal.cpp \
+    animal_names.cpp \
     apirest.cpp \
     apirest_response.cpp \
     focusanim.cpp \

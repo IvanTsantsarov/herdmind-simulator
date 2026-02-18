@@ -19,26 +19,29 @@ class ApiRest : public QObject
 
     enum struct RequestType {
         None = 0,
-        Devices = 1
+        GetDevices,
+        GetApplications
     };
 
     QString mApiUrl, mApiKey, mAppId;
     uint mApiPort = 0;
     QNetworkAccessManager mManager;
     MainWindow* mMainWindow = NULL;
-    QNetworkReply *mReply = NULL;
+    // QNetworkReply *mReply = NULL;
 
     QNetworkRequest createRequest( const QString& url, const QUrlQuery& query = QUrlQuery() );
-    void prepareReply(RequestType type);
+    void prepareReply(QNetworkReply *reply, RequestType type);
     void get(const QString& url, RequestType type, const QUrlQuery& query = QUrlQuery() );
     void post(const QString& url, RequestType type, const QByteArray &data, const QUrlQuery& query = QUrlQuery() );
 
-    void onDevicesResponse(QJsonObject& jobj);
+    void onGetDevicesResponse(QJsonObject& jobj);
+    void onGetApplicationsResponse(QJsonObject& jobj);
 
 public:
     explicit ApiRest(const QSettings& settings, MainWindow *mainWindow = nullptr);
 
     void getDevices();
+    void getApplications();
 
 private slots:
     void onResponse();

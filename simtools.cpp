@@ -5,6 +5,7 @@
 #include <QIODevice>
 #include <QRandomGenerator>
 #include <QUdpSocket>
+#include <QFile>
 
 #include "simtools.h"
 #include "defines_settings.h"
@@ -137,6 +138,23 @@ QByteArray SimTools::genHex(int count)
     return result;
 }
 
+bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool isOverwrite)
+{
+    if( !isOverwrite && QFile::exists(path) ) {
+        return true;
+    }
+
+    QFile file( path );
+    if ( file.open(QIODevice::WriteOnly) )
+    {
+        QTextStream stream( &file );
+        stream << content;
+        return true;
+    }
+
+    return false;
+}
+
 
 
 bool SimTools::sendToChirpStack(const QByteArray& phyPayload)
@@ -181,5 +199,24 @@ SimTools::SimTools(const QSettings &settings)
 {
     mChirpIP = settings.value(CHIRPSTACK_SECTION"/ip").toString();
     mChirpPort = settings.value(CHIRPSTACK_SECTION"/port").toUInt();
-    mJoinEUI  = settings.value(CHIRPSTACK_SECTION"/joinEUI").toByteArray();
+    mAppId  = settings.value(CHIRPSTACK_SECTION"/appId").toByteArray();
+
+    mBolusProfileId  = settings.value(CHIRPSTACK_SECTION"/bolusProfileId").toByteArray();
+    mCollarProfileId  = settings.value(CHIRPSTACK_SECTION"/collarProfileId").toByteArray();
+    mGatewayProfileId  = settings.value(CHIRPSTACK_SECTION"/gatewayProfileId").toByteArray();
+
+
+}
+
+QByteArray SimTools::profileId(LoraDev::Profile profile) {
+
+    switch( profile )
+    {
+    case LoraDev::Profile::None :
+        Q_ASSERT(0);
+        break;
+    case LoraDev::Profile::Bolus: return mBolusProfileId;
+    case LoraDev::Profile::Collar: return mCollarProfileId;
+    case LoraDev::Profile::Gateway: return mGatewayProfileId;
+    }
 }

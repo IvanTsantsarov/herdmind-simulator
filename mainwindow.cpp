@@ -99,8 +99,6 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     // Create rest api object
     mApiRest = new ApiRest(settings, this);
 
-    mApiRest->getDevices(); // debug
-
 }
 
 MainWindow::~MainWindow()
@@ -134,6 +132,7 @@ void MainWindow::on_btnGenerate_clicked()
     mHerd->generate( ui->spinAnimalsCount->value(),
                     ui->doubleSpinArea->value(),
                     ui->spinCollarsPercentage->value(),
+                    ui->spinMalesPercentage->value(),
                     ui->doubleSpinAnimalSize->value(),
                     ui->spinAnimalGrazingCapacity->value()
                     );

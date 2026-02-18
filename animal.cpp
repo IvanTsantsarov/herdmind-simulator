@@ -9,6 +9,47 @@
 
 #define MIN_FLOAT 1e-6f
 
+Animal::Animal(Herd* herd, bool isMale, int nameIndex, float x, float y , float grazingCapacity)
+    : mHerd(herd)
+{
+    mIsMale = isMale;
+    mName = isMale ? mMaleNames[nameIndex] : mFemaleNames[nameIndex];
+    mPosition = QVector2D(x, y);
+    mVelocity = QVector2D(0, 0);
+    mDirection = QVector2D(1, 0);
+    mGrazingCapacity = grazingCapacity;
+
+    mBolus = new Bolus(this);
+}
+
+Animal::~Animal()
+{
+    if( mBolus ) {
+        delete mBolus;
+        mBolus = nullptr;
+    }
+
+    if( mCollar ) {
+        delete mCollar;
+        mCollar = nullptr;
+    }
+}
+
+
+
+QList<int> Animal::namesIndices(bool isMale)
+{
+    QList<int> indices;
+    int reservedCount = isMale ? MALE_NAMES_COUNT : FEMALE_NAMES_COUNT;
+    indices.reserve(reservedCount);
+
+    for(auto i = 0; i < reservedCount; i ++ ) {
+        indices.append(i);
+    }
+
+    return indices;
+}
+
 void Animal::updateRotationAngleTarget()
 {
     mRotationAngleTarget = qAtan2(mDirection.y(), mDirection.x()); // -pi..+pi
@@ -188,30 +229,6 @@ bool Animal::isSideVisible(Animal *a, float maxCosAngle)
 }
 
 
-
-Animal::Animal(Herd* herd, float x, float y , float grazingCapacity) : mHerd(herd)
-{
-    mPosition = QVector2D(x, y);
-    mVelocity = QVector2D(0, 0);
-    mDirection = QVector2D(1, 0);
-    mGrazingCapacity = grazingCapacity;
-
-    mBolus = new Bolus(this);
-}
-
-Animal::~Animal()
-{
-    if( mBolus ) {
-        delete mBolus;
-        mBolus = nullptr;
-    }
-
-    if( mCollar ) {
-        delete mCollar;
-        mCollar = nullptr;
-    }
-}
-
 void Animal::kick()
 {
     if( !isGoing() && !isResting() ) {
@@ -268,7 +285,9 @@ QString Animal::info()
 {
     float kg = mLawn ? mLawn->kg() : 0.0f;
 
-    return QString("Ptr:0x%1\nV:%2,%3\nA:%4,%5\nStamina:%6\nState:%7 %8\nLawn:0x%9\nKg=%10\nAnimals:%11")
+    return QString("%1 %2\nPtr:0x%3\nV:%4,%5\nA:%6,%7\nStamina:%8\nState:%9 %10\nLawn:0x%11\nKg=%12\nAnimals:%13")
+        .arg(mName)
+        .arg(mIsMale ? "♂️" : "♀️")
         .arg(reinterpret_cast<quint64>(this), 0, 16)
         .arg( mVelocity.x(), 0, 'f', 2)
         .arg( mVelocity.y(), 0, 'f', 2)
@@ -287,15 +306,41 @@ QString Animal::info()
         .arg(mLawn ? mLawn->animalsCount() : 0 );
 }
 
-QString Animal::jsonInfo()
+QString Animal::jsonInfo(bool isDevicesList)
 {
     QString result = "";
-    if( hasCollar() ) {
-        result.append( mCollar->jsonInfo() );
+
+    if( isDevicesList ) {
+
+        result.append( mBolus->jsonInfo(mName) );
+        if( hasCollar() ) {
+            result.append(",");
+            result.append( mCollar->jsonInfo(mName) );
+        }
+
+    }else {
+        result.append("{");
+
+        result.append( "\"name\":");
+        result.append( QString("\"%1\"").arg(mName) );
         result.append(",");
+
+        result.append( "\"male\":");
+        result.append( mIsMale ? "\"yes\"" : "\"no\"");
+        result.append(",");
+
+        result.append( "\"bolus\":");
+        result.append( mBolus->jsonInfo() );
+
+        if( hasCollar() ) {
+            result.append(",");
+            result.append( "\"collar\":");
+            result.append( mCollar->jsonInfo() );
+        }
+
+        result.append("}");
     }
 
-    result.append( mBolus->jsonInfo() );
     return result;
 }
 

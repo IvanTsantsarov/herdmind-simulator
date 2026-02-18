@@ -13,8 +13,7 @@ uint32_t LoraDev::NODE_ADDR = 1000;
 
 LoraDev::LoraDev(const QString &name,
                  Profile profile,
-                 int updateInterval,
-                 int sendInterval,
+                 int updateInterval, int sendInterval,
                  const QByteArray& devEUI, const QByteArray &joinEUI,
                  const QByteArray& appKey )
     : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
@@ -37,20 +36,31 @@ void LoraDev::updateSendingSimulation(int msec) {
     mSendingMsec -= msec;
 }
 
-QString LoraDev::jsonInfo()
+QString LoraDev::jsonInfo(const QString& animalName)
 {
-    return QString( "{ \"name\":\"%1\","
-                    "\"devEui\":\"%2\","
-                    "\"joinEui\":\"%3\","
-                    "\"applicationId\":\"%4\","
-                    "\"deviceProfileId\":\"%5\","
-                    "\"applicationKey\":\"%6\" }" )
+    if( !animalName.length() ) {
+        return QString( "{ \"devEui\":\"%1\","
+                        "\"joinEui\":\"%2\","
+                        "\"applicationKey\":\"%3\" }" )
+            .arg(mDevEUI.toHex())
+            .arg(mJoinEUI.toHex())
+            .arg(mAppKey.toHex());
+    }
+
+    return QString( "{ \"name\":\"%1 %2\","
+                   "\"devEui\":\"%3\","
+                   "\"joinEui\":\"%4\","
+                   "\"applicationId\":\"%5\","
+                   "\"deviceProfileId\":\"%6\","
+                   "\"applicationKey\":\"%7\" }" )
+        .arg(animalName)
         .arg(mName)
         .arg(mDevEUI.toHex())
-        .arg(gSimTools->joinEUI().toHex())
-        .arg(APP_ID)
-        .arg((int)mProfile)
+        .arg(mJoinEUI.toHex())
+        .arg(gSimTools->appId().toHex())
+        .arg(gSimTools->profileId(mProfile).toHex())
         .arg(mAppKey.toHex());
+
 }
 
 
@@ -166,7 +176,7 @@ QByteArray LoraDev::buildJoinRequest()
     quint8 mhdr = 0x00; // JoinRequest
     payload.append(mhdr);
 
-    payload.append(gSimTools->joinEUI());
+    payload.append(mJoinEUI);
     payload.append(mDevEUI);
 
     mDevNonce = QByteArray(2, 0);

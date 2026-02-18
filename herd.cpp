@@ -1,7 +1,9 @@
 #include <QDebug>
 #include <QFile>
+#include <QJsonDocument>
 
 #include "herd.h"
+#include "simtools.h"
 #include "shepherd.h"
 #include "hardware/tools.h"
 #include "animal.h"
@@ -9,6 +11,7 @@
 #define ANIMAL_MIN_DISTANCE 0.2
 
 #define DEVICES_LIST_FILE "devices.json"
+#define ANIMALS_LIST_FILE "animals.json"
 
 void Herd::clear()
 {
@@ -39,6 +42,7 @@ Herd::~Herd()
 void Herd::generate(int count,
                     int areaDimeter,
                     int percentageCollars,
+                    int percentageMales,
                     float animalSize,
                     float grazingCapacity)
 {
@@ -59,10 +63,37 @@ void Herd::generate(int count,
 
     // fill animals array
     mAnimals.reserve(count);
+
+    mMalesCount = percentageMales * count;
+    if( mMalesCount < 1 ) mMalesCount = 1;
+
+    if( mMalesCount > MALE_NAMES_COUNT) {
+        mMalesCount = MALE_NAMES_COUNT;
+    }
+
+    int malesGenerated = 0;
+
+    QList<int> maleNames = Animal::namesIndices(true);
+    QList<int> femaleNames = Animal::namesIndices(false);
+
     for( auto i = 0; i < count; i ++) {
+
+        int nameIndex;
+
+        bool isMale = malesGenerated >= mMalesCount ? false : true;
+
+        if( isMale ) {
+            nameIndex = maleNames.size() > 1 ? gSimTools->gen(maleNames.size()-1) : 0;
+            maleNames.removeAt(nameIndex);
+            malesGenerated ++;
+        }else {
+            nameIndex = femaleNames.size() > 1 ? gSimTools->gen(femaleNames.size()-1) : 0;
+            femaleNames.removeAt(nameIndex);
+        }
+
         float x = Tools::rnd(-areaRadius, areaRadius);
         float y = Tools::rnd(-areaRadius, areaRadius);
-        mAnimals.append(new Animal(this, x, y, grazingCapacity));
+        mAnimals.append(new Animal(this, isMale, nameIndex, x, y, grazingCapacity));
         processCollision(animalSize * 2.0f);
     }
 
@@ -83,17 +114,8 @@ void Herd::generate(int count,
     }
 
     // Save json devices list for Chirpstack
-    if( !QFile::exists(DEVICES_LIST_FILE) ) {
-        QString devList = jsonDevicesList();
-
-        QFile file( DEVICES_LIST_FILE );
-        if ( file.open(QIODevice::WriteOnly) )
-        {
-            QTextStream stream( &file );
-            stream << devList;
-        }
-    }
-
+    gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
+    gSimTools->fileWrite(DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true);
 }
 
 bool Herd::processCollision(float collidingDistance)
@@ -277,22 +299,7 @@ QPointF Herd::shepherdPos()
     return mShepherd->lastPos();
 }
 
-QString Herd::jsonDevicesList()
-{
-    QString result = "[";
-    bool isFirst = true;
-    foreach(Animal* animal, mAnimals) {
-        if( !isFirst) {
-            result.append(",");
-        }
-        result.append(animal->jsonInfo());
-        isFirst = false;
-    }
 
-    result.append("]");
-
-    return result;
-}
 
 
 bool Herd::checkTransmitVisibility(AnimalPair& ap, float maxDistanceSq, float minTransmitAngleCos)
@@ -370,4 +377,22 @@ void Herd::AnimalPair::appendTo(QList<AnimalPair> &ls)
     mBolusAnimal->addObserver(mCollarAnimal);
     mCollarAnimal->addObserving(mBolusAnimal);
     ls.append(*this);
+}
+
+
+QString Herd::jsonAnimalsList( bool isDevicesList )
+{
+    QString result = "[";
+    bool isFirst = true;
+    foreach(Animal* animal, mAnimals) {
+        if( !isFirst) {
+            result.append(",");
+        }
+        result.append( animal->jsonInfo(isDevicesList) );
+        isFirst = false;
+    }
+
+    result.append("]");
+
+    return result;
 }

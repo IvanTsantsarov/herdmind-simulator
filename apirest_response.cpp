@@ -4,15 +4,17 @@
 
 void ApiRest::onResponse()
 {
-    if (mReply->error() != QNetworkReply::NoError) {
-        qDebug() << "REST:Request failed:" << mReply->errorString();
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    if (!reply)
+        return;
+    QByteArray responseData = reply->readAll();
+    reply->deleteLater();
+
+    if (reply->error() != QNetworkReply::NoError) {
+        qDebug() << "REST:Request failed:" << reply->errorString() << responseData;
         mMainWindow->setStatus( "REST:Network failure!" );
-        mReply->deleteLater();
         return;
     }
-
-    QByteArray responseData = mReply->readAll();
-    mReply->deleteLater();
 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
@@ -26,19 +28,19 @@ void ApiRest::onResponse()
     auto json = jsonDoc.object();
     qDebug() << QJsonDocument(json).toJson(QJsonDocument::Indented); // Uncomment for Debug
 
-    RequestType type = static_cast<RequestType>( mReply->property("requestType").toInt() );
+    RequestType type = static_cast<RequestType>( reply->property("requestType").toInt() );
 
     switch(type) {
         case RequestType::None: break;
-        case RequestType::Devices: onDevicesResponse(json); break;
+        case RequestType::GetDevices: onGetDevicesResponse(json); break;
+        case RequestType::GetApplications: onGetDevicesResponse(json); break;
         }
 }
 
-void ApiRest::onDevicesResponse(QJsonObject& jobj)
+void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
 {
-    QJsonArray data = jobj["data"].toArray();
-
     /*
+     * QJsonArray data = jobj["data"].toArray();
     // Make pairs map
     Pairs pairs;
     foreach( QJsonValue val, data) {
@@ -55,5 +57,10 @@ void ApiRest::onDevicesResponse(QJsonObject& jobj)
 
     mMainWindow->onPairs( pairs );
 */
+}
+
+void ApiRest::onGetApplicationsResponse(QJsonObject &jobj)
+{
+
 }
 

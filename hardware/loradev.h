@@ -30,8 +30,7 @@ private:
 
     QByteArray mDevEUI; // build-in unique 8 bytes like MAC address (ex:0x1234567890AAAAAA)
     QByteArray mJoinEUI; // build-in unique 8 bytes like MAC address for connecting only
-
-    QByteArray mAppKey; // build-in 16 bytes aes key
+    QByteArray mAppKey; // application id is from chirpstack after creating new application
 
     uint32_t mDevAddr = 0; // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
 
@@ -90,7 +89,8 @@ public:
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
 
-    QString jsonInfo();
+    // if animal name is specified - returns full info for chirpstack device registration
+    QString jsonInfo(const QString &animalName = QString());
 
     bool processJoinAccept(const QByteArray& phyPayload);
 
