@@ -138,6 +138,24 @@ QByteArray SimTools::genHex(int count)
     return result;
 }
 
+QByteArray SimTools::fileRead(const QString &path, bool *isOk)
+{
+    QFile file( path );
+    if ( file.open(QIODevice::ReadOnly) )
+    {
+        if( isOk ) {
+            *isOk = true;
+        }
+        return file.readAll();
+    }
+
+    if( isOk ) {
+        *isOk = false;
+    }
+
+    return QByteArray();
+}
+
 bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool isOverwrite)
 {
     if( !isOverwrite && QFile::exists(path) ) {

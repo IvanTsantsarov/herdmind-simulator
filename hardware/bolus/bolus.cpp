@@ -14,7 +14,13 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-Bolus::Bolus(Animal *animal) : LoraDev("Bolus", LoraDev::Profile::Bolus, BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL), mAnimal(animal)
+Bolus::Bolus(   Animal *animal,
+                const QByteArray &devEUI,
+                const QByteArray &joinEUI,
+                const QByteArray& appKey)
+    : LoraDev("Bolus", LoraDev::Profile::Bolus,
+              BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL,
+              devEUI, joinEUI, appKey ), mAnimal(animal)
 {
     init();
     mPackage.b = 100;

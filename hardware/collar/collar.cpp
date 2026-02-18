@@ -12,7 +12,15 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-Collar::Collar() : LoraDev("Collar", LoraDev::Profile::Collar, COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL) {}
+Collar::Collar( Animal* animal,
+                const QByteArray &devEUI,
+                const QByteArray &joinEUI,
+                const QByteArray& appKey)
+    : LoraDev("Collar", LoraDev::Profile::Collar,
+            COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
+              devEUI, joinEUI, appKey), mAnimal(animal)
+{
+}
 
 void Collar::onUpdate()
 {

@@ -9,17 +9,24 @@
 
 #define MIN_FLOAT 1e-6f
 
-Animal::Animal(Herd* herd, bool isMale, int nameIndex, float x, float y , float grazingCapacity)
-    : mHerd(herd)
+void Animal::constructAnimal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity )
 {
     mIsMale = isMale;
-    mName = isMale ? mMaleNames[nameIndex] : mFemaleNames[nameIndex];
+    mName = name;
     mPosition = QVector2D(x, y);
     mVelocity = QVector2D(0, 0);
     mDirection = QVector2D(1, 0);
     mGrazingCapacity = grazingCapacity;
+}
 
-    mBolus = new Bolus(this);
+Animal::Animal(Herd* herd, bool isMale, int nameIndex, float x, float y, float grazingCapacity)
+    : mHerd(herd) {
+    constructAnimal( herd, isMale, isMale ? mMaleNames[nameIndex] : mFemaleNames[nameIndex], x, y, grazingCapacity );
+}
+
+Animal::Animal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity )
+    : mHerd(herd){
+    constructAnimal( herd, isMale, name, x, y, grazingCapacity );
 }
 
 Animal::~Animal()
@@ -204,9 +211,14 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
 }
 
 
-void Animal::putCollar()
+void Animal::putBolus(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &appKey)
 {
-    mCollar = new Collar();
+    mBolus = new Bolus(this, devEUI, joinEUI, appKey);
+}
+
+void Animal::putCollar(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &appKey)
+{
+    mCollar = new Collar(this, devEUI, joinEUI, appKey);
 }
 
 bool Animal::isAhead(Animal *a, float maxCosAngle)
@@ -312,9 +324,14 @@ QString Animal::jsonInfo(bool isDevicesList)
 
     if( isDevicesList ) {
 
-        result.append( mBolus->jsonInfo(mName) );
+        if( hasBolus() ) {
+            result.append( mBolus->jsonInfo(mName) );
+        }
+
         if( hasCollar() ) {
-            result.append(",");
+            if( hasBolus() ) {
+                result.append(",");
+            }
             result.append( mCollar->jsonInfo(mName) );
         }
 
@@ -326,14 +343,19 @@ QString Animal::jsonInfo(bool isDevicesList)
         result.append(",");
 
         result.append( "\"male\":");
-        result.append( mIsMale ? "\"yes\"" : "\"no\"");
+        result.append( mIsMale ? "true" : "false");
         result.append(",");
 
-        result.append( "\"bolus\":");
-        result.append( mBolus->jsonInfo() );
+
+        if( hasBolus() ) {
+            result.append( "\"bolus\":");
+            result.append( mBolus->jsonInfo() );
+        }
 
         if( hasCollar() ) {
-            result.append(",");
+            if( hasBolus() ) {
+                result.append(",");
+            }
             result.append( "\"collar\":");
             result.append( mCollar->jsonInfo() );
         }
@@ -434,3 +456,4 @@ void Animal::updateCommon(float tickSeconds)
         mCollar->updateSendingSimulation( msec );
     }
 }
+

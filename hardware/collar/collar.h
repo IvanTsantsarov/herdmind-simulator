@@ -17,7 +17,6 @@ struct CollarData;
 #include "../loradev.h"
 
 
-
 class Collar : public LoraDev
 
 #else
@@ -68,17 +67,16 @@ private:
 #else
     Collar();
 #endif
-
     PackageOut mPackage;
 
 public:
-    Collar();
 
 #ifdef SIMULATION
-    Collar(Animal* animal) : Collar()
-    {
-        mAnimal = animal;
-    }
+
+    Collar(Animal* animal,
+            const QByteArray &devEUI = QByteArray(),
+            const QByteArray &joinEUI = QByteArray(),
+           const QByteArray& appKey = QByteArray() );
 
     inline quint32 addr() const { return mAddr; }
 

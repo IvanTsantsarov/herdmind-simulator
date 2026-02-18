@@ -62,7 +62,11 @@ public:
 
 
 #ifdef SIMULATION
-    Bolus(Animal* animal);
+    Bolus(Animal* animal,
+          const QByteArray &devEUI = QByteArray(),
+          const QByteArray &joinEUI = QByteArray(),
+          const QByteArray& appKey = QByteArray());
+
     void onUpdate();
     void onSend();
 #else

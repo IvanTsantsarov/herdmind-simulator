@@ -54,6 +54,7 @@ private:
     bool mIsShepherdActive = false;
 
     bool processCollision(float collidingDistance);
+    float beforeGeneration(int areaDimeter, float animalSize);
 public:
     explicit Herd(QObject *parent = nullptr);
     ~Herd();
@@ -66,6 +67,12 @@ public:
                   int percentageCollars, int percentageMales,
                   float animalSize,
                   float grazingCapacity );
+
+    bool load(  const QString& jsonPath,
+                int areaDimeter,
+                float animalSize,
+                float grazingCapacity );
+
 
     void update(quint64 millissec,
                 Meadow *meadow,

@@ -62,7 +62,8 @@ public:
     static QByteArray genHex(int count);
     static QByteArray genAesKey(){ return genHex(AES_BYTES_LEN); }
 
-    bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
+    static QByteArray fileRead(const QString& path, bool* isOk = nullptr);
+    static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
 
     bool sendToChirpStack(const QByteArray& phyPayload);
     bool sendCollar(const Collar& collar);

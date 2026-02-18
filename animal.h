@@ -115,9 +115,11 @@ private:
     quint64 stateMsec();
     int stateSec() { return stateMsec() / 1000; }
 
+    void constructAnimal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity );
 public:
 
     Animal(Herd* herd, bool isMale, int nameIndex, float x, float y, float grazingCapacity );
+    Animal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity );
     ~Animal();
 
     inline QVector2D& p(){ return mPosition; }
@@ -146,8 +148,17 @@ public:
     inline float rotationAngle(){ return mRotationAngle; }
     inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 
-    void putCollar();
+    void putBolus(const QByteArray &devEUI = QByteArray(),
+                  const QByteArray &joinEUI = QByteArray(),
+                  const QByteArray& appKey = QByteArray());
+
+    void putCollar(const QByteArray &devEUI = QByteArray(),
+                   const QByteArray &joinEUI = QByteArray(),
+                   const QByteArray& appKey = QByteArray());
+
+    bool hasBolus() const { return nullptr != mBolus; }
     bool hasCollar() const { return nullptr != mCollar; }
+
     bool isSideVisible(Animal *a, float maxCosAngle);
     bool isAhead(Animal* animal, float maxCosAngle );
 

@@ -1,6 +1,8 @@
 #include <QDebug>
 #include <QFile>
 #include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include "herd.h"
 #include "simtools.h"
@@ -39,12 +41,8 @@ Herd::~Herd()
     clear();
 }
 
-void Herd::generate(int count,
-                    int areaDimeter,
-                    int percentageCollars,
-                    int percentageMales,
-                    float animalSize,
-                    float grazingCapacity)
+
+float Herd::beforeGeneration( int areaDimeter, float animalSize )
 {
     srand(time(NULL));
 
@@ -52,17 +50,24 @@ void Herd::generate(int count,
 
     mAnimalSize = animalSize;
     mAnimalHalfSizeSquared = mAnimalSize * mAnimalSize * 0.25f;
+    float areaRadius = areaDimeter * 0.5;
+    mShepherd = new Shepherd(0.001f, areaRadius);
+
+    return areaRadius;
+}
+
+void Herd::generate(int count,
+                    int areaDimeter,
+                    int percentageCollars,
+                    int percentageMales,
+                    float animalSize,
+                    float grazingCapacity)
+{
+    float areaRadius = beforeGeneration( areaDimeter, animalSize);
 
     int collarsCount = count * percentageCollars / 100;
 
-    float areaRadius = areaDimeter * 0.5;
-
     qDebug() << "Generating" << count << "herd in radius:" << areaRadius << "and" << collarsCount << "collars";
-
-    mShepherd = new Shepherd(0.001f, areaRadius);
-
-    // fill animals array
-    mAnimals.reserve(count);
 
     mMalesCount = percentageMales * count;
     if( mMalesCount < 1 ) mMalesCount = 1;
@@ -70,6 +75,9 @@ void Herd::generate(int count,
     if( mMalesCount > MALE_NAMES_COUNT) {
         mMalesCount = MALE_NAMES_COUNT;
     }
+
+    // fill animals array
+    mAnimals.reserve(count);
 
     int malesGenerated = 0;
 
@@ -93,7 +101,9 @@ void Herd::generate(int count,
 
         float x = Tools::rnd(-areaRadius, areaRadius);
         float y = Tools::rnd(-areaRadius, areaRadius);
-        mAnimals.append(new Animal(this, isMale, nameIndex, x, y, grazingCapacity));
+        Animal* animal = new Animal(this, isMale, nameIndex, x, y, grazingCapacity);
+        mAnimals.append(animal);
+        animal->putBolus(); /// TODO: put only ot specified percentage
         processCollision(animalSize * 2.0f);
     }
 
@@ -116,6 +126,44 @@ void Herd::generate(int count,
     // Save json devices list for Chirpstack
     gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
     gSimTools->fileWrite(DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true);
+}
+
+bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, float grazingCapacity)
+{
+    float areaRadius = beforeGeneration(areaDimeter, animalSize);
+
+    bool isReadOk;
+    QByteArray content = SimTools::fileRead(jsonPath, &isReadOk);
+
+    if( !isReadOk ) {
+        qDebug() << "Error reading file:" << jsonPath;
+        return false;
+    }
+
+    QJsonDocument jdoc = QJsonDocument::fromJson(content);
+
+    if( !jdoc.isArray() ) {
+        qDebug() << "Error format file:" << jsonPath;
+        return false;
+    }
+
+    QJsonArray jarr = jdoc.array();
+
+    // fill animals array
+    mAnimals.reserve(jarr.size());
+
+    for( auto jelement : std::as_const(jarr)) {
+        const QJsonObject& jobj = jelement.toObject();
+
+        float x = Tools::rnd(-areaRadius, areaRadius);
+        float y = Tools::rnd(-areaRadius, areaRadius);
+        mAnimals.append(new Animal(this, jobj["male"].toBool(), jobj["name"].toString(), x, y, grazingCapacity));
+        processCollision(animalSize * 2.0f);
+    }
+
+    qDebug() << "Loading " << jarr.size() << " animals from " << jsonPath << " on radius:" << areaRadius;
+
+    return true;
 }
 
 bool Herd::processCollision(float collidingDistance)
