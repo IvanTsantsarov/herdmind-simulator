@@ -8,6 +8,8 @@
 class Animal;
 class SimTools;
 
+#define EUI_BYTES_LEN 8
+
 class LoraDev : public QObject
 {
     Q_OBJECT
@@ -26,7 +28,9 @@ private:
 
     static uint32_t NODE_ADDR;
 
-    QByteArray mDevEUI; // build-in unique 8 bytes like MAC address
+    QByteArray mDevEUI; // build-in unique 8 bytes like MAC address (ex:0x1234567890AAAAAA)
+    QByteArray mJoinEUI; // build-in unique 8 bytes like MAC address for connecting only
+
     QByteArray mAppKey; // build-in 16 bytes aes key
 
     uint32_t mDevAddr = 0; // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
@@ -69,6 +73,7 @@ public:
             Profile profile,
             int updateInterval, int sendInterval,
             const QByteArray &devEUI = QByteArray(),
+            const QByteArray &joinEUI = QByteArray(),
             const QByteArray& appKey = QByteArray() );
 
     inline QByteArray eui(){ return mDevEUI; };

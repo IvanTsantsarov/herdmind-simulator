@@ -15,13 +15,14 @@ LoraDev::LoraDev(const QString &name,
                  Profile profile,
                  int updateInterval,
                  int sendInterval,
-                 const QByteArray& devEUI,
+                 const QByteArray& devEUI, const QByteArray &joinEUI,
                  const QByteArray& appKey )
     : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
 {
     mName = name;
     mProfile = profile;
-    mDevEUI = devEUI.size() ? devEUI : QByteArray::fromHex( SimTools::genHex(8) );
+    mDevEUI = devEUI.size() ? devEUI : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
+    mJoinEUI = joinEUI.size() ? joinEUI : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
     mAppKey = appKey.size() ? appKey : QByteArray::fromHex( SimTools::genAesKey() );
 
     QTimer delayTimer;

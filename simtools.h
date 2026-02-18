@@ -6,6 +6,8 @@
 #include <QSettings>
 #include "hardware/collar/collar.h"
 
+#define AES_BYTES_LEN 16
+
 class SimTools
 {
 public:
@@ -53,7 +55,7 @@ public:
 
     static int gen(int minVal, int maxVal);
     static QByteArray genHex(int count);
-    static QByteArray genAesKey(){ return genHex(16); }
+    static QByteArray genAesKey(){ return genHex(AES_BYTES_LEN); }
 
     bool sendToChirpStack(const QByteArray& phyPayload);
 

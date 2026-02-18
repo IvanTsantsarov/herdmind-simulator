@@ -16,6 +16,7 @@ LIBS += -lcrypto
 SOURCES += \
     animal.cpp \
     apirest.cpp \
+    apirest_response.cpp \
     focusanim.cpp \
     grpc.cpp \
     hardware/bolus/accel.cpp \

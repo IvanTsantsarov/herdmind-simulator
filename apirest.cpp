@@ -1,9 +1,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkProxyFactory>
 #include <QNetworkRequest>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
 #include "defines_settings.h"
 #include "mainwindow.h"
 #include "apirest.h"
@@ -52,13 +49,17 @@ Ensure the deviceProfileId is correct to avoid errors.
 If using OTAA, you will need to perform a second step to set the root keys (AppKey) using POST /api/devices/{devEui}/keys.
 For bulk operations, scripting these POST requests is recommended. */
 
-void ApiRest::get(const QString &url, const QUrlQuery& query)
+void ApiRest::onError(QNetworkReply::NetworkError code)
+{
+    mMainWindow->onError( QString("REST error: %1").arg(code) );
+}
+
+QNetworkRequest ApiRest::createRequest(const QString &url, const QUrlQuery &query)
 {
     QUrl urlFull = QString( "%1:%2%3" ).arg(mApiUrl).arg(mApiPort).arg(url);
     if( !query.isEmpty() ) {
         urlFull.setQuery(query);
     }
-
 
     QNetworkRequest request(urlFull);
     request.setRawHeader("Authorization", QString("Bearer %1").arg(mApiKey).toLatin1() );
@@ -66,79 +67,39 @@ void ApiRest::get(const QString &url, const QUrlQuery& query)
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("User-Agent", "Herdming-simulator/1.0");
 
-    // Send GET request
-    mReply = mManager.get(request);
+    return request;
+}
 
+void ApiRest::prepareReply(RequestType type)
+{
     // Too long for Lambda expression
-    connect(mReply, &QNetworkReply::finished, this, &ApiRest::onReplyFinished);
+    connect(mReply, &QNetworkReply::finished, this, &ApiRest::onResponse);
     connect(mReply, &QNetworkReply::errorOccurred, this, &ApiRest::onError );
+    mReply->setProperty("requestType", static_cast<int>(type));
+}
 
+
+void ApiRest::get(const QString &url, RequestType type, const QUrlQuery& query)
+{
+    QNetworkRequest request = createRequest(url, query);
+    mReply = mManager.get(request);
+    prepareReply(type);
     qDebug() << "Get request:" << request.url().toString();
 }
 
-void ApiRest::onError(QNetworkReply::NetworkError code)
+void ApiRest::post(const QString &url, RequestType type, const QByteArray& data, const QUrlQuery &query)
 {
-    mMainWindow->onError( QString("REST error: %1").arg(code) );
-}
-
-void ApiRest::onReplyFinished()
-{
-    if (mReply->error() != QNetworkReply::NoError) {
-        qDebug() << "REST:Request failed:" << mReply->errorString();
-        mMainWindow->setStatus( "REST:Network failure!" );
-        mReply->deleteLater();
-        return;
-    }
-
-    QByteArray responseData = mReply->readAll();
-    mReply->deleteLater();
-
-    QJsonParseError parseError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
-
-    if (parseError.error != QJsonParseError::NoError && jsonDoc.isObject()) {
-        qDebug() << "REST:Failed to parse JSON:" << parseError.errorString();
-        mMainWindow->setStatus( "REST:JSON parse error!" );
-        return;
-    }
-
-    auto json = jsonDoc.object();
-    // qDebug() << QJsonDocument(json).toJson(QJsonDocument::Indented); // Uncomment for Debug
-
-    QJsonArray data = json["data"].toArray();
-
-    /*
-    // Make pairs map
-    Pairs pairs;
-    foreach( QJsonValue val, data) {
-        QString pair = val["instFamily"].toString();
-
-        // if pair key not exist - create a new list
-        if( !pairs.contains(pair) ) {
-            pairs[pair] = QStringList();
-        }
-
-        // append instrument to the list
-        pairs[pair].append(val["instId"].toString());
-    }
-
-    mMainWindow->onPairs( pairs );
-*/
-}
-
-
-
-void ApiRest::getPairs()
-{
-    QUrlQuery query;
-    query.addQueryItem( "instType", "FUTURES" );
-    // get( REST_GET_INSTRUMENTS, query );
+    QNetworkRequest request = createRequest(url, query);
+    mReply = mManager.post(request, data);
+    prepareReply(type);
+    qDebug() << "Post request:" << request.url().toString();
 }
 
 void ApiRest::getDevices()
 {
     QUrlQuery query;
     query.addQueryItem("applicationId", mAppId);
-    get("/api/devices",query);
+    get("/api/devices", RequestType::Devices, query);
 }
+
 
