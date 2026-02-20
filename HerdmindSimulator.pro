@@ -18,6 +18,7 @@ SOURCES += \
     animal_names.cpp \
     apirest.cpp \
     apirest_response.cpp \
+    devmanager.cpp \
     focusanim.cpp \
     grpc.cpp \
     hardware/bolus/accel.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     animal.h \
     apirest.h \
     defines_settings.h \
+    devmanager.h \
     focusanim.h \
     grpc.h \
     hardware/bolus/accel.h \

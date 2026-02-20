@@ -10,42 +10,55 @@
 #include <QJsonObject>
 
 
-class MainWindow;
+class DevManager;
+
 
 
 class ApiRest : public QObject
 {
     Q_OBJECT
 
+    DevManager* mDevManager = nullptr;
+
     enum struct RequestType {
         None = 0,
         GetDevices,
-        GetApplications
+        DeleteDevice,
+        AddDevice
     };
 
     QString mApiUrl, mApiKey, mAppId;
     uint mApiPort = 0;
     QNetworkAccessManager mManager;
-    MainWindow* mMainWindow = NULL;
     // QNetworkReply *mReply = NULL;
 
-    QNetworkRequest createRequest( const QString& url, const QUrlQuery& query = QUrlQuery() );
+    QNetworkRequest createRequest(const QString& url, QUrlQuery query = QUrlQuery()
+                                  , int limit = 0, int offset = 0);
     void prepareReply(QNetworkReply *reply, RequestType type);
-    void get(const QString& url, RequestType type, const QUrlQuery& query = QUrlQuery() );
-    void post(const QString& url, RequestType type, const QByteArray &data, const QUrlQuery& query = QUrlQuery() );
+    QNetworkReply *get(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() , int limit = 0, int offset = 0);
+    QNetworkReply *post(const QString& url, RequestType type, const QByteArray &data, QUrlQuery query = QUrlQuery() );
+    QNetworkReply *del(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() );
+
+
+    void setDeviceKeys(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &nwkKey);
 
     void onGetDevicesResponse(QJsonObject& jobj);
-    void onGetApplicationsResponse(QJsonObject& jobj);
+    void onDeleteDeviceResponse(QJsonObject& jobj);
+    void onAddDeviceResponse(QJsonObject& jobj);
+    void onSetDeviceKeysResponse(QJsonObject& jobj);
 
-public:
-    explicit ApiRest(const QSettings& settings, MainWindow *mainWindow = nullptr);
 
-    void getDevices();
-    void getApplications();
 
 private slots:
     void onResponse();
     void onError(QNetworkReply::NetworkError code);
+
+public:
+    explicit ApiRest(DevManager* DevManager, const QSettings& settings);
+
+    void getDevices(int count = 0);
+    void deleteDevice(QString devEUI);
+    void addDevice(const QString& name, const QByteArray &profileId, const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &nwkKey );
 };
 
 #endif // APIREST_H

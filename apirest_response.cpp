@@ -1,6 +1,7 @@
 #include "apirest.h"
 #include "mainwindow.h"
 #include "qjsonparseerror.h"
+#include "devmanager.h"
 
 void ApiRest::onResponse()
 {
@@ -12,7 +13,7 @@ void ApiRest::onResponse()
 
     if (reply->error() != QNetworkReply::NoError) {
         qDebug() << "REST:Request failed:" << reply->errorString() << responseData;
-        mMainWindow->setStatus( "REST:Network failure!" );
+        qCritical() << "REST:Network failure!";
         return;
     }
 
@@ -21,7 +22,7 @@ void ApiRest::onResponse()
 
     if (parseError.error != QJsonParseError::NoError && jsonDoc.isObject()) {
         qDebug() << "REST:Failed to parse JSON:" << parseError.errorString();
-        mMainWindow->setStatus( "REST:JSON parse error!" );
+        qCritical() << "REST:JSON parse error!";
         return;
     }
 
@@ -33,34 +34,35 @@ void ApiRest::onResponse()
     switch(type) {
         case RequestType::None: break;
         case RequestType::GetDevices: onGetDevicesResponse(json); break;
-        case RequestType::GetApplications: onGetDevicesResponse(json); break;
+        case RequestType::DeleteDevice: onGetDevicesResponse(json); break;
+        case RequestType::AddDevice: onAddDeviceResponse(json); break;
         }
 }
 
 void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
 {
-    /*
-     * QJsonArray data = jobj["data"].toArray();
-    // Make pairs map
-    Pairs pairs;
-    foreach( QJsonValue val, data) {
-        QString pair = val["instFamily"].toString();
-
-        // if pair key not exist - create a new list
-        if( !pairs.contains(pair) ) {
-            pairs[pair] = QStringList();
-        }
-
-        // append instrument to the list
-        pairs[pair].append(val["instId"].toString());
-    }
-
-    mMainWindow->onPairs( pairs );
-*/
+    mDevManager->onDevices(0);
 }
 
-void ApiRest::onGetApplicationsResponse(QJsonObject &jobj)
+void ApiRest::onDeleteDeviceResponse(QJsonObject &jobj)
 {
 
 }
+
+void ApiRest::onAddDeviceResponse(QJsonObject &jobj)
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+
+    QByteArray devEUI = reply->property("devEUI").toByteArray();
+    QByteArray joinEUI = reply->property("joinEUI").toByteArray();
+    QByteArray nwkKey = reply->property("nwkKey").toByteArray();
+
+    setDeviceKeys(devEUI, joinEUI, nwkKey);
+}
+
+void ApiRest::onSetDeviceKeysResponse(QJsonObject &jobj)
+{
+
+}
+
 

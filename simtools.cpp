@@ -156,6 +156,11 @@ QByteArray SimTools::fileRead(const QString &path, bool *isOk)
     return QByteArray();
 }
 
+bool SimTools::fileExists(const QString &path)
+{
+    return QFile::exists(path);
+}
+
 bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool isOverwrite)
 {
     if( !isOverwrite && QFile::exists(path) ) {

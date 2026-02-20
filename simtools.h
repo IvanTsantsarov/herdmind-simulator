@@ -63,6 +63,7 @@ public:
     static QByteArray genAesKey(){ return genHex(AES_BYTES_LEN); }
 
     static QByteArray fileRead(const QString& path, bool* isOk = nullptr);
+    static bool fileExists(const QString& path);
     static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
 
     bool sendToChirpStack(const QByteArray& phyPayload);

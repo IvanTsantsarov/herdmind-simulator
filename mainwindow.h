@@ -20,6 +20,7 @@ class FocusAnim;
 class Network;
 class SimTools;
 class ApiRest;
+class DevManager;
 
 class MainWindow : public QMainWindow
 {
@@ -35,7 +36,8 @@ class MainWindow : public QMainWindow
     QTimer* mReminder = nullptr;
     FocusAnim* mFocusAnim = nullptr;
     Network* mNetwork = nullptr;
-    ApiRest* mApiRest = nullptr;
+    DevManager* mDevManager = nullptr;
+
 
 public:
     MainWindow(const QSettings &settings, QWidget *parent = nullptr);

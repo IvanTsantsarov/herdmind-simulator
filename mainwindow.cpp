@@ -9,7 +9,7 @@
 #include "defines.h"
 #include "animal.h"
 #include "network.h"
-#include "apirest.h"
+#include "devmanager.h"
 
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
@@ -96,9 +96,7 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     connect(mReminder, &QTimer::timeout, this, &MainWindow::onConnectReminger );
     mReminder->start( REMINDER_DELAY );
 
-    // Create rest api object
-    mApiRest = new ApiRest(settings, this);
-
+    mDevManager = new DevManager(settings);
 }
 
 MainWindow::~MainWindow()
@@ -199,6 +197,8 @@ void MainWindow::on_btnGenerate_clicked()
 
     ui->checkShepard->setEnabled(true);
     ui->checkRecursiveCollision->setEnabled(true);
+
+    mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8() );
 }
 
 void MainWindow::onUpdate()
