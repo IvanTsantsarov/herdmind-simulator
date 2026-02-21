@@ -2,6 +2,7 @@
 
 #ifdef SIMULATION
 
+#include <QJsonObject>
 #include <QObject>
 #include <QTimer>
 
@@ -74,6 +75,13 @@ public:
             const QByteArray &devEUI = QByteArray(),
             const QByteArray &joinEUI = QByteArray(),
             const QByteArray& appKey = QByteArray() );
+
+    void setKeys(const QString &devEUI,
+                 const QString &joinEUI,
+                 const QString &appKey );
+
+    bool setFromJson(const QJsonObject &jobj );
+
 
     inline QByteArray eui(){ return mDevEUI; };
     inline uint32_t addr(){ return mDevAddr; };

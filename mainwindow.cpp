@@ -1,4 +1,5 @@
 #include <QSettings>
+#include <QMessageBox>
 #include <QFile>
 #include "mainwindow.h"
 #include "focusanim.h"
@@ -10,9 +11,11 @@
 #include "animal.h"
 #include "network.h"
 #include "devmanager.h"
+#include "simtools.h"
 
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
+
 
 
 MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
@@ -97,6 +100,16 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     mReminder->start( REMINDER_DELAY );
 
     mDevManager = new DevManager(settings);
+
+
+    // try to load saved properties
+    if( !gSimTools->fileExists(ANIMALS_LIST_FILE)) {
+        qInfo() << "File not exists:" << ANIMALS_LIST_FILE;
+        ui->btnLoad->setEnabled(false);
+    }else {
+        ui->btnLoad->setEnabled(true);
+    }
+
 }
 
 MainWindow::~MainWindow()
@@ -104,7 +117,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_btnGenerate_clicked()
+void MainWindow::create(bool isLoad)
 {
     mFocusAnim->stop();
 
@@ -127,13 +140,23 @@ void MainWindow::on_btnGenerate_clicked()
 
     // Generate herd
     mHerd = new Herd();
-    mHerd->generate( ui->spinAnimalsCount->value(),
+
+    if( isLoad ) {
+        mHerd->load(ANIMALS_LIST_FILE,
                     ui->doubleSpinArea->value(),
-                    ui->spinCollarsPercentage->value(),
-                    ui->spinMalesPercentage->value(),
                     ui->doubleSpinAnimalSize->value(),
-                    ui->spinAnimalGrazingCapacity->value()
-                    );
+                    ui->spinAnimalGrazingCapacity->value() );
+
+    }else {
+        mHerd->generate( ui->spinAnimalsCount->value(),
+                        ui->doubleSpinArea->value(),
+                        ui->spinCollarsPercentage->value(),
+                        ui->spinMalesPercentage->value(),
+                        ui->doubleSpinAnimalSize->value(),
+                        ui->spinAnimalGrazingCapacity->value()
+                        );
+
+    }
 
     // Generate meadow
     mMeadow = new Meadow(QPoint(0, 0),
@@ -227,18 +250,18 @@ void MainWindow::onUpdate()
     QPointF attractor = mSceneView->rightPos();
 
     mHerd->update( mHerdTimer.elapsed(),
-                   mMeadow,
-                   mSceneView->isRightPress() ? &attractor : nullptr,
-                   ui->checkRecursiveCollision->isChecked(),
-                   ui->spinAttrPower ->value(),
-                   ui->spinAttrDist ->value(),
-                   ui->spinRepDist ->value(),
-                   ui->spinCollDist ->value(),
-                   ui->spinMaxSpeed ->value(),
-                   ui->spinFriction ->value(),
-                   ui->spinRotFad ->value(),
-                   ui->spinTransDist ->value(),
-                   qDegreesToRadians(ui->spinTransAngle->value())
+                  mMeadow,
+                  mSceneView->isRightPress() ? &attractor : nullptr,
+                  ui->checkRecursiveCollision->isChecked(),
+                  ui->spinAttrPower ->value(),
+                  ui->spinAttrDist ->value(),
+                  ui->spinRepDist ->value(),
+                  ui->spinCollDist ->value(),
+                  ui->spinMaxSpeed ->value(),
+                  ui->spinFriction ->value(),
+                  ui->spinRotFad ->value(),
+                  ui->spinTransDist ->value(),
+                  qDegreesToRadians(ui->spinTransAngle->value())
                   );
 
     mNetwork->update(mHerd, MAX_COLLAR_GATEWAY_DISTANCE );
@@ -261,6 +284,19 @@ void MainWindow::onUpdate()
         // set the color connected to number of readigs
         // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
     }
+
+}
+
+
+void MainWindow::on_btnGenerate_clicked()
+{
+    if( gSimTools->fileExists(ANIMALS_LIST_FILE) ) {
+        if( !QMessageBox::question(this, "Generate new herd?", "This will erase existing saved animals list! Proceed with generating?") ) {
+            return;
+        }
+    }
+
+    create(false);
 }
 
 
@@ -324,3 +360,9 @@ void MainWindow::onError(const QString &err)
 {
     setStatus(err);
 }
+
+void MainWindow::on_btnLoad_clicked()
+{
+    create(true);
+}
+

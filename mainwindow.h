@@ -38,6 +38,7 @@ class MainWindow : public QMainWindow
     Network* mNetwork = nullptr;
     DevManager* mDevManager = nullptr;
 
+    void create(bool isLoad);
 
 public:
     MainWindow(const QSettings &settings, QWidget *parent = nullptr);
@@ -60,5 +61,6 @@ private slots:
     void on_checkParamsHerding_toggled(bool checked);
     void on_checkParamsG_toggled(bool checked);
     void onConnectReminger();
+    void on_btnLoad_clicked();
 };
 #endif // MAINWINDOW_H

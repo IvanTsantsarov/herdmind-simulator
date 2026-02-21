@@ -5,15 +5,14 @@
 #include <QJsonObject>
 
 #include "herd.h"
+#include "hardware/bolus/bolus.h"
 #include "simtools.h"
 #include "shepherd.h"
 #include "hardware/tools.h"
 #include "animal.h"
+#include "defines.h"
 
 #define ANIMAL_MIN_DISTANCE 0.2
-
-#define DEVICES_LIST_FILE "devices.json"
-#define ANIMALS_LIST_FILE "animals.json"
 
 void Herd::clear()
 {
@@ -42,6 +41,45 @@ Herd::~Herd()
 }
 
 
+bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, float grazingCapacity )
+{
+    float areaRadius = beforeGeneration( areaDimeter, animalSize);
+
+    bool isOK;
+    QByteArray content = gSimTools->fileRead(jsonPath, &isOK);
+    if( !isOK ) {
+        qWarning() << "Error reading file:" << ANIMALS_LIST_FILE;
+        return false;
+    }
+
+    QJsonArray jarr = QJsonDocument::fromJson(content).array();
+
+    mAnimals.reserve(jarr.size());
+    foreach(auto jsonElement, jarr) {
+        QJsonObject jobj = jsonElement.toObject();
+
+        float x = Tools::rnd(-areaRadius, areaRadius);
+        float y = Tools::rnd(-areaRadius, areaRadius);
+
+        Animal* animal = new Animal(this, jobj["male"].toBool(), jobj["name"].toString(), x, y, grazingCapacity );
+
+        if( jobj.contains("bolus") ) {
+            animal->putBolus()->setFromJson(jobj["bolus"].toObject());
+        };
+
+
+        if( jobj.contains("collar") ) {
+            animal->putCollar()->setFromJson(jobj["collar"].toObject());
+            mCollars.append(animal);
+        };
+
+        mAnimals.append(animal);
+    }
+
+    return true;
+}
+
+
 float Herd::beforeGeneration( int areaDimeter, float animalSize )
 {
     srand(time(NULL));
@@ -56,7 +94,8 @@ float Herd::beforeGeneration( int areaDimeter, float animalSize )
     return areaRadius;
 }
 
-void Herd::generate(int count,
+// returns true if successful load from saved animals list
+bool Herd::generate(int count,
                     int areaDimeter,
                     int percentageCollars,
                     int percentageMales,
@@ -123,48 +162,13 @@ void Herd::generate(int count,
         mCollars.append(animal);
     }
 
-    // Save json devices list for Chirpstack
+    // If cannot load params from animals list - save animals list
     gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
     gSimTools->fileWrite(DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true);
-}
-
-bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, float grazingCapacity)
-{
-    float areaRadius = beforeGeneration(areaDimeter, animalSize);
-
-    bool isReadOk;
-    QByteArray content = SimTools::fileRead(jsonPath, &isReadOk);
-
-    if( !isReadOk ) {
-        qDebug() << "Error reading file:" << jsonPath;
-        return false;
-    }
-
-    QJsonDocument jdoc = QJsonDocument::fromJson(content);
-
-    if( !jdoc.isArray() ) {
-        qDebug() << "Error format file:" << jsonPath;
-        return false;
-    }
-
-    QJsonArray jarr = jdoc.array();
-
-    // fill animals array
-    mAnimals.reserve(jarr.size());
-
-    for( auto jelement : std::as_const(jarr)) {
-        const QJsonObject& jobj = jelement.toObject();
-
-        float x = Tools::rnd(-areaRadius, areaRadius);
-        float y = Tools::rnd(-areaRadius, areaRadius);
-        mAnimals.append(new Animal(this, jobj["male"].toBool(), jobj["name"].toString(), x, y, grazingCapacity));
-        processCollision(animalSize * 2.0f);
-    }
-
-    qDebug() << "Loading " << jarr.size() << " animals from " << jsonPath << " on radius:" << areaRadius;
 
     return true;
 }
+
 
 bool Herd::processCollision(float collidingDistance)
 {

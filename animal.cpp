@@ -211,14 +211,16 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
 }
 
 
-void Animal::putBolus(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &appKey)
+Bolus* Animal::putBolus(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &appKey)
 {
     mBolus = new Bolus(this, devEUI, joinEUI, appKey);
+    return mBolus;
 }
 
-void Animal::putCollar(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &appKey)
+Collar* Animal::putCollar(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &appKey)
 {
     mCollar = new Collar(this, devEUI, joinEUI, appKey);
+    return mCollar;
 }
 
 bool Animal::isAhead(Animal *a, float maxCosAngle)
@@ -364,6 +366,26 @@ QString Animal::jsonInfo(bool isDevicesList)
     }
 
     return result;
+}
+
+bool Animal::jsonLoad(const QJsonObject &jobj)
+{
+    if(!jobj.contains("name")) {
+        return false;
+    }
+
+    if( jobj.contains("bolus") != hasBolus() ){
+        qCritical() << "Bolus field not correct!";
+        return false;
+    }
+
+    if( jobj.contains("collar") != hasCollar() ){
+        qCritical() << "Collar field not correct!";
+        return false;
+    }
+
+    return bolus()->setFromJson( jobj["bolus"].toObject() ) &&
+           collar()->setFromJson( jobj["collar"].toObject() );
 }
 
 // return true if lawn is depleted

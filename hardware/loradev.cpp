@@ -4,6 +4,7 @@
 #include "defines.h"
 
 
+
 #ifdef SIMULATION
 
 #define SIMNODE_SENDING_DURATION 2000
@@ -27,6 +28,31 @@ LoraDev::LoraDev(const QString &name,
     QTimer delayTimer;
     delayTimer.singleShot( Tools::rnd(0, sendInterval), this, &LoraDev::onTimerStart );
 }
+
+void LoraDev::setKeys(const QString &devEUI,
+                      const QString &joinEUI,
+                      const QString &appKey)
+{
+    mDevEUI = QByteArray::fromHex( devEUI.toLatin1() );
+    mJoinEUI = QByteArray::fromHex( joinEUI.toLatin1() );
+    mAppKey = QByteArray::fromHex( appKey.toLatin1() );
+}
+
+bool LoraDev::setFromJson(const QJsonObject &jobj)
+{
+    if( !jobj.contains("devEui") ||
+        !jobj.contains("joinEui") ||
+        !jobj.contains("applicationKey") ) {
+        return false;
+    }
+
+    setKeys( jobj["devEui"].toString(),
+             jobj["joinEui"].toString(),
+             jobj["applicationKey"].toString() );
+
+    return true;
+}
+
 
 void LoraDev::updateSendingSimulation(int msec) {
     if( mSendingMsec <= 0 ) {
@@ -227,3 +253,4 @@ bool LoraDev::processJoinAccept(const QByteArray& phyPayload)
 #else
 
 #endif
+

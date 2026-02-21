@@ -3,6 +3,7 @@
 
 #include <QVector2D>
 #include <QList>
+#include <QJsonObject>
 #include "meadow.h"
 #include "hardware/loradev.h"
 
@@ -148,11 +149,11 @@ public:
     inline float rotationAngle(){ return mRotationAngle; }
     inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 
-    void putBolus(const QByteArray &devEUI = QByteArray(),
+    Bolus *putBolus(const QByteArray &devEUI = QByteArray(),
                   const QByteArray &joinEUI = QByteArray(),
                   const QByteArray& appKey = QByteArray());
 
-    void putCollar(const QByteArray &devEUI = QByteArray(),
+    Collar *putCollar(const QByteArray &devEUI = QByteArray(),
                    const QByteArray &joinEUI = QByteArray(),
                    const QByteArray& appKey = QByteArray());
 
@@ -186,6 +187,7 @@ public:
 
     QString info();
     QString jsonInfo(bool isDevicesList);
+    bool jsonLoad(const QJsonObject& jobj);
 };
 
 #endif // ANIMAL_H

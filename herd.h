@@ -62,7 +62,9 @@ public:
     inline int malesCount(){ return mMalesCount;}
     inline int femalesCount(){ return mAnimals.count() - mMalesCount;}
 
-    void generate(int count,
+    bool loadFromFile(int areaDimeter, float animalSize);
+
+    bool generate(int count,
                   int areaDimeter,
                   int percentageCollars, int percentageMales,
                   float animalSize,
