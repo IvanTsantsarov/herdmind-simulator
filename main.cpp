@@ -1,9 +1,12 @@
 #include <QSettings>
 #include <QApplication>
 #include <QFile>
+#include <QDir>
 
 #include "mainwindow.h"
 #include "simtools.h"
+
+#include "defines.h"
 
 #define SETTINGS_NAME "settings.ini"
 
@@ -13,11 +16,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    QString initPrint = QString("Gegga herdmind simulator\n"
-                                "Qt version:%1")
-                        .arg(qVersion());
+    qInfo() << "Gegga herdmind simulator v. " << VERSION;
+    qInfo() << "by Ivan Tsantsarov " << 2025;
+    qInfo() << "Qt version:" << qVersion();
+    qInfo() << "Current dir:" << QDir::current().absolutePath();
+    qInfo() << "Executable:" << QDir::currentPath();
 
-    qDebug() << initPrint;
 
     a.setWindowIcon(QIcon(":/gegga_logo.png"));
 

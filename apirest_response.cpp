@@ -34,14 +34,15 @@ void ApiRest::onResponse()
     switch(type) {
         case RequestType::None: break;
         case RequestType::GetDevices: onGetDevicesResponse(json); break;
-        case RequestType::DeleteDevice: onGetDevicesResponse(json); break;
+        case RequestType::DeleteDevice: onDeleteDeviceResponse(json); break;
         case RequestType::AddDevice: onAddDeviceResponse(json); break;
+        case RequestType::SetDeviceKeys: onSetDeviceKeysResponse(json); break;
         }
 }
 
 void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
 {
-    mDevManager->onDevices(0);
+    mDevManager->onDevices(jobj);
 }
 
 void ApiRest::onDeleteDeviceResponse(QJsonObject &jobj)

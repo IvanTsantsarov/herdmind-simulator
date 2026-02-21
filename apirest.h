@@ -24,7 +24,8 @@ class ApiRest : public QObject
         None = 0,
         GetDevices,
         DeleteDevice,
-        AddDevice
+        AddDevice,
+        SetDeviceKeys
     };
 
     QString mApiUrl, mApiKey, mAppId;
@@ -40,7 +41,7 @@ class ApiRest : public QObject
     QNetworkReply *del(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() );
 
 
-    void setDeviceKeys(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &nwkKey);
+    void setDeviceKeys(const QString &devEUI, const QString &joinEUI, const QString &nwkKey);
 
     void onGetDevicesResponse(QJsonObject& jobj);
     void onDeleteDeviceResponse(QJsonObject& jobj);
@@ -58,7 +59,7 @@ public:
 
     void getDevices(int count = 0);
     void deleteDevice(QString devEUI);
-    void addDevice(const QString& name, const QByteArray &profileId, const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &nwkKey );
+    void addDevice(const QString& name, const QString &profileId, const QString &devEUI, const QString &joinEUI, const QString &nwkKey );
 };
 
 #endif // APIREST_H

@@ -99,17 +99,18 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     connect(mReminder, &QTimer::timeout, this, &MainWindow::onConnectReminger );
     mReminder->start( REMINDER_DELAY );
 
-    mDevManager = new DevManager(settings);
-
 
     // try to load saved properties
-    if( !gSimTools->fileExists(ANIMALS_LIST_FILE)) {
+    if( gSimTools->fileExists(ANIMALS_LIST_FILE)) {
+        qInfo() << "Animal list file available:" << ANIMALS_LIST_FILE;
+        ui->btnLoad->setEnabled(true);
+    }else {
         qInfo() << "File not exists:" << ANIMALS_LIST_FILE;
         ui->btnLoad->setEnabled(false);
-    }else {
-        ui->btnLoad->setEnabled(true);
     }
 
+
+    mDevManager = new DevManager(settings);
 }
 
 MainWindow::~MainWindow()
@@ -142,12 +143,15 @@ void MainWindow::create(bool isLoad)
     mHerd = new Herd();
 
     if( isLoad ) {
+        // Load from stored file
+        // generate only random position and the medow
         mHerd->load(ANIMALS_LIST_FILE,
                     ui->doubleSpinArea->value(),
                     ui->doubleSpinAnimalSize->value(),
                     ui->spinAnimalGrazingCapacity->value() );
 
     }else {
+        // generate from settings
         mHerd->generate( ui->spinAnimalsCount->value(),
                         ui->doubleSpinArea->value(),
                         ui->spinCollarsPercentage->value(),
@@ -291,7 +295,7 @@ void MainWindow::onUpdate()
 void MainWindow::on_btnGenerate_clicked()
 {
     if( gSimTools->fileExists(ANIMALS_LIST_FILE) ) {
-        if( !QMessageBox::question(this, "Generate new herd?", "This will erase existing saved animals list! Proceed with generating?") ) {
+        if( QMessageBox::Yes != QMessageBox::question(this, "Generate new herd?", "This will erase existing saved animals list! Proceed with generating?") ) {
             return;
         }
     }
@@ -346,7 +350,7 @@ void MainWindow::resizeEvent(QResizeEvent *)
 void MainWindow::onConnectReminger()
 {
     if( !mHerd ) {
-        mFocusAnim->start(ui->btnGenerate);
+        mFocusAnim->start(gSimTools->fileExists(ANIMALS_LIST_FILE) ? ui->btnLoad : ui->btnGenerate);
     }
 }
 

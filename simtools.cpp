@@ -124,12 +124,13 @@ int SimTools::gen(int minVal, int maxVal)
     return QRandomGenerator::global()->bounded(minVal, maxVal);
 }
 
-QByteArray SimTools::genHex(int count)
+QByteArray SimTools::genHex(int bytesCount)
 {
     QByteArray result;
-    result.reserve(count);
+    int charsCount = bytesCount*2;
+    result.reserve(charsCount);
 
-    for( auto i = 0; i < count; i ++) {
+    for( auto i = 0; i < charsCount; i ++) {
         int v = gen(0, 15 );
         int ch = v < 10 ? v + '0' : v + 'A' - 10;
         result.append(ch);
@@ -158,7 +159,8 @@ QByteArray SimTools::fileRead(const QString &path, bool *isOk)
 
 bool SimTools::fileExists(const QString &path)
 {
-    return QFile::exists(path);
+    bool isFileExisting = QFile::exists(path);
+    return isFileExisting;
 }
 
 bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool isOverwrite)
@@ -231,7 +233,7 @@ SimTools::SimTools(const QSettings &settings)
 
 }
 
-QByteArray SimTools::profileId(LoraDev::Profile profile) {
+QString SimTools::profileId(LoraDev::Profile profile) {
 
     switch( profile )
     {

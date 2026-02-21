@@ -35,7 +35,7 @@ class DevManager
 
 
 protected:
-    void onDevices(const QByteArray &response);
+    void onDevices(const QJsonObject &jobj);
 public:
     DevManager( const QSettings& settings );
 

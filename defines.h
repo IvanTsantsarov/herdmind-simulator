@@ -1,6 +1,7 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#define VERSION 0.7
 
 #define INITIAL_ANIMALS_COUNT 20
 #define INITIAL_COLLAR_PERCENTAGE 50

@@ -16,40 +16,6 @@ ApiRest::ApiRest(DevManager *DevManager, const QSettings &settings)
     mApiPort = settings.value( CHIRPSTACK_SECTION"/apiPort").toUInt();
 }
 
-/*
-
-curl -X GET "http://localhost:8090/api/devices?applicationId=fc82a77f-d448-43ac-a381-7289d4e5ba2d&limit=100&offset=0" \
-  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjgwNGFjZDQ4LTFhNjAtNGNhYi1iYjRkLTQ3Mzc0YjYxZDg2YSIsInR5cCI6ImtleSJ9.cFLwX6uOmSrugrEovaLBpF3H7izuqM8Awdp-9Vx8Aqg" \
-  -H "Accept: application/json"
-
- *
-Adding devices to ChirpStack via REST API involves authenticating with an API key, then sending a POST request to the /api/devices endpoint with the device details (DevEUI, Application ID, Device Profile ID) in JSON format. The device must be associated with an existing application and a device profile.
-Steps to Add a Device via REST API:
-Generate an API Key: Create a global API key in the ChirpStack web interface to authorize your REST calls.
-Identify Required IDs: Obtain the applicationID and deviceProfileID (found in the URL or details page of those entities in the UI).
-Construct POST Request: Use the {Link: ChirpStack REST API v4.14.1 - Swagger UI - MeteoScientific https://console.meteoscientific.com/rest-api/} (or your specific version's API documentation) to send a request.
-API Request Example (POST /api/devices):
-json
-POST /api/devices
-Authorization: Bearer <YOUR_API_KEY>
-
-{
-  "device": {
-    "devEui": "0000000000000000",
-    "name": "my-device",
-    "applicationId": "your-application-id",
-    "deviceProfileId": "your-device-profile-id",
-    "description": "Optional description",
-    "isDisabled": false,
-    "skipFcntCheck": false,
-    "referenceAltitude": 0
-  }
-}
-Key Notes:
-Ensure the deviceProfileId is correct to avoid errors.
-If using OTAA, you will need to perform a second step to set the root keys (AppKey) using POST /api/devices/{devEui}/keys.
-For bulk operations, scripting these POST requests is recommended. */
-
 void ApiRest::onError(QNetworkReply::NetworkError code)
 {
     qCritical() << QString("REST error: %1").arg(code);
@@ -113,10 +79,10 @@ QNetworkReply* ApiRest::del(const QString &url, RequestType type, QUrlQuery quer
 }
 
 void ApiRest::addDevice(const QString& name,
-                        const QByteArray &profileId,
-                        const QByteArray &devEUI,
-                        const QByteArray &joinEUI,
-                        const QByteArray &nwkKey )
+                        const QString &profileId,
+                        const QString &devEUI,
+                        const QString &joinEUI,
+                        const QString &nwkKey )
 {
     QString data = QString(
                        "{"
@@ -127,10 +93,10 @@ void ApiRest::addDevice(const QString& name,
                        "\"deviceProfileId\": \"%4\""
                        "}"
                        "}")
-                       .arg(gSimTools->appId().toHex())
-                       .arg(devEUI.toHex())
+                       .arg(gSimTools->appId())
+                       .arg(devEUI)
                        .arg(name.toUtf8())
-                       .arg(profileId.toHex());
+                       .arg(profileId);
 
     QNetworkReply* reply = post("devices", RequestType::AddDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
@@ -138,22 +104,20 @@ void ApiRest::addDevice(const QString& name,
     reply->setProperty("nwkKey", nwkKey);
 }
 
-void ApiRest::setDeviceKeys(const QByteArray &devEUI, const QByteArray &joinEUI, const QByteArray &nwkKey)
+void ApiRest::setDeviceKeys(const QString &devEUI, const QString &joinEUI, const QString &nwkKey)
 {
-    QByteArray devHex = devEUI.toHex();
     QString data = QString(
                        "{"
                        "\"deviceKeys\": {"
                        "\"devEui\": \"%1\","
                        "\"joinEui\": \"%2\","
-                       "\"nkwKey\": \"%3\","
-                       "}"
-                       "}")
-                       .arg(devHex)
-                       .arg(joinEUI.toHex())
-                       .arg(nwkKey.toHex());
+                       "\"nwkKey\": \"%3\""
+                       "}}" )
+                       .arg(devEUI)
+                       .arg(joinEUI)
+                       .arg(nwkKey);
 
-    post(QString("/api/devices/%1/keys").arg(devHex), RequestType::AddDevice, data.toUtf8() );
+    post(QString("devices/%1/keys").arg(devEUI), RequestType::SetDeviceKeys, data.toUtf8() );
 }
 
 void ApiRest::getDevices(int count)

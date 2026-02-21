@@ -4,9 +4,8 @@
 #include "devmanager.h"
 #include "apirest.h"
 
-void DevManager::onDevices(const QByteArray& response)
+void DevManager::onDevices(const QJsonObject& jobj)
 {
-    QJsonObject jobj = QJsonDocument::fromJson(response).object();
     int count = jobj["totalCount"].toInt();
 
     if( States::GetDevicesCount == mState ) {
@@ -39,11 +38,12 @@ void DevManager::onDevices(const QByteArray& response)
             }
 
             QJsonObject jobj = mDevices[val.mIndex].toObject();
+
             mApiRest->addDevice( jobj["name"].toString(),
-                                jobj["deviceProfileId"].toString().toLatin1(),
-                                jobj["devEui"].toString().toLatin1(),
-                                jobj["joinEui"].toString().toLatin1(),
-                                jobj["applicationKey"].toString().toLatin1() );
+                                jobj["deviceProfileId"].toString(),
+                                jobj["devEui"].toString(),
+                                jobj["joinEui"].toString(),
+                                jobj["applicationKey"].toString() );
 
 
         }
@@ -70,7 +70,7 @@ void DevManager::syncDevices(const QByteArray &jsonList)
     int index = 0;
     foreach( auto jsonElement, mDevices ) {
         QJsonObject jobj = jsonElement.toObject();
-        QString key = jobj["DevEUI"].toString();
+        QString key = jobj["devEui"].toString();
 
         DevsMapValue val;
         val.mIndex = index ++;

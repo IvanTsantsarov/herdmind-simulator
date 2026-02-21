@@ -83,8 +83,8 @@ QString LoraDev::jsonInfo(const QString& animalName)
         .arg(mName)
         .arg(mDevEUI.toHex())
         .arg(mJoinEUI.toHex())
-        .arg(gSimTools->appId().toHex())
-        .arg(gSimTools->profileId(mProfile).toHex())
+        .arg(gSimTools->appId())
+        .arg(gSimTools->profileId(mProfile))
         .arg(mAppKey.toHex());
 
 }

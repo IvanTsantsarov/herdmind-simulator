@@ -22,14 +22,14 @@ private:
     // Read them from settins file
     QString mChirpIP;
     quint16 mChirpPort;
-    QByteArray mAppId; // generated in chirpstack after creating new application, should be in settings
-    QByteArray mBolusProfileId, mCollarProfileId, mGatewayProfileId;
+    QString mAppId; // generated in chirpstack after creating new application, should be in settings
+    QString mBolusProfileId, mCollarProfileId, mGatewayProfileId;
 
 public:
     SimTools(const QSettings &settings);
 
-    inline QByteArray appId(){ return mAppId; }
-    QByteArray profileId(LoraDev::Profile profile);
+    inline QString appId(){ return mAppId; }
+    QString profileId(LoraDev::Profile profile);
 
 
     struct HarmonicsGenerator {
@@ -59,7 +59,7 @@ public:
 
     static int gen(int minVal, int maxVal);
     inline static int gen(int maxVal) { return gen(0, maxVal); }
-    static QByteArray genHex(int count);
+    static QByteArray genHex(int bytesCount);
     static QByteArray genAesKey(){ return genHex(AES_BYTES_LEN); }
 
     static QByteArray fileRead(const QString& path, bool* isOk = nullptr);
