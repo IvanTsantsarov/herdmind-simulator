@@ -7,7 +7,7 @@
 #include <QTimer>
 
 class Animal;
-class SimTools;
+class Gateway;
 
 #define EUI_BYTES_LEN 8
 
@@ -19,8 +19,7 @@ public:
     enum struct Profile {
         None = 0,
         Bolus = 1,
-        Collar = 2,
-        Gateway = 3
+        Collar = 2
     };
 private:
 
@@ -40,7 +39,7 @@ private:
 
     uint32_t mFCnt = 0;
 
-    QByteArray mDevNonce; // used only for joining
+    uint16_t mDevNonce = 1;
 
 
     uint32_t mUpdateInterval = 0;
@@ -61,7 +60,7 @@ private:
     int mSendingMsec = 0;
     int mReadings = 0;
 
-    SimTools* mSimTools = nullptr;
+    Gateway* mGateway = nullptr;
 protected:
 
     bool sendToChirpstack(const QByteArray& data);
@@ -82,6 +81,7 @@ public:
 
     bool setFromJson(const QJsonObject &jobj );
 
+    void setGateway(Gateway* gw){ mGateway = gw; }
 
     inline QByteArray eui(){ return mDevEUI; };
     inline uint32_t addr(){ return mDevAddr; };

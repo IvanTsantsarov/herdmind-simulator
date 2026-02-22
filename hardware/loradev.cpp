@@ -1,8 +1,7 @@
 #include "loradev.h"
+#include "gateway/gateway.h"
 #include "hardware/tools.h"
 #include "../simtools.h"
-#include "defines.h"
-
 
 
 #ifdef SIMULATION
@@ -186,7 +185,7 @@ bool LoraDev::sendToChirpstack(const QByteArray& data)
 
     phy.append(mic);
 
-    if( gSimTools->sendToChirpStack(phy) ) {
+    if( mGateway->sendToChirpStack(phy) ) {
         mFCnt ++;
         return true;
     }
@@ -205,14 +204,14 @@ QByteArray LoraDev::buildJoinRequest()
     payload.append(mJoinEUI);
     payload.append(mDevEUI);
 
-    mDevNonce = QByteArray(2, 0);
-    quint16 nonce = SimTools::gen(0, 0xFFFF);
-    mDevNonce[0] = nonce & 0xFF;
-    mDevNonce[1] = (nonce >> 8) & 0xFF;
+    QByteArray devNonceLE(2, 0);
+    devNonceLE[0] = mDevNonce & 0xFF;
+    devNonceLE[1] = (mDevNonce >> 8) & 0xFF;
+    mDevNonce ++;
 
-    payload.append(mDevNonce);
+    payload.append(devNonceLE);
 
-    QByteArray mic = calculateMIC(payload);
+    QByteArray mic = SimTools::aesCmac(payload, mAppKey).left(4);
     payload.append(mic);
 
     return payload;
@@ -224,6 +223,16 @@ bool LoraDev::processJoinAccept(const QByteArray& phyPayload)
 
     // Encrypt used for decrypt (LoRaWAN spec rule)
     QByteArray decrypted = SimTools::encryptAES(encrypted, mAppKey);
+
+    QByteArray body = decrypted.left(decrypted.size() - 4);
+    QByteArray micReceived = decrypted.right(4);
+
+    QByteArray micCalc = SimTools::aesCmac(
+                             QByteArray(1, phyPayload[0]) + body,
+                             mAppKey).left(4);
+
+    if (micReceived != micCalc)
+        return false;
 
     QByteArray joinNonce = decrypted.mid(0, 3);
     QByteArray netId     = decrypted.mid(3, 3);
@@ -240,7 +249,7 @@ bool LoraDev::processJoinAccept(const QByteArray& phyPayload)
     block[0] = 0x02;
     memcpy(block.data() + 1, joinNonce.data(), 3);
     memcpy(block.data() + 4, netId.data(), 3);
-    memcpy(block.data() + 7, mDevNonce.data(), 2);
+    memcpy(block.data() + 7, &mDevNonce, 2);
 
     mAppSKey = SimTools::encryptAES(block, mAppKey);
 

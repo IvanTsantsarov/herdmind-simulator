@@ -20,8 +20,6 @@ private:
     //////////////////////////////////////////
 
     // Read them from settins file
-    QString mChirpIP;
-    quint16 mChirpPort;
     QString mAppId; // generated in chirpstack after creating new application, should be in settings
     QString mBolusProfileId, mCollarProfileId, mGatewayProfileId;
 

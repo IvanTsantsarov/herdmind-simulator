@@ -1,6 +1,10 @@
 #ifndef GATEWAY_H
 #define GATEWAY_H
 
+#include <QSettings>
+#include <QTimer>
+#include <QObject>
+#include <QUdpSocket>
 #include <cstdint>
 #include <map>
 
@@ -13,14 +17,24 @@
 
 #ifdef  SIMULATION
     #include <QPointF>
-    #include "../loradev.h"
 
-class Gateway : public LoraDev
+class Gateway : public QObject {
+
+    Q_OBJECT
+
+    QUdpSocket mSocket;
+    QString mChirpIP;
+    quint16 mChirpPort;
+
+    QTimer mPullTimer;
+
+    void sendPullData();
 
 #else
 class Gateway
-#endif
 {
+#endif
+
     uint32_t mHeardId = 0;
     uint16_t mAnimalsCount = 0;
 
@@ -91,7 +105,7 @@ public:
 
 public:
 
-    Gateway();
+    Gateway(const QSettings &settings);
     inline bool hasSim(){ return mHasSIM; }
     void process();
 
@@ -100,6 +114,14 @@ public:
 
     void onUpdate();
     void onSend();
+    void start();
+
+    bool sendToChirpStack(const QByteArray &phyPayload);
+signals:
+    void downlinkReceived(const QByteArray& response);
+protected slots:
+    void onUdpReadyRead();
+
 #endif
 
 };

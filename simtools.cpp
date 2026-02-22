@@ -182,48 +182,9 @@ bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool is
 
 
 
-bool SimTools::sendToChirpStack(const QByteArray& phyPayload)
-{
-    QUdpSocket socket;
-
-    QByteArray json = R"({
-        "rxpk": [{
-            "freq": 868.1,
-            "datr": "SF7BW125",
-            "codr": "4/5",
-            "rssi": -30,
-            "lsnr": 5.5,
-            "data": ")";
-
-    json += phyPayload.toBase64();
-    json += R"("
-        }]
-    })";
-
-    QByteArray packet;
-    packet.reserve(5);
-
-    // Semtech header
-    packet.append((char)0x02); // version
-    packet.append((char)0x00);
-    packet.append((char)0x00);
-    packet.append((char)0x00); // token
-    packet.append((char)0x00); // PUSH_DATA
-
-    QByteArray gatewayEUI(8, 0x01);
-    packet.append(gatewayEUI);
-
-    packet.append(json);
-
-    qint64 sentSize = socket.writeDatagram(packet, QHostAddress(mChirpIP),mChirpPort);
-
-    return sentSize == packet.size();
-}
 
 SimTools::SimTools(const QSettings &settings)
 {
-    mChirpIP = settings.value(CHIRPSTACK_SECTION"/ip").toString();
-    mChirpPort = settings.value(CHIRPSTACK_SECTION"/port").toUInt();
     mAppId  = settings.value(CHIRPSTACK_SECTION"/appId").toByteArray();
 
     mBolusProfileId  = settings.value(CHIRPSTACK_SECTION"/bolusProfileId").toByteArray();
@@ -245,3 +206,5 @@ QString SimTools::profileId(LoraDev::Profile profile) {
     case LoraDev::Profile::Gateway: return mGatewayProfileId;
     }
 }
+
+
