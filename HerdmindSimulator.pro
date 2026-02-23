@@ -9,6 +9,10 @@ DEFINES += SIMULATION
 # Link OpenSSL
 LIBS += -lcrypto
 
+
+# Disable warnings
+QMAKE_CXXFLAGS += "-Wno-old-style-cast"
+
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
@@ -19,6 +23,7 @@ SOURCES += \
     apirest.cpp \
     apirest_response.cpp \
     devmanager.cpp \
+    dialogconsole.cpp \
     focusanim.cpp \
     grpc.cpp \
     hardware/bolus/accel.cpp \
@@ -43,6 +48,7 @@ HEADERS += \
     apirest.h \
     defines_settings.h \
     devmanager.h \
+    dialogconsole.h \
     focusanim.h \
     grpc.h \
     hardware/bolus/accel.h \
@@ -65,6 +71,7 @@ HEADERS += \
     simtools.h
 
 FORMS += \
+    dialogconsole.ui \
     focusanim.ui \
     mainwindow.ui
 

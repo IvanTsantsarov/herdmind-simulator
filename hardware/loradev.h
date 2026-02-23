@@ -92,7 +92,7 @@ public:
 
     void updateSendingSimulation(int msec);
 
-    bool isSendingSimulation() { return mSendingMsec > 0; }
+    bool isSending() { return mSendingMsec > 0; }
 
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending

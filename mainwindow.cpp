@@ -1,6 +1,7 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QFile>
+#include "dialogconsole.h"
 #include "mainwindow.h"
 #include "focusanim.h"
 #include "ui_mainwindow.h"
@@ -16,13 +17,17 @@
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
-
+MainWindow* gMainWindow = nullptr;
 
 MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    mConsole = new DialogConsole(settings, this);
+    gMainWindow = this;
+
     ui->setupUi(this);
+
 
     // create scene
     mScene = new Scene(this);
@@ -368,5 +373,11 @@ void MainWindow::onError(const QString &err)
 void MainWindow::on_btnLoad_clicked()
 {
     create(true);
+}
+
+
+void MainWindow::on_actionConsole_toggled(bool arg1)
+{
+    mConsole->setVisible(arg1);
 }
 

@@ -12,8 +12,7 @@ void ApiRest::onResponse()
     reply->deleteLater();
 
     if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "REST:Request failed:" << reply->errorString() << responseData;
-        qCritical() << "REST:Network failure!";
+        qCritical() << "REST:Network failure!" << reply->errorString() << responseData;
         return;
     }
 
@@ -47,23 +46,28 @@ void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
 
 void ApiRest::onDeleteDeviceResponse(QJsonObject &jobj)
 {
-
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString devEUI = reply->property("devEUI").toString();
+    mDevManager->onDeviceDel(devEUI);
 }
 
 void ApiRest::onAddDeviceResponse(QJsonObject &jobj)
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
-
-    QByteArray devEUI = reply->property("devEUI").toByteArray();
-    QByteArray joinEUI = reply->property("joinEUI").toByteArray();
-    QByteArray nwkKey = reply->property("nwkKey").toByteArray();
+    QString devEUI = reply->property("devEUI").toString();
+    QString joinEUI = reply->property("joinEUI").toString();
+    QString nwkKey = reply->property("nwkKey").toString();
 
     setDeviceKeys(devEUI, joinEUI, nwkKey);
+
+    mDevManager->onDeviceAdd(devEUI);
 }
 
 void ApiRest::onSetDeviceKeysResponse(QJsonObject &jobj)
 {
-
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString devEUI = reply->property("devEUI").toString();
+    mDevManager->onDeviceConf(devEUI);
 }
 
 

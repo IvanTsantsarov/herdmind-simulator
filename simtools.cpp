@@ -203,8 +203,9 @@ QString SimTools::profileId(LoraDev::Profile profile) {
         break;
     case LoraDev::Profile::Bolus: return mBolusProfileId;
     case LoraDev::Profile::Collar: return mCollarProfileId;
-    case LoraDev::Profile::Gateway: return mGatewayProfileId;
     }
+
+    return "";
 }
 
 

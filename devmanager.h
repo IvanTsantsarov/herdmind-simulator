@@ -25,6 +25,14 @@ class DevManager
     // from previous generation here in the simulator
     QJsonArray mDevices;
 
+    int mAddingDevicesCount = 0;
+    int mDeletingDevicesCount = 0;
+    int mAddedDevicesCount = 0;
+    int mSkippedDevicesCount = 0;
+    int mDeletedDevicesCount = 0;
+    int mConfiguredDevicesCount = 0;
+
+
     struct DevsMapValue {
         int mIndex;
         bool mIsMissing = true;
@@ -36,6 +44,9 @@ class DevManager
 
 protected:
     void onDevices(const QJsonObject &jobj);
+    void onDeviceAdd(const QString& devEUI);
+    void onDeviceDel(const QString& devEUI);
+    void onDeviceConf(const QString& devEUI);
 public:
     DevManager( const QSettings& settings );
 

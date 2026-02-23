@@ -4,16 +4,48 @@
 #include <QDir>
 
 #include "mainwindow.h"
+#include "dialogconsole.h"
 #include "simtools.h"
 
 #include "defines.h"
-
-#define SETTINGS_NAME "settings.ini"
+#include "defines_settings.h"
 
 SimTools* gSimTools = nullptr;
 
+
+void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    if( !gMainWindow || !gMainWindow->console() ) {
+        return;
+    }
+
+    DialogConsole* console = gMainWindow->console();
+
+    switch (type) {
+    case QtDebugMsg:
+        if( console->showDebug() ) {
+            console->debug(msg);
+        }
+        break;
+    case QtWarningMsg:
+        console->warning(msg);
+        break;
+    case QtCriticalMsg:
+        console->error(msg);
+        break;
+    case QtInfoMsg:
+        console->info(msg);
+        break;
+    case QtFatalMsg:
+        console->fatal(msg);
+        break;
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(gMessagehHandler);
+
     QApplication a(argc, argv);
 
     qInfo() << "Gegga herdmind simulator v. " << VERSION;

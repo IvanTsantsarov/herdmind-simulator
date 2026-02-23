@@ -13,9 +13,13 @@ class Network : public QObject
 {
     Q_OBJECT
 
+    Gateway* mEdge = nullptr;
+
 public:
     explicit Network(int gatewaysCount, float areaRadius, QObject *parent = nullptr);
     ~Network();
+
+
     inline int gatewaysCount(){ return mGateways.count(); }
 
     class GatewayPair {
@@ -45,6 +49,7 @@ public:
     PairsListG& pairs() { return mPairs; };
 
     Gateway* gateway(int index){ return mGateways[index]; }
+    inline Gateway* edge(){ return mEdge; }
 
     void update(Herd* herd, int maxCollarGatewayDistance);
 

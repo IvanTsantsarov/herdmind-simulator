@@ -71,9 +71,9 @@ void Gateway::onUdpReadyRead()
 
         if (identifier == 0x03) { // PULL_RESP
 
-            QByteArray json = datagram.mid(4);
-            QJsonDocument doc = QJsonDocument::fromJson(json);
-            QJsonObject txpk = doc.object()["txpk"].toObject();
+            QByteArray ba = datagram.mid(4);
+            QJsonObject jobj = QJsonDocument::fromJson(ba).object();
+            QJsonObject txpk = jobj["txpk"].toObject();
 
             QByteArray phy =
                 QByteArray::fromBase64(txpk["data"].toString().toLatin1());
@@ -118,10 +118,16 @@ bool Gateway::sendToChirpStack(const QByteArray& phyPayload)
 
     qint64 sentSize = mSocket.writeDatagram(packet, QHostAddress(mChirpIP),mChirpPort);
 
+    mIsSending = true;
+    QTimer::singleShot(GATEWAY_SEND_INTERVAL, this, &Gateway::onStopSending);
+
     return sentSize == packet.size();
 }
 
-
+void Gateway::onStopSending()
+{
+    mIsSending = false;
+}
 
 #else
 

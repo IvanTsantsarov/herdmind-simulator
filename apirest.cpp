@@ -56,7 +56,7 @@ QNetworkReply* ApiRest::get(const QString &url, RequestType type, QUrlQuery quer
     QNetworkRequest request = createRequest(url, query, limit, offset);
     QNetworkReply* reply = mManager.get(request);
     prepareReply(reply, type);
-    qInfo() << "Get request:" << request.url().toString();
+    qDebug() << "Get request:" << request.url().toString();
     return reply;
 }
 
@@ -65,7 +65,7 @@ QNetworkReply* ApiRest::post(const QString &url, RequestType type, const QByteAr
     QNetworkRequest request = createRequest(url, query);
     QNetworkReply* reply = mManager.post(request, data);
     prepareReply(reply, type);
-    qInfo() << "Post request:" << request.url().toString();
+    qDebug() << "Post request:" << request.url().toString();
     return reply;
 }
 
@@ -74,7 +74,7 @@ QNetworkReply* ApiRest::del(const QString &url, RequestType type, QUrlQuery quer
     QNetworkRequest request = createRequest(url, query);
     QNetworkReply* reply = mManager.deleteResource(request);
     prepareReply(reply, type);
-    qInfo() << "Delete request:" << request.url().toString();
+    qDebug() << "Delete request:" << request.url().toString();
     return reply;
 }
 
@@ -117,7 +117,8 @@ void ApiRest::setDeviceKeys(const QString &devEUI, const QString &joinEUI, const
                        .arg(joinEUI)
                        .arg(nwkKey);
 
-    post(QString("devices/%1/keys").arg(devEUI), RequestType::SetDeviceKeys, data.toUtf8() );
+    QNetworkReply* reply = post(QString("devices/%1/keys").arg(devEUI), RequestType::SetDeviceKeys, data.toUtf8() );
+    reply->setProperty("devEUI", devEUI);
 }
 
 void ApiRest::getDevices(int count)
@@ -129,7 +130,8 @@ void ApiRest::getDevices(int count)
 
 void ApiRest::deleteDevice(QString devEUI)
 {
-    del( QString("devices/%1").arg(devEUI), RequestType::DeleteDevice );
+    QNetworkReply* reply = del( QString("devices/%1").arg(devEUI), RequestType::DeleteDevice );
+    reply->setProperty("devEUI", devEUI);
 }
 
 

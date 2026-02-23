@@ -4,7 +4,7 @@
 #include "devmanager.h"
 #include "apirest.h"
 
-void DevManager::onDevices(const QJsonObject& jobj)
+void DevManager::onDevices(const QJsonObject &jobj)
 {
     int count = jobj["totalCount"].toInt();
 
@@ -15,21 +15,33 @@ void DevManager::onDevices(const QJsonObject& jobj)
     if( States::GetDevicesList == mState ) {
         QJsonArray array = jobj["result"].toArray();
 
+        qInfo() << "Devices from chirpstack received! Syncing...";
+
         // mark devices that is in our list and present also in chirpstack
         // and send delete request to chirpstack to devices that are not in our list
-        foreach( auto jsonElement, array ) {
+        for( auto jsonElement: array ) {
             QJsonObject jobj = jsonElement.toObject();
             QString devEUI = jobj["devEui"].toString();
 
-            if( mDevsMap.contains(devEUI)) {
-                // if the device is already in the chirpstack, mark it as present
+
+            if( mDevsMap.contains(devEUI) ) {
+                mSkippedDevicesCount ++;
                 mDevsMap[devEUI].mIsMissing = false;
+                // if the device is already in the chirpstack, mark it as present
+                int index = mDevsMap[devEUI].mIndex;
+                QJsonObject jobjInternal = mDevices[index].toObject();
+                qInfo() << devEUI << jobjInternal["name"].toString() << "presented";
                 continue;
             }
 
+
             // delete the device, because it's not in our list
+            qInfo() << devEUI << jobj["name"].toString() << " to be deleted...";
             mApiRest->deleteDevice(devEUI);
+            mDeletingDevicesCount ++;
         }
+
+        qInfo() << "Adding devices to chirpstack...";
 
         // add mising devices
         foreach(const DevsMapValue& val, mDevsMap) {
@@ -38,30 +50,69 @@ void DevManager::onDevices(const QJsonObject& jobj)
             }
 
             QJsonObject jobj = mDevices[val.mIndex].toObject();
+            mAddingDevicesCount ++;
 
             mApiRest->addDevice( jobj["name"].toString(),
                                 jobj["deviceProfileId"].toString(),
                                 jobj["devEui"].toString(),
                                 jobj["joinEui"].toString(),
                                 jobj["applicationKey"].toString() );
-
-
         }
 
+        qInfo() << "Sync devices first stage done! Adding:" << mAddingDevicesCount
+                 << "Deleting:" << mDeletingDevicesCount
+                 << "Skipped:" << mSkippedDevicesCount;
 
     }
 }
 
-DevManager::DevManager(const QSettings &settings) {
+void DevManager::onDeviceAdd(const QString &devEUI)
+{
+    qInfo() << "Device" << devEUI << "added to Chirpstack.";
+    mAddedDevicesCount ++;
+    if( mAddedDevicesCount == mAddingDevicesCount ) {
+        qInfo() << "Adding" << mAddedDevicesCount << "devices done!";
+    }
+}
+
+void DevManager::onDeviceDel(const QString &devEUI)
+{
+    qInfo() << "Device" << devEUI << "deleted from Chirpstack.";
+
+    mDeletedDevicesCount++;
+    if( mDeletedDevicesCount == mDeletingDevicesCount ) {
+        qInfo() << "Deleting" << mDeletingDevicesCount << "devices done!";
+    }
+
+}
+
+void DevManager::onDeviceConf(const QString &devEUI)
+{
+    qInfo() << "Device" << devEUI << "configured in Chirpstack.";
+
+    mConfiguredDevicesCount++;
+    if( mAddedDevicesCount == mConfiguredDevicesCount ) {
+        qInfo() << "Configuring" << mConfiguredDevicesCount << "devices done!";
+    }
+}
+
+
+
+DevManager::DevManager(const QSettings &settings)
+{
     // Create rest api object
     mApiRest = new ApiRest(this, settings);
-
-
-
 }
 
 void DevManager::syncDevices(const QByteArray &jsonList)
 {
+    mAddingDevicesCount = 0;
+    mDeletingDevicesCount = 0;
+    mAddedDevicesCount = 0;
+    mSkippedDevicesCount = 0;
+    mDeletedDevicesCount = 0;
+    mConfiguredDevicesCount = 0;
+
     mDevices = QJsonDocument::fromJson( jsonList ).array();
 
     mDevsMap.clear();

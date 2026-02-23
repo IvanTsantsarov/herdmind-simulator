@@ -4,17 +4,33 @@
 #include "hardware/collar/collar.h"
 #include "hardware/gateway/gateway.h"
 #include "hardware/tools.h"
+#include "defines_settings.h"
 
 Network::Network(int gatewaysCount, float areaRadius, QObject *parent)
     : QObject{parent}
 {
-    mGateways.reserve(gatewaysCount);
-    for( auto i = 0; i < gatewaysCount; i++) {
-        Gateway* gw = new Gateway;
+    QSettings settings(SETTINGS_NAME);
+
+    if( gatewaysCount < 1 ) {
+        gatewaysCount = 1;
+    }
+    auto genPos = [&](Gateway* gw) {
         gw->mPos.setX( Tools::rnd(0, areaRadius) );
         gw->mPos.setY( Tools::rnd(0, areaRadius) );
+    };
+
+    mGateways.reserve(gatewaysCount);
+
+    mEdge = new Gateway(settings);
+    genPos( mEdge );
+    mGateways.append( mEdge );
+
+    for( auto i = 1; i < gatewaysCount; i++) {
+        Gateway* gw = new Gateway(settings);
+        genPos( gw );
         mGateways.append( gw );
     }
+
 }
 
 Network::~Network()
@@ -28,23 +44,26 @@ Network::~Network()
 
 void Network::update(Herd *herd, int maxCollarGatewayDistance)
 {
+
     mPairs.clear();
 
     int collarDistSq = maxCollarGatewayDistance * maxCollarGatewayDistance;
 
+    auto makePair = [&](Gateway* gw, Animal* a) {
+        if( !a->hasCollar() ) {
+            return;
+        }
+
+        GatewayPair pair( gw,  a);
+        if( pair.checkTransmitVisibility(collarDistSq)) {
+            pair.appendTo(mPairs);
+        }
+    };
+
 
     foreach(Gateway* gw, mGateways ) {
-
         for( int i = 0; i < herd->animalsCount(); i ++ ) {
-            Animal* a = herd->animal(i);
-            if( !a->hasCollar() ) {
-                continue;
-            }
-
-            GatewayPair pair( gw,  a);
-            if( pair.checkTransmitVisibility(collarDistSq)) {
-                pair.appendTo(mPairs);
-            }
+            makePair(gw, herd->animal(i));
         }
     }
 
@@ -91,5 +110,5 @@ QPointF Network::GatewayPair::secondPt()
 
 bool Network::GatewayPair::isSending()
 {
-    return mCollarAnimal ? mCollarAnimal->collar()->isSendingSimulation() : mGatewayOther->isSendingSimulation();
+    return mCollarAnimal ? mCollarAnimal->collar()->isSending() : mGatewayOther->isSending();
 }

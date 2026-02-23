@@ -221,7 +221,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     foreach(Herd::AnimalPair pair, pairsBC) {
         QGraphicsLineItem* line = mLinesAnimals[activatedLine++];
         line->setLine(QLineF(pair.bolusAnimal()->pt(), pair.collarAnimal()->pt()));
-        line->setPen( pair.bolusAnimal()->bolus()->isSendingSimulation() ? BOLUS_PAIR_PEN_SENDING : BOLUS_PAIR_PEN );
+        line->setPen( pair.bolusAnimal()->bolus()->isSending() ? BOLUS_PAIR_PEN_SENDING : BOLUS_PAIR_PEN );
         line->show();
     }
 

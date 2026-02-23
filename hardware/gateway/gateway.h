@@ -42,6 +42,7 @@ class Gateway
     std::map<uint32_t, uint32_t> mCollarsMap; // id_collar, id_animal
 
     bool mHasSIM = false;
+    bool mIsSending = false;
 
 public:
     enum OutSubPackageType {
@@ -117,10 +118,14 @@ public:
     void start();
 
     bool sendToChirpStack(const QByteArray &phyPayload);
+    inline bool isSending(){ return mIsSending; }
 signals:
     void downlinkReceived(const QByteArray& response);
 protected slots:
     void onUdpReadyRead();
+    void onStopSending();
+
+
 
 #endif
 

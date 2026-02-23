@@ -21,6 +21,7 @@ class Network;
 class SimTools;
 class ApiRest;
 class DevManager;
+class DialogConsole;
 
 class MainWindow : public QMainWindow
 {
@@ -38,6 +39,8 @@ class MainWindow : public QMainWindow
     Network* mNetwork = nullptr;
     DevManager* mDevManager = nullptr;
 
+    DialogConsole* mConsole = nullptr;
+
     void create(bool isLoad);
 
 public:
@@ -46,6 +49,7 @@ public:
 
     void onError(const QString &err);
     void setStatus(const QString& txt);
+    inline DialogConsole* console(){ return mConsole; }
 
 protected:
     void moveEvent(QMoveEvent *);
@@ -62,5 +66,9 @@ private slots:
     void on_checkParamsG_toggled(bool checked);
     void onConnectReminger();
     void on_btnLoad_clicked();
+    void on_actionConsole_toggled(bool arg1);
 };
+
+extern MainWindow* gMainWindow;
 #endif // MAINWINDOW_H
+

@@ -34,13 +34,14 @@ class Collar
     };
 
 public:
-    // 17 bytes
+    // 18 bytes
     struct PackageOut {
         uint32_t id;        // collar id
         uint16_t seq;       // sequence
         int32_t longitude;  // positioning longitude
         int32_t latitude;   // positioning latitude
         uint8_t battery;    // battery level
+        uint8_t event;      // event type level
         uint16_t count;     // boluses count (comming after this package)
     };
 
