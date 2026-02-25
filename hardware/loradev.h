@@ -46,7 +46,7 @@ private:
     uint32_t mSendInterval = 0;
     uint32_t mSendingDelay = 0;
 
-    QByteArray encryptFRMPayload(const QByteArray& payload);
+    QByteArray encryptPayload(const QByteArray& payload);
 
     // Message Integrity Code
     QByteArray calculateMIC( const QByteArray& data );
@@ -54,7 +54,6 @@ private:
     QByteArray buildPHYPayload(QByteArray frmPayload,
                                quint32 devAddr);
 
-    QByteArray buildJoinRequest();
 
     QTimer mTimerUpdate;
     int mSendingMsec = 0;
@@ -63,7 +62,7 @@ private:
     Gateway* mGateway = nullptr;
 protected:
 
-    bool sendToChirpstack(const QByteArray& data);
+    bool sendSimulate(const QByteArray& data);
 
 
 public:

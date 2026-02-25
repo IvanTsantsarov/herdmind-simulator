@@ -14,6 +14,7 @@
 // interval for sending data to collars/gateways
 #define GATEWAY_SEND_INTERVAL 20000
 
+class QMqttClient;
 
 #ifdef  SIMULATION
     #include <QPointF>
@@ -22,11 +23,13 @@ class Gateway : public QObject {
 
     Q_OBJECT
 
-    QUdpSocket mSocket;
-    QString mChirpIP;
-    quint16 mChirpPort;
+    QString mMqttAddr;
+    quint16 mMqttPort = 0;
+    QString mId;
 
     QTimer mPullTimer;
+
+    QMqttClient* mClient = nullptr;
 
     void sendPullData();
 
@@ -43,6 +46,8 @@ class Gateway
 
     bool mHasSIM = false;
     bool mIsSending = false;
+
+
 
 public:
     enum OutSubPackageType {
@@ -113,6 +118,7 @@ public:
 #ifdef  SIMULATION
     QPointF mPos;
 
+    bool publish(const QByteArray &phyPayload);
     void onUpdate();
     void onSend();
     void start();
@@ -122,7 +128,6 @@ public:
 signals:
     void downlinkReceived(const QByteArray& response);
 protected slots:
-    void onUdpReadyRead();
     void onStopSending();
 
 

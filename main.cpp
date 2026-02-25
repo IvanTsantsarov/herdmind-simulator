@@ -28,16 +28,18 @@ void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const Q
             console->debug(msg);
         }
         break;
+    case QtInfoMsg:
+        console->info(msg);
+        break;
     case QtWarningMsg:
         console->warning(msg);
         break;
     case QtCriticalMsg:
         console->error(msg);
-        break;
-    case QtInfoMsg:
-        console->info(msg);
+        gMainWindow->setStatus( QString("Critical:%1").arg(msg) );
         break;
     case QtFatalMsg:
+        gMainWindow->setStatus( QString("Fatal:%1").arg(msg) );
         console->fatal(msg);
         break;
     }

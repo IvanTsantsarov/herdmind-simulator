@@ -115,7 +115,7 @@ void LoraDev::sendPackage(void *package, int size)
 }
 
 
-QByteArray LoraDev::encryptFRMPayload(const QByteArray& payload )
+QByteArray LoraDev::encryptPayload(const QByteArray& payload )
 {
     QByteArray encrypted = payload;
     int blocks = (payload.size() + 15) / 16;
@@ -165,9 +165,9 @@ QByteArray LoraDev::calculateMIC( const QByteArray& msg )
 }
 
 
-bool LoraDev::sendToChirpstack(const QByteArray& data)
+bool LoraDev::sendSimulate(const QByteArray& data)
 {
-    QByteArray encrypted = encryptFRMPayload( data );
+    QByteArray encrypted = encryptPayload( data );
 
     QByteArray phy;
 
@@ -185,78 +185,12 @@ bool LoraDev::sendToChirpstack(const QByteArray& data)
 
     phy.append(mic);
 
-    if( mGateway->sendToChirpStack(phy) ) {
+    if( mGateway->publish(phy) ) {
         mFCnt ++;
         return true;
     }
 
     return false;
-}
-
-
-QByteArray LoraDev::buildJoinRequest()
-{
-    QByteArray payload;
-
-    quint8 mhdr = 0x00; // JoinRequest
-    payload.append(mhdr);
-
-    payload.append(mJoinEUI);
-    payload.append(mDevEUI);
-
-    QByteArray devNonceLE(2, 0);
-    devNonceLE[0] = mDevNonce & 0xFF;
-    devNonceLE[1] = (mDevNonce >> 8) & 0xFF;
-    mDevNonce ++;
-
-    payload.append(devNonceLE);
-
-    QByteArray mic = SimTools::aesCmac(payload, mAppKey).left(4);
-    payload.append(mic);
-
-    return payload;
-}
-
-bool LoraDev::processJoinAccept(const QByteArray& phyPayload)
-{
-    QByteArray encrypted = phyPayload.mid(1); // remove MHDR
-
-    // Encrypt used for decrypt (LoRaWAN spec rule)
-    QByteArray decrypted = SimTools::encryptAES(encrypted, mAppKey);
-
-    QByteArray body = decrypted.left(decrypted.size() - 4);
-    QByteArray micReceived = decrypted.right(4);
-
-    QByteArray micCalc = SimTools::aesCmac(
-                             QByteArray(1, phyPayload[0]) + body,
-                             mAppKey).left(4);
-
-    if (micReceived != micCalc)
-        return false;
-
-    QByteArray joinNonce = decrypted.mid(0, 3);
-    QByteArray netId     = decrypted.mid(3, 3);
-    QByteArray devAddr   = decrypted.mid(6, 4);
-
-    mDevAddr =
-        (quint8)devAddr[0] |
-        ((quint8)devAddr[1] << 8) |
-        ((quint8)devAddr[2] << 16) |
-        ((quint8)devAddr[3] << 24);
-
-    QByteArray block(16, 0);
-
-    block[0] = 0x02;
-    memcpy(block.data() + 1, joinNonce.data(), 3);
-    memcpy(block.data() + 4, netId.data(), 3);
-    memcpy(block.data() + 7, &mDevNonce, 2);
-
-    mAppSKey = SimTools::encryptAES(block, mAppKey);
-
-    block[0] = 0x01;
-    mNwkSKey = SimTools::encryptAES(block, mAppKey);
-
-    return true;
 }
 
 #else

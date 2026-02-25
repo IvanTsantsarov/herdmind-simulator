@@ -1,6 +1,4 @@
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets positioning network
+QT       += core gui widgets positioning network mqtt
 
 CONFIG += c++17
 

@@ -3,5 +3,7 @@
 
 #define SETTINGS_NAME "settings.ini"
 #define CHIRPSTACK_SECTION "Chirpstack"
+#define MQTT_SECTION "MQTT"
+
 
 #endif // DEFINES_SETTINGS_H
