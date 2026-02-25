@@ -1,4 +1,3 @@
-#include <QMqttClient>
 #include <QRandomGenerator>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -8,36 +7,56 @@
 
 #ifdef SIMULATION
 
-Gateway::Gateway(const QSettings &settings)
+Gateway::Gateway(const QSettings &settings) :
+    mClient(this)
 {
     mMqttAddr = settings.value(MQTT_SECTION"/address").toString();
     mMqttPort = settings.value(MQTT_SECTION"/port").toUInt();
     mId = settings.value(MQTT_SECTION"/gatewayId").toString();
 
-    mClient = new QMqttClient(this);
-
     // From docker-compose: mosquitto exposes 1883 to host
-    mClient->setHostname(mMqttAddr);
-    mClient->setPort(mMqttPort);
+    mClient.setHostname(mMqttAddr);
+    mClient.setPort(mMqttPort);
 
     // If you later enable MQTT auth:
     // mClient->setUsername("user");
     // mClient->setPassword("password");
 
-    connect(mClient, &QMqttClient::connected, this, []() {
-        qDebug() << "MQTT connected";
+    connect(&mClient, &QMqttClient::connected, this, []() {
+        qInfo() << "MQTT connected";
     });
 
-    connect(mClient, &QMqttClient::disconnected, this, []() {
-        qDebug() << "MQTT disconnected";
+    connect(&mClient, &QMqttClient::disconnected, this, []() {
+        qInfo() << "MQTT disconnected";
     });
 
-    connect(mClient, &QMqttClient::errorChanged,
+    connect(&mClient, &QMqttClient::errorChanged,
             this,
-            [](QMqttClient::ClientError error) {
-                qDebug() << "MQTT error:" << error;
+            [=](QMqttClient::ClientError error) {
+                qCritical() << "MQTT error:" << error << mClient.error();
             });
+
+    connect(&mClient, &QMqttClient::messageReceived,
+            this, &Gateway::onMessageReceived);
 }
+
+void Gateway::start()
+{
+    qInfo() << "Mqtt client connecting to" << mMqttAddr << ":" << mMqttPort << "...";
+    mClient.connectToHost();
+}
+
+
+void Gateway::subscribe(const QString &topic)
+{
+    auto subscription = mClient.subscribe(topic, 0);
+
+    if (!subscription)
+        qCritical() << "Mqtt subscription failed";
+    else
+        qInfo() << "Mqtt Subscribed to" << topic;
+}
+
 
 void Gateway::onUpdate()
 {
@@ -80,13 +99,32 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
     QJsonDocument doc(root);
 
-    mClient->publish( topic, doc.toJson(QJsonDocument::Compact) );
+    mClient.publish( topic, doc.toJson(QJsonDocument::Compact) );
 
     return true;
 }
 void Gateway::onStopSending()
 {
     mIsSending = false;
+}
+
+
+void Gateway::onMessageReceived(const QByteArray &message,
+                               const QMqttTopicName &topic)
+{
+    qDebug() << "Message received!";
+    qDebug() << "Topic:" << topic.name();
+    qDebug() << "Payload:" << message;
+
+    QJsonDocument doc = QJsonDocument::fromJson(message);
+    QString base64 = doc["data"].toString();
+    QByteArray raw = QByteArray::fromBase64(base64.toUtf8());
+
+    qDebug() << "Payload decoded:" << message;
+    qDebug() << "Payload topic:" << topic.name();
+
+    // If JSON:
+    // QJsonDocument doc = QJsonDocument::fromJson(message);
 }
 
 #else

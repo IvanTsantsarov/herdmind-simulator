@@ -41,6 +41,7 @@ class MainWindow : public QMainWindow
 
     DialogConsole* mConsole = nullptr;
 
+    const QSettings &mSettings;
     void create(bool isLoad);
 
 public:

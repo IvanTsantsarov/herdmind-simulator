@@ -1,6 +1,7 @@
 #ifndef GATEWAY_H
 #define GATEWAY_H
 
+#include <QMqttClient>
 #include <QSettings>
 #include <QTimer>
 #include <QObject>
@@ -29,7 +30,7 @@ class Gateway : public QObject {
 
     QTimer mPullTimer;
 
-    QMqttClient* mClient = nullptr;
+    QMqttClient mClient;
 
     void sendPullData();
 
@@ -118,17 +119,20 @@ public:
 #ifdef  SIMULATION
     QPointF mPos;
 
+    void start();
+    void subscribe(const QString &topic);
     bool publish(const QByteArray &phyPayload);
+
     void onUpdate();
     void onSend();
-    void start();
 
-    bool sendToChirpStack(const QByteArray &phyPayload);
     inline bool isSending(){ return mIsSending; }
 signals:
     void downlinkReceived(const QByteArray& response);
 protected slots:
     void onStopSending();
+    void onMessageReceived(const QByteArray &message,
+                           const QMqttTopicName &topic);
 
 
 

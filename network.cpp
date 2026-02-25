@@ -6,10 +6,9 @@
 #include "hardware/tools.h"
 #include "defines_settings.h"
 
-Network::Network(int gatewaysCount, float areaRadius, QObject *parent)
+Network::Network(const QSettings &settings, int gatewaysCount, float areaRadius, QObject *parent)
     : QObject{parent}
 {
-    QSettings settings(SETTINGS_NAME);
 
     if( gatewaysCount < 1 ) {
         gatewaysCount = 1;

@@ -20,9 +20,10 @@
 MainWindow* gMainWindow = nullptr;
 
 MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), mSettings(settings)
     , ui(new Ui::MainWindow)
 {
+
     mConsole = new DialogConsole(settings, this);
     gMainWindow = this;
 
@@ -175,7 +176,7 @@ void MainWindow::create(bool isLoad)
                          ui->spinAnimalsPerLawn->value()
                          );
 
-    mNetwork = new Network( ui->spinGateways->value(),  ui->doubleSpinArea->value());
+    mNetwork = new Network( mSettings, ui->spinGateways->value(),  ui->doubleSpinArea->value());
 
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,

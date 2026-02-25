@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QList>
 #include <QLineF>
+#include <QSettings>
 
 class Gateway;
 class Animal;
@@ -16,7 +17,7 @@ class Network : public QObject
     Gateway* mEdge = nullptr;
 
 public:
-    explicit Network(int gatewaysCount, float areaRadius, QObject *parent = nullptr);
+    explicit Network(const QSettings &settings, int gatewaysCount, float areaRadius, QObject *parent = nullptr);
     ~Network();
 
 

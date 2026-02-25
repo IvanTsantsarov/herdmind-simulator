@@ -49,6 +49,8 @@ protected:
     void onDeviceDel(const QString& devEUI);
     void onDeviceActivated(const QString& devEUI);
     void onDeviceAddress(const QString& devEUI, const QString& devAddr);
+
+    void onDevicesReady();
 public:
     DevManager( const QSettings& settings );
 

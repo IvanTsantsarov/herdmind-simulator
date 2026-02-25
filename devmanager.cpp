@@ -1,6 +1,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+
+#include "hardware/gateway/gateway.h"
+#include "network.h"
 #include "mainwindow.h"
 #include "devmanager.h"
 #include "apirest.h"
@@ -32,7 +35,6 @@ void DevManager::onDevices(const QJsonObject &jobj)
             QJsonObject jobj = jsonElement.toObject();
             QString devEUI = jobj["devEui"].toString();
 
-
             if( mDevsMap.contains(devEUI) ) {
                 mSkippedDevicesCount ++;
                 mDevsMap[devEUI].mIsMissing = false;
@@ -48,6 +50,12 @@ void DevManager::onDevices(const QJsonObject &jobj)
             qInfo() << devEUI << jobj["name"].toString() << " to be deleted...";
             mApiRest->deleteDevice(devEUI);
             mDeletingDevicesCount ++;
+        }
+
+        // if all devices are skipped call onDevicesReady
+        if( mSkippedDevicesCount == count ) {
+            onDevicesReady();
+            return;
         }
 
         qInfo() << "Adding devices to chirpstack...";
@@ -117,8 +125,6 @@ void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
     mApiRest->activateDevice(devEUI, devAddr, dev->appKey().toHex());
 }
 
-
-
 void DevManager::onDeviceDel(const QString &devEUI)
 {
     qInfo() << "Device" << devEUI << "deleted from Chirpstack.";
@@ -137,6 +143,7 @@ void DevManager::onDeviceActivated(const QString &devEUI)
     mActivatedDevicesCount++;
     if( mAddedDevicesCount == mActivatedDevicesCount ) {
         qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
+        onDevicesReady();
     }
 }
 
@@ -175,4 +182,10 @@ void DevManager::syncDevices(const QByteArray &jsonList)
 
     mState = States::GetDevicesCount;
     mApiRest->getDevices();
+}
+
+
+void DevManager::onDevicesReady()
+{
+    gMainWindow->network()->edge()->start();
 }
