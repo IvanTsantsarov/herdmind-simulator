@@ -25,7 +25,8 @@ class ApiRest : public QObject
         GetDevices,
         DeleteDevice,
         AddDevice,
-        SetDeviceKeys
+        ActivateDevice,
+        GetDeviceAddress
     };
 
     QString mApiUrl, mApiKey, mAppId;
@@ -37,17 +38,16 @@ class ApiRest : public QObject
                                   , int limit = 0, int offset = 0);
     void prepareReply(QNetworkReply *reply, RequestType type);
     QNetworkReply *get(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() , int limit = 0, int offset = 0);
-    QNetworkReply *post(const QString& url, RequestType type, const QByteArray &data, QUrlQuery query = QUrlQuery() );
+    QNetworkReply *post(const QString& url, RequestType type, const QByteArray &data = QByteArray(), QUrlQuery query = QUrlQuery() );
     QNetworkReply *del(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() );
 
 
-    void setDeviceKeys(const QString &devEUI, const QString &joinEUI, const QString &nwkKey);
 
     void onGetDevicesResponse(QJsonObject& jobj);
     void onDeleteDeviceResponse(QJsonObject& jobj);
     void onAddDeviceResponse(QJsonObject& jobj);
-    void onSetDeviceKeysResponse(QJsonObject& jobj);
-
+    void onActivateResponse(QJsonObject& jobj);
+    void onGetDeviceAddress(QJsonObject& jobj);
 
 
 private slots:
@@ -58,8 +58,16 @@ public:
     explicit ApiRest(DevManager* DevManager, const QSettings& settings);
 
     void getDevices(int count = 0);
-    void deleteDevice(QString devEUI);
-    void addDevice(const QString& name, const QString &profileId, const QString &devEUI, const QString &joinEUI, const QString &nwkKey );
+
+    void deleteDevice(const QString& devEUI);
+    void addDevice(const QString& name,
+                   const QString &profileId,
+                   const QString &devEUI,
+                   const QString &appKey);
+
+    void getDeviceAddress(const QString& devEUI);
+    void activateDevice(const QString &devEUI, const QString &devAddr, const QString& appSKey);
+
 };
 
 #endif // APIREST_H

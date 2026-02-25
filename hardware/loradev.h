@@ -67,6 +67,15 @@ protected:
 
 
 public:
+    inline QByteArray eui(){ return mDevEUI; };
+    inline uint32_t addr(){ return mDevAddr; };
+    inline QString name(){ return mName; }
+    inline Profile profile(){ return mProfile; }
+    inline QByteArray appKey(){ return mAppKey; }
+    inline bool isCollar(){ return Profile::Collar == mProfile; }
+    inline bool isBolus(){ return Profile::Bolus == mProfile; }
+    inline bool isValid(){ return Profile::None != mProfile; }
+    inline void setAddress(uint32_t a){ mDevAddr = a; }
 
     LoraDev( const QString& name,
             Profile profile,
@@ -83,8 +92,6 @@ public:
 
     void setGateway(Gateway* gw){ mGateway = gw; }
 
-    inline QByteArray eui(){ return mDevEUI; };
-    inline uint32_t addr(){ return mDevAddr; };
     // inline QByteArray key(){ return mAppKey; };
 
 
@@ -101,6 +108,7 @@ public:
     QString jsonInfo(const QString &animalName = QString());
 
     bool processJoinAccept(const QByteArray& phyPayload);
+
 
 private slots:
     void onTimerStart();

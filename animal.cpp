@@ -11,6 +11,7 @@
 
 void Animal::constructAnimal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity )
 {
+    mHerd = herd;
     mIsMale = isMale;
     mName = name;
     mPosition = QVector2D(x, y);
@@ -20,12 +21,12 @@ void Animal::constructAnimal(Herd* herd, bool isMale, const QString& name, float
 }
 
 Animal::Animal(Herd* herd, bool isMale, int nameIndex, float x, float y, float grazingCapacity)
-    : mHerd(herd) {
+{
     constructAnimal( herd, isMale, isMale ? mMaleNames[nameIndex] : mFemaleNames[nameIndex], x, y, grazingCapacity );
 }
 
 Animal::Animal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity )
-    : mHerd(herd){
+{
     constructAnimal( herd, isMale, name, x, y, grazingCapacity );
 }
 
@@ -100,6 +101,8 @@ float Animal::distanceSq(Animal *other)
 
 void Animal::updateRunning(const QVector2D &p, float attractionPower, float attractionDistance, float repellingDistance, float friction )
 {
+    Q_UNUSED(friction);
+
     QVector2D f = QVector2D(p) - mPosition;
     float lensq = f.lengthSquared();
 

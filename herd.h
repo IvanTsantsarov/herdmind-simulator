@@ -4,10 +4,12 @@
 #include <QObject>
 #include <QVector2D>
 #include <QLineF>
+#include "hardware/loradev.h"
 
 class Animal;
 class Shepherd;
 class Meadow;
+class LoraDev;
 
 class Herd : public QObject
 {
@@ -29,6 +31,9 @@ public:
 
     bool mIsEnabledGrazing = true;
     bool mIsEnabledHerding = true;
+
+    QMap<QString, LoraDev*> mDevices;
+    void gatherDevices();
 
 
 private:
@@ -94,6 +99,8 @@ public:
     inline quint64 msec(){ return mMSec; }
 
     inline Animal* animal(int index){ return mAnimals[index]; }
+
+
     inline int animalsCount(){ return mAnimals.count(); }
     PairsListBC& pairs() { return mPairsBC; };
     inline int count(){ return mAnimals.count(); }
@@ -103,9 +110,8 @@ public:
     bool isShepherdActive() { return mShepherd && mIsShepherdActive; };
     QPointF shepherdPos();
 
-
     QString jsonAnimalsList(bool isDevicesList);
-
+    LoraDev* device(const QString& devEUI);
 
 signals:
 };

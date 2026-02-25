@@ -1,4 +1,6 @@
+#include <QCloseEvent>
 #include <QFontDatabase>
+#include "mainwindow.h"
 #include "dialogconsole.h"
 #include "ui_dialogconsole.h"
 
@@ -6,6 +8,11 @@ void DialogConsole::appendText(const QString &msg, QColor col)
 {
     ui->out->setTextColor(col);
     ui->out->append(msg);
+}
+
+void DialogConsole::closeEvent(QCloseEvent *e)
+{
+    gMainWindow->onConsoleClose();
 }
 
 DialogConsole::DialogConsole(const QSettings& settings, QWidget *parent)
@@ -26,6 +33,8 @@ DialogConsole::DialogConsole(const QSettings& settings, QWidget *parent)
     mColorWarning = QColor(settings.value("Console/ColorWarning").toString());
     mColorError   = QColor(settings.value("Console/ColorError").toString());
     mColorFatal   = QColor(settings.value("Console/ColorFatal").toString());
+
+    ui->checkDebug->setChecked( settings.value("Console/isDebug").toBool() );
 
     QPalette p = ui->out->palette();
     p.setColor(QPalette::Base, mColorBack); // BG
@@ -70,5 +79,11 @@ void DialogConsole::debug(const QString &msg)
 bool DialogConsole::showDebug()
 {
     return ui->checkDebug->isChecked();
+}
+
+
+void DialogConsole::on_btnClear_clicked()
+{
+    ui->out->clear();
 }
 

@@ -47,7 +47,15 @@ public:
     MainWindow(const QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
 
+    inline Herd* herd(){ return mHerd; }
+    inline Meadow* meadow(){ return mMeadow; }
+    inline DevManager* devManager(){ return mDevManager; }
+    inline Network* network(){ return mNetwork; }
+    inline SimTools* tools(){ return mTools; }
+
+
     void onError(const QString &err);
+    void onConsoleClose();
     void setStatus(const QString& txt);
     inline DialogConsole* console(){ return mConsole; }
 

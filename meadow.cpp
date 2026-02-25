@@ -35,6 +35,7 @@ Meadow::Meadow(const QPointF& center,
         row.reserve(mLawnsDim.width());
         for( auto w = 0; w < mLawnsDim.width(); w++) {
             QPointF pos( w * mLawnDiam - mOffsetW, rowH );
+            pos += center;
             float capacity = SimTools::clamped( kgPerLawn*0.5 + genPolyMul * gen.sum(pos.x(),pos.y()), 0.0f,  kgPerLawn);
             Lawn* lawn = new Lawn( pos, capacity, kgPerLawn, this );
             mLawns.append(lawn);

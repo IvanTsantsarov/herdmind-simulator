@@ -4,7 +4,9 @@
 #include <QSettings>
 #include <QJsonArray>
 
+
 class ApiRest;
+class Herd;
 
 class DevManager
 {
@@ -30,7 +32,7 @@ class DevManager
     int mAddedDevicesCount = 0;
     int mSkippedDevicesCount = 0;
     int mDeletedDevicesCount = 0;
-    int mConfiguredDevicesCount = 0;
+    int mActivatedDevicesCount = 0;
 
 
     struct DevsMapValue {
@@ -41,12 +43,12 @@ class DevManager
     // int is an index in mDevices json array
     QMap<QString, DevsMapValue> mDevsMap;
 
-
 protected:
     void onDevices(const QJsonObject &jobj);
     void onDeviceAdd(const QString& devEUI);
     void onDeviceDel(const QString& devEUI);
-    void onDeviceConf(const QString& devEUI);
+    void onDeviceActivated(const QString& devEUI);
+    void onDeviceAddress(const QString& devEUI, const QString& devAddr);
 public:
     DevManager( const QSettings& settings );
 

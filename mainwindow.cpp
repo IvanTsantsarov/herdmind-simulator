@@ -370,6 +370,11 @@ void MainWindow::onError(const QString &err)
     setStatus(err);
 }
 
+void MainWindow::onConsoleClose()
+{
+    ui->actionConsole->setChecked(false);
+}
+
 void MainWindow::on_btnLoad_clicked()
 {
     create(true);

@@ -11,7 +11,15 @@ LIBS += -lcrypto
 
 
 # Disable warnings
-QMAKE_CXXFLAGS += "-Wno-old-style-cast"
+# QMAKE_CXXFLAGS += -Wclazy-qstring-arg
+
+CONFIG(debug, debug|release) {
+# DEBUG
+}
+
+CONFIG(release, debug|release) {
+# RELEASE
+}
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -31,7 +39,6 @@ SOURCES += \
     hardware/collar/collar.cpp \
     hardware/gateway/gateway.cpp \
     hardware/loradev.cpp \
-    hardware/protocol.cpp \
     hardware/tools.cpp \
     herd.cpp \
     main.cpp \
@@ -59,7 +66,6 @@ HEADERS += \
     hardware/defines.h \
     hardware/gateway/gateway.h \
     hardware/loradev.h \
-    hardware/protocol.h \
     hardware/tools.h \
     herd.h \
     mainwindow.h \

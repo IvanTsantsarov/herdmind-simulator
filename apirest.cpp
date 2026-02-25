@@ -56,7 +56,7 @@ QNetworkReply* ApiRest::get(const QString &url, RequestType type, QUrlQuery quer
     QNetworkRequest request = createRequest(url, query, limit, offset);
     QNetworkReply* reply = mManager.get(request);
     prepareReply(reply, type);
-    qDebug() << "Get request:" << request.url().toString();
+    qDebug() << "Get request:" << request.url().toString() << query.toString();
     return reply;
 }
 
@@ -65,7 +65,7 @@ QNetworkReply* ApiRest::post(const QString &url, RequestType type, const QByteAr
     QNetworkRequest request = createRequest(url, query);
     QNetworkReply* reply = mManager.post(request, data);
     prepareReply(reply, type);
-    qDebug() << "Post request:" << request.url().toString();
+    qDebug() << "Post request:" << request.url().toString() << query.toString() << data;
     return reply;
 }
 
@@ -74,15 +74,14 @@ QNetworkReply* ApiRest::del(const QString &url, RequestType type, QUrlQuery quer
     QNetworkRequest request = createRequest(url, query);
     QNetworkReply* reply = mManager.deleteResource(request);
     prepareReply(reply, type);
-    qDebug() << "Delete request:" << request.url().toString();
+    qDebug() << "Delete request:" << request.url().toString() << query.toString();
     return reply;
 }
 
 void ApiRest::addDevice(const QString& name,
                         const QString &profileId,
                         const QString &devEUI,
-                        const QString &joinEUI,
-                        const QString &nwkKey )
+                        const QString &appKey )
 {
     QString data = QString(
                        "{"
@@ -90,7 +89,9 @@ void ApiRest::addDevice(const QString& name,
                        "\"applicationId\": \"%1\","
                        "\"devEui\": \"%2\","
                        "\"name\": \"%3\","
-                       "\"deviceProfileId\": \"%4\""
+                       "\"deviceProfileId\": \"%4\","
+                       "\"skipFcntCheck\": true,"
+                       "\"isDisabled\": false"
                        "}"
                        "}")
                        .arg(gSimTools->appId())
@@ -100,24 +101,33 @@ void ApiRest::addDevice(const QString& name,
 
     QNetworkReply* reply = post("devices", RequestType::AddDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
-    reply->setProperty("joinEUI", joinEUI);
-    reply->setProperty("nwkKey", nwkKey);
+    reply->setProperty("appKey", appKey);
+
 }
 
-void ApiRest::setDeviceKeys(const QString &devEUI, const QString &joinEUI, const QString &nwkKey)
+
+// Activation By Personalization (static)
+void ApiRest::activateDevice(const QString &devEUI, const QString &devAddr, const QString &appSKey)
 {
     QString data = QString(
                        "{"
-                       "\"deviceKeys\": {"
+                       "\"deviceActivation\": {"
                        "\"devEui\": \"%1\","
-                       "\"joinEui\": \"%2\","
-                       "\"nwkKey\": \"%3\""
+                       "\"devAddr\": \"%2\","
+                       "\"appSKey\": \"%3\","
+                       "\"nwkSEncKey\": \"%3\","
+                       "\"sNwkSIntKey\": \"%3\","
+                       "\"fNwkSIntKey\": \"%3\","
+                       "\"fCntUp\": 0,"
+                       "\"nFCntDown\": 0,"
+                       "\"aFCntDown\": 0"
                        "}}" )
                        .arg(devEUI)
-                       .arg(joinEUI)
-                       .arg(nwkKey);
+                       .arg(devAddr)
+                       .arg(appSKey);
 
-    QNetworkReply* reply = post(QString("devices/%1/keys").arg(devEUI), RequestType::SetDeviceKeys, data.toUtf8() );
+    QNetworkReply* reply = post(QString("devices/%1/activate").arg(devEUI),
+                                RequestType::ActivateDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
 }
 
@@ -128,7 +138,14 @@ void ApiRest::getDevices(int count)
     get("devices", RequestType::GetDevices, query, count);
 }
 
-void ApiRest::deleteDevice(QString devEUI)
+void ApiRest::getDeviceAddress(const QString &devEUI)
+{
+    QNetworkReply* reply = post(QString("devices/%1/get-random-dev-addr").arg(devEUI),
+                                RequestType::GetDeviceAddress );
+    reply->setProperty("devEUI", devEUI);
+}
+
+void ApiRest::deleteDevice(const QString &devEUI)
 {
     QNetworkReply* reply = del( QString("devices/%1").arg(devEUI), RequestType::DeleteDevice );
     reply->setProperty("devEUI", devEUI);

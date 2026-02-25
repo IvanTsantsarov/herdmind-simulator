@@ -35,7 +35,8 @@ void ApiRest::onResponse()
         case RequestType::GetDevices: onGetDevicesResponse(json); break;
         case RequestType::DeleteDevice: onDeleteDeviceResponse(json); break;
         case RequestType::AddDevice: onAddDeviceResponse(json); break;
-        case RequestType::SetDeviceKeys: onSetDeviceKeysResponse(json); break;
+        case RequestType::GetDeviceAddress: onGetDeviceAddress(json); break;
+        case RequestType::ActivateDevice: onActivateResponse(json); break;
         }
 }
 
@@ -46,6 +47,7 @@ void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
 
 void ApiRest::onDeleteDeviceResponse(QJsonObject &jobj)
 {
+    Q_UNUSED(jobj);
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString devEUI = reply->property("devEUI").toString();
     mDevManager->onDeviceDel(devEUI);
@@ -53,21 +55,27 @@ void ApiRest::onDeleteDeviceResponse(QJsonObject &jobj)
 
 void ApiRest::onAddDeviceResponse(QJsonObject &jobj)
 {
+    Q_UNUSED(jobj);
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString devEUI = reply->property("devEUI").toString();
-    QString joinEUI = reply->property("joinEUI").toString();
-    QString nwkKey = reply->property("nwkKey").toString();
-
-    setDeviceKeys(devEUI, joinEUI, nwkKey);
-
     mDevManager->onDeviceAdd(devEUI);
 }
 
-void ApiRest::onSetDeviceKeysResponse(QJsonObject &jobj)
+void ApiRest::onActivateResponse(QJsonObject &jobj)
 {
+    Q_UNUSED(jobj);
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString devEUI = reply->property("devEUI").toString();
-    mDevManager->onDeviceConf(devEUI);
+    mDevManager->onDeviceActivated(devEUI);
+}
+
+void ApiRest::onGetDeviceAddress(QJsonObject &jobj)
+{
+    Q_UNUSED(jobj);
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString devEUI = reply->property("devEUI").toString();
+    QString address = jobj["devAddr"].toString();
+    mDevManager->onDeviceAddress(devEUI, address);
 }
 
 

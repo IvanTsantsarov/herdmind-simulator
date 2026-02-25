@@ -15,6 +15,7 @@ SimTools* gSimTools = nullptr;
 
 void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    Q_UNUSED(context);
     if( !gMainWindow || !gMainWindow->console() ) {
         return;
     }

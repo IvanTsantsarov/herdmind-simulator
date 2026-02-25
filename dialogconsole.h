@@ -4,6 +4,8 @@
 #include <QSettings>
 #include <QDialog>
 
+class QCloseEvent;
+
 namespace Ui {
 class DialogConsole;
 }
@@ -16,6 +18,8 @@ class DialogConsole : public QDialog
         mColorWarning, mColorError, mColorFatal;
 
     void appendText(const QString& msg, QColor col);
+
+    void closeEvent(QCloseEvent* e);
 public:
     explicit DialogConsole(const QSettings& settings, QWidget *parent = nullptr);
     ~DialogConsole();
@@ -26,6 +30,9 @@ public:
     void debug(const QString& msg);
 
     bool showDebug();
+
+private slots:
+    void on_btnClear_clicked();
 
 private:
     Ui::DialogConsole *ui;

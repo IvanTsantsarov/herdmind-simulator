@@ -1,8 +1,17 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+#include "mainwindow.h"
 #include "devmanager.h"
 #include "apirest.h"
+#include "herd.h"
+
+
+///////////////////////////////////////////////////////////////////////////
+// Currently supporting only ABP (Activation By Personalization)
+// OTAA (Over the Air Activation) NOT SUPPORTED!
+///////////////////////////////////////////////////////////////////////////
+
 
 void DevManager::onDevices(const QJsonObject &jobj)
 {
@@ -19,7 +28,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
 
         // mark devices that is in our list and present also in chirpstack
         // and send delete request to chirpstack to devices that are not in our list
-        for( auto jsonElement: array ) {
+        for( const auto& jsonElement: array ) {
             QJsonObject jobj = jsonElement.toObject();
             QString devEUI = jobj["devEui"].toString();
 
@@ -55,13 +64,13 @@ void DevManager::onDevices(const QJsonObject &jobj)
             mApiRest->addDevice( jobj["name"].toString(),
                                 jobj["deviceProfileId"].toString(),
                                 jobj["devEui"].toString(),
-                                jobj["joinEui"].toString(),
-                                jobj["applicationKey"].toString() );
+                                jobj["address"].toString() );
         }
 
-        qInfo() << "Sync devices first stage done! Adding:" << mAddingDevicesCount
-                 << "Deleting:" << mDeletingDevicesCount
-                 << "Skipped:" << mSkippedDevicesCount;
+        qInfo() << "Sync devices first stage finished!";
+        qInfo() << "Adding:" << mAddingDevicesCount;
+        qInfo() << "Deleting:" << mDeletingDevicesCount;
+        qInfo() << "Skipped:" << mSkippedDevicesCount;
 
     }
 }
@@ -71,9 +80,44 @@ void DevManager::onDeviceAdd(const QString &devEUI)
     qInfo() << "Device" << devEUI << "added to Chirpstack.";
     mAddedDevicesCount ++;
     if( mAddedDevicesCount == mAddingDevicesCount ) {
-        qInfo() << "Adding" << mAddedDevicesCount << "devices done!";
+        qInfo() << "Adding (ABP)" << mAddedDevicesCount << "devices done!";
     }
+
+    mApiRest->getDeviceAddress(devEUI);
 }
+
+
+// Obtain and store device addres and call activate device
+void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
+{
+    if( !mDevsMap.contains(devEUI) ) {
+        qWarning() << "Device" << devEUI << " is missing, but address obtained:" << devAddr;
+        return;
+    }
+
+    LoraDev* dev = gMainWindow->herd()->device(devEUI);
+
+    if( nullptr == dev) {
+        qWarning() << "Device" << devEUI << " missing in the herd";
+        return;
+    }
+
+    bool isOk = false;
+    uint32_t a = devAddr.toUInt(&isOk, 16);
+
+    if( !isOk) {
+        qWarning() << "Device" << devEUI << " address invalid number:" << devAddr;
+        return;
+    }
+
+    dev->setAddress(a);
+
+    qInfo() << "Device" << devEUI << " address obtained:" << devAddr;
+
+    mApiRest->activateDevice(devEUI, devAddr, dev->appKey().toHex());
+}
+
+
 
 void DevManager::onDeviceDel(const QString &devEUI)
 {
@@ -86,13 +130,13 @@ void DevManager::onDeviceDel(const QString &devEUI)
 
 }
 
-void DevManager::onDeviceConf(const QString &devEUI)
+void DevManager::onDeviceActivated(const QString &devEUI)
 {
-    qInfo() << "Device" << devEUI << "configured in Chirpstack.";
+    qInfo() << "Device" << devEUI << "activated.";
 
-    mConfiguredDevicesCount++;
-    if( mAddedDevicesCount == mConfiguredDevicesCount ) {
-        qInfo() << "Configuring" << mConfiguredDevicesCount << "devices done!";
+    mActivatedDevicesCount++;
+    if( mAddedDevicesCount == mActivatedDevicesCount ) {
+        qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
     }
 }
 
@@ -111,7 +155,7 @@ void DevManager::syncDevices(const QByteArray &jsonList)
     mAddedDevicesCount = 0;
     mSkippedDevicesCount = 0;
     mDeletedDevicesCount = 0;
-    mConfiguredDevicesCount = 0;
+    mActivatedDevicesCount = 0;
 
     mDevices = QJsonDocument::fromJson( jsonList ).array();
 
@@ -119,7 +163,7 @@ void DevManager::syncDevices(const QByteArray &jsonList)
 
     // Create a map with devices by their DevEUI
     int index = 0;
-    foreach( auto jsonElement, mDevices ) {
+    for( const auto& jsonElement: mDevices ) {
         QJsonObject jobj = jsonElement.toObject();
         QString key = jobj["devEui"].toString();
 
