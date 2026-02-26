@@ -112,6 +112,8 @@ public:
 
     QString jsonAnimalsList(bool isDevicesList);
 
+    void storeLists();
+
 signals:
 };
 

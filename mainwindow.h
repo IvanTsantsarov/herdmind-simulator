@@ -62,6 +62,7 @@ public:
     void onDeviceMsgClose();
     void setStatus(const QString& txt);
     void onDeviceMessage(const QString& devEUI, const QJsonObject &jobjResponse);
+    void onDevicesReady(bool isStore);
     inline DialogConsole* console(){ return mConsole; }
 
 protected:

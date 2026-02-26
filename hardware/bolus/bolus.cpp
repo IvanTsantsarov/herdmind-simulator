@@ -16,11 +16,10 @@
 
 Bolus::Bolus(   Animal *animal,
                 const QByteArray &devEUI,
-                const QByteArray &joinEUI,
                 const QByteArray& appKey)
     : LoraDev(QString("%1 Bolus").arg(animal->name()), LoraDev::Profile::Bolus,
               BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL,
-              devEUI, joinEUI, appKey ), mAnimal(animal)
+              devEUI, appKey ), mAnimal(animal)
 {
     init();
     mPackage.b = 100;

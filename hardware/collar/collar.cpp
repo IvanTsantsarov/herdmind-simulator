@@ -14,11 +14,10 @@
 
 Collar::Collar( Animal* animal,
                 const QByteArray &devEUI,
-                const QByteArray &joinEUI,
                 const QByteArray& appKey)
     : LoraDev(QString("%1 Collar").arg(animal->name()), LoraDev::Profile::Collar,
             COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-              devEUI, joinEUI, appKey), mAnimal(animal)
+              devEUI, appKey), mAnimal(animal)
 {
 }
 

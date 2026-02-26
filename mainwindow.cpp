@@ -376,6 +376,14 @@ void MainWindow::onDeviceMessage(const QString &devEUI, const QJsonObject &jobjR
     mDevMsg->onResponse(devEUI, jobjResponse);
 }
 
+// Called when all the devices are configured with addresses
+void MainWindow::onDevicesReady(bool isStore )
+{
+    if( isStore ) {
+        mHerd->storeLists();
+    }
+}
+
 void MainWindow::onError(const QString &err)
 {
     setStatus(err);

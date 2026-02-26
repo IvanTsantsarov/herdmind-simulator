@@ -54,7 +54,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
 
         // if all devices are skipped call onDevicesReady
         if( mSkippedDevicesCount == count ) {
-            onDevicesReady();
+            onDevicesReady(false);
             return;
         }
 
@@ -85,7 +85,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
 
 void DevManager::onDeviceAdd(const QString &devEUI)
 {
-    qInfo() << "Device" << devEUI << "added to Chirpstack.";
+    qInfo() << "Device" << devEUI << device(devEUI)->name() << "added to Chirpstack.";
     mAddedDevicesCount ++;
     if( mAddedDevicesCount == mAddingDevicesCount ) {
         qInfo() << "Adding (ABP)" << mAddedDevicesCount << "devices done!";
@@ -114,11 +114,11 @@ void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
     uint32_t a = devAddr.toUInt(&isOk, 16);
 
     if( !isOk) {
-        qWarning() << "Device" << devEUI << " address invalid number:" << devAddr;
+        qWarning() << "Device" << devEUI << device(devEUI)->name() << " address invalid number:" << devAddr << a;
         return;
     }
 
-    dev->setAddress(a);
+    dev->setAddress(QByteArray::fromHex( devAddr.toLatin1() ));
 
     qInfo() << "Device" << devEUI << " address obtained:" << devAddr;
 
@@ -138,12 +138,13 @@ void DevManager::onDeviceDel(const QString &devEUI)
 
 void DevManager::onDeviceActivated(const QString &devEUI)
 {
-    qInfo() << "Device" << devEUI << "activated.";
+    LoraDev* dev = device(devEUI);
+    qInfo() << "Device" << devEUI << dev->name() << "activated with address:" << dev->addr().toHex();
 
     mActivatedDevicesCount++;
     if( mAddedDevicesCount == mActivatedDevicesCount ) {
         qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
-        onDevicesReady();
+        onDevicesReady(true);
     }
 }
 
@@ -216,7 +217,8 @@ void DevManager::sendMessage(const QString &eui, const QByteArray &msg)
 }
 
 
-void DevManager::onDevicesReady()
+void DevManager::onDevicesReady(bool isStore)
 {
+    gMainWindow->onDevicesReady(isStore);
     gMainWindow->network()->edge()->start();
 }

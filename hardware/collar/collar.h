@@ -76,7 +76,6 @@ public:
 
     Collar(Animal* animal,
             const QByteArray &devEUI = QByteArray(),
-            const QByteArray &joinEUI = QByteArray(),
            const QByteArray& appKey = QByteArray() );
 
     inline quint32 addr() const { return mAddr; }

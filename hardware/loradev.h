@@ -30,13 +30,10 @@ private:
     static uint32_t NODE_ADDR;
 
     QByteArray mDevEUI; // build-in unique 8 bytes like MAC address (ex:0x1234567890AAAAAA)
-    QByteArray mJoinEUI; // build-in unique 8 bytes like MAC address for connecting only
     QByteArray mAppKey; // application id is from chirpstack after creating new application
 
-    uint32_t mDevAddr = 0; // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
-
-    QByteArray mAppSKey;
-    QByteArray mNwkSKey;
+    // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
+    QByteArray mDevAddr, mDevAddrRev;
 
     uint32_t mFCnt = 0;
 
@@ -67,25 +64,24 @@ protected:
 
 public:
     inline QByteArray eui(){ return mDevEUI; };
-    inline uint32_t addr(){ return mDevAddr; };
+    inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
     inline QByteArray appKey(){ return mAppKey; }
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
-    inline void setAddress(uint32_t a){ mDevAddr = a; }
+    void setAddress(const QByteArray& ba);;
     inline void setGateway(Gateway* gw){ mGateway = gw; }
 
     LoraDev( const QString& name,
             Profile profile,
             int updateInterval, int sendInterval,
             const QByteArray &devEUI = QByteArray(),
-            const QByteArray &joinEUI = QByteArray(),
             const QByteArray& appKey = QByteArray() );
 
     void setKeys(const QString &devEUI,
-                 const QString &joinEUI,
+                 const QString &devAddr,
                  const QString &appKey );
 
     bool setFromJson(const QJsonObject &jobj );

@@ -179,10 +179,6 @@ bool Herd::generate(int count,
         mCollars.append(animal);
     }
 
-    // If cannot load params from animals list - save animals list
-    gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
-    gSimTools->fileWrite(DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true);
-
     return true;
 }
 
@@ -467,4 +463,13 @@ QString Herd::jsonAnimalsList( bool isDevicesList )
     result.append("]");
 
     return result;
+}
+
+void Herd::storeLists()
+{
+    // If cannot load params from animals list - save animals list
+    gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
+    gSimTools->fileWrite(DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true);
+    qInfo() << "Animals and devices lists stored.";
+
 }

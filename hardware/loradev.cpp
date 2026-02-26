@@ -16,14 +16,12 @@ LoraDev::LoraDev(const QString &name,
                  int updateInterval,
                  int sendInterval,
                  const QByteArray& devEUI,
-                 const QByteArray &joinEUI,
                  const QByteArray& appKey )
     : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
 {
     mName = name;
     mProfile = profile;
     mDevEUI = devEUI.size() ? devEUI : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
-    mJoinEUI = joinEUI.size() ? joinEUI : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
     mAppKey = appKey.size() ? appKey : QByteArray::fromHex( SimTools::genAesKey() );
 
     QTimer delayTimer;
@@ -31,24 +29,24 @@ LoraDev::LoraDev(const QString &name,
 }
 
 void LoraDev::setKeys(const QString &devEUI,
-                      const QString &joinEUI,
+                      const QString &devAddr,
                       const QString &appKey)
 {
     mDevEUI = QByteArray::fromHex( devEUI.toLatin1() );
-    mJoinEUI = QByteArray::fromHex( joinEUI.toLatin1() );
+    setAddress( QByteArray::fromHex( devAddr.toLatin1()) );
     mAppKey = QByteArray::fromHex( appKey.toLatin1() );
 }
 
 bool LoraDev::setFromJson(const QJsonObject &jobj)
 {
     if( !jobj.contains("devEui") ||
-        !jobj.contains("joinEui") ||
+        !jobj.contains("devAddr") ||
         !jobj.contains("applicationKey") ) {
         return false;
     }
 
     setKeys( jobj["devEui"].toString(),
-             jobj["joinEui"].toString(),
+             jobj["devAddr"].toString(),
              jobj["applicationKey"].toString() );
 
     return true;
@@ -67,22 +65,22 @@ QString LoraDev::jsonInfo(const QString& animalName)
 {
     if( !animalName.length() ) {
         return QString( "{ \"devEui\":\"%1\","
-                        "\"joinEui\":\"%2\","
+                        "\"devAddr\":\"%2\","
                         "\"applicationKey\":\"%3\" }" )
             .arg(mDevEUI.toHex())
-            .arg(mJoinEUI.toHex())
+            .arg(mDevAddr.toHex())
             .arg(mAppKey.toHex());
     }
 
     return QString( "{ \"name\":\"%1\","
                    "\"devEui\":\"%2\","
-                   "\"joinEui\":\"%3\","
+                   "\"devAddr\":\"%3\","
                    "\"applicationId\":\"%4\","
                    "\"deviceProfileId\":\"%5\","
                    "\"applicationKey\":\"%6\" }" )
         .arg(mName)
         .arg(mDevEUI.toHex())
-        .arg(mJoinEUI.toHex())
+        .arg(mDevAddr.toHex())
         .arg(gSimTools->appId())
         .arg(gSimTools->profileId(mProfile))
         .arg(mAppKey.toHex());
@@ -131,12 +129,12 @@ QByteArray LoraDev::encryptPayload(const QByteArray& payload )
         Ai[0] = 0x01;         // encryption flags
         Ai[5] = 0x00;         // Dir = uplink
 
-        memcpy(Ai.data() + 6, &mDevAddr, 4);
+        memcpy(Ai.data() + 6, mDevAddrRev.constData(), 4);
         memcpy(Ai.data() + 10, &mFCnt, 4);
 
         Ai[15] = i + 1;
 
-        QByteArray Si = SimTools::encryptAES( Ai, mAppSKey );
+        QByteArray Si = SimTools::encryptAES( Ai, mAppKey );
 
         for (int j = 0; j < 16; j++) {
             int index = i * 16 + j;
@@ -156,18 +154,17 @@ QByteArray LoraDev::calculateMIC( const QByteArray& msg )
     B0[0] = 0x49;
     B0[5] = 0x00; // uplink
 
-    memcpy(B0.data() + 6, &mDevAddr, 4);
+    memcpy(B0.data() + 6, mDevAddrRev.constData(), 4);
     memcpy(B0.data() + 10, &mFCnt, 4);
 
-    B0[15] = msg.size();
+    B0[15] = static_cast<quint8>(msg.size());
 
     QByteArray cmacInput = B0 + msg;
 
-    QByteArray fullCmac = SimTools::aesCmac( cmacInput, mNwkSKey );
+    QByteArray fullCmac = SimTools::aesCmac( cmacInput, mAppKey );
 
     return fullCmac.left(4);
 }
-
 
 bool LoraDev::sendSimulate(const QByteArray& data)
 {
@@ -176,7 +173,9 @@ bool LoraDev::sendSimulate(const QByteArray& data)
     QByteArray phy;
 
     phy.append((quint8)0x40);  // MHDR
-    phy.append(reinterpret_cast<char*>(&mDevAddr), 4);
+
+    phy.append(mDevAddrRev);
+
     phy.append((quint8)0x00);  // FCtrl
 
     quint16 fCnt16 = mFCnt & 0xFFFF;
@@ -195,6 +194,15 @@ bool LoraDev::sendSimulate(const QByteArray& data)
     }
 
     return false;
+}
+
+void LoraDev::setAddress(const QByteArray &ba)
+{
+    mDevAddr = ba;
+    mDevAddrRev.reserve(ba.size());
+    for( auto i = 1; i <= ba.size(); i ++) {
+        mDevAddrRev.append( ba[ba.size() - i] );
+    }
 }
 
 #else

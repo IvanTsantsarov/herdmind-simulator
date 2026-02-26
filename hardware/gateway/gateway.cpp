@@ -99,12 +99,20 @@ bool Gateway::publish(const QByteArray &phyPayload)
     rx["gatewayId"] = mId;
     rx["rssi"] = -45;
     rx["snr"] = 5.5;
-
     root["rxInfo"] = rx;
 
     QJsonObject tx;
     tx["frequency"] = 868100000;
     tx["dr"] = 5;
+
+    QJsonObject txLora;
+    txLora["bandwidth"]= 125000;
+    txLora["spreadingFactor"] = 7;
+    txLora["codeRate"] = "CR_4_5";
+
+    QJsonObject txModulation;
+    txModulation["lora"] = txLora;
+    tx["modulation"] = txModulation;
 
     root["txInfo"] = tx;
 
