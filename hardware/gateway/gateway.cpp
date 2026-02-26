@@ -22,11 +22,12 @@ Gateway::Gateway(const QSettings &settings) :
     // mClient->setUsername("user");
     // mClient->setPassword("password");
 
-    connect(&mClient, &QMqttClient::connected, this, []() {
+    connect(&mClient, &QMqttClient::connected, this, [=]() {
         qInfo() << "MQTT connected";
+        // publishOnline();
     });
 
-    connect(&mClient, &QMqttClient::disconnected, this, []() {
+    connect(&mClient, &QMqttClient::disconnected, this, [=]() {
         qInfo() << "MQTT disconnected";
     });
 
@@ -44,6 +45,19 @@ void Gateway::start()
 {
     qInfo() << "Mqtt client connecting to" << mMqttAddr << ":" << mMqttPort << "...";
     mClient.connectToHost();
+}
+
+bool Gateway::publishOnline()
+{
+    QString topic = QString("eu868/gateway/%1/state/conn").arg(mId);
+
+    QJsonObject root;
+    root["state"] = "online";
+
+    QJsonDocument doc(root);
+    mClient.publish(topic, doc.toJson(QJsonDocument::Compact));
+
+    return true;
 }
 
 
@@ -76,20 +90,17 @@ bool Gateway::publish(const QByteArray &phyPayload)
     QJsonObject root;
 
     // Base64 encode
-    QString base64 =
-        phyPayload.toBase64();
+    QString base64 = phyPayload.toBase64();
 
     root["phyPayload"] = base64;
 
-    QJsonArray rxArray;
     QJsonObject rx;
 
     rx["gatewayId"] = mId;
     rx["rssi"] = -45;
     rx["snr"] = 5.5;
 
-    rxArray.append(rx);
-    root["rxInfo"] = rxArray;
+    root["rxInfo"] = rx;
 
     QJsonObject tx;
     tx["frequency"] = 868100000;
@@ -103,6 +114,7 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
     return true;
 }
+
 void Gateway::onStopSending()
 {
     mIsSending = false;
@@ -117,12 +129,12 @@ void Gateway::onMessageReceived(const QByteArray &message,
     qDebug() << "Payload:" << message;
 
     QJsonDocument doc = QJsonDocument::fromJson(message);
-    QString base64 = doc["data"].toString();
+    QJsonObject obj = doc.object();
+
+    QString base64 = obj["phyPayload"].toString();
     QByteArray raw = QByteArray::fromBase64(base64.toUtf8());
 
-    qDebug() << "Payload decoded:" << message;
-    qDebug() << "Payload topic:" << topic.name();
-
+    qDebug() << "Decoded PHYPayload:" << raw.toHex();
     // If JSON:
     // QJsonDocument doc = QJsonDocument::fromJson(message);
 }

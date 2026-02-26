@@ -2,5 +2,11 @@
     <qresource prefix="/">
         <file>gegga_logo.png</file>
         <file>settings.ini</file>
+        <file>icon-light-off.svg</file>
+        <file>icon-light-on.svg</file>
+        <file>icon-shock-off.svg</file>
+        <file>icon-shock-on.svg</file>
+        <file>icon-sound-off.svg</file>
+        <file>icon-sound-on.svg</file>
     </qresource>
 </RCC>

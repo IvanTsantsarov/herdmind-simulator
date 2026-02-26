@@ -35,12 +35,12 @@ void DevManager::onDevices(const QJsonObject &jobj)
             QJsonObject jobj = jsonElement.toObject();
             QString devEUI = jobj["devEui"].toString();
 
-            if( mDevsMap.contains(devEUI) ) {
+            if( mDevsMapJson.contains(devEUI) ) {
                 mSkippedDevicesCount ++;
-                mDevsMap[devEUI].mIsMissing = false;
+                mDevsMapJson[devEUI].mIsMissing = false;
                 // if the device is already in the chirpstack, mark it as present
-                int index = mDevsMap[devEUI].mIndex;
-                QJsonObject jobjInternal = mDevices[index].toObject();
+                int index = mDevsMapJson[devEUI].mIndex;
+                QJsonObject jobjInternal = mDevicesJson[index].toObject();
                 qInfo() << devEUI << jobjInternal["name"].toString() << "presented";
                 continue;
             }
@@ -61,12 +61,12 @@ void DevManager::onDevices(const QJsonObject &jobj)
         qInfo() << "Adding devices to chirpstack...";
 
         // add mising devices
-        foreach(const DevsMapValue& val, mDevsMap) {
+        foreach(const DevsMapValue& val, mDevsMapJson) {
             if( !val.mIsMissing) {
                 continue;
             }
 
-            QJsonObject jobj = mDevices[val.mIndex].toObject();
+            QJsonObject jobj = mDevicesJson[val.mIndex].toObject();
             mAddingDevicesCount ++;
 
             mApiRest->addDevice( jobj["name"].toString(),
@@ -98,12 +98,12 @@ void DevManager::onDeviceAdd(const QString &devEUI)
 // Obtain and store device addres and call activate device
 void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
 {
-    if( !mDevsMap.contains(devEUI) ) {
+    if( !mDevsMapJson.contains(devEUI) ) {
         qWarning() << "Device" << devEUI << " is missing, but address obtained:" << devAddr;
         return;
     }
 
-    LoraDev* dev = gMainWindow->herd()->device(devEUI);
+    LoraDev* dev = device(devEUI);
 
     if( nullptr == dev) {
         qWarning() << "Device" << devEUI << " missing in the herd";
@@ -155,7 +155,7 @@ DevManager::DevManager(const QSettings &settings)
     mApiRest = new ApiRest(this, settings);
 }
 
-void DevManager::syncDevices(const QByteArray &jsonList)
+void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs, Gateway* edge )
 {
     mAddingDevicesCount = 0;
     mDeletingDevicesCount = 0;
@@ -164,24 +164,55 @@ void DevManager::syncDevices(const QByteArray &jsonList)
     mDeletedDevicesCount = 0;
     mActivatedDevicesCount = 0;
 
-    mDevices = QJsonDocument::fromJson( jsonList ).array();
+    mDevicesJson = QJsonDocument::fromJson( jsonList ).array();
 
-    mDevsMap.clear();
+    mDevsMapJson.clear();
+
+    mDevices.clear();
+    for( LoraDev* dev: devs) {
+        mDevices[dev->eui().toHex()] = dev;
+        dev->setGateway(edge);
+    }
 
     // Create a map with devices by their DevEUI
     int index = 0;
-    for( const auto& jsonElement: mDevices ) {
+    for( const auto& jsonElement: mDevicesJson ) {
         QJsonObject jobj = jsonElement.toObject();
         QString key = jobj["devEui"].toString();
 
         DevsMapValue val;
         val.mIndex = index ++;
 
-        mDevsMap[key] = val;
+        mDevsMapJson[key] = val;
     }
 
     mState = States::GetDevicesCount;
     mApiRest->getDevices();
+}
+
+
+LoraDev *DevManager::device(const QString &devEUI)
+{
+    if( !mDevices.contains(devEUI) ) {
+        return nullptr;
+    }
+
+    return mDevices[devEUI];
+}
+
+QString DevManager::deviceName(const QString &eui)
+{
+    LoraDev* dev = device(eui);
+    if( dev ) {
+        return dev->name();
+    }
+
+    return QString();
+}
+
+void DevManager::sendMessage(const QString &eui, const QByteArray &msg)
+{
+    mApiRest->sendDeviceMessage(eui, msg);
 }
 
 

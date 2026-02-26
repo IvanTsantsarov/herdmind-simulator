@@ -78,4 +78,11 @@ void ApiRest::onGetDeviceAddress(QJsonObject &jobj)
     mDevManager->onDeviceAddress(devEUI, address);
 }
 
+void ApiRest::onDeviceMessageResponse(QJsonObject &jobj)
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString devEUI = reply->property("devEUI").toString();
+    gMainWindow->onDeviceMessage(devEUI, jobj);
+}
+
 

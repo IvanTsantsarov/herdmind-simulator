@@ -131,6 +131,23 @@ void ApiRest::activateDevice(const QString &devEUI, const QString &devAddr, cons
     reply->setProperty("devEUI", devEUI);
 }
 
+void ApiRest::sendDeviceMessage(const QString &devEUI, const QByteArray &msg)
+{
+    QString data = QString(
+    "{"
+    "\"queueItem\": {"
+        "\"confirmed\": false,"
+        "\"data\": \"%1\","
+        "\"fPort\": %2"
+        "}")
+    .arg(msg.toBase64())
+    .arg(LORA_FPORT);
+
+    QNetworkReply* reply = post(QString("devices/%1/queue").arg(devEUI),
+                                RequestType::SendDeviceMessage );
+    reply->setProperty("devEUI", devEUI);
+}
+
 void ApiRest::getDevices(int count)
 {
     QUrlQuery query;

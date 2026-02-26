@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include "dialogconsole.h"
+#include "dialogdevicemsg.h"
 #include "mainwindow.h"
 #include "focusanim.h"
 #include "ui_mainwindow.h"
@@ -28,7 +29,6 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     gMainWindow = this;
 
     ui->setupUi(this);
-
 
     // create scene
     mScene = new Scene(this);
@@ -115,8 +115,9 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
         ui->btnLoad->setEnabled(false);
     }
 
-
     mDevManager = new DevManager(settings);
+
+    mDevMsg = new DialogDeviceMsg(mDevManager, this);
 }
 
 MainWindow::~MainWindow()
@@ -168,6 +169,10 @@ void MainWindow::create(bool isLoad)
 
     }
 
+    mNetwork = new Network( mSettings, ui->spinGateways->value(),  ui->doubleSpinArea->value());
+
+    mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() );
+
     // Generate meadow
     mMeadow = new Meadow(QPoint(0, 0),
                          QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
@@ -176,7 +181,7 @@ void MainWindow::create(bool isLoad)
                          ui->spinAnimalsPerLawn->value()
                          );
 
-    mNetwork = new Network( mSettings, ui->spinGateways->value(),  ui->doubleSpinArea->value());
+
 
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,
@@ -231,7 +236,7 @@ void MainWindow::create(bool isLoad)
     ui->checkShepard->setEnabled(true);
     ui->checkRecursiveCollision->setEnabled(true);
 
-    mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8() );
+    mDevMsg->updateDevices();
 }
 
 void MainWindow::onUpdate()
@@ -366,6 +371,11 @@ void MainWindow::setStatus(const QString &txt)
     statusBar()->showMessage(txt);
 }
 
+void MainWindow::onDeviceMessage(const QString &devEUI, const QJsonObject &jobjResponse)
+{
+    mDevMsg->onResponse(devEUI, jobjResponse);
+}
+
 void MainWindow::onError(const QString &err)
 {
     setStatus(err);
@@ -374,6 +384,11 @@ void MainWindow::onError(const QString &err)
 void MainWindow::onConsoleClose()
 {
     ui->actionConsole->setChecked(false);
+}
+
+void MainWindow::onDeviceMsgClose()
+{
+    ui->actionDeviceMsg->setChecked(false);
 }
 
 void MainWindow::on_btnLoad_clicked()
@@ -385,5 +400,11 @@ void MainWindow::on_btnLoad_clicked()
 void MainWindow::on_actionConsole_toggled(bool arg1)
 {
     mConsole->setVisible(arg1);
+}
+
+
+void MainWindow::on_actionDeviceMsg_toggled(bool arg1)
+{
+    mDevMsg->setVisible(arg1);
 }
 

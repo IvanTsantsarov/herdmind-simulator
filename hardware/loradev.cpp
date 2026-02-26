@@ -13,8 +13,10 @@ uint32_t LoraDev::NODE_ADDR = 1000;
 
 LoraDev::LoraDev(const QString &name,
                  Profile profile,
-                 int updateInterval, int sendInterval,
-                 const QByteArray& devEUI, const QByteArray &joinEUI,
+                 int updateInterval,
+                 int sendInterval,
+                 const QByteArray& devEUI,
+                 const QByteArray &joinEUI,
                  const QByteArray& appKey )
     : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
 {
@@ -72,20 +74,18 @@ QString LoraDev::jsonInfo(const QString& animalName)
             .arg(mAppKey.toHex());
     }
 
-    return QString( "{ \"name\":\"%1 %2\","
-                   "\"devEui\":\"%3\","
-                   "\"joinEui\":\"%4\","
-                   "\"applicationId\":\"%5\","
-                   "\"deviceProfileId\":\"%6\","
-                   "\"applicationKey\":\"%7\" }" )
-        .arg(animalName)
+    return QString( "{ \"name\":\"%1\","
+                   "\"devEui\":\"%2\","
+                   "\"joinEui\":\"%3\","
+                   "\"applicationId\":\"%4\","
+                   "\"deviceProfileId\":\"%5\","
+                   "\"applicationKey\":\"%6\" }" )
         .arg(mName)
         .arg(mDevEUI.toHex())
         .arg(mJoinEUI.toHex())
         .arg(gSimTools->appId())
         .arg(gSimTools->profileId(mProfile))
         .arg(mAppKey.toHex());
-
 }
 
 
@@ -112,6 +112,10 @@ void LoraDev::sendPackage(void *package, int size)
 {
     mSendingMsec = SIMNODE_SENDING_DURATION;
     mReadings ++;
+#ifdef SIMULATION
+    sendSimulate( QByteArray(static_cast<char*>(package), size) );
+#else
+#endif
 }
 
 
@@ -178,14 +182,14 @@ bool LoraDev::sendSimulate(const QByteArray& data)
     quint16 fCnt16 = mFCnt & 0xFFFF;
     phy.append(reinterpret_cast<char*>(&fCnt16), 2);
 
-    phy.append((quint8)1);     // FPort
+    phy.append((quint8)LORA_FPORT);     // FPort
     phy.append(encrypted);
 
     QByteArray mic = calculateMIC(phy);
 
     phy.append(mic);
 
-    if( mGateway->publish(phy) ) {
+    if( mGateway && mGateway->publish(phy) ) {
         mFCnt ++;
         return true;
     }

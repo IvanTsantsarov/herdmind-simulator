@@ -123,9 +123,11 @@ public:
     Animal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity );
     ~Animal();
 
+    inline const QString& name(){return mName; }
     inline QVector2D& p(){ return mPosition; }
     inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
     inline QVector2D& v(){ return mVelocity; }
+
     float distanceSq(Animal* other);
     void updateRunning(const QVector2D &p,
                float attractionPower,

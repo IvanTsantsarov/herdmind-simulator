@@ -6,7 +6,8 @@
 
 
 class ApiRest;
-class Herd;
+class LoraDev;
+class Gateway;
 
 class DevManager
 {
@@ -22,18 +23,11 @@ class DevManager
 
     ApiRest* mApiRest = nullptr;
 
+    QMap<QString, LoraDev*> mDevices;
 
     // array of saved devices in the device.json
     // from previous generation here in the simulator
-    QJsonArray mDevices;
-
-    int mAddingDevicesCount = 0;
-    int mDeletingDevicesCount = 0;
-    int mAddedDevicesCount = 0;
-    int mSkippedDevicesCount = 0;
-    int mDeletedDevicesCount = 0;
-    int mActivatedDevicesCount = 0;
-
+    QJsonArray mDevicesJson;
 
     struct DevsMapValue {
         int mIndex;
@@ -41,7 +35,14 @@ class DevManager
     };
 
     // int is an index in mDevices json array
-    QMap<QString, DevsMapValue> mDevsMap;
+    QMap<QString, DevsMapValue> mDevsMapJson;
+
+    int mAddingDevicesCount = 0;
+    int mDeletingDevicesCount = 0;
+    int mAddedDevicesCount = 0;
+    int mSkippedDevicesCount = 0;
+    int mDeletedDevicesCount = 0;
+    int mActivatedDevicesCount = 0;
 
 protected:
     void onDevices(const QJsonObject &jobj);
@@ -54,7 +55,11 @@ protected:
 public:
     DevManager( const QSettings& settings );
 
-    void syncDevices(const QByteArray &jsonList);
+    void syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
+    LoraDev* device(const QString& eui);
+    QString deviceName(const QString& eui);
+    QList<QString> devices(){ return mDevices.keys(); }
+    void sendMessage(const QString& eui, const QByteArray& msg);
 };
 
 #endif // DEVMANAGER_H

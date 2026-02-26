@@ -10,6 +10,7 @@ class Animal;
 class Gateway;
 
 #define EUI_BYTES_LEN 8
+#define LORA_FPORT 1
 
 class LoraDev : public QObject
 {
@@ -40,7 +41,6 @@ private:
     uint32_t mFCnt = 0;
 
     uint16_t mDevNonce = 1;
-
 
     uint32_t mUpdateInterval = 0;
     uint32_t mSendInterval = 0;
@@ -75,6 +75,7 @@ public:
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
     inline void setAddress(uint32_t a){ mDevAddr = a; }
+    inline void setGateway(Gateway* gw){ mGateway = gw; }
 
     LoraDev( const QString& name,
             Profile profile,
@@ -89,7 +90,6 @@ public:
 
     bool setFromJson(const QJsonObject &jobj );
 
-    void setGateway(Gateway* gw){ mGateway = gw; }
 
     // inline QByteArray key(){ return mAppKey; };
 

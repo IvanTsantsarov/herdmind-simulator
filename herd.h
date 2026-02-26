@@ -32,8 +32,8 @@ public:
     bool mIsEnabledGrazing = true;
     bool mIsEnabledHerding = true;
 
-    QMap<QString, LoraDev*> mDevices;
-    void gatherDevices();
+
+    QList<LoraDev*> gatherDevices();
 
 
 private:
@@ -111,7 +111,6 @@ public:
     QPointF shepherdPos();
 
     QString jsonAnimalsList(bool isDevicesList);
-    LoraDev* device(const QString& devEUI);
 
 signals:
 };

@@ -30,6 +30,7 @@ SOURCES += \
     apirest_response.cpp \
     devmanager.cpp \
     dialogconsole.cpp \
+    dialogdevicemsg.cpp \
     focusanim.cpp \
     grpc.cpp \
     hardware/bolus/accel.cpp \
@@ -54,6 +55,7 @@ HEADERS += \
     defines_settings.h \
     devmanager.h \
     dialogconsole.h \
+    dialogdevicemsg.h \
     focusanim.h \
     grpc.h \
     hardware/bolus/accel.h \
@@ -76,6 +78,7 @@ HEADERS += \
 
 FORMS += \
     dialogconsole.ui \
+    dialogdevicemsg.ui \
     focusanim.ui \
     mainwindow.ui
 

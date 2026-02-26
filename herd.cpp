@@ -14,17 +14,21 @@
 
 #define ANIMAL_MIN_DISTANCE 0.2
 
-void Herd::gatherDevices()
+QList<LoraDev *> Herd::gatherDevices()
 {
+    QList<LoraDev*> ls;
+
     foreach(Animal* a, mAnimals) {
         if( a->hasBolus() ) {
-            mDevices[ a->bolus()->eui().toHex() ] = a->bolus();
+            ls.append(a->bolus());
+
         }
         if( a->hasCollar() ) {
-            mDevices[ a->collar()->eui().toHex() ] = a->collar();
+            ls.append(a->collar());
         }
     }
 
+    return ls;
 }
 
 void Herd::clear()
@@ -35,7 +39,6 @@ void Herd::clear()
     mAnimals.clear();
     mCollars.clear();
     mPairsBC.clear();
-    mDevices.clear();
 }
 
 Herd::Herd(QObject *parent)
@@ -90,8 +93,6 @@ bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, floa
         mAnimals.append(animal);
     }
 
-    gatherDevices();
-
     return true;
 }
 
@@ -106,8 +107,6 @@ float Herd::beforeGeneration( int areaDimeter, float animalSize )
     mAnimalHalfSizeSquared = mAnimalSize * mAnimalSize * 0.25f;
     float areaRadius = areaDimeter * 0.5;
     mShepherd = new Shepherd(0.001f, areaRadius);
-
-
 
     return areaRadius;
 }
@@ -179,8 +178,6 @@ bool Herd::generate(int count,
         animal->putCollar();
         mCollars.append(animal);
     }
-
-    gatherDevices();
 
     // If cannot load params from animals list - save animals list
     gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
@@ -364,14 +361,6 @@ void Herd::update( quint64 millissec,
     mLastUpdateMsec = mMSec;
 }
 
-LoraDev *Herd::device(const QString &devEUI)
-{
-    if( !mDevices.contains(devEUI) ) {
-        return nullptr;
-    }
-
-    return mDevices[devEUI];
-}
 
 QPointF Herd::shepherdPos()
 {

@@ -22,11 +22,6 @@ DialogConsole::DialogConsole(const QSettings& settings, QWidget *parent)
     ui->setupUi(this);
     ui->out->setReadOnly(true);
 
-    Qt::WindowFlags flags = windowFlags();
-    Qt::WindowFlags closeFlag = Qt::WindowCloseButtonHint;
-    flags = flags & (~closeFlag);
-    setWindowFlags(flags);
-
     mColorBack    = QColor(settings.value("Console/ColorBack").toString());
     mColorDebug   = QColor(settings.value("Console/ColorDebug").toString());
     mColorInfo    = QColor(settings.value("Console/ColorInfo").toString());

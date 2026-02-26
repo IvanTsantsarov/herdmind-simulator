@@ -26,6 +26,7 @@ class Gateway : public QObject {
 
     QString mMqttAddr;
     quint16 mMqttPort = 0;
+    quint16 mFPort = 0;
     QString mId;
 
     QTimer mPullTimer;
@@ -115,6 +116,7 @@ public:
     Gateway(const QSettings &settings);
     inline bool hasSim(){ return mHasSIM; }
     void process();
+    bool publishOnline();
 
 #ifdef  SIMULATION
     QPointF mPos;
@@ -129,6 +131,7 @@ public:
     inline bool isSending(){ return mIsSending; }
 signals:
     void downlinkReceived(const QByteArray& response);
+
 protected slots:
     void onStopSending();
     void onMessageReceived(const QByteArray &message,

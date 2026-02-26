@@ -26,7 +26,8 @@ class ApiRest : public QObject
         DeleteDevice,
         AddDevice,
         ActivateDevice,
-        GetDeviceAddress
+        GetDeviceAddress,
+        SendDeviceMessage
     };
 
     QString mApiUrl, mApiKey, mAppId;
@@ -48,6 +49,7 @@ class ApiRest : public QObject
     void onAddDeviceResponse(QJsonObject& jobj);
     void onActivateResponse(QJsonObject& jobj);
     void onGetDeviceAddress(QJsonObject& jobj);
+    void onDeviceMessageResponse(QJsonObject& jobj);
 
 
 private slots:
@@ -67,6 +69,8 @@ public:
 
     void getDeviceAddress(const QString& devEUI);
     void activateDevice(const QString &devEUI, const QString &devAddr, const QString& appSKey);
+
+    void sendDeviceMessage(const QString& devEUI, const QByteArray& msg);
 
 };
 

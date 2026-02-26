@@ -22,6 +22,7 @@ class SimTools;
 class ApiRest;
 class DevManager;
 class DialogConsole;
+class DialogDeviceMsg;
 
 class MainWindow : public QMainWindow
 {
@@ -40,6 +41,7 @@ class MainWindow : public QMainWindow
     DevManager* mDevManager = nullptr;
 
     DialogConsole* mConsole = nullptr;
+    DialogDeviceMsg* mDevMsg = nullptr;
 
     const QSettings &mSettings;
     void create(bool isLoad);
@@ -57,7 +59,9 @@ public:
 
     void onError(const QString &err);
     void onConsoleClose();
+    void onDeviceMsgClose();
     void setStatus(const QString& txt);
+    void onDeviceMessage(const QString& devEUI, const QJsonObject &jobjResponse);
     inline DialogConsole* console(){ return mConsole; }
 
 protected:
@@ -76,6 +80,7 @@ private slots:
     void onConnectReminger();
     void on_btnLoad_clicked();
     void on_actionConsole_toggled(bool arg1);
+    void on_actionDeviceMsg_toggled(bool arg1);
 };
 
 extern MainWindow* gMainWindow;
