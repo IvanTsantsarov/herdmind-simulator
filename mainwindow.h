@@ -46,6 +46,8 @@ class MainWindow : public QMainWindow
     const QSettings &mSettings;
     void create(bool isLoad);
 
+    void closeEvent(QCloseEvent* e);
+
 public:
     MainWindow(const QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();

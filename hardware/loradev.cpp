@@ -87,6 +87,7 @@ QString LoraDev::jsonInfo(const QString& animalName)
 }
 
 
+
 void LoraDev::onTimerStart()
 {
     connect( &mTimerUpdate, &QTimer::timeout, this, &LoraDev::onTimerUpdate );
@@ -117,7 +118,8 @@ void LoraDev::sendPackage(void *package, int size)
 }
 
 
-QByteArray LoraDev::encryptPayload(const QByteArray& payload )
+QByteArray LoraDev::cryptPayload(const QByteArray& payload,
+                                 quint32 frameCounter,bool isDownlink)
 {
     QByteArray encrypted = payload;
     int blocks = (payload.size() + 15) / 16;
@@ -127,10 +129,10 @@ QByteArray LoraDev::encryptPayload(const QByteArray& payload )
         QByteArray Ai(16, 0x00);
 
         Ai[0] = 0x01;         // encryption flags
-        Ai[5] = 0x00;         // Dir = uplink
+        Ai[5] = isDownlink ? 0x01 : 0x00;         // Dir = uplink
 
         memcpy(Ai.data() + 6, mDevAddrRev.constData(), 4);
-        memcpy(Ai.data() + 10, &mFCnt, 4);
+        memcpy(Ai.data() + 10, &frameCounter, 4);
 
         Ai[15] = i + 1;
 
@@ -168,7 +170,7 @@ QByteArray LoraDev::calculateMIC( const QByteArray& msg )
 
 bool LoraDev::sendSimulate(const QByteArray& data)
 {
-    QByteArray encrypted = encryptPayload( data );
+    QByteArray encrypted = cryptPayload( data, mFCnt, false );
 
     QByteArray phy;
 
@@ -204,6 +206,51 @@ void LoraDev::setAddress(const QByteArray &ba)
         mDevAddrRev.append( ba[ba.size() - i] );
     }
 }
+
+void LoraDev::setGateway(Gateway *gw)
+{
+    mGateway = gw;
+    connect(mGateway, &Gateway::downlinkReceived, this, &LoraDev::onDownlink );
+}
+
+void LoraDev::onDownlink(const QByteArray& phy)
+{
+    if( phy.size() < 12 )
+        return;
+
+    // quint8 mhdr = phy[0];
+
+    const QByteArray devAddr = phy.mid(1, 4);
+
+    if( devAddr != mDevAddrRev ) {
+        // not for this device
+        return;
+    }
+
+    // quint8 fCtrl = phy[5];
+
+    quint16 fCnt16 = *reinterpret_cast<const quint16*>(phy.constData() + 6);
+    quint32 fCnt32 = static_cast<quint32>(fCnt16);
+
+    // quint8 fPort = phy[8];
+
+    QByteArray frmPayload = phy.mid(9, phy.size() - 9 - 4);
+    QByteArray mic = phy.right(4);
+
+    // TODO: validate MIC using NwkSKey (same logic but Dir = 1)
+
+    // Decrypt using AppSKey
+    QByteArray decrypted = cryptPayload( frmPayload, fCnt32, true );
+
+    onDownlinkDecrypted(decrypted);
+}
+
+
+void LoraDev::onDownlinkDecrypted(const QByteArray &content)
+{
+    qInfo() << "Device" << mName << "received" << content;
+}
+
 
 #else
 

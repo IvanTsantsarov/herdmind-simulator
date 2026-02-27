@@ -101,7 +101,7 @@ void DialogDeviceMsg::onResponse(const QString &devEUI, const QJsonObject &jobjR
 void DialogDeviceMsg::on_btnSendLight_clicked()
 {
     QString eui = currentEUI();
-    QString msg = QString("Lights on %1").arg(mDevManager->deviceName(eui));
+    QString msg = QString("Lights ON");
     mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
 }
 
@@ -109,7 +109,7 @@ void DialogDeviceMsg::on_btnSendLight_clicked()
 void DialogDeviceMsg::on_btnSendSound_clicked()
 {
     QString eui = currentEUI();
-    QString msg = QString("Sound on %1").arg(mDevManager->deviceName(eui));
+    QString msg = QString("Sound ON");
     mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
 }
 
@@ -117,7 +117,7 @@ void DialogDeviceMsg::on_btnSendSound_clicked()
 void DialogDeviceMsg::on_btnSendShock_clicked()
 {
     QString eui = currentEUI();
-    QString msg = QString("Shock on %1").arg(mDevManager->deviceName(eui));
+    QString msg = QString("Shock ON");
     mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
 }
 

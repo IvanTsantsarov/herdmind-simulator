@@ -43,7 +43,8 @@ private:
     uint32_t mSendInterval = 0;
     uint32_t mSendingDelay = 0;
 
-    QByteArray encryptPayload(const QByteArray& payload);
+    QByteArray cryptPayload(const QByteArray& payload,
+                            quint32 frameCounter,bool isDownlink);
 
     // Message Integrity Code
     QByteArray calculateMIC( const QByteArray& data );
@@ -51,6 +52,7 @@ private:
     QByteArray buildPHYPayload(QByteArray frmPayload,
                                quint32 devAddr);
 
+    void onDownlinkDecrypted(const QByteArray &content);
 
     QTimer mTimerUpdate;
     int mSendingMsec = 0;
@@ -72,7 +74,7 @@ public:
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
     void setAddress(const QByteArray& ba);;
-    inline void setGateway(Gateway* gw){ mGateway = gw; }
+    void setGateway(Gateway* gw);
 
     LoraDev( const QString& name,
             Profile profile,
@@ -102,13 +104,12 @@ public:
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());
 
-    bool processJoinAccept(const QByteArray& phyPayload);
-
-
 private slots:
     void onTimerStart();
     void onTimerUpdate();
-private:
+    void onDownlink(const QByteArray& phy);
+
+
 };
 
 #else

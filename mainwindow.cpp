@@ -118,12 +118,26 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     mDevManager = new DevManager(settings);
 
     mDevMsg = new DialogDeviceMsg(mDevManager, this);
+
+    if( settings.value("GUI/isConsole").toBool() ) {
+        ui->actionConsole->setChecked(true);
+    }
+
+    if( settings.value("GUI/isDeviceMsg").toBool() ) {
+        ui->actionDeviceMsg->setChecked(true);
+    }
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::closeEvent(QCloseEvent *e)
+{
+
+}
+
 
 void MainWindow::create(bool isLoad)
 {
@@ -238,6 +252,7 @@ void MainWindow::create(bool isLoad)
 
     mDevMsg->updateDevices();
 }
+
 
 void MainWindow::onUpdate()
 {

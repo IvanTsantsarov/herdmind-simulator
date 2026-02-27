@@ -24,7 +24,8 @@ Gateway::Gateway(const QSettings &settings) :
 
     connect(&mClient, &QMqttClient::connected, this, [=]() {
         qInfo() << "MQTT connected";
-        // publishOnline();
+        publishOnline();
+        subscribe("command/down");
     });
 
     connect(&mClient, &QMqttClient::disconnected, this, [=]() {
@@ -63,7 +64,9 @@ bool Gateway::publishOnline()
 
 void Gateway::subscribe(const QString &topic)
 {
-    auto subscription = mClient.subscribe(topic, 0);
+    QString fullTopic = QString("eu868/gateway/%1/%2").arg(mId).arg(topic);
+
+    auto subscription = mClient.subscribe(fullTopic, 0);
 
     if (!subscription)
         qCritical() << "Mqtt subscription failed";
@@ -132,19 +135,26 @@ void Gateway::onStopSending()
 void Gateway::onMessageReceived(const QByteArray &message,
                                const QMqttTopicName &topic)
 {
-    qDebug() << "Message received!";
-    qDebug() << "Topic:" << topic.name();
-    qDebug() << "Payload:" << message;
-
     QJsonDocument doc = QJsonDocument::fromJson(message);
     QJsonObject obj = doc.object();
 
-    QString base64 = obj["phyPayload"].toString();
-    QByteArray raw = QByteArray::fromBase64(base64.toUtf8());
+    qDebug() << "Gateway received:" << topic.name() << doc.toJson();
 
-    qDebug() << "Decoded PHYPayload:" << raw.toHex();
-    // If JSON:
-    // QJsonDocument doc = QJsonDocument::fromJson(message);
+    QJsonArray payloads = obj["items"].toArray();
+
+    if( payloads.isEmpty() ) {
+        qInfo() << "Payload is empty";
+    }else {
+        for( auto payload: payloads) {
+            QJsonObject jobj = payload.toObject();
+            QString base64 = jobj["phyPayload"].toString();
+            QByteArray raw = QByteArray::fromBase64(base64.toUtf8());
+            qDebug() << "Payload:" << raw;
+
+            // send it to all devices
+            emit downlinkReceived(raw);
+        }
+    }
 }
 
 #else
