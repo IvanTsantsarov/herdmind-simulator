@@ -7,8 +7,10 @@
 #ifdef SIMULATION
 
 #define SIMNODE_SENDING_DURATION 2000
+#define FCtrl_ACK_bit (1 << 5)
 
 uint32_t LoraDev::NODE_ADDR = 1000;
+
 
 
 LoraDev::LoraDev(const QString &name,
@@ -16,13 +18,16 @@ LoraDev::LoraDev(const QString &name,
                  int updateInterval,
                  int sendInterval,
                  const QByteArray& devEUI,
-                 const QByteArray& appKey )
+                 const QByteArray& aSKey,
+                 const QByteArray& nSKey
+                  )
     : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
 {
     mName = name;
     mProfile = profile;
     mDevEUI = devEUI.size() ? devEUI : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
-    mAppKey = appKey.size() ? appKey : QByteArray::fromHex( SimTools::genAesKey() );
+    mAppSKey = aSKey.size() ? aSKey : QByteArray::fromHex( SimTools::genAesKey() );
+    mNwkSKey = nSKey.size() ? nSKey : QByteArray::fromHex( SimTools::genAesKey() );
 
     QTimer delayTimer;
     delayTimer.singleShot( Tools::rnd(0, sendInterval), this, &LoraDev::onTimerStart );
@@ -30,24 +35,28 @@ LoraDev::LoraDev(const QString &name,
 
 void LoraDev::setKeys(const QString &devEUI,
                       const QString &devAddr,
-                      const QString &appKey)
+                      const QString &aSKey,
+                      const QString &nSKey)
 {
     mDevEUI = QByteArray::fromHex( devEUI.toLatin1() );
     setAddress( QByteArray::fromHex( devAddr.toLatin1()) );
-    mAppKey = QByteArray::fromHex( appKey.toLatin1() );
+    mAppSKey = QByteArray::fromHex( aSKey.toLatin1() );
+    mNwkSKey = QByteArray::fromHex( nSKey.toLatin1() );
 }
 
 bool LoraDev::setFromJson(const QJsonObject &jobj)
 {
     if( !jobj.contains("devEui") ||
         !jobj.contains("devAddr") ||
-        !jobj.contains("applicationKey") ) {
+        !jobj.contains("appSKey")  ||
+        !jobj.contains("nwkSKey")) {
         return false;
     }
 
     setKeys( jobj["devEui"].toString(),
              jobj["devAddr"].toString(),
-             jobj["applicationKey"].toString() );
+             jobj["appSKey"].toString(),
+             jobj["nwkSKey"].toString() );
 
     return true;
 }
@@ -66,10 +75,12 @@ QString LoraDev::jsonInfo(const QString& animalName)
     if( !animalName.length() ) {
         return QString( "{ \"devEui\":\"%1\","
                         "\"devAddr\":\"%2\","
-                        "\"applicationKey\":\"%3\" }" )
+                        "\"appSKey\":\"%3\","
+                        "\"nwkSKey\":\"%4\" }" )
             .arg(mDevEUI.toHex())
             .arg(mDevAddr.toHex())
-            .arg(mAppKey.toHex());
+            .arg(mAppSKey.toHex())
+            .arg(mNwkSKey.toHex());
     }
 
     return QString( "{ \"name\":\"%1\","
@@ -77,13 +88,15 @@ QString LoraDev::jsonInfo(const QString& animalName)
                    "\"devAddr\":\"%3\","
                    "\"applicationId\":\"%4\","
                    "\"deviceProfileId\":\"%5\","
-                   "\"applicationKey\":\"%6\" }" )
+                   "\"appSKey\":\"%6\","
+                   "\"nwkSKey\":\"%7\" }" )
         .arg(mName)
         .arg(mDevEUI.toHex())
         .arg(mDevAddr.toHex())
         .arg(gSimTools->appId())
         .arg(gSimTools->profileId(mProfile))
-        .arg(mAppKey.toHex());
+        .arg(mAppSKey.toHex())
+        .arg(mNwkSKey.toHex());
 }
 
 
@@ -112,14 +125,15 @@ void LoraDev::sendPackage(void *package, int size)
     mSendingMsec = SIMNODE_SENDING_DURATION;
     mReadings ++;
 #ifdef SIMULATION
-    sendSimulate( QByteArray(static_cast<char*>(package), size) );
+    uplink( QByteArray(static_cast<char*>(package), size) );
 #else
 #endif
 }
 
 
 QByteArray LoraDev::cryptPayload(const QByteArray& payload,
-                                 quint32 frameCounter,bool isDownlink)
+                                 bool isDownlink,
+                                 bool isMacCommand)
 {
     QByteArray encrypted = payload;
     int blocks = (payload.size() + 15) / 16;
@@ -132,11 +146,18 @@ QByteArray LoraDev::cryptPayload(const QByteArray& payload,
         Ai[5] = isDownlink ? 0x01 : 0x00;         // Dir = uplink
 
         memcpy(Ai.data() + 6, mDevAddrRev.constData(), 4);
-        memcpy(Ai.data() + 10, &frameCounter, 4);
+
+        quint32 frameCounter = isDownlink ? mFCntDown : mFCntUp;
+
+        // for sure on non x86 architecture
+        Ai[10] = frameCounter & 0xFF;
+        Ai[11] = (frameCounter >> 8) & 0xFF;
+        Ai[12] = (frameCounter >> 16) & 0xFF;
+        Ai[13] = (frameCounter >> 24) & 0xFF;
 
         Ai[15] = i + 1;
 
-        QByteArray Si = SimTools::encryptAES( Ai, mAppKey );
+        QByteArray Si = SimTools::encryptAES( Ai, isMacCommand ? mNwkSKey : mAppSKey );
 
         for (int j = 0; j < 16; j++) {
             int index = i * 16 + j;
@@ -149,28 +170,34 @@ QByteArray LoraDev::cryptPayload(const QByteArray& payload,
 }
 
 
-QByteArray LoraDev::calculateMIC( const QByteArray& msg )
+QByteArray LoraDev::calculateMIC(const QByteArray& msg, quint32 fCnt,
+                                 bool isDownlink )
 {
     QByteArray B0(16, 0x00);
 
     B0[0] = 0x49;
-    B0[5] = 0x00; // uplink
+    B0[5] = isDownlink ? 0x01 : 0x00; // uplink
 
     memcpy(B0.data() + 6, mDevAddrRev.constData(), 4);
-    memcpy(B0.data() + 10, &mFCnt, 4);
+
+
+    B0[10] = fCnt & 0xFF;
+    B0[11] = (fCnt >> 8) & 0xFF;
+    B0[12] = (fCnt >> 16) & 0xFF;
+    B0[13] = (fCnt >> 24) & 0xFF;
 
     B0[15] = static_cast<quint8>(msg.size());
 
     QByteArray cmacInput = B0 + msg;
 
-    QByteArray fullCmac = SimTools::aesCmac( cmacInput, mAppKey );
+    QByteArray fullCmac = SimTools::aesCmac( cmacInput, mNwkSKey );
 
     return fullCmac.left(4);
 }
 
-bool LoraDev::sendSimulate(const QByteArray& data)
+bool LoraDev::uplink(const QByteArray& data)
 {
-    QByteArray encrypted = cryptPayload( data, mFCnt, false );
+    QByteArray encrypted = cryptPayload( data, false );
 
     QByteArray phy;
 
@@ -178,22 +205,25 @@ bool LoraDev::sendSimulate(const QByteArray& data)
 
     phy.append(mDevAddrRev);
 
-    phy.append((quint8)0x00);  // FCtrl
+    phy.append(mIsUplinkReceived ? (quint8)FCtrl_ACK_bit : (quint8)0x00);  // FCtrl
 
-    quint16 fCnt16 = mFCnt & 0xFFFF;
-    phy.append(reinterpret_cast<char*>(&fCnt16), 2);
+    quint16 fCnt16 = mFCntUp & 0xFFFF;
+    phy.append(static_cast<char>(fCnt16 & 0xFF));
+    phy.append(static_cast<char>((fCnt16 >> 8) & 0xFF));
 
     phy.append((quint8)LORA_FPORT);     // FPort
     phy.append(encrypted);
 
-    QByteArray mic = calculateMIC(phy);
+    QByteArray mic = calculateMIC(phy, mFCntUp, false);
 
     phy.append(mic);
 
     if( mGateway && mGateway->publish(phy) ) {
-        mFCnt ++;
+        mFCntUp ++;
         return true;
+        mIsUplinkReceived = false;
     }
+
 
     return false;
 }
@@ -218,7 +248,7 @@ void LoraDev::onDownlink(const QByteArray& phy)
     if( phy.size() < 12 )
         return;
 
-    // quint8 mhdr = phy[0];
+    quint8 mhdr = phy[0];
 
     const QByteArray devAddr = phy.mid(1, 4);
 
@@ -227,22 +257,54 @@ void LoraDev::onDownlink(const QByteArray& phy)
         return;
     }
 
-    // quint8 fCtrl = phy[5];
+    quint8 fCtrl = phy[5];
 
-    quint16 fCnt16 = *reinterpret_cast<const quint16*>(phy.constData() + 6);
-    quint32 fCnt32 = static_cast<quint32>(fCnt16);
+    if( fCtrl & FCtrl_ACK_bit ) {
+        mIsUplinkReceived = true;
+    }
 
-    // quint8 fPort = phy[8];
+    quint16 fCnt16 =
+        static_cast<quint8>(phy[6]) |
+        (static_cast<quint8>(phy[7]) << 8);
+    quint32 fCnt32 = fCnt16;
 
-    QByteArray frmPayload = phy.mid(9, phy.size() - 9 - 4);
+    quint8 fOptsLen = fCtrl & 0x0F;
+
+    int fPortIndex = 8 + fOptsLen;
+    quint8 fPort = phy[fPortIndex];
+
+    QByteArray frmPayload =
+        phy.mid(fPortIndex + 1,
+                phy.size() - (fPortIndex + 1) - 4);
+
+
+    bool isMacCommand = false;
+    if( 0 == fPort ) {
+        isMacCommand = true;
+        qInfo() << "MAC command for device" << mName << mDevAddr.toHex();
+        // ignore MAC command
+        // return;
+    }
+
+
     QByteArray mic = phy.right(4);
 
-    // TODO: validate MIC using NwkSKey (same logic but Dir = 1)
+    QByteArray calculated =
+        calculateMIC(phy.left(phy.size() - 4), fCnt32, true);
+
+    if (calculated != mic)
+    {
+        qWarning() << "Invalid downlink MIC for" << mName << mDevAddr.toHex();
+        return;
+    }
+
 
     // Decrypt using AppSKey
-    QByteArray decrypted = cryptPayload( frmPayload, fCnt32, true );
+    QByteArray decrypted = cryptPayload( frmPayload, true, isMacCommand );
 
-    onDownlinkDecrypted(decrypted);
+    mFCntDown = fCnt32 + 1;
+
+    onDownlinkDecrypted( isMacCommand ? decrypted.toHex() : decrypted );
 }
 
 

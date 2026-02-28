@@ -122,7 +122,7 @@ void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
 
     qInfo() << "Device" << devEUI << " address obtained:" << devAddr;
 
-    mApiRest->activateDevice(devEUI, devAddr, dev->appKey().toHex());
+    mApiRest->activateDevice(devEUI, devAddr, dev->appSKey().toHex(), dev->nwkSKey().toHex());
 }
 
 void DevManager::onDeviceDel(const QString &devEUI)

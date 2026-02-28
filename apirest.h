@@ -68,7 +68,10 @@ public:
                    const QString &appKey);
 
     void getDeviceAddress(const QString& devEUI);
-    void activateDevice(const QString &devEUI, const QString &devAddr, const QString& appSKey);
+    void activateDevice(const QString &devEUI,
+                        const QString &devAddr,
+                        const QString& appSKey,
+                        const QString &nwkSKey);
 
     void sendDeviceMessage(const QString& devEUI, const QByteArray& msg);
 

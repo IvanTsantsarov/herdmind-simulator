@@ -110,7 +110,10 @@ void ApiRest::addDevice(const QString& name,
 
 
 // Activation By Personalization (static)
-void ApiRest::activateDevice(const QString &devEUI, const QString &devAddr, const QString &appSKey)
+void ApiRest::activateDevice(const QString &devEUI,
+                             const QString &devAddr,
+                             const QString &appSKey,
+                             const QString &nwkSKey)
 {
     QString data = QString(
                        "{"
@@ -118,16 +121,17 @@ void ApiRest::activateDevice(const QString &devEUI, const QString &devAddr, cons
                        "\"devEui\": \"%1\","
                        "\"devAddr\": \"%2\","
                        "\"appSKey\": \"%3\","
-                       "\"nwkSEncKey\": \"%3\","
-                       "\"sNwkSIntKey\": \"%3\","
-                       "\"fNwkSIntKey\": \"%3\","
+                       "\"nwkSEncKey\": \"%4\","
+                       "\"sNwkSIntKey\": \"%4\","
+                       "\"fNwkSIntKey\": \"%4\","
                        "\"fCntUp\": 0,"
                        "\"nFCntDown\": 0,"
                        "\"aFCntDown\": 0"
                        "}}" )
                        .arg(devEUI)
                        .arg(devAddr)
-                       .arg(appSKey);
+                       .arg(appSKey)
+                       .arg(nwkSKey);
 
     QNetworkReply* reply = post(QString("devices/%1/activate").arg(devEUI),
                                 RequestType::ActivateDevice, data.toUtf8() );
@@ -138,7 +142,7 @@ void ApiRest::sendDeviceMessage(const QString &devEUI, const QByteArray &msg)
 {
     QString data = QString(
     "{\"queueItem\": {"
-        "\"confirmed\": false,"
+        "\"confirmed\": true,"
         "\"data\": \"%1\","
         "\"fPort\": %2"
         "} }")

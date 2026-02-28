@@ -66,12 +66,38 @@ void Gateway::subscribe(const QString &topic)
 {
     QString fullTopic = QString("eu868/gateway/%1/%2").arg(mId).arg(topic);
 
-    auto subscription = mClient.subscribe(fullTopic, 0);
+    QMqttSubscription* subscription = mClient.subscribe(fullTopic, 0);
+
+    mSubscribtions.append(subscription);
 
     if (!subscription)
         qCritical() << "Mqtt subscription failed";
     else
-        qInfo() << "Mqtt Subscribed to" << topic;
+        qInfo() << "Mqtt subscribtion sended..." << topic;
+
+
+    // Connect to subscription stateChanged signal
+    connect(subscription, &QMqttSubscription::stateChanged, this, [subscription](QMqttSubscription::SubscriptionState state){
+        switch(state) {
+        case QMqttSubscription::Unsubscribed:
+            qInfo() << "Subscription is unsubscribed";
+            break;
+        case QMqttSubscription::Subscribed:
+            qInfo() << "Subscription is active";
+            break;
+        case QMqttSubscription::Error:
+            qWarning() << "Subscription error:" << subscription->reason();
+            break;
+        default:
+            qInfo() << "Subscription pending...";
+            break;
+        }
+    });
+
+    // Connect to messages for this subscription
+    connect(subscription, &QMqttSubscription::messageReceived, this, [=](const QMqttMessage &msg){
+        qDebug() << "Gateway message on topic" << msg.topic() << "payload size" << msg.payload().size() << msg.payload();
+    });
 }
 
 
@@ -98,10 +124,10 @@ bool Gateway::publish(const QByteArray &phyPayload)
     root["phyPayload"] = base64;
 
     QJsonObject rx;
-
     rx["gatewayId"] = mId;
     rx["rssi"] = -45;
     rx["snr"] = 5.5;
+
     root["rxInfo"] = rx;
 
     QJsonObject tx;

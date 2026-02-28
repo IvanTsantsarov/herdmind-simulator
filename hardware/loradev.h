@@ -30,12 +30,14 @@ private:
     static uint32_t NODE_ADDR;
 
     QByteArray mDevEUI; // build-in unique 8 bytes like MAC address (ex:0x1234567890AAAAAA)
-    QByteArray mAppKey; // application id is from chirpstack after creating new application
+    QByteArray mNwkSKey;
+    QByteArray mAppSKey;
 
     // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
     QByteArray mDevAddr, mDevAddrRev;
 
-    uint32_t mFCnt = 0;
+    uint32_t mFCntUp = 0;
+    uint32_t mFCntDown = 0;
 
     uint16_t mDevNonce = 1;
 
@@ -44,10 +46,11 @@ private:
     uint32_t mSendingDelay = 0;
 
     QByteArray cryptPayload(const QByteArray& payload,
-                            quint32 frameCounter,bool isDownlink);
+                            bool isDownlink,
+                            bool isMacCommand = false);
 
     // Message Integrity Code
-    QByteArray calculateMIC( const QByteArray& data );
+    QByteArray calculateMIC(const QByteArray& data, quint32 fCnt, bool isDownlink);
 
     QByteArray buildPHYPayload(QByteArray frmPayload,
                                quint32 devAddr);
@@ -58,10 +61,13 @@ private:
     int mSendingMsec = 0;
     int mReadings = 0;
 
+    bool mIsUplinkReceived = false;
+
     Gateway* mGateway = nullptr;
 protected:
 
-    bool sendSimulate(const QByteArray& data);
+    // send to the chirpstack
+    bool uplink(const QByteArray& data);
 
 
 public:
@@ -69,7 +75,8 @@ public:
     inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
-    inline QByteArray appKey(){ return mAppKey; }
+    inline QByteArray appSKey(){ return mAppSKey; }
+    inline QByteArray nwkSKey(){ return mNwkSKey; }
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
@@ -80,11 +87,12 @@ public:
             Profile profile,
             int updateInterval, int sendInterval,
             const QByteArray &devEUI = QByteArray(),
-            const QByteArray& appKey = QByteArray() );
+            const QByteArray& aSKey = QByteArray(),
+            const QByteArray& nSKey = QByteArray() );
 
     void setKeys(const QString &devEUI,
                  const QString &devAddr,
-                 const QString &appKey );
+                 const QString &aSKey , const QString &nSKey);
 
     bool setFromJson(const QJsonObject &jobj );
 

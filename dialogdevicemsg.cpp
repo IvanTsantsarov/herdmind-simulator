@@ -14,6 +14,7 @@
 
 void DialogDeviceMsg::closeEvent(QCloseEvent *e)
 {
+    Q_UNUSED(e);
     gMainWindow->onDeviceMsgClose();
 }
 
@@ -94,8 +95,7 @@ QString DialogDeviceMsg::getSelectedDeviceEUI()
 void DialogDeviceMsg::onResponse(const QString &devEUI, const QJsonObject &jobjResponse)
 {
     QJsonDocument Doc(jobjResponse);
-    QByteArray ba = Doc.toJson();
-    ui->editResponse->appendPlainText(ba);
+    ui->editResponse->appendPlainText(QString("%1|%2").arg(devEUI).arg(Doc.toJson()));
 }
 
 void DialogDeviceMsg::on_btnSendLight_clicked()

@@ -32,8 +32,10 @@ class Gateway : public QObject {
     QTimer mPullTimer;
 
     QMqttClient mClient;
+    QList<QMqttSubscription*> mSubscribtions;
 
     void sendPullData();
+
 
 #else
 class Gateway

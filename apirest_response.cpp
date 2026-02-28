@@ -37,6 +37,8 @@ void ApiRest::onResponse()
         case RequestType::AddDevice: onAddDeviceResponse(json); break;
         case RequestType::GetDeviceAddress: onGetDeviceAddress(json); break;
         case RequestType::ActivateDevice: onActivateResponse(json); break;
+        case RequestType::SendDeviceMessage: onDeviceMessageResponse(json); break;
+
         }
 }
 
