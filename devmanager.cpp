@@ -164,6 +164,8 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
     mSkippedDevicesCount = 0;
     mDeletedDevicesCount = 0;
     mActivatedDevicesCount = 0;
+    mCollarsCount = 0;
+    mBolusesCount = 0;
 
     mDevicesJson = QJsonDocument::fromJson( jsonList ).array();
 
@@ -173,6 +175,12 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
     for( LoraDev* dev: devs) {
         mDevices[dev->eui().toHex()] = dev;
         dev->setGateway(edge);
+        if( dev->isBolus() ) {
+            mBolusesCount++;
+        }else
+        if( dev->isCollar()) {
+            mCollarsCount++;
+        }
     }
 
     // Create a map with devices by their DevEUI

@@ -74,6 +74,8 @@ void DialogDeviceMsg::clearConnections()
     for(auto key: mDevsMap.keys()) {
         disconnect(mDevsMap[key].mConn);
     }
+
+    ui->tableDevices->clear();
 }
 
 
@@ -89,14 +91,35 @@ void DialogDeviceMsg::updateDevices()
     ui->tableDevices->setColumnCount(DLG_MSG_TABLE_COLS);
     ui->tableDevices->setRowCount(devices.count());
 
+    auto createItemButton = [=](int row, int column,
+                                const QIcon& icon,
+                                const QString& eui,
+                                const QByteArray& msg) {
+        // ui->tableDevices->setItem(row, column, new QTableWidgetItem(mIconSoundOff, ""));
+
+        QPushButton* btn = new QPushButton(this);
+        btn->setIcon(icon);
+        ui->tableDevices->setCellWidget(row, column, btn);
+
+        btn->setProperty("eui", eui);
+        btn->setProperty("msg", msg);
+
+        connect(btn, &QPushButton::clicked, this, &DialogDeviceMsg::onDeviceBtnClicked );
+    };
+
+
     int row = 0;
     for(const QString& eui : devices) {
-        ui->tableDevices->setItem(row, DLG_MSG_TABLE_SOUND_COL, new QTableWidgetItem(mIconSoundOff, ""));
-        ui->tableDevices->setItem(row, DLG_MSG_TABLE_LIGHT_COL, new QTableWidgetItem(mIconLightOff, ""));
-        ui->tableDevices->setItem(row, DLG_MSG_TABLE_SHOCK_COL, new QTableWidgetItem(mIconShockOff, ""));
+        LoraDev* dev = mDevManager->device(eui);
+
+        if( dev->isCollar() ) {
+            QString eui = dev->eui().toHex();
+            createItemButton( row, DLG_MSG_TABLE_LIGHT_COL, mIconLightOff, eui, MSG_LIGHT_ON );
+            createItemButton( row, DLG_MSG_TABLE_SOUND_COL, mIconSoundOff, eui, MSG_SOUND_ON );
+            createItemButton( row, DLG_MSG_TABLE_SHOCK_COL, mIconShockOff, eui, MSG_SHOCK_ON );
+        }
 
         DevCon con;
-        LoraDev* dev = mDevManager->device(eui);
         QTableWidgetItem* itemName = new QTableWidgetItem(dev->name());
         itemName->setToolTip(QString("0x%1 0x%2").arg(dev->addr().toHex()).arg(dev->eui().toHex()));
         itemName->setData(Qt::UserRole, eui);
@@ -105,7 +128,6 @@ void DialogDeviceMsg::updateDevices()
         con.mRow = row++;
         con.mConn = connect( dev, &LoraDev::messageReceived, this, &DialogDeviceMsg::onDeviceMessage );
         mDevsMap[dev->addr()] = con;
-
     }
 
     ui->tableDevices->resizeColumnsToContents();
@@ -157,8 +179,8 @@ bool DialogDeviceMsg::changeDeviceMsgIcon(int row, const QByteArray &msg, bool i
         return false;
     }
 
-    QTableWidgetItem* item = ui->tableDevices->item(row, col);
-    item->setIcon(icon);
+    QPushButton* btn = qobject_cast<QPushButton*>(ui->tableDevices->cellWidget(row, col));
+    btn->setIcon(icon);
     return true;
 }
 
@@ -179,28 +201,18 @@ void DialogDeviceMsg::onDeviceMessage(const QByteArray &addr, const QByteArray &
     });
 }
 
-void DialogDeviceMsg::on_btnSendLight_clicked()
+void DialogDeviceMsg::onDeviceBtnClicked()
 {
-    QString eui = currentEUI();
-    QString msg = QString(MSG_LIGHT_ON);
-    mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    if (!btn)
+        return;
+
+    QString eui = btn->property("eui").toString();
+    QByteArray msg = btn->property("msg").toByteArray();
+
+    mDevManager->sendMessage( eui, msg );
 }
 
-
-void DialogDeviceMsg::on_btnSendSound_clicked()
-{
-    QString eui = currentEUI();
-    QString msg = QString(MSG_SOUND_ON);
-    mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
-}
-
-
-void DialogDeviceMsg::on_btnSendShock_clicked()
-{
-    QString eui = currentEUI();
-    QString msg = QString(MSG_SHOCK_ON);
-    mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
-}
 
 
 void DialogDeviceMsg::on_tableDevices_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous)

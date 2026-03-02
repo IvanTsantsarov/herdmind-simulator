@@ -49,11 +49,7 @@ public:
     void onDeviceMessage(const QByteArray &addr, const QByteArray& msg);
 
 private slots:
-    void on_btnSendLight_clicked();
-
-    void on_btnSendSound_clicked();
-
-    void on_btnSendShock_clicked();
+    void onDeviceBtnClicked();
 
     void on_tableDevices_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
 

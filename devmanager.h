@@ -45,6 +45,9 @@ class DevManager
     int mActivatedDevicesCount = 0;
     bool mIsDevicesReady = false;
 
+    int mCollarsCount = 0;
+    int mBolusesCount = 0;
+
 protected:
     void onDevices(const QJsonObject &jobj);
     void onDeviceAdd(const QString& devEUI);
@@ -57,6 +60,8 @@ protected:
 public:
     DevManager( const QSettings& settings );
     inline bool isReady(){ return mIsDevicesReady; }
+    inline int collarsCount(){ return mCollarsCount; }
+    inline int bolusesCount(){ return mBolusesCount; }
     void syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);
