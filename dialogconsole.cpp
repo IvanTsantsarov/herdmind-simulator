@@ -4,10 +4,19 @@
 #include "dialogconsole.h"
 #include "ui_dialogconsole.h"
 
+
 void DialogConsole::appendText(const QString &msg, QColor col)
 {
-    ui->out->setTextColor(col);
-    ui->out->append(msg);
+    int len = msg.length();
+    if( len > CONSOLE_COLOR_STRING_LENGHT && '#' == msg[0] ) {
+        QString color = msg.left(CONSOLE_COLOR_STRING_LENGHT);
+        ui->out->setTextColor(color);
+        ui->out->append(msg.right(len - CONSOLE_COLOR_STRING_LENGHT));
+    }else {
+        ui->out->setTextColor(col);
+        ui->out->append(msg);
+    }
+
 }
 
 void DialogConsole::closeEvent(QCloseEvent *e)

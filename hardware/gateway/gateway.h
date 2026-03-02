@@ -131,6 +131,7 @@ public:
     void onSend();
 
     inline bool isSending(){ return mIsSending; }
+
 signals:
     void downlinkReceived(const QByteArray& response);
 

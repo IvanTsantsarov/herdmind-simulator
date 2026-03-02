@@ -40,25 +40,48 @@
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QPushButton" name="btnSendLight">
-         <property name="text">
-          <string>Light</string>
+        <widget class="QGroupBox" name="groupCollar">
+         <property name="enabled">
+          <bool>false</bool>
          </property>
+         <property name="title">
+          <string>Collar</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QPushButton" name="btnSendLight">
+              <property name="text">
+               <string>Light</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnSendSound">
+              <property name="text">
+               <string>Sound</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnSendShock">
+              <property name="text">
+               <string>Shock</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btnSendSound">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Sound</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnSendShock">
-         <property name="text">
-          <string>Shock</string>
+          <string>Response</string>
          </property>
         </widget>
        </item>

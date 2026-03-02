@@ -45,9 +45,9 @@ private:
     uint32_t mSendInterval = 0;
     uint32_t mSendingDelay = 0;
 
-    QByteArray cryptPayload(const QByteArray& payload,
+    QByteArray cryptPayload(const QByteArray& payload, quint32 frameCounter,
                             bool isDownlink,
-                            bool isMacCommand = false);
+                            bool isMacCommand );
 
     // Message Integrity Code
     QByteArray calculateMIC(const QByteArray& data, quint32 fCnt, bool isDownlink);
@@ -64,6 +64,9 @@ private:
     bool mIsUplinkReceived = false;
 
     Gateway* mGateway = nullptr;
+
+    QByteArray mPendingMacAns;   // bytes to send in next uplink as FOpts
+
 protected:
 
     // send to the chirpstack

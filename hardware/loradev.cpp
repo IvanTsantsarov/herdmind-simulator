@@ -132,6 +132,7 @@ void LoraDev::sendPackage(void *package, int size)
 
 
 QByteArray LoraDev::cryptPayload(const QByteArray& payload,
+                                 quint32 frameCounter,
                                  bool isDownlink,
                                  bool isMacCommand)
 {
@@ -147,7 +148,6 @@ QByteArray LoraDev::cryptPayload(const QByteArray& payload,
 
         memcpy(Ai.data() + 6, mDevAddrRev.constData(), 4);
 
-        quint32 frameCounter = isDownlink ? mFCntDown : mFCntUp;
 
         // for sure on non x86 architecture
         Ai[10] = frameCounter & 0xFF;
@@ -197,7 +197,7 @@ QByteArray LoraDev::calculateMIC(const QByteArray& msg, quint32 fCnt,
 
 bool LoraDev::uplink(const QByteArray& data)
 {
-    QByteArray encrypted = cryptPayload( data, false );
+    QByteArray encrypted = cryptPayload( data, mFCntUp, false, false );
 
     QByteArray phy;
 
@@ -220,10 +220,9 @@ bool LoraDev::uplink(const QByteArray& data)
 
     if( mGateway && mGateway->publish(phy) ) {
         mFCntUp ++;
-        return true;
         mIsUplinkReceived = false;
+        return true;
     }
-
 
     return false;
 }
@@ -245,19 +244,41 @@ void LoraDev::setGateway(Gateway *gw)
 
 void LoraDev::onDownlink(const QByteArray& phy)
 {
-    if( phy.size() < 12 )
+    if( phy.size() < 12 ) {
+        // Invalid phy
         return;
+    }
 
     quint8 mhdr = phy[0];
 
     const QByteArray devAddr = phy.mid(1, 4);
 
     if( devAddr != mDevAddrRev ) {
-        // not for this device
+        // Not for this device
         return;
     }
 
+    const int micLen = 4;
+    const int payloadLen = phy.size();
+
     quint8 fCtrl = phy[5];
+    quint8 fOptsLen = fCtrl & 0x0F;
+
+    // FHDR starts at 1:
+    // DevAddr(4) + FCtrl(1) + FCnt(2) = 7 bytes
+    // so FOpts starts at index 8
+    const int fOptsStart = 8;
+    const int fPortIndex = fOptsStart + fOptsLen;
+
+    // If there is no FRMPayload, then packet ends right after FHDR + MIC.
+    // That means fPortIndex points into MIC area, so there is no FPort.
+    const bool hasFPortAndFrmPayload = (fPortIndex < payloadLen - micLen);
+
+    if( !hasFPortAndFrmPayload ) {
+        qDebug() << "No payload for device:" << mName << mDevAddr.toHex();
+        return;
+    }
+
 
     if( fCtrl & FCtrl_ACK_bit ) {
         mIsUplinkReceived = true;
@@ -268,9 +289,6 @@ void LoraDev::onDownlink(const QByteArray& phy)
         (static_cast<quint8>(phy[7]) << 8);
     quint32 fCnt32 = fCnt16;
 
-    quint8 fOptsLen = fCtrl & 0x0F;
-
-    int fPortIndex = 8 + fOptsLen;
     quint8 fPort = phy[fPortIndex];
 
     QByteArray frmPayload =
@@ -281,7 +299,6 @@ void LoraDev::onDownlink(const QByteArray& phy)
     bool isMacCommand = false;
     if( 0 == fPort ) {
         isMacCommand = true;
-        qInfo() << "MAC command for device" << mName << mDevAddr.toHex();
         // ignore MAC command
         // return;
     }
@@ -300,7 +317,14 @@ void LoraDev::onDownlink(const QByteArray& phy)
 
 
     // Decrypt using AppSKey
-    QByteArray decrypted = cryptPayload( frmPayload, true, isMacCommand );
+    QByteArray decrypted = cryptPayload( frmPayload, fCnt32, true, isMacCommand );
+
+
+    if( isMacCommand ) {
+        qInfo() << "#4e693a" << "MAC command for device" << mName << mDevAddr.toHex() << decrypted.toHex();
+    }else {
+        qInfo() << "#7517c2" << "Device received:" << mName << decrypted;
+    }
 
     mFCntDown = fCnt32 + 1;
 
@@ -310,7 +334,7 @@ void LoraDev::onDownlink(const QByteArray& phy)
 
 void LoraDev::onDownlinkDecrypted(const QByteArray &content)
 {
-    qInfo() << "Device" << mName << "received" << content;
+
 }
 
 

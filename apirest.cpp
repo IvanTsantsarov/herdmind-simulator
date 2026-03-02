@@ -142,7 +142,7 @@ void ApiRest::sendDeviceMessage(const QString &devEUI, const QByteArray &msg)
 {
     QString data = QString(
     "{\"queueItem\": {"
-        "\"confirmed\": true,"
+        "\"confirmed\": false,"
         "\"data\": \"%1\","
         "\"fPort\": %2"
         "} }")

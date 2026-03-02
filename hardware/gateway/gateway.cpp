@@ -46,6 +46,29 @@ void Gateway::start()
 {
     qInfo() << "Mqtt client connecting to" << mMqttAddr << ":" << mMqttPort << "...";
     mClient.connectToHost();
+
+    // Periodically send "connected" state so ChirpStack sees the gateway
+    QTimer* heartbeat = new QTimer(this);
+    connect(heartbeat, &QTimer::timeout, this, [this]() {
+        publishOnline();
+
+        const QString topic = QString("eu868/gateway/%1/event/stats").arg(mId);
+
+        QJsonObject st;
+        st["gatewayId"] = mId;  // MUST be gatewayId
+        st["time"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+
+        // Minimal counters (camelCase)
+        st["rxPacketsReceived"] = 0;
+        st["rxPacketsReceivedOk"] = 0;
+        st["txPacketsReceived"] = 0;
+        st["txPacketsEmitted"] = 0;
+
+        const QByteArray payload = QJsonDocument(st).toJson(QJsonDocument::Compact);
+        mClient.publish(topic, payload, 0, false);
+
+    });
+    heartbeat->start(10000); // every 10 seconds
 }
 
 bool Gateway::publishOnline()
@@ -53,7 +76,7 @@ bool Gateway::publishOnline()
     QString topic = QString("eu868/gateway/%1/state/conn").arg(mId);
 
     QJsonObject root;
-    root["state"] = "online";
+    root["state"] = "connected";
 
     QJsonDocument doc(root);
     mClient.publish(topic, doc.toJson(QJsonDocument::Compact));
@@ -93,19 +116,21 @@ void Gateway::subscribe(const QString &topic)
             break;
         }
     });
-
+/*
     // Connect to messages for this subscription
     connect(subscription, &QMqttSubscription::messageReceived, this, [=](const QMqttMessage &msg){
-        qDebug() << "Gateway message on topic" << msg.topic() << "payload size" << msg.payload().size() << msg.payload();
+        qInfo() << "Gateway message on topic" << msg.topic() << "payload size";
+        onMessageReceived(msg.payload(), msg.topic());
     });
+*/
 }
 
 
+// Ensure subscription is always active
 void Gateway::onUpdate()
 {
-    process();
+    process(); // existing logic
 }
-
 void Gateway::onSend()
 {
 
@@ -123,10 +148,19 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
     root["phyPayload"] = base64;
 
+
     QJsonObject rx;
     rx["gatewayId"] = mId;
     rx["rssi"] = -45;
     rx["snr"] = 5.5;
+
+    // rxInfo.context must be bytes (base64 in JSON)
+    // any stable-ish blob is fine for simulation
+    QString ctx = QString("%1").arg(QRandomGenerator::global()->generate());
+    rx["context"] = QString(ctx.toLatin1().toBase64());
+    quint32 uplinkId32 = QRandomGenerator::global()->bounded(1u, 0xFFFFFFFFu);
+    rx["uplinkId"] = QJsonValue(static_cast<qint64>(uplinkId32));
+    rx["crcStatus"] = "CRC_OK";
 
     root["rxInfo"] = rx;
 
@@ -138,6 +172,7 @@ bool Gateway::publish(const QByteArray &phyPayload)
     txLora["bandwidth"]= 125000;
     txLora["spreadingFactor"] = 7;
     txLora["codeRate"] = "CR_4_5";
+    txLora["polarizationInversion"]=true;
 
     QJsonObject txModulation;
     txModulation["lora"] = txLora;
@@ -147,7 +182,8 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
     QJsonDocument doc(root);
 
-    mClient.publish( topic, doc.toJson(QJsonDocument::Compact) );
+    QByteArray jsonBA = doc.toJson(QJsonDocument::Compact);
+    mClient.publish( topic, jsonBA );
 
     return true;
 }
@@ -158,31 +194,68 @@ void Gateway::onStopSending()
 }
 
 
-void Gateway::onMessageReceived(const QByteArray &message,
-                               const QMqttTopicName &topic)
-{
-    QJsonDocument doc = QJsonDocument::fromJson(message);
-    QJsonObject obj = doc.object();
+static int parseDelayMs(const QJsonObject& item) {
+    const QJsonObject txInfo = item.value("txInfo").toObject();
+    const QJsonObject timing = txInfo.value("timing").toObject();
+    const QJsonObject delayObj = timing.value("delay").toObject();
+    const QString delayStr = delayObj.value("delay").toString(); // "1s"
 
-    qDebug() << "Gateway received:" << topic.name() << doc.toJson();
-
-    QJsonArray payloads = obj["items"].toArray();
-
-    if( payloads.isEmpty() ) {
-        qInfo() << "Payload is empty";
-    }else {
-        for( auto payload: payloads) {
-            QJsonObject jobj = payload.toObject();
-            QString base64 = jobj["phyPayload"].toString();
-            QByteArray raw = QByteArray::fromBase64(base64.toUtf8());
-            qDebug() << "Payload:" << raw;
-
-            // send it to all devices
-            emit downlinkReceived(raw);
-        }
+    if (delayStr.endsWith("ms")) {
+        bool ok=false; int v = delayStr.left(delayStr.size()-2).toInt(&ok);
+        return ok ? v : 0;
     }
+    if (delayStr.endsWith("s")) {
+        bool ok=false; int v = delayStr.left(delayStr.size()-1).toInt(&ok);
+        return ok ? v*1000 : 0;
+    }
+    return 0;
 }
 
+void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
+{
+    const QJsonDocument doc = QJsonDocument::fromJson(message);
+    const QJsonObject obj = doc.object();
+
+    if (!topic.name().endsWith("/command/down"))
+        return;
+
+    const QJsonValue downlinkIdVal = obj.value("downlinkId");
+    const QJsonArray items = obj.value("items").toArray();
+    if (downlinkIdVal.isUndefined() || items.isEmpty())
+        return;
+
+    const int chosenIndex = 0; // RX1
+    const QJsonObject chosenItem = items.at(chosenIndex).toObject();
+    const int delayMs = parseDelayMs(chosenItem);
+
+    const QString phyB64 = chosenItem.value("phyPayload").toString();
+    const QByteArray raw = QByteArray::fromBase64(phyB64.toUtf8());
+
+    QTimer::singleShot(delayMs, this, [=]() {
+
+        // 1) "Transmit" to device (simulation)
+        emit downlinkReceived(raw);
+
+        // 2) Publish ACK *after* transmit attempt
+        QJsonObject ack;
+        ack["gatewayId"] = mId;
+        ack["downlinkId"] = downlinkIdVal;
+
+        QJsonArray ackItems;
+        for (int i = 0; i < items.size(); i++) {
+            QJsonObject st;
+            if (i == chosenIndex) st["status"] = "OK";
+            ackItems.append(st);
+        }
+        ack["items"] = ackItems;
+
+        const QString ackTopic = QString("eu868/gateway/%1/event/ack").arg(mId);
+        mClient.publish(ackTopic,
+                        QJsonDocument(ack).toJson(QJsonDocument::Compact),
+                        /*qos*/ 1,
+                        /*retain*/ false);
+    });
+}
 #else
 
 

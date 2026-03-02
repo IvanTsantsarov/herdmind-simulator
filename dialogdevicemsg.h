@@ -6,6 +6,7 @@
 
 class LoraDev;
 class DevManager;
+class QTableWidgetItem;
 
 namespace Ui {
 class DialogDeviceMsg;
@@ -26,6 +27,8 @@ class DialogDeviceMsg : public QDialog
 
     void closeEvent(QCloseEvent* e);
     QString currentEUI();
+
+    LoraDev* deviceByRow(int row);
 public:
     explicit DialogDeviceMsg(DevManager *devManager, QWidget *parent = nullptr);
     ~DialogDeviceMsg();
@@ -39,6 +42,8 @@ private slots:
     void on_btnSendSound_clicked();
 
     void on_btnSendShock_clicked();
+
+    void on_tableDevices_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
 
 private:
     Ui::DialogDeviceMsg *ui;

@@ -4,6 +4,8 @@
 #include <QSettings>
 #include <QDialog>
 
+#define CONSOLE_COLOR_STRING_LENGHT 7
+
 class QCloseEvent;
 
 namespace Ui {

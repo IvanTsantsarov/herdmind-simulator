@@ -1,5 +1,6 @@
 #include <QTableWidgetItem>
 #include "apirest.h"
+#include "hardware/loradev.h"
 #include "mainwindow.h"
 #include "devmanager.h"
 #include "dialogdevicemsg.h"
@@ -24,6 +25,13 @@ QString DialogDeviceMsg::currentEUI()
     return item->data(Qt::UserRole).toString();
 }
 
+LoraDev *DialogDeviceMsg::deviceByRow(int row)
+{
+    QTableWidgetItem* item = ui->tableDevices->item(row, DLG_MSG_TABLE_NAME_COL);
+    return mDevManager->device( item->data(Qt::UserRole).toString() );
+
+}
+
 QIcon DialogDeviceMsg::loadIcon(const QString &iconName)
 {
     return QIcon(QPixmap(QString("://%1.svg").arg(iconName)));
@@ -42,6 +50,9 @@ DialogDeviceMsg::DialogDeviceMsg(DevManager *devManager, QWidget *parent)
     mIconSoundOff = loadIcon("icon-sound-off");;
     mIconShockOn = loadIcon("icon-shock-on");
     mIconShockOff = loadIcon("icon-shock-off");
+
+    QStringList ls = {"S", "L", "E", "Name" };
+    ui->tableDevices->setHorizontalHeaderLabels(ls);
 }
 
 DialogDeviceMsg::~DialogDeviceMsg()
@@ -65,7 +76,9 @@ void DialogDeviceMsg::updateDevices()
         ui->tableDevices->setItem(row, DLG_MSG_TABLE_LIGHT_COL, new QTableWidgetItem(mIconLightOff, ""));
         ui->tableDevices->setItem(row, DLG_MSG_TABLE_SHOCK_COL, new QTableWidgetItem(mIconShockOff, ""));
 
-        QTableWidgetItem* itemName = new QTableWidgetItem(mDevManager->deviceName(eui));
+        LoraDev* dev = mDevManager->device(eui);
+        QTableWidgetItem* itemName = new QTableWidgetItem(dev->name());
+        itemName->setToolTip(QString("0x%1 0x%2").arg(dev->addr().toHex()).arg(dev->eui().toHex()));
         itemName->setData(Qt::UserRole, eui);
         ui->tableDevices->setItem(row, DLG_MSG_TABLE_NAME_COL, itemName);
         row ++;
@@ -119,5 +132,21 @@ void DialogDeviceMsg::on_btnSendShock_clicked()
     QString eui = currentEUI();
     QString msg = QString("Shock ON");
     mDevManager->sendMessage( currentEUI(), msg.toUtf8() );
+}
+
+
+void DialogDeviceMsg::on_tableDevices_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous)
+{
+    if( !current ) {
+        return;
+    }
+
+    LoraDev* dev = deviceByRow( current->row() );
+    if( !dev ) {
+        qCritical() << "DialogDeviceMsg::on_tableDevices_currentItemChanged: Device unavailable";
+        return;
+    }
+
+    ui->groupCollar->setEnabled( dev->isCollar() );
 }
 
