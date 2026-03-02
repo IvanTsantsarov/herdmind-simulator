@@ -323,7 +323,8 @@ void LoraDev::onDownlink(const QByteArray& phy)
     if( isMacCommand ) {
         qInfo() << "#4e693a" << "MAC command for device" << mName << mDevAddr.toHex() << decrypted.toHex();
     }else {
-        qInfo() << "#7517c2" << "Device received:" << mName << decrypted;
+        qInfo() << "#c08feb" << "Device received:" << mName << decrypted;
+        emit messageReceived(mDevAddr, decrypted);
     }
 
     mFCntDown = fCnt32 + 1;

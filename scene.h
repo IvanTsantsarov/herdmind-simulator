@@ -95,8 +95,7 @@ class Scene : public QGraphicsScene
 public:
     explicit Scene(QObject *parent = nullptr);
 
-    void create(SceneView *view, Herd *herd, Network* network,
-                int animalsCount, int lawnsCount, int collarPairsCount, int gatewayPairsCount);
+    void create(SceneView *view, Herd *herd, Network* network, int lawnsCount, int collarPairsCount, int gatewayPairsCount);
     void update(Herd* herd, Meadow *meadow, Network *network, bool isInitial = false, float diameter = 0.0f);
 
     void selectAnimalItem(int index);

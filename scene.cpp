@@ -64,7 +64,7 @@ Scene::Scene(QObject *parent)
 {}
 
 void Scene::create(SceneView* view, Herd* herd, Network* network,
-                   int animalsCount, int lawnsCount, int collarPairsCount, int gatewayPairsCount )
+                   int lawnsCount, int collarPairsCount, int gatewayPairsCount )
 {
     // An important line - artefacts are gone with it:
     view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
@@ -94,6 +94,8 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     points.append(QPointF(-ITEM_WIDTH_HALF, -ITEM_LENGTH_HALF));
     points.append(QPointF(ANIMAL_LENGTH, 0));
     QPolygonF triangle(points);
+
+    int animalsCount = herd->animalsCount();
 
     // Create animals figures
     mAnimalItems.reserve(animalsCount);
@@ -150,18 +152,24 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
 
 void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial, float diameter )
 {
+    if( !mAttractor) {
+        return;
+    }
+
     // update lawns
     int lawnIndex = 0;
 
     //mSceneInfo->setPlainText(QString("%1%").arg(meadow->kgRatio() * 100.0f, 0, 'f', 1));
 
 
-    if( mAnimalItemSelected ) {
-        mItemInfo->show();
-        mItemInfo->setPlainText(mAnimalItemSelected->animal()->info());
-        mItemInfo->setPos(mAnimalItemSelected->pos());
-    }else {
-        mItemInfo->hide();
+    if( mItemInfo ) {
+        if( mAnimalItemSelected ) {
+            mItemInfo->show();
+            mItemInfo->setPlainText(mAnimalItemSelected->animal()->info());
+            mItemInfo->setPos(mAnimalItemSelected->pos());
+        }else {
+            mItemInfo->hide();
+        }
     }
 
     foreach(Meadow::Lawn* lawn, meadow->lawns()) {

@@ -227,6 +227,7 @@ void DevManager::sendMessage(const QString &eui, const QByteArray &msg)
 
 void DevManager::onDevicesReady(bool isStore)
 {
+    mIsDevicesReady = true;
     gMainWindow->onDevicesReady(isStore);
     gMainWindow->network()->edge()->start();
 }

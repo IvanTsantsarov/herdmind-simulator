@@ -1,3 +1,6 @@
+#include <QMessageBox>
+#include <QScreen>
+#include <QApplication>
 #include <QSettings>
 #include <QMessageBox>
 #include <QFile>
@@ -126,6 +129,10 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     if( settings.value("GUI/isDeviceMsg").toBool() ) {
         ui->actionDeviceMsg->setChecked(true);
     }
+
+    QRect screenrect = qApp->primaryScreen()->geometry();
+    mConsole->move(screenrect.left(), screenrect.bottom()/2);
+    mDevMsg->move(screenrect.right()/2, screenrect.bottom()/2);
 }
 
 MainWindow::~MainWindow()
@@ -199,7 +206,7 @@ void MainWindow::create(bool isLoad)
 
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,
-                   ui->spinAnimalsCount->value(), mMeadow->lawnsCount(), mHerd->collarsCount() * mHerd->count(),  mHerd->collarsCount() * mNetwork->gatewaysCount() );
+                   mMeadow->lawnsCount(), mHerd->collarsCount() * mHerd->count(),  mHerd->collarsCount() * mNetwork->gatewaysCount() );
     mScene->update(mHerd, mMeadow, mNetwork, true, INITIAL_HERD_SPREAD);
 
     ui->table->setColumnCount(TABLE_COLS_COUNT);
@@ -397,6 +404,11 @@ void MainWindow::onDevicesReady(bool isStore )
     if( isStore ) {
         mHerd->storeLists();
     }
+}
+
+void MainWindow::errorMsgBox(const QString &msg)
+{
+    QMessageBox::critical(this, "Error", msg);
 }
 
 void MainWindow::onError(const QString &err)

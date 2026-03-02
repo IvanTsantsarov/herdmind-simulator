@@ -66,6 +66,7 @@ public:
     void onDeviceMessage(const QString& devEUI, const QJsonObject &jobjResponse);
     void onDevicesReady(bool isStore);
     inline DialogConsole* console(){ return mConsole; }
+    void errorMsgBox(const QString& msg);
 
 protected:
     void moveEvent(QMoveEvent *);

@@ -43,6 +43,7 @@ class DevManager
     int mSkippedDevicesCount = 0;
     int mDeletedDevicesCount = 0;
     int mActivatedDevicesCount = 0;
+    bool mIsDevicesReady = false;
 
 protected:
     void onDevices(const QJsonObject &jobj);
@@ -52,9 +53,10 @@ protected:
     void onDeviceAddress(const QString& devEUI, const QString& devAddr);
 
     void onDevicesReady(bool isStore);
+
 public:
     DevManager( const QSettings& settings );
-
+    inline bool isReady(){ return mIsDevicesReady; }
     void syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);

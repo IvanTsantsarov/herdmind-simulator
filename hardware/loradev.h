@@ -114,6 +114,8 @@ public:
 
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());
+signals:
+    void messageReceived(const QByteArray& addr, const QByteArray& msg);
 
 private slots:
     void onTimerStart();

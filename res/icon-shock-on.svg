@@ -1,9 +1,60 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 -16 85 85" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" xmlns="http://www.w3.org/2000/svg">
-<g fill="#fcd157">
-<path d="m3367.23 2992.53-17.9-36.56-23.49 5.47-21.02-59.72 26.95 41.95 25.84-8.2z" transform="matrix(.41659980525 -.07200611031 .07200611031 .41659980525 -1585.73388148 -952.061672153)"/>
-<path d="m3367.23 2992.53-17.9-36.56-23.49 5.47-21.02-59.72 26.95 41.95 25.84-8.2z" transform="matrix(.37605295429 .19319513736 -.19319513736 .37605295429 -642.50993894 -1729.6800588)"/>
-<path d="m3367.23 2992.53-17.9-36.56-23.49 5.47-21.02-59.72 26.95 41.95 25.84-8.2z" transform="matrix(.14401602561 .39749197596 -.39749197596 .14401602561 761.92988844 -1716.93756002)"/>
-</g>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   width="800px"
+   height="800px"
+   viewBox="0 -16 85 85"
+   clip-rule="evenodd"
+   fill-rule="evenodd"
+   stroke-linejoin="round"
+   stroke-miterlimit="2"
+   version="1.1"
+   id="svg191"
+   sodipodi:docname="icon-shock-on.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs195" />
+  <sodipodi:namedview
+     id="namedview193"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.02"
+     inkscape:cx="400.4902"
+     inkscape:cy="400"
+     inkscape:window-width="1920"
+     inkscape:window-height="990"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g189" />
+  <g
+     fill="#fcd157"
+     id="g189">
+    <path
+       d="m3367.23 2992.53-17.9-36.56-23.49 5.47-21.02-59.72 26.95 41.95 25.84-8.2z"
+       transform="matrix(.41659980525 -.07200611031 .07200611031 .41659980525 -1585.73388148 -952.061672153)"
+       id="path183"
+       style="fill:#ff6600;stroke:#ff6600" />
+    <path
+       d="m3367.23 2992.53-17.9-36.56-23.49 5.47-21.02-59.72 26.95 41.95 25.84-8.2z"
+       transform="matrix(.37605295429 .19319513736 -.19319513736 .37605295429 -642.50993894 -1729.6800588)"
+       id="path185"
+       style="fill:#ff6600;stroke:#ff6600" />
+    <path
+       d="m3367.23 2992.53-17.9-36.56-23.49 5.47-21.02-59.72 26.95 41.95 25.84-8.2z"
+       transform="matrix(.14401602561 .39749197596 -.39749197596 .14401602561 761.92988844 -1716.93756002)"
+       id="path187"
+       style="fill:#ff6600;stroke:#ff6600" />
+  </g>
+</svg>

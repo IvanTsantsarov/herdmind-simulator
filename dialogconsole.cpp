@@ -1,22 +1,32 @@
+#include <QDateTime>
 #include <QCloseEvent>
 #include <QFontDatabase>
 #include "mainwindow.h"
 #include "dialogconsole.h"
 #include "ui_dialogconsole.h"
 
+#define CONSOLE_STRING_FORMAT "[hh:mm:ss.zzz] "
 
 void DialogConsole::appendText(const QString &msg, QColor col)
 {
+    QString wholeMsg;
+    QString dateTimeStr = QDateTime::currentDateTime().toString(CONSOLE_STRING_FORMAT);
     int len = msg.length();
+
     if( len > CONSOLE_COLOR_STRING_LENGHT && '#' == msg[0] ) {
         QString color = msg.left(CONSOLE_COLOR_STRING_LENGHT);
         ui->out->setTextColor(color);
-        ui->out->append(msg.right(len - CONSOLE_COLOR_STRING_LENGHT));
+        wholeMsg = QString("%1%2")
+                       .arg(dateTimeStr)
+                       .arg(msg.right(len - CONSOLE_COLOR_STRING_LENGHT));
     }else {
         ui->out->setTextColor(col);
-        ui->out->append(msg);
+        wholeMsg = QString("%1%2")
+                       .arg(dateTimeStr)
+                       .arg(msg);
     }
 
+    ui->out->append(wholeMsg);
 }
 
 void DialogConsole::closeEvent(QCloseEvent *e)
@@ -89,5 +99,11 @@ bool DialogConsole::showDebug()
 void DialogConsole::on_btnClear_clicked()
 {
     ui->out->clear();
+}
+
+
+void DialogConsole::on_btnSend_clicked()
+{
+
 }
 

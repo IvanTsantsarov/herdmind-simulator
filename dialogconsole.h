@@ -22,6 +22,7 @@ class DialogConsole : public QDialog
     void appendText(const QString& msg, QColor col);
 
     void closeEvent(QCloseEvent* e);
+
 public:
     explicit DialogConsole(const QSettings& settings, QWidget *parent = nullptr);
     ~DialogConsole();
@@ -35,6 +36,8 @@ public:
 
 private slots:
     void on_btnClear_clicked();
+
+    void on_btnSend_clicked();
 
 private:
     Ui::DialogConsole *ui;
