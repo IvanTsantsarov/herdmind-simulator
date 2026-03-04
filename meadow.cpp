@@ -3,6 +3,7 @@
 #include "simtools.h"
 
 Meadow::Meadow(const QPointF& center,
+               const QGeoCoordinate &geoCenter,
                const QSize &areaSize,
                float lawnR,
                float kgPerSqMeter,
@@ -10,6 +11,7 @@ Meadow::Meadow(const QPointF& center,
                QObject *parent)
     : QObject(parent), mAreaSize(areaSize), mLawnRadius(lawnR), mLawnDiam(2.0f*lawnR), mAnimalsPerLawn(animalsPerLawn)
 {
+    mGeoCenter = geoCenter;
 
     mLawnsDim = QSize( mAreaSize.width() / mLawnDiam,
                       mAreaSize.height() / mLawnDiam );
@@ -176,3 +178,17 @@ void Meadow::Lawn::dettach(Animal *animal)
 }
 
 
+QGeoCoordinate Meadow::getGeoLocation(const QPointF &mapPos)
+{
+    const double metersPerDegLat = 111320.0;
+
+    double lat = mGeoCenter.latitude();
+    double lon = mGeoCenter.longitude();
+
+    double dLat = mapPos.y() / metersPerDegLat;
+
+    double metersPerDegLon = metersPerDegLat * qCos(qDegreesToRadians(lat));
+    double dLon = mapPos.x() / metersPerDegLon;
+
+    return QGeoCoordinate(lat + dLat, lon + dLon);
+}

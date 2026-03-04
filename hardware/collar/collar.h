@@ -23,26 +23,25 @@ class Collar : public LoraDev
 class Collar
 #endif
 {
-    enum SoundId {
-        beep1 = 1,
-        beep2 = 2
-    };
 
-    enum LightId {
-        once = 1,
-        twice = 2
-    };
+    uint16_t mSequence = 0;
 
 public:
+    typedef enum Event {
+        Light = 1,
+        Sound,
+        Shock
+    } EventType;
+
     // 18 bytes
     struct PackageOut {
-        uint32_t id;        // collar id
-        uint16_t seq;       // sequence
-        int32_t longitude;  // positioning longitude
-        int32_t latitude;   // positioning latitude
-        uint8_t battery;    // battery level
-        uint8_t event;      // event type level
-        uint16_t count;     // boluses count (comming after this package)
+        uint32_t id = 0;        // collar id
+        uint16_t seq = 0;       // sequence
+        uint32_t longitude = 0;  // positioning longitude
+        uint32_t latitude = 0;   // positioning latitude
+        uint8_t battery = 0;    // battery level
+        uint8_t event = 0;      // event type level
+        uint16_t count = 0;     // boluses count (comming after this package)
     };
 
     // 8 bytes
@@ -61,7 +60,6 @@ public:
 
 private:
 #ifdef SIMULATION
-    quint32 mAddr = 0;
     Animal* mAnimal;
     void onUpdate();
     void onSend();
@@ -77,8 +75,6 @@ public:
     Collar(Animal* animal,
             const QByteArray &devEUI = QByteArray(),
            const QByteArray& appKey = QByteArray() );
-
-    inline quint32 addr() const { return mAddr; }
 
     PackageOut getPackageOut(){ return mPackage; };
     QList<PackageBolusOut> getBoluses();

@@ -219,6 +219,8 @@ void Herd::update( quint64 millissec,
 {
     Q_UNUSED(maxSpeed);
 
+    mMeadow = meadow;
+
     mMSec = millissec;
     double msecDelta = mMSec - mLastUpdateMsec;
     float tickSeconds = msecDelta / 1000.0f;

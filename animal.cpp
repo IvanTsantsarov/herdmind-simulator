@@ -145,6 +145,15 @@ void Animal::lookAt(const QVector2D &destination)
     // qDebug() << mRotationAngleTarget << mRotationAngle;
 }
 
+QGeoCoordinate Animal::geoLocation()
+{
+    if( mHerd->meadow() ) {
+        return mHerd->meadow()->getGeoLocation(mPosition.toPointF());
+    }
+
+    return QGeoCoordinate();
+}
+
 
 // return true if still walking
 bool Animal::goTo(const QVector2D &destination, float speed, float arrivingDistance)

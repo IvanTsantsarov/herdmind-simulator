@@ -196,6 +196,7 @@ void MainWindow::create(bool isLoad)
 
     // Generate meadow
     mMeadow = new Meadow(QPoint(0, 0),
+                         QGeoCoordinate(ui->spinCenterLat->value(), ui->spinCenterLong->value()),
                          QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
                          ui->spinLawnRadius->value(),
                          ui->spinMeadowCapacity->value(),

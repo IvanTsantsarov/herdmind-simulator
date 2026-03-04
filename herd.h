@@ -58,6 +58,8 @@ private:
     Shepherd* mShepherd = nullptr;
     bool mIsShepherdActive = false;
 
+    Meadow* mMeadow = nullptr;
+
     bool processCollision(float collidingDistance);
     float beforeGeneration(int areaDimeter, float animalSize);
 public:
@@ -99,6 +101,7 @@ public:
     inline quint64 msec(){ return mMSec; }
 
     inline Animal* animal(int index){ return mAnimals[index]; }
+    inline Meadow* meadow(){ return mMeadow; }
 
 
     inline int animalsCount(){ return mAnimals.count(); }

@@ -1,4 +1,5 @@
 #include "collar.h"
+#include "../tools.h"
 
 #ifdef SIMULATION
 #include "../../animal.h"
@@ -28,6 +29,17 @@ void Collar::onUpdate()
 void Collar::onSend()
 {
     PackageOut p;
+    QGeoCoordinate coord = mAnimal->geoLocation();
+
+    if( !coord.isValid() ) {
+        return;
+    }
+
+    p.latitude = Tools::encodeLat( coord.latitude() );
+    p.longitude = Tools::encodeLon( coord.longitude() );
+    p.battery = 100;
+    p.event = 0;
+    p.seq = mSequence++;
     sendPackage(&p, sizeof(p));
 }
 

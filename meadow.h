@@ -23,8 +23,11 @@ class Meadow : public QObject
     float mKg = 0.0f;
     float mKgMax = 0.0f;
 
+    QGeoCoordinate mGeoCenter;
+
 public:
     explicit Meadow(const QPointF &center,
+                    const QGeoCoordinate& geoCenter,
                     const QSize& areaSize,
                     float lawnRad,
                     float kgPerSqMeter,
@@ -86,6 +89,7 @@ protected:
 public:
     inline QVector<Lawn*> & lawns(){ return mLawns; }
     inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
+    QGeoCoordinate getGeoLocation(const QPointF& mapPos);
 
 
 signals:

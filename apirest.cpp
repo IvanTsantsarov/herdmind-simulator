@@ -18,8 +18,11 @@ ApiRest::ApiRest(DevManager *DevManager, const QSettings &settings)
 
 void ApiRest::onError(QNetworkReply::NetworkError code)
 {
-    qCritical() << QString("REST error: %1").arg(code);
-    // mMainWindow->onError( QString("REST error: %1").arg(code) );
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    qCritical() << QString("REST Api error: %1 '%2' - %3")
+                       .arg(code)
+                       .arg(reply->errorString())
+                       .arg("Is it Chirpstack server running?");
 }
 
 QNetworkRequest ApiRest::createRequest(const QString &url, QUrlQuery query,

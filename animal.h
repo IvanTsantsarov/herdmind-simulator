@@ -143,6 +143,7 @@ public:
     bool goTo(const QVector2D& destination, float speed, float arrivingDistance);
     bool walkTo(const QVector2D& destination);
     void lookAt(const QVector2D& destination);
+    QGeoCoordinate geoLocation();
 
     // return true if info from bolus is sent to the other
     bool collide(Animal* other, float minCollideDistance);

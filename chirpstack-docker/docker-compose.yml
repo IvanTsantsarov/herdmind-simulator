@@ -35,6 +35,9 @@ services:
       - POSTGRES_USER=chirpstack
       - POSTGRES_PASSWORD=chirpstack
       - POSTGRES_DB=chirpstack
+# Expoose ports on postgre only on localhost
+#    ports:
+#      - "5432:5432"
 
   redis:
     image: redis:7-alpine
