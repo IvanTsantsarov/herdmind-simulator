@@ -66,6 +66,7 @@ HEADERS += \
     hardware/defines.h \
     hardware/gateway/gateway.h \
     hardware/loradev.h \
+    hardware/protocol.h \
     hardware/tools.h \
     herd.h \
     mainwindow.h \

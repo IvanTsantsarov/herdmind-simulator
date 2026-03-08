@@ -22,7 +22,6 @@ Bolus::Bolus(   Animal *animal,
               devEUI, appKey ), mAnimal(animal)
 {
     init();
-    mPackage.b = 100;
 }
 
 void Bolus::onUpdate()
@@ -67,14 +66,12 @@ Bolus::~Bolus()
 }
 
 
-void Bolus::preparePackage()
-{
-    mT = Tools::f2i16(mT, 100.f);
-    mPackage.c = 0;
-}
-
 void Bolus::process()
 {
+    Protocol::Bolus newPackage; // just set new timestamp
+    mPackage = newPackage;
+    mT = Tools::f2i16(mT, 100.f);
+
     readTemperature();
     readMotion();
 
@@ -82,25 +79,23 @@ void Bolus::process()
     mAccel->addData(mAx, mAy, mAz);
 
     if( mAccel->getPossibleAtony()) {
-        setCondition(Condition::Atony);
+        setCondition(Protocol::Bolus::Condition::Atony);
     }
 
     if( mAccel->getHyperactivity()) {
-        setCondition(Condition::Hyperactivity);
+        setCondition(Protocol::Bolus::Condition::Hyperactivity);
     }
 
     if( mAccel->getHypomotility()) {
-        setCondition(Condition::Hypomotility);
+        setCondition(Protocol::Bolus::Condition::Hypomotility);
     }
 
     if( mT > HIGH_TEMPERATURE ) {
-        setCondition(Condition::HighTemperature);
+        setCondition(Protocol::Bolus::Condition::HighTemperature);
     }
-
-    mPackage.s++;
 }
 
 void Bolus::onSend()
 {
-    sendPackage(&mPackage, sizeof(mPackage));
+    sendPackage(mPackage.toByteArray(), sizeof(Protocol::BolusByteArray));
 }

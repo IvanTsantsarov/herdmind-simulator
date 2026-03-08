@@ -12,10 +12,6 @@
 #define DLG_MSG_TABLE_SHOCK_COL 2
 #define DLG_MSG_TABLE_NAME_COL 3
 
-#define MSG_LIGHT_ON "Light ON"
-#define MSG_SOUND_ON "Sound ON"
-#define MSG_SHOCK_ON "Shock ON"
-
 #define MSG_AFTER_INTERVAL 2000
 
 void DialogDeviceMsg::closeEvent(QCloseEvent *e)
@@ -94,7 +90,7 @@ void DialogDeviceMsg::updateDevices()
     auto createItemButton = [=](int row, int column,
                                 const QIcon& icon,
                                 const QString& eui,
-                                const QByteArray& msg) {
+                                Protocol::Collar::Event event) {
         // ui->tableDevices->setItem(row, column, new QTableWidgetItem(mIconSoundOff, ""));
 
         QPushButton* btn = new QPushButton(this);
@@ -102,7 +98,7 @@ void DialogDeviceMsg::updateDevices()
         ui->tableDevices->setCellWidget(row, column, btn);
 
         btn->setProperty("eui", eui);
-        btn->setProperty("msg", msg);
+        btn->setProperty("msg", event);
 
         connect(btn, &QPushButton::clicked, this, &DialogDeviceMsg::onDeviceBtnClicked );
     };
@@ -114,9 +110,9 @@ void DialogDeviceMsg::updateDevices()
 
         if( dev->isCollar() ) {
             QString eui = dev->eui().toHex();
-            createItemButton( row, DLG_MSG_TABLE_LIGHT_COL, mIconLightOff, eui, MSG_LIGHT_ON );
-            createItemButton( row, DLG_MSG_TABLE_SOUND_COL, mIconSoundOff, eui, MSG_SOUND_ON );
-            createItemButton( row, DLG_MSG_TABLE_SHOCK_COL, mIconShockOff, eui, MSG_SHOCK_ON );
+            createItemButton( row, DLG_MSG_TABLE_LIGHT_COL, mIconLightOff, eui, Protocol::Collar::Event::Light );
+            createItemButton( row, DLG_MSG_TABLE_SOUND_COL, mIconSoundOff, eui, Protocol::Collar::Event::Sound );
+            createItemButton( row, DLG_MSG_TABLE_SHOCK_COL, mIconShockOff, eui, Protocol::Collar::Event::Shock );
         }
 
         DevCon con;
@@ -158,26 +154,32 @@ void DialogDeviceMsg::onResponse(const QString &devEUI, const QJsonObject &jobjR
 }
 
 
-bool DialogDeviceMsg::changeDeviceMsgIcon(int row, const QByteArray &msg, bool isOn)
+bool DialogDeviceMsg::changeDeviceMsgIcon(int row, Protocol::Collar::Event event, bool isOn)
 {
     int col;
     QIcon icon;
 
-    if( msg == MSG_LIGHT_ON ) {
+    switch (event) {
+
+    case Protocol::Collar::Event::Light:
         icon = isOn ? mIconLightOn : mIconLightOff;
         col = 0;
-    }else
-    if( msg == MSG_SOUND_ON ) {
+        break;
+
+    case Protocol::Collar::Event::Sound:
         icon = isOn ? mIconSoundOn : mIconSoundOff;
         col = 1;
-    }else
-    if( msg == MSG_SHOCK_ON )
-    {
+        break;
+
+    case Protocol::Collar::Event::Shock:
         icon = isOn ? mIconShockOn : mIconShockOff;
         col = 2;
-    }else {
+        break;
+
+    default:
         return false;
     }
+
 
     QPushButton* btn = qobject_cast<QPushButton*>(ui->tableDevices->cellWidget(row, col));
     btn->setIcon(icon);
@@ -188,14 +190,14 @@ bool DialogDeviceMsg::changeDeviceMsgIcon(int row, const QByteArray &msg, bool i
 void DialogDeviceMsg::onDeviceMessageAfter(const QByteArray &addr, const QByteArray &msg)
 {
     DevCon con = mDevsMap[addr];
-    changeDeviceMsgIcon(con.mRow, msg, false);
+    changeDeviceMsgIcon(con.mRow, (Protocol::Collar::Event) msg[0], false);
 }
 
 
 void DialogDeviceMsg::onDeviceMessage(const QByteArray &addr, const QByteArray &msg)
 {
     DevCon con = mDevsMap[addr];
-    changeDeviceMsgIcon(con.mRow, msg, true);
+    changeDeviceMsgIcon(con.mRow, (Protocol::Collar::Event)msg[0], true);
     QTimer::singleShot(MSG_AFTER_INTERVAL, [=]() {
         onDeviceMessageAfter(addr, msg);
     });

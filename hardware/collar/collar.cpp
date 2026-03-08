@@ -28,19 +28,19 @@ void Collar::onUpdate()
 
 void Collar::onSend()
 {
-    PackageOut p;
+    Protocol::Collar package;
     QGeoCoordinate coord = mAnimal->geoLocation();
 
     if( !coord.isValid() ) {
         return;
     }
 
-    p.latitude = Tools::encodeLat( coord.latitude() );
-    p.longitude = Tools::encodeLon( coord.longitude() );
-    p.battery = 100;
-    p.event = 0;
-    p.seq = mSequence++;
-    sendPackage(&p, sizeof(p));
+    package.encodeLat( coord.latitude() );
+    package.encodeLon( coord.longitude() );
+    package.mBattery = 100;
+    // package.mEvent = ;
+
+    sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
 }
 
 

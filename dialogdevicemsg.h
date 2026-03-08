@@ -1,7 +1,7 @@
 #ifndef DIALOGDEVICEMSG_H
 #define DIALOGDEVICEMSG_H
 
-
+#include "hardware/protocol.h"
 #include <QDialog>
 
 class LoraDev;
@@ -38,7 +38,7 @@ class DialogDeviceMsg : public QDialog
     QMap<QByteArray, DevCon> mDevsMap;
 
     void clearConnections();
-    bool changeDeviceMsgIcon(int row, const QByteArray& msg, bool isOn);
+    bool changeDeviceMsgIcon(int row, Protocol::Collar::Event event, bool isOn);
     void onDeviceMessageAfter(const QByteArray &addr, const QByteArray& msg);
 public:
     explicit DialogDeviceMsg(DevManager *devManager, QWidget *parent = nullptr);
