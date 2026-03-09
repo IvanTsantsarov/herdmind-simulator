@@ -58,7 +58,7 @@ Thumbs.db
 Makefile.*
 
 # internal files
-.data/
+data/
 
 debug/
 release/
