@@ -86,7 +86,7 @@ public:
     struct CollarByteArray;
 
     struct Collar {
-        enum Event {
+        enum struct Event : uint8_t {
             None = 0,
             Light = 10,
             Sound = 11,
@@ -96,7 +96,7 @@ public:
         uint32_t mTimestamp = timestamp();  // unix timestamp
         uint32_t mLongitude = 0;  // positioning mLongitude
         uint32_t mLatitude = 0;   // positioning mLatitude
-        Event mEvent = None;       // mEvent type level
+        Event mEvent = Event::None;       // mEvent type level
         uint8_t mRssi = 0;        // signal level
         uint8_t mBattery = 0;     // mBattery level
 
@@ -114,7 +114,7 @@ public:
             Protocol::writeUint32(mTimestamp, ba, 0);
             Protocol::writeUint32(mLongitude, ba,   sizeof(uint32_t));
             Protocol::writeUint32(mLatitude,  ba, 2*sizeof(uint32_t));
-            ba[3*sizeof(uint32_t)]   = mEvent;
+            ba[3*sizeof(uint32_t)]   = (uint8_t)mEvent;
             ba[3*sizeof(uint32_t)+1] = mRssi;
             ba[3*sizeof(uint32_t)+2] = mBattery;
             return ba;

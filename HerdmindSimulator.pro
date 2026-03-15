@@ -4,29 +4,8 @@ CONFIG += c++17
 
 DEFINES += SIMULATION
 
-
-# --- Windows Section ---
-win32 {
-    # Replace with your actual Windows OpenSSL installation path
-    OPENSSL_PATH = "C:\Program Files\OpenSSL-Win64"
-
-    INCLUDEPATH += "$$OPENSSL_PATH/include"
-    LIBS += -L"$$OPENSSL_PATH/lib/VC/x64/MTd" -lcrypto
-
-    # Use these for older OpenSSL versions if the above fails:
-    # LIBS += -L"$$OPENSSL_PATH/lib" -llibeay32 -lssleay32
-}
-
-# --- Linux Section ---
-unix:!macx {
-    # On Linux, OpenSSL is usually in /usr/include and /usr/lib
-    # so we often only need to link the libraries.
-    LIBS += -lcrypto
-
-    # If using a custom installation path on Linux, uncomment and edit:
-    # INCLUDEPATH += "/usr/local/ssl/include"
-    # LIBS += -L"/usr/local/ssl/lib"
-}
+# Link OpenSSL
+LIBS += -lcrypto
 
 
 # Disable warnings

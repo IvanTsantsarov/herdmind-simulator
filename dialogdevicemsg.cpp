@@ -98,7 +98,7 @@ void DialogDeviceMsg::updateDevices()
         ui->tableDevices->setCellWidget(row, column, btn);
 
         btn->setProperty("eui", eui);
-        btn->setProperty("msg", event);
+        btn->setProperty("msg", (int)event);
 
         connect(btn, &QPushButton::clicked, this, &DialogDeviceMsg::onDeviceBtnClicked );
     };
@@ -210,7 +210,9 @@ void DialogDeviceMsg::onDeviceBtnClicked()
         return;
 
     QString eui = btn->property("eui").toString();
-    QByteArray msg = btn->property("msg").toByteArray();
+    uint8_t event = btn->property("msg").toUInt();
+    QByteArray msg;
+    msg.append(event);
 
     mDevManager->sendMessage( eui, msg );
 }
