@@ -1,4 +1,5 @@
 #include <QSettings>
+#include <QMessageBox>
 #include <QApplication>
 #include <QFile>
 #include <QDir>
@@ -11,12 +12,15 @@
 #include "defines_settings.h"
 
 SimTools* gSimTools = nullptr;
-
+QtMessageHandler gOoriginalHandler = nullptr;
 
 void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     Q_UNUSED(context);
     if( !gMainWindow || !gMainWindow->console() ) {
+        if( gOoriginalHandler ) {
+            gOoriginalHandler(type, context, msg);
+        }
         return;
     }
 
@@ -50,7 +54,7 @@ void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const Q
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(gMessagehHandler);
+     gOoriginalHandler = qInstallMessageHandler(gMessagehHandler);
 
     QApplication a(argc, argv);
 
@@ -63,13 +67,41 @@ int main(int argc, char *argv[])
 
     a.setWindowIcon(QIcon(":/gegga_logo.png"));
 
-    if( !QFile::exists(SETTINGS_NAME) ) {
-        QFile::copy("://" SETTINGS_NAME, SETTINGS_NAME);
+    auto summonResFile = [](const QString& fileName) {
+
+        if( !QFile::exists(fileName) ) {
+
+            QFile f("://" + fileName);
+
+            if( !f.copy(fileName) ) {
+                qCritical() << "Error summoning res file" << fileName << f.errorString();
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    if( !summonResFile(SETTINGS_NAME) ) {
+        return 1;
     }
 
-    Q_ASSERT( QFile::exists(SETTINGS_NAME) );
+    if( !summonResFile(SETTINGS_NAME_EXTERNAL) ) {
+        return 2;
+    }
 
-    QSettings settings(SETTINGS_NAME, QSettings::IniFormat);
+    QString settingsName;
+
+    if( QMessageBox::question(nullptr, "Herdming Simulator", "Connect to external Chirpstack?") == QMessageBox::Yes ) {
+        settingsName = SETTINGS_NAME_EXTERNAL;
+    }else {
+        settingsName = SETTINGS_NAME;
+    }
+
+    Q_ASSERT( QFile::exists(settingsName) );
+
+    // TODO: Messagebox to ask external
+    QSettings settings(settingsName, QSettings::IniFormat);
 
     gSimTools = new SimTools(settings);
 

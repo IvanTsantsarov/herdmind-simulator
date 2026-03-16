@@ -89,7 +89,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    deploy.sh \
+    deploy_cmake/CMakeLists.txt \
     res/settings.ini \
+    res/settings_external.ini \
     trash.txt
 
 RESOURCES += \

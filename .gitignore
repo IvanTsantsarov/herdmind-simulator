@@ -42,6 +42,7 @@ Thumbs.db
 *.app
 *.exe
 *.war
+*.zip
 
 # Large media files
 *.mp4
@@ -63,3 +64,5 @@ Makefile.*
 debug/
 release/
 proto/
+deploy-build/
+HerdmindSimulatorPackage/
