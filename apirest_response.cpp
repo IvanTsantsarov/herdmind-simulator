@@ -11,6 +11,11 @@ void ApiRest::onResponse()
     QByteArray responseData = reply->readAll();
     reply->deleteLater();
 
+    const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const QByteArray responseBody = reply->readAll();
+
+    qDebug() << "ApiRest status:" << status << "Response:" << responseData;
+
     if (reply->error() != QNetworkReply::NoError) {
         qCritical() << "REST:Network failure!" << reply->errorString() << responseData;
         return;

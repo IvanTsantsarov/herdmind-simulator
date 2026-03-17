@@ -40,13 +40,12 @@ void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const Q
         break;
     case QtCriticalMsg:
         console->error(msg);
-        // gMainWindow->setStatus( QString("Critical:%1").arg(msg) );
-        gMainWindow->errorMsgBox(msg);
+        gMainWindow->setStatus( QString("Critical:%1").arg(msg) );
+        // gMainWindow->errorMsgBox(msg);
 
         break;
     case QtFatalMsg:
         console->fatal(msg);
-        // gMainWindow->setStatus( QString("Fatal:%1").arg(msg) );
         gMainWindow->errorMsgBox(msg);
         break;
     }
@@ -64,38 +63,28 @@ int main(int argc, char *argv[])
     qInfo() << "Current dir:" << QDir::current().absolutePath();
     qInfo() << "Executable:" << QDir::currentPath();
 
-
     a.setWindowIcon(QIcon(":/gegga_logo.png"));
 
-    auto summonResFile = [](const QString& fileName) {
-
-        if( !QFile::exists(fileName) ) {
-
-            QFile f("://" + fileName);
-
-            if( !f.copy(fileName) ) {
-                qCritical() << "Error summoning res file" << fileName << f.errorString();
-                return false;
-            }
-        }
-
-        return true;
-    };
-
-    if( !summonResFile(SETTINGS_NAME) ) {
+    if( !SimTools::fileRestoreResources(SETTINGS_NAME) ) {
         return 1;
     }
 
-    if( !summonResFile(SETTINGS_NAME_EXTERNAL) ) {
+    if( !SimTools::fileRestoreResources(SETTINGS_NAME_EXTERNAL) ) {
         return 2;
     }
 
     QString settingsName;
 
-    if( QMessageBox::question(nullptr, "Herdming Simulator", "Connect to external Chirpstack?") == QMessageBox::Yes ) {
+    switch( QMessageBox::question(nullptr, "Herdming Simulator", "Connect to external Chirpstack?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel ) )
+    {
+    case QMessageBox::Yes:
         settingsName = SETTINGS_NAME_EXTERNAL;
-    }else {
+        break;
+    case QMessageBox::No:
         settingsName = SETTINGS_NAME;
+        break;
+    default:
+        return 3;
     }
 
     Q_ASSERT( QFile::exists(settingsName) );

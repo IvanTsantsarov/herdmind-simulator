@@ -3,6 +3,10 @@
 #include <QCoreApplication>
 #include "storage.h"
 #include "defines.h"
+#include "tools.h"
+
+#include <iostream>
+using namespace std;
 
 void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -22,17 +26,18 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         color = "\033[33m"; // yellow
         break;
     case QtCriticalMsg:
-        color = "\033[31m"; // red
+        color = "\033[47;31m"; // red
         break;
     case QtFatalMsg:
-        color = "\033[35m"; // magenta
+        color = "\033[47;35m"; // magenta
         break;
     }
 
     fprintf(stderr, "%s%s\033[0m\n", color, localMsg.constData());
 
-    if (type == QtFatalMsg)
+    if (type == QtFatalMsg) {
         abort();
+    }
 }
 
 
@@ -44,13 +49,23 @@ int main(int argc, char *argv[])
 
     // a.setWindowIcon(QIcon(":/gegga_logo.png"));
 
-    if( !QFile::exists(SETTINGS_NAME) ) {
-        QFile::copy("://" SETTINGS_NAME, SETTINGS_NAME);
+    if( !Tools::fileRestoreResources(SETTINGS_NAME) ) {
+        return 1;
     }
 
-    Q_ASSERT( QFile::exists(SETTINGS_NAME) );
+    if( !Tools::fileRestoreResources(SETTINGS_NAME_EXTERNAL) ) {
+        return 2;
+    }
 
-    QSettings settings(SETTINGS_NAME, QSettings::IniFormat);
+    char choice;
+    printf("Load external settins (to connect later to remote server)? [y/n]");
+    flush(cout);
+    a.processEvents();
+    cin >> choice;
+    a.processEvents();
+    QString settingsName = choice =='y' || choice =='Y' ? SETTINGS_NAME_EXTERNAL : SETTINGS_NAME;
+
+    QSettings settings(settingsName, QSettings::IniFormat);
 
     Storage s(settings);
 

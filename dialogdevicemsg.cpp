@@ -71,6 +71,8 @@ void DialogDeviceMsg::clearConnections()
         disconnect(mDevsMap[key].mConn);
     }
 
+    mDevsMap.clear();
+
     ui->tableDevices->clear();
 }
 

@@ -21,6 +21,8 @@ public:
     static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
     static QDateTime deviceTimestamp(uint32_t tstamp);
     static QString deviceTimestampString(uint32_t tstamp);
+    static bool fileCompare(const QString &pathFile1, const QString &pathFile2, bool *isOk = nullptr);
+    static bool fileRestoreResources(const QString &fileName);
 };
 
 extern Tools* gSimTools;

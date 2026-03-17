@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>settings.ini</file>
+        <file>settings_external.ini</file>
     </qresource>
 </RCC>

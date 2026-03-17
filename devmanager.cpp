@@ -53,7 +53,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
         }
 
         // if all devices are skipped call onDevicesReady
-        if( mSkippedDevicesCount == count ) {
+        if( count && (mSkippedDevicesCount == count) ) {
             onDevicesReady(false);
             return;
         }

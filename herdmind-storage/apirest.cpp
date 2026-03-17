@@ -17,7 +17,7 @@ ApiRest::ApiRest(Storage *st, const QSettings &settings)
 void ApiRest::onError(QNetworkReply::NetworkError code)
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
-    qCritical() << QString("REST Api error: %1 '%2' - %3")
+    qFatal() << QString("REST Api error: %1 '%2' - %3")
                        .arg(code)
                        .arg(reply->errorString())
                        .arg("Is it Chirpstack server running?");

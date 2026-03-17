@@ -15,9 +15,20 @@ Mqtt::Mqtt(Storage *st, const QSettings &settings) :
     mMqttPort = settings.value(MQTT_SECTION"/port").toUInt();
     mAppId = settings.value(CHIRPSTACK_SECTION"/appId").toString();
 
+    QString userName = settings.value(MQTT_SECTION"/username").toString();
+    QString password = settings.value(MQTT_SECTION"/password").toString();
+
     // From docker-compose: mosquitto exposes 1883 to host
     mClient.setHostname(mMqttAddr);
     mClient.setPort(mMqttPort);
+
+    if( !userName.isEmpty() ) {
+        mClient.setUsername(userName);
+    }
+
+    if( !password.isEmpty() ) {
+        mClient.setPassword(password);
+    }
 
     // If you later enable MQTT auth:
     // mClient->setUsername("user");
@@ -35,7 +46,7 @@ Mqtt::Mqtt(Storage *st, const QSettings &settings) :
     connect(&mClient, &QMqttClient::errorChanged,
             this,
             [=](QMqttClient::ClientError error) {
-                qCritical() << "MQTT error:" << error << mClient.error();
+                qFatal() << "MQTT error:" << error << mClient.error();
             });
 
     connect(&mClient, &QMqttClient::messageReceived,
@@ -58,7 +69,7 @@ void Mqtt::subscribeToDeviceUp(const QString &devEUI)
     mSubscribtions.append(subscription);
 
     if (!subscription)
-        qCritical() << "Mqtt subscription failed";
+        qFatal() << "Mqtt subscription failed";
     else
         qInfo() << "Mqtt subscribtion sended..." << topic;
 

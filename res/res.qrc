@@ -8,5 +8,6 @@
         <file>icon-shock-on.svg</file>
         <file>icon-sound-off.svg</file>
         <file>icon-sound-on.svg</file>
+        <file>settings_external.ini</file>
     </qresource>
 </RCC>

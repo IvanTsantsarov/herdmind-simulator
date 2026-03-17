@@ -13,10 +13,20 @@ Gateway::Gateway(const QSettings &settings) :
     mMqttAddr = settings.value(MQTT_SECTION"/address").toString();
     mMqttPort = settings.value(MQTT_SECTION"/port").toUInt();
     mId = settings.value(MQTT_SECTION"/gatewayId").toString();
+    QString userName = settings.value(MQTT_SECTION"/username").toString();
+    QString password = settings.value(MQTT_SECTION"/password").toString();
 
     // From docker-compose: mosquitto exposes 1883 to host
     mClient.setHostname(mMqttAddr);
     mClient.setPort(mMqttPort);
+
+    if( !userName.isEmpty() ) {
+        mClient.setUsername(userName);
+    }
+
+    if( !password.isEmpty() ) {
+        mClient.setPassword(password);
+    }
 
     // If you later enable MQTT auth:
     // mClient->setUsername("user");

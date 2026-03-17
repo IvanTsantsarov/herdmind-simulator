@@ -2,6 +2,7 @@
 #include <openssl/cmac.h>
 #include <openssl/evp.h>
 #include <openssl/core_names.h>
+#include <QCryptographicHash>
 #include <QIODevice>
 #include <QRandomGenerator>
 #include <QUdpSocket>
@@ -178,6 +179,70 @@ bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool is
     }
 
     return false;
+}
+
+bool SimTools::fileCompare(const QString &pathFile1, const QString &pathFile2, bool* isOk )
+{
+    QFile f1(pathFile1);
+    QFile f2(pathFile2);
+
+    if(isOk) *isOk = true;
+
+    if( f1.size() != f2.size() ) {
+        return false;
+    }
+
+    QByteArray data1 = SimTools::fileRead(pathFile1, isOk);
+    if( isOk && !*isOk) return false;
+
+    QByteArray data2 = SimTools::fileRead(pathFile2, isOk);
+    if( isOk && !*isOk) return false;
+
+    const QByteArray md51 = QCryptographicHash::hash(data1, QCryptographicHash::Md5);
+    const QByteArray md52 = QCryptographicHash::hash(data2, QCryptographicHash::Md5);
+
+    return md51 == md52;
+}
+
+bool SimTools::fileRestoreResources(const QString &fileName)
+{
+    QString srcPath = "://" + fileName;
+    bool isOverwrite = false;
+    bool isExists = false;
+
+    if( !QFile::exists(fileName) ) {
+        isOverwrite = true;
+    }else {
+        isExists = true;
+        bool isOk = false;
+        isOverwrite = !SimTools::fileCompare(srcPath, fileName, &isOk);
+        if( !isOk ) {
+            qCritical() << "Files" << srcPath << fileName << "error";
+            return false;
+        }
+    }
+
+    if( !isOverwrite ) {
+        return true;
+    }
+
+    QFile f(srcPath);
+
+    if( isExists ) {
+        if( !QFile::remove(fileName)) {
+            qCritical() << "Error restoring res file - destination file not writable:" << fileName;
+            return false;
+        }
+    }
+
+    if( !f.copy(fileName) ) {
+        qCritical() << "Error restoring res file" << fileName << f.errorString();
+        return false;
+    }
+
+    qInfo() << "File" << fileName << " restored from resources.";
+
+    return true;
 }
 
 

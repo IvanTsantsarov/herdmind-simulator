@@ -63,9 +63,14 @@ public:
     static QByteArray fileRead(const QString& path, bool* isOk = nullptr);
     static bool fileExists(const QString& path);
     static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
+    static bool fileCompare(const QString& pathFile1,  const QString& pathFile2 , bool *isOk = nullptr );
+    static bool fileRestoreResources(const QString& fileName);
 
     bool sendToChirpStack(const QByteArray& phyPayload);
     bool sendCollar(const Collar& collar);
+
+
+
 };
 
 extern SimTools* gSimTools;

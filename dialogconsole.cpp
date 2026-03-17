@@ -56,7 +56,6 @@ DialogConsole::DialogConsole(const QSettings& settings, QWidget *parent)
     ui->out->setTextBackgroundColor(mColorBack);
 
     QFont fnt = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    fnt.setPointSize( ui->out->fontPointSize() );
     ui->out->setFont( fnt );
 }
 
