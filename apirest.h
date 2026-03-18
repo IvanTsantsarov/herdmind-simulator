@@ -73,7 +73,7 @@ public:
                         const QString& appSKey,
                         const QString &nwkSKey);
 
-    void sendDeviceMessage(const QString& devEUI, const QByteArray& msg);
+    void sendDeviceMessage(const QString& devEUI, const QByteArray& msg, uint8_t fPort);
 
 };
 

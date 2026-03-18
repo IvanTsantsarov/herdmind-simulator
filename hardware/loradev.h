@@ -10,7 +10,7 @@ class Animal;
 class Gateway;
 
 #define EUI_BYTES_LEN 8
-#define LORA_FPORT 1
+#define LORA_FPORT_START 9
 
 class LoraDev : public QObject
 {
@@ -85,6 +85,9 @@ public:
     inline bool isValid(){ return Profile::None != mProfile; }
     void setAddress(const QByteArray& ba);;
     void setGateway(Gateway* gw);
+
+    inline uint8_t fport(){ return (quint8)LORA_FPORT_START + (quint8)mProfile; }
+    /// inline uint8_t fport(){ return 1; }
 
     LoraDev( const QString& name,
             Profile profile,

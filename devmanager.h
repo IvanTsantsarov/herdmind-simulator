@@ -66,7 +66,7 @@ public:
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);
     QList<QString> devices(){ return mDevices.keys(); }
-    void sendMessage(const QString& eui, const QByteArray& msg);
+    bool sendMessage(const QString& eui, const QByteArray& msg);
 };
 
 #endif // DEVMANAGER_H

@@ -211,7 +211,7 @@ bool LoraDev::uplink(const QByteArray& data)
     phy.append(static_cast<char>(fCnt16 & 0xFF));
     phy.append(static_cast<char>((fCnt16 >> 8) & 0xFF));
 
-    phy.append((quint8)LORA_FPORT);     // FPort
+    phy.append(fport());     // FPort
     phy.append(encrypted);
 
     QByteArray mic = calculateMIC(phy, mFCntUp, false);

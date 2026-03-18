@@ -219,17 +219,18 @@ QString DevManager::deviceName(const QString &eui)
     return QString();
 }
 
-void DevManager::sendMessage(const QString &eui, const QByteArray &msg)
+bool DevManager::sendMessage(const QString &eui, const QByteArray &msg)
 {
     LoraDev* dev = device(eui);
 
-    if( dev ) {
-        qInfo() << "Sending to device:" << device(eui)->name() << msg;
-    }else {
+    if( !dev ) {
         qCritical() << "Sending to unknown device:" << msg;
+        return false;
     }
 
-    mApiRest->sendDeviceMessage(eui, msg);
+    qInfo() << "Sending to device:" << dev->name() << msg;
+    mApiRest->sendDeviceMessage(eui, msg, dev->fport());
+    return true;
 }
 
 

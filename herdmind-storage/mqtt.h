@@ -16,7 +16,6 @@ class Mqtt : public QObject {
 
     QString mMqttAddr;
     quint16 mMqttPort = 0;
-    quint16 mFPort = 0;
     QString mAppId;
 
     QTimer mPullTimer;

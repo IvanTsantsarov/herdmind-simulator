@@ -36,6 +36,8 @@ class Protocol
     }
 public:
 
+    #pragma pack(push, 1)
+
     struct BolusByteArray;
 
     struct Bolus {
@@ -149,6 +151,7 @@ public:
         }
     };
 
+    #pragma pack(pop)
 
     struct BolusByteArray {
         uint8_t mArray[sizeof(Protocol::Bolus)];
@@ -163,5 +166,7 @@ public:
 
     Protocol();
 };
+
+
 
 #endif // PROTOCOL_H

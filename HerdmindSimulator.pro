@@ -89,6 +89,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    bolus_chirpstack.js \
+    collar_chirpstack.js \
     deploy.sh \
     deploy_cmake/CMakeLists.txt \
     res/settings.ini \
