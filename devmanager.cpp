@@ -167,13 +167,14 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
     mCollarsCount = 0;
     mBolusesCount = 0;
 
+    mDevicesList = devs;
     mDevicesJson = QJsonDocument::fromJson( jsonList ).array();
 
     mDevsMapJson.clear();
 
-    mDevices.clear();
+    mDevicesMap.clear();
     for( LoraDev* dev: devs) {
-        mDevices[dev->eui().toHex()] = dev;
+        mDevicesMap[dev->eui().toHex()] = dev;
         dev->setGateway(edge);
         if( dev->isBolus() ) {
             mBolusesCount++;
@@ -202,11 +203,11 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
 
 LoraDev *DevManager::device(const QString &devEUI)
 {
-    if( !mDevices.contains(devEUI) ) {
+    if( !mDevicesMap.contains(devEUI) ) {
         return nullptr;
     }
 
-    return mDevices[devEUI];
+    return mDevicesMap[devEUI];
 }
 
 QString DevManager::deviceName(const QString &eui)

@@ -135,8 +135,6 @@ bool Herd::generate(int count,
     // fill animals array
     mAnimals.reserve(count);
 
-    int malesGenerated = 0;
-
     QList<int> maleNames = Animal::namesIndices(true);
     QList<int> femaleNames = Animal::namesIndices(false);
 
@@ -144,12 +142,11 @@ bool Herd::generate(int count,
 
         int nameIndex;
 
-        bool isMale = malesGenerated >= mMalesCount ? false : true;
+        bool isMale = maleNames.empty() ? false : gSimTools->gen(10) > 5;
 
         if( isMale ) {
             nameIndex = maleNames.size() > 1 ? gSimTools->gen(maleNames.size()-1) : 0;
             maleNames.removeAt(nameIndex);
-            malesGenerated ++;
         }else {
             nameIndex = femaleNames.size() > 1 ? gSimTools->gen(femaleNames.size()-1) : 0;
             femaleNames.removeAt(nameIndex);

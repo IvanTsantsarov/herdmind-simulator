@@ -82,7 +82,7 @@ void DialogDeviceMsg::updateDevices()
     clearConnections();
 
     // performs deep copy
-    QList<QString> devices = mDevManager->devices();
+    QList<LoraDev*> devices = mDevManager->devices();
 
     // ui->tableDevices->clear();
 
@@ -107,8 +107,7 @@ void DialogDeviceMsg::updateDevices()
 
 
     int row = 0;
-    for(const QString& eui : devices) {
-        LoraDev* dev = mDevManager->device(eui);
+    for(LoraDev* dev : devices) {
 
         if( dev->isCollar() ) {
             QString eui = dev->eui().toHex();
@@ -119,7 +118,8 @@ void DialogDeviceMsg::updateDevices()
 
         DevCon con;
         QTableWidgetItem* itemName = new QTableWidgetItem(dev->name());
-        itemName->setToolTip(QString("0x%1 0x%2").arg(dev->addr().toHex()).arg(dev->eui().toHex()));
+        QString eui = dev->eui().toHex();
+        itemName->setToolTip(QString("0x%1 0x%2").arg(dev->addr().toHex()).arg(eui));
         itemName->setData(Qt::UserRole, eui);
         ui->tableDevices->setItem(row, DLG_MSG_TABLE_NAME_COL, itemName);
 

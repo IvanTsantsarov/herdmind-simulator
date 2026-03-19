@@ -34,6 +34,7 @@ public:
 
     QList<LoraDev*> gatherDevices();
 
+
 private:
     Q_OBJECT
 

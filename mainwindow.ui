@@ -115,6 +115,9 @@
              </item>
              <item>
               <widget class="QPushButton" name="btnGenerate">
+               <property name="toolTip">
+                <string>Generate a new herd. This will overwrite all the data on the server.</string>
+               </property>
                <property name="text">
                 <string>Generate </string>
                </property>
@@ -157,6 +160,9 @@
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
               <widget class="QPushButton" name="btnRefill">
+               <property name="toolTip">
+                <string>Refill all lawns with grass</string>
+               </property>
                <property name="text">
                 <string>Refill</string>
                </property>
@@ -164,11 +170,14 @@
              </item>
              <item>
               <widget class="QCheckBox" name="checkGrowingMeadow">
+               <property name="toolTip">
+                <string>Regenerate grass</string>
+               </property>
                <property name="text">
-                <string>Growing meadow</string>
+                <string>Growing</string>
                </property>
                <property name="checked">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>

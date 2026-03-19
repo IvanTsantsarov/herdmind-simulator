@@ -23,7 +23,8 @@ class DevManager
 
     ApiRest* mApiRest = nullptr;
 
-    QMap<QString, LoraDev*> mDevices;
+    QList<LoraDev*> mDevicesList;
+    QMap<QString, LoraDev*> mDevicesMap;
 
     // array of saved devices in the device.json
     // from previous generation here in the simulator
@@ -65,7 +66,7 @@ public:
     void syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);
-    QList<QString> devices(){ return mDevices.keys(); }
+    QList<LoraDev*> devices(){ return mDevicesList; }
     bool sendMessage(const QString& eui, const QByteArray& msg);
 };
 
