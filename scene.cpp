@@ -66,6 +66,8 @@ Scene::Scene(QObject *parent)
 void Scene::create(SceneView* view, Herd* herd, Network* network,
                    int lawnsCount, int collarPairsCount, int gatewayPairsCount )
 {
+    mView = view;
+
     // An important line - artefacts are gone with it:
     view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
@@ -175,7 +177,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     foreach(Meadow::Lawn* lawn, meadow->lawns()) {
         QGraphicsRectItem* r = mLawns[lawnIndex++];
 
-        if( isInitial || lawn->animalsCount() ) {
+        if( isInitial || lawn->animalsCount() || lawn->mustUpdate ) {
 
             if( isInitial ) {
                 r->setPos(lawn->pos());
@@ -184,6 +186,8 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
             QColor color = LAWN_BRUSH_COLOR_FULL;
             color.setAlpha( lawn->kgNorm() * 255.0f );
             r->setBrush(color);
+            mView->updateCursorInfo();
+            lawn->mustUpdate = false;
         }
     }
 
@@ -294,11 +298,15 @@ void Scene::selectGatewayItem(GatewayItem *item)
     mGatewayItemSelected->ensureVisible();
 }
 
-void Scene::setCursorInfoPos(const QPointF &pt)
+void Scene::setCursorInfoPos(const QPointF &pt, float kg)
 {
     if( mCursorInfo ) {
         mCursorInfo->setPos(pt);
-        QString str = QString("%1 %2").arg( pt.x(), 0, 'f', 2).arg( pt.y(), 0, 'f', 2);
+        QString str = QString("%1 %2 %3")
+                          .arg( pt.x(), 0, 'f', 2)
+                          .arg( pt.y(), 0, 'f', 2)
+                          .arg( kg, 0, 'f', 2);
+
         mCursorInfo->setPlainText(str);
     }
 }

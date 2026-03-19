@@ -32,15 +32,10 @@ public:
     bool mIsEnabledGrazing = true;
     bool mIsEnabledHerding = true;
 
-
     QList<LoraDev*> gatherDevices();
-
 
 private:
     Q_OBJECT
-
-    quint64 mMSec = 0;
-    quint64 mLastUpdateMsec = 0;
 
     QVector<Animal*> mAnimals, mCollars;
 
@@ -83,7 +78,7 @@ public:
                 float grazingCapacity );
 
 
-    void update(quint64 millissec,
+    void update(float tickSeconds,
                 Meadow *meadow,
                 QPointF *attractor,
                 bool isCorrectCollision,
@@ -97,8 +92,6 @@ public:
                 float maxTransmitDistance,
                 float maxTransmitAngle
                 );
-
-    inline quint64 msec(){ return mMSec; }
 
     inline Animal* animal(int index){ return mAnimals[index]; }
     inline Meadow* meadow(){ return mMeadow; }

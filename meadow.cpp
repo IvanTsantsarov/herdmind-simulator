@@ -7,9 +7,14 @@ Meadow::Meadow(const QPointF& center,
                const QSize &areaSize,
                float lawnR,
                float kgPerSqMeter,
+               float growingSpeed,
                uint animalsPerLawn,
                QObject *parent)
-    : QObject(parent), mAreaSize(areaSize), mLawnRadius(lawnR), mLawnDiam(2.0f*lawnR), mAnimalsPerLawn(animalsPerLawn)
+    : QObject(parent), mAreaSize(areaSize),
+    mLawnRadius(lawnR),
+    mLawnDiam(2.0f*lawnR),
+    mAnimalsPerLawn(animalsPerLawn),
+    mGrowingSpeed(growingSpeed)
 {
     mGeoCenter = geoCenter;
 
@@ -54,13 +59,25 @@ Meadow::~Meadow()
     }
 }
 
-void Meadow::update()
+void Meadow::update(float tickSeconds)
 {
     mKgMax = mKg = 0.0f;
 
     foreach( Lawn* l, mLawns) {
         mKg += l->kg();
         mKgMax += l->kgMax();
+
+        if( mIsGrowing ) {
+            l->grow(tickSeconds * mGrowingSpeed / 60);
+        }
+    }
+
+}
+
+void Meadow::refill()
+{
+    foreach( Lawn* l, mLawns) {
+        l->refill();
     }
 }
 
@@ -68,8 +85,8 @@ void Meadow::update()
 
 Meadow::Lawn *Meadow::lawn(float x, float y)
 {
-    int lw = (x - mOffsetW) / mLawnDiam;
-    int lh = (y - mOffsetH) / mLawnDiam;
+    int lw = (x + mOffsetW + mLawnRadius) / mLawnDiam;
+    int lh = (y + mOffsetH + mLawnRadius) / mLawnDiam;
 
     if( lw < 0 || lw >= mLawnsDim.width() ) {
         return nullptr;
@@ -142,7 +159,7 @@ Meadow::Lawn *Meadow::bestAvailable(const QPointF &pos, const Lawn *current)
 
 
 Meadow::Lawn::Lawn(const QPointF &position, float currentKg, float maxKg, Meadow *parent) :
-    mPos(position), mKgMax(maxKg), mKg(currentKg), mMeadow(parent) {
+    mPos(position), mKgMax(maxKg), mKg(currentKg), mKgStart(currentKg), mMeadow(parent) {
 
     mAnimals.reserve(mMeadow->animalsPerLawn());
 }
@@ -161,6 +178,18 @@ bool Meadow::Lawn::graze(float weight) {
         return true;
     }
 
+    return false;
+}
+
+bool Meadow::Lawn::grow(float weight)
+{
+    mKg += weight;
+    if( mKg > mKgStart ) {
+        mKg = mKgStart;
+        return true;
+    }
+
+    mustUpdate = true;
     return false;
 }
 

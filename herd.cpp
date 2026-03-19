@@ -203,7 +203,7 @@ bool Herd::processCollision(float collidingDistance)
     return isCollision;
 }
 
-void Herd::update( quint64 millissec,
+void Herd::update(  float tickSeconds,
                   Meadow* meadow,
                   QPointF* attractor,
                   bool isCorrectCollision,
@@ -220,11 +220,6 @@ void Herd::update( quint64 millissec,
     Q_UNUSED(maxSpeed);
 
     mMeadow = meadow;
-
-    mMSec = millissec;
-    double msecDelta = mMSec - mLastUpdateMsec;
-    float tickSeconds = msecDelta / 1000.0f;
-    // float tickDays = tickSeconds / (24.0 * 60.0 * 60.0);
 
     float minTransmitAngleCos = cosf(maxTransmitAngle);
 
@@ -262,13 +257,6 @@ void Herd::update( quint64 millissec,
                     // if it's not arrived
                     if( !animal->isMoving()) {
                         animal->dettach();
-                    }else {
-                        Meadow::Lawn* lawn = meadow->lawn(animal->pt());
-                        if( lawn && !lawn->isDepleted()) {
-                            // if there is a lawn under animal's feet just go and graze it
-                            animal->walkTo(QVector2D(lawn->pos()));
-                            animal->attach(lawn);
-                        }
                     }
                 }
 
@@ -356,7 +344,6 @@ void Herd::update( quint64 millissec,
         }
     }
 
-    mLastUpdateMsec = mMSec;
 }
 
 

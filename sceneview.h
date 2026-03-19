@@ -4,9 +4,13 @@
 #include <QGraphicsView>
 
 class Scene;
+class Meadow;
 
 class SceneView : public QGraphicsView
 {
+    QPoint mMousePoint;
+    QPointF mMousePointScene;
+
     QPointF mLeftPos, mRightPos, mMiddlePos;
     QPointF mLeftPosStart, mRightPosStart, mMiddlePosStart;
     bool mIsLeftPress = false;
@@ -14,10 +18,12 @@ class SceneView : public QGraphicsView
     bool mIsMiddlePress = false;
 
     Scene* mScene = nullptr;
-
+    Meadow* mMeadow = nullptr;
 
 public:
     SceneView(QGraphicsScene *scene, QWidget *parent = nullptr);
+
+    void setMeadow(Meadow* meadow){ mMeadow = meadow; }
 
     bool isLeftPress(){ return mIsLeftPress; };
     bool isRightPress(){ return mIsRightPress; };
@@ -26,6 +32,8 @@ public:
     QPointF leftPos(){ return mLeftPos;}
     QPointF rightPos(){ return mRightPos;}
     QPointF middlePos(){ return mMiddlePos;}
+
+    void updateCursorInfo();
 
 protected:
     void mousePressEvent(QMouseEvent* event);

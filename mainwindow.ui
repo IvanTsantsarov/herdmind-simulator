@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>455</width>
-    <height>696</height>
+    <width>474</width>
+    <height>1073</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -132,7 +132,7 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0">
+           <item row="3" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_6">
              <item>
               <widget class="QCheckBox" name="checkShepard">
@@ -148,6 +148,27 @@
               <widget class="QCheckBox" name="checkRecursiveCollision">
                <property name="text">
                 <string>Rec Coll</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QPushButton" name="btnRefill">
+               <property name="text">
+                <string>Refill</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkGrowingMeadow">
+               <property name="text">
+                <string>Growing meadow</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -243,7 +264,7 @@
              <x>0</x>
              <y>0</y>
              <width>289</width>
-             <height>453</height>
+             <height>792</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -801,52 +822,13 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="0">
-                   <widget class="QLabel" name="label_17">
-                    <property name="text">
-                     <string>L. radius</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="1">
-                   <widget class="QDoubleSpinBox" name="spinLawnRadius">
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_16">
                     <property name="toolTip">
-                     <string>Lawn radius in meters. Lawn is part of the meadow.</string>
-                    </property>
-                    <property name="minimum">
-                     <double>0.200000000000000</double>
-                    </property>
-                    <property name="maximum">
-                     <double>10.000000000000000</double>
-                    </property>
-                    <property name="singleStep">
-                     <double>0.200000000000000</double>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="1">
-                   <widget class="QSpinBox" name="spinAnimalsPerLawn">
-                    <property name="toolTip">
-                     <string>Animals count</string>
-                    </property>
-                    <property name="minimum">
-                     <number>1</number>
-                    </property>
-                    <property name="maximum">
-                     <number>10</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="5" column="0">
-                   <widget class="QLabel" name="label_18">
-                    <property name="toolTip">
-                     <string>Animals count per lawn</string>
+                     <string>Meadow grass capacity in kg per square meter</string>
                     </property>
                     <property name="text">
-                     <string>A. per lawn</string>
+                     <string>M. cap</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -863,13 +845,13 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="2" column="0">
-                   <widget class="QLabel" name="label_16">
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="label_23">
                     <property name="toolTip">
                      <string>Meadow grass capacity in kg per square meter</string>
                     </property>
                     <property name="text">
-                     <string>M. cap</string>
+                     <string>Growing sp.</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -877,6 +859,26 @@
                    </widget>
                   </item>
                   <item row="3" column="1">
+                   <widget class="QDoubleSpinBox" name="spinMeadowGrowingSpeed">
+                    <property name="toolTip">
+                     <string>Meadow growing speed</string>
+                    </property>
+                    <property name="maximum">
+                     <double>100.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="label_14">
+                    <property name="text">
+                     <string>A. cap</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
                    <widget class="QDoubleSpinBox" name="spinAnimalGrazingCapacity">
                     <property name="toolTip">
                      <string>Animal grazing capacity in kg per day</string>
@@ -898,13 +900,55 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="0">
-                   <widget class="QLabel" name="label_14">
+                  <item row="5" column="0">
+                   <widget class="QLabel" name="label_17">
                     <property name="text">
-                     <string>A. cap</string>
+                     <string>L. radius</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="1">
+                   <widget class="QDoubleSpinBox" name="spinLawnRadius">
+                    <property name="toolTip">
+                     <string>Lawn radius in meters. Lawn is part of the meadow.</string>
+                    </property>
+                    <property name="minimum">
+                     <double>0.200000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10.000000000000000</double>
+                    </property>
+                    <property name="singleStep">
+                     <double>0.200000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="0">
+                   <widget class="QLabel" name="label_18">
+                    <property name="toolTip">
+                     <string>Animals count per lawn</string>
+                    </property>
+                    <property name="text">
+                     <string>A. per lawn</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="1">
+                   <widget class="QSpinBox" name="spinAnimalsPerLawn">
+                    <property name="toolTip">
+                     <string>Animals count</string>
+                    </property>
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>10</number>
                     </property>
                    </widget>
                   </item>
@@ -942,7 +986,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>455</width>
+     <width>474</width>
      <height>26</height>
     </rect>
    </property>

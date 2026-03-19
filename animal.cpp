@@ -1,5 +1,6 @@
 #include <QDebug>
 #include "defines.h"
+#include "simtimer.h"
 #include "animal.h"
 #include "herd.h"
 #include "simtools.h"
@@ -82,12 +83,12 @@ void Animal::updateSpeedAndDirection()
 void Animal::setState(State newState) {
     mStatePrev = mState;
     mState = newState;
-    mStateMsec = mHerd->msec();
+    mStateMsec = gSimTimer->millis();
 }
 
 quint64 Animal::stateMsec()
 {
-    return mHerd->msec() - mStateMsec;
+    return gSimTimer->millis() - mStateMsec;
 }
 
 
@@ -311,10 +312,12 @@ QString Animal::info()
 {
     float kg = mLawn ? mLawn->kg() : 0.0f;
 
-    return QString("%1 %2\nPtr:0x%3\nV:%4,%5\nA:%6,%7\nStamina:%8\nState:%9 %10\nLawn:0x%11\nKg=%12\nAnimals:%13")
+    return QString("%1 %2\nPtr:0x%3\nP:%4,%5\nV:%6,%7\nA:%8,%9\nStamina:%10\nState:%11 %12\nLawn:0x%13\nKg=%14\nAnimals:%15")
         .arg(mName)
         .arg(mIsMale ? "♂️" : "♀️")
         .arg(reinterpret_cast<quint64>(this), 0, 16)
+        .arg( mPosition.x(), 0, 'f', 2)
+        .arg( mPosition.y(), 0, 'f', 2)
         .arg( mVelocity.x(), 0, 'f', 2)
         .arg( mVelocity.y(), 0, 'f', 2)
 

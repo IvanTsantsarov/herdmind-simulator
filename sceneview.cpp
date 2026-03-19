@@ -1,6 +1,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 
+#include "meadow.h"
 #include "sceneview.h"
 #include "scene.h"
 
@@ -22,6 +23,19 @@ SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
 
     scale(10, 10);
 
+}
+
+void SceneView::updateCursorInfo()
+{
+    float kg = 0.0f;
+    if( mMeadow ) {
+        Meadow::Lawn* lawn = mMeadow->lawn(mMousePointScene);
+        if( lawn ) {
+            kg = lawn->kg();
+        }
+    }
+
+    mScene->setCursorInfoPos(mMousePointScene, kg);
 }
 
 void SceneView::mousePressEvent(QMouseEvent *event)
@@ -66,18 +80,18 @@ void SceneView::mouseReleaseEvent(QMouseEvent *event)
 
 void SceneView::mouseMoveEvent(QMouseEvent *event)
 {
-    QPoint pt = event->pos();
+    mMousePoint = event->pos();
+    mMousePointScene = mapToScene(mMousePoint);
 
     if( mIsLeftPress )  {
-
-        mLeftPos = mapToScene(pt);
+        mLeftPos = mMousePointScene;
     }
     if( mIsRightPress ) {
-        mRightPos = mapToScene(pt);
+        mRightPos = mMousePointScene;
     }
 
     if( mIsMiddlePress ) {
-        mMiddlePos = mapToScene(pt);
+        mMiddlePos = mMousePointScene;
 
         float dx = mLeftPos.x() - mLeftPosStart.x();
         float dy = mLeftPos.y() - mLeftPosStart.y();
@@ -89,9 +103,9 @@ void SceneView::mouseMoveEvent(QMouseEvent *event)
 
     }
 
-    mScene->setCursorInfoPos(mapToScene(pt + QPoint(20, 20)));
+    updateCursorInfo();
 
-     QGraphicsView::mouseMoveEvent(event);
+    QGraphicsView::mouseMoveEvent(event);
 }
 
 void SceneView::wheelEvent(QWheelEvent *event)

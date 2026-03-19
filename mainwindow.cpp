@@ -17,6 +17,7 @@
 #include "network.h"
 #include "devmanager.h"
 #include "simtools.h"
+#include "simtimer.h"
 
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
@@ -79,6 +80,7 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     // Grazing parameters
     ui->spinMeadowRadius->setValue(MEADOW_INITIAL_RADIUS);
     ui->spinMeadowCapacity->setValue(MEADOW_INITIAL_CAPACITY);
+    ui->spinMeadowGrowingSpeed->setValue(MEADOW_GROWING_SPEED);
     ui->spinAnimalGrazingCapacity->setValue(ANIMAL_INITIAL_GRAZING_CAPACITY);
     ui->spinLawnRadius->setValue(LAWN_RADIUS);
     ui->spinAnimalsPerLawn->setValue(LAWN_ANIMALS_MAX_COUNT);
@@ -200,15 +202,19 @@ void MainWindow::create(bool isLoad)
                          QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
                          ui->spinLawnRadius->value(),
                          ui->spinMeadowCapacity->value(),
+                         ui->spinMeadowGrowingSpeed->value(),
                          ui->spinAnimalsPerLawn->value()
                          );
 
+    mMeadow->setGrowing(ui->checkGrowingMeadow->isChecked());
 
 
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,
                    mMeadow->lawnsCount(), mHerd->collarsCount() * mHerd->count(),  mHerd->collarsCount() * mNetwork->gatewaysCount() );
     mScene->update(mHerd, mMeadow, mNetwork, true, INITIAL_HERD_SPREAD);
+
+    mSceneView->setMeadow(mMeadow);
 
     ui->table->setColumnCount(TABLE_COLS_COUNT);
     ui->table->setRowCount(ui->spinAnimalsCount->value());
@@ -253,7 +259,6 @@ void MainWindow::create(bool isLoad)
 
     // ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    mHerdTimer.start();
 
     ui->checkShepard->setEnabled(true);
     ui->checkRecursiveCollision->setEnabled(true);
@@ -264,30 +269,24 @@ void MainWindow::create(bool isLoad)
 
 void MainWindow::onUpdate()
 {
+    gSimTimer->update();
+
     if( !mHerd) {
         return;
     }
 
-    // display elapsed time from starting the simulation
-    int seconds = mHerdTimer.elapsed() / 1000;
-    int minutes = seconds / 60;
-    int hours = seconds / 3600;
-    int minutesInHours = hours * 60;
-    minutes -= minutesInHours;
-    seconds -= (minutesInHours + minutes)*60;
-
-    mMeadow->update();
+    mMeadow->update(gSimTimer->tickSeconds());
 
     ui->editInfo->setText( QString("Food:%1%").arg( mMeadow->kgRatio(100), 0, 'f', 2) );
 
     ui->editTime->setText(QString("%1:%2:%3")
-                              .arg(hours, 2, 10, '0')
-                              .arg(minutes, 2, 10, '0')
-                              .arg(seconds, 2, 10, '0'));
+                              .arg(gSimTimer->hours(), 2, 10, '0')
+                              .arg(gSimTimer->minutes(), 2, 10, '0')
+                              .arg(gSimTimer->seconds(), 2, 10, '0'));
 
     QPointF attractor = mSceneView->rightPos();
 
-    mHerd->update( mHerdTimer.elapsed(),
+    mHerd->update( gSimTimer->tickSeconds(),
                   mMeadow,
                   mSceneView->isRightPress() ? &attractor : nullptr,
                   ui->checkRecursiveCollision->isChecked(),
@@ -442,5 +441,19 @@ void MainWindow::on_actionConsole_toggled(bool arg1)
 void MainWindow::on_actionDeviceMsg_toggled(bool arg1)
 {
     mDevMsg->setVisible(arg1);
+}
+
+
+void MainWindow::on_btnRefill_clicked()
+{
+    mMeadow->refill();
+}
+
+
+void MainWindow::on_checkGrowingMeadow_toggled(bool checked)
+{
+    if( mMeadow ) {
+        mMeadow->setGrowing(checked);
+    }
 }
 

@@ -16,6 +16,7 @@ class Meadow : public QObject
     QSize mAreaSize;
     float mLawnRadius;
     float mLawnDiam;
+
     QSize mLawnsDim;
     uint mAnimalsPerLawn;
     float mOffsetW, mOffsetH;
@@ -25,12 +26,16 @@ class Meadow : public QObject
 
     QGeoCoordinate mGeoCenter;
 
+    bool mIsGrowing = false;
+    float mGrowingSpeed;
+
 public:
     explicit Meadow(const QPointF &center,
                     const QGeoCoordinate& geoCenter,
                     const QSize& areaSize,
                     float lawnRad,
                     float kgPerSqMeter,
+                    float growingSpeed,
                     uint animalsPerLawn,
                     QObject *parent = nullptr);
 
@@ -39,10 +44,13 @@ public:
     class Lawn {
         QPointF mPos;
         QGeoCoordinate mCoord;
-        float mKgMax = 1.0f, mKg = 0.0f;
+        float mKgMax = 1.0f, mKg = 0.0f, mKgStart = 0.0f;
         Meadow* mMeadow;
         QList<Animal*> mAnimals;
+
     public:
+
+        bool mustUpdate = true;
 
         Lawn(const QPointF& position, float currentKg, float maxKg, Meadow* parent);
         inline QPointF pos(){ return mPos; }
@@ -50,8 +58,10 @@ public:
         inline bool isDepleted(){ return mKg <= 0.01; }
         inline bool hasSpace(){ return mAnimals.count() < mMeadow->animalsPerLawn(); }
         inline int animalsCount(){ return mAnimals.count(); }
+        inline void refill(){ mKg = mKgStart; mustUpdate = true; }
 
         bool graze(float weight);
+        bool grow(float weight);
         float distSq(const QPointF &pt);
 
         inline float kg(){ return mKg; };
@@ -66,6 +76,8 @@ public:
 
     };
 
+    void setGrowing(bool isGrowing) { mIsGrowing = isGrowing; }
+    inline bool isGrowing() { return mIsGrowing; }
     inline float lawnRadius(){ return mLawnRadius; }
     inline float lawnDiam(){ return mLawnDiam; }
     inline int lawnsCount(){ return mLawns.count(); }
@@ -79,7 +91,8 @@ public:
     inline float kg(){ return mKg; }
     inline float kgRatio(float multiplyBy = 1.0f){ return multiplyBy * mKg / mKgMax; }
 
-    void update();
+    void update(float tickSeconds);
+    void refill();
 
 
 protected:

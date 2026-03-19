@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QDir>
 
+#include "simtimer.h"
 #include "mainwindow.h"
 #include "dialogconsole.h"
 #include "simtools.h"
@@ -11,7 +12,10 @@
 #include "defines.h"
 #include "defines_settings.h"
 
+
+SimTimer gSimTimerObject;
 SimTools* gSimTools = nullptr;
+
 QtMessageHandler gOoriginalHandler = nullptr;
 
 void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)

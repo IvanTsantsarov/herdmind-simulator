@@ -104,7 +104,7 @@ public:
     void selectGatewayItem(GatewayItem* item);
 
     inline AnimalItem* selectedAnimal(){ return mAnimalItemSelected; }
-    void setCursorInfoPos(const QPointF& pt);
+    void setCursorInfoPos(const QPointF& pt, float kg);
 
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);

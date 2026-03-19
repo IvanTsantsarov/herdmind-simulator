@@ -34,7 +34,6 @@ class MainWindow : public QMainWindow
     Meadow* mMeadow = nullptr;
     QTimer mUpdateTimer;
     SceneView* mSceneView;
-    QElapsedTimer mHerdTimer;
     QTimer* mReminder = nullptr;
     FocusAnim* mFocusAnim = nullptr;
     Network* mNetwork = nullptr;
@@ -57,7 +56,6 @@ public:
     inline DevManager* devManager(){ return mDevManager; }
     inline Network* network(){ return mNetwork; }
     inline SimTools* tools(){ return mTools; }
-
 
     void onError(const QString &err);
     void onConsoleClose();
@@ -85,6 +83,8 @@ private slots:
     void on_btnLoad_clicked();
     void on_actionConsole_toggled(bool arg1);
     void on_actionDeviceMsg_toggled(bool arg1);
+    void on_btnRefill_clicked();
+    void on_checkGrowingMeadow_toggled(bool checked);
 };
 
 extern MainWindow* gMainWindow;

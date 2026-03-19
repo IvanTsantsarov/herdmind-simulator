@@ -32,6 +32,7 @@
 #define MEADOW_INITIAL_RADIUS 100.0f
 #define MEADOW_INITIAL_CAPACITY 1.2f // grass kg per square meter
 #define ANIMAL_INITIAL_GRAZING_CAPACITY 12.0f // in kg per day
+#define MEADOW_GROWING_SPEED 2.0f
 
 #define LAWN_RADIUS 1.5f
 #define LAWN_DIAMETER (LAWN_RADIUS*2.0f)

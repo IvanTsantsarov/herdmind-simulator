@@ -47,6 +47,7 @@ SOURCES += \
     scene.cpp \
     sceneview.cpp \
     shepherd.cpp \
+    simtimer.cpp \
     simtools.cpp
 
 HEADERS += \
@@ -75,6 +76,7 @@ HEADERS += \
     scene.h \
     sceneview.h \
     shepherd.h \
+    simtimer.h \
     simtools.h
 
 FORMS += \
