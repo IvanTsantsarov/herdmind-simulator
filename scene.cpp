@@ -298,13 +298,13 @@ void Scene::selectGatewayItem(GatewayItem *item)
     mGatewayItemSelected->ensureVisible();
 }
 
-void Scene::setCursorInfoPos(const QPointF &pt, float kg)
+void Scene::setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, float kg)
 {
     if( mCursorInfo ) {
         mCursorInfo->setPos(pt);
         QString str = QString("%1 %2 %3")
-                          .arg( pt.x(), 0, 'f', 2)
-                          .arg( pt.y(), 0, 'f', 2)
+                          .arg( location.latitude(), 0, 'f', 6)
+                          .arg( location.longitude(), 0, 'f', 6)
                           .arg( kg, 0, 'f', 2);
 
         mCursorInfo->setPlainText(str);

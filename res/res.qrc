@@ -9,5 +9,6 @@
         <file>icon-sound-off.svg</file>
         <file>icon-sound-on.svg</file>
         <file>settings_external.ini</file>
+        <file>environment.ini</file>
     </qresource>
 </RCC>

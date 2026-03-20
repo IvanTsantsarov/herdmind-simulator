@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include <QUdpSocket>
 #include <QFile>
+#include <fstream>
 
 #include "simtools.h"
 #include "defines_settings.h"
@@ -247,7 +248,6 @@ bool SimTools::fileRestoreResources(const QString &fileName)
 
 
 
-
 SimTools::SimTools(const QSettings &settings)
 {
     mAppId  = settings.value(CHIRPSTACK_SECTION"/appId").toByteArray();
@@ -256,7 +256,15 @@ SimTools::SimTools(const QSettings &settings)
     mCollarProfileId  = settings.value(CHIRPSTACK_SECTION"/collarProfileId").toByteArray();
     mGatewayProfileId  = settings.value(CHIRPSTACK_SECTION"/gatewayProfileId").toByteArray();
 
-
+    std::ifstream file("/proc/self/status");
+    std::string line;
+    mIsDebuggerAttached = false;
+    while (std::getline(file, line)) {
+        if (line.find("TracerPid:") != std::string::npos) {
+            mIsDebuggerAttached = line != "TracerPid:\t0";
+            break;
+        }
+    }
 }
 
 QString SimTools::profileId(LoraDev::Profile profile) {

@@ -2,6 +2,7 @@
 #define SCENE_H
 
 
+#include <QGeoCoordinate>
 #include <QObject>
 #include <QPainter>
 #include <QGraphicsScene>
@@ -104,7 +105,7 @@ public:
     void selectGatewayItem(GatewayItem* item);
 
     inline AnimalItem* selectedAnimal(){ return mAnimalItemSelected; }
-    void setCursorInfoPos(const QPointF& pt, float kg);
+    void setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, float kg);
 
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);

@@ -27,15 +27,20 @@ SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
 
 void SceneView::updateCursorInfo()
 {
-    float kg = 0.0f;
-    if( mMeadow ) {
-        Meadow::Lawn* lawn = mMeadow->lawn(mMousePointScene);
-        if( lawn ) {
-            kg = lawn->kg();
-        }
+    if( !mMeadow ) {
+        return;
     }
 
-    mScene->setCursorInfoPos(mMousePointScene, kg);
+    float kg = 0.0f;
+    QGeoCoordinate location;
+
+    Meadow::Lawn* lawn = mMeadow->lawn(mMousePointScene);
+    if( lawn ) {
+        kg = lawn->kg();
+    }
+
+    location = mMeadow->getGeoLocation(mMousePointScene);
+    mScene->setCursorInfoPos(mMousePointScene, location, kg);
 }
 
 void SceneView::mousePressEvent(QMouseEvent *event)

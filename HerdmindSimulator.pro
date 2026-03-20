@@ -95,6 +95,7 @@ DISTFILES += \
     collar_chirpstack.js \
     deploy.sh \
     deploy_cmake/CMakeLists.txt \
+    res/environment.ini \
     res/settings.ini \
     res/settings_external.ini \
     trash.txt

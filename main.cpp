@@ -12,6 +12,7 @@
 #include "defines.h"
 #include "defines_settings.h"
 
+#define ENVIRONMENT_INI "environment.ini"
 
 SimTimer gSimTimerObject;
 SimTools* gSimTools = nullptr;
@@ -57,7 +58,15 @@ void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const Q
 
 int main(int argc, char *argv[])
 {
-     gOoriginalHandler = qInstallMessageHandler(gMessagehHandler);
+    gOoriginalHandler = qInstallMessageHandler(gMessagehHandler);
+
+    // restore environemnt
+    if( !SimTools::fileExists(ENVIRONMENT_INI) ) {
+        if( !SimTools::fileRestoreResources(ENVIRONMENT_INI) ) {
+            qWarning() << "Cannot restore file" << ENVIRONMENT_INI;
+        }
+    }
+
 
     QApplication a(argc, argv);
 
@@ -79,17 +88,28 @@ int main(int argc, char *argv[])
 
     QString settingsName;
 
-    switch( QMessageBox::question(nullptr, "Herdming Simulator", "Connect to external Chirpstack?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel ) )
+    QSettings env(ENVIRONMENT_INI);
+    bool isRemoteSession = env.value("Main/Remote").toBool();
+
+    switch( QMessageBox::question(nullptr, "Herdming Simulator",
+                                  "Connect to external Chirpstack?",
+                                  QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                                  isRemoteSession ? QMessageBox::Yes : QMessageBox::No ) )
     {
     case QMessageBox::Yes:
         settingsName = SETTINGS_NAME_EXTERNAL;
+        isRemoteSession = true;
         break;
     case QMessageBox::No:
         settingsName = SETTINGS_NAME;
+        isRemoteSession = false;
         break;
     default:
         return 3;
     }
+
+    // store choice
+    env.setValue("Main/Remote", isRemoteSession);
 
     Q_ASSERT( QFile::exists(settingsName) );
 
@@ -98,7 +118,7 @@ int main(int argc, char *argv[])
 
     gSimTools = new SimTools(settings);
 
-    MainWindow w(settings);
+    MainWindow w(env,settings);
     w.show();
     return a.exec();
 }

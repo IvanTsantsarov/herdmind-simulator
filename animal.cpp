@@ -312,27 +312,46 @@ QString Animal::info()
 {
     float kg = mLawn ? mLawn->kg() : 0.0f;
 
-    return QString("%1 %2\nPtr:0x%3\nP:%4,%5\nV:%6,%7\nA:%8,%9\nStamina:%10\nState:%11 %12\nLawn:0x%13\nKg=%14\nAnimals:%15")
+    QGeoCoordinate location = geoLocation();
+
+#if PRINT_DEBUG_INFO == true
+        return QString("%1 %2\nPtr:0x%3\nP:%4,%5\nV:%6,%7\nA:%8,%9\nStamina:%10\nState:%11 %12\nLawn:0x%13\nKg=%14\nAnimals:%15")
+            .arg(mName)
+            .arg(mIsMale ? "♂️" : "♀️")
+            .arg(reinterpret_cast<quint64>(this), 0, 16)
+            .arg( location.latitude(), 0, 'f', 6)
+            .arg( location.longitude(), 0, 'f', 6)
+            .arg( mVelocity.x(), 0, 'f', 2)
+            .arg( mVelocity.y(), 0, 'f', 2)
+
+            .arg( mRotationAngleTarget, 0, 'f', 2)
+            .arg( mRotationAngle, 0, 'f', 2)
+
+            .arg( mStamina, 0, 'f', 2)
+
+            .arg( static_cast<int>(mState) )
+            .arg( currentStateString() )
+
+
+            .arg(reinterpret_cast<quint64>(mLawn), 0, 16)
+            .arg(kg, 0, 'f', 2 )
+            .arg(mLawn ? mLawn->animalsCount() : 0 );
+#else
+    return QString("%1 %2\nP:%3,%4\nStamina:%5\nState:%6 %7\nKg=%8\nAnimals:%9")
         .arg(mName)
         .arg(mIsMale ? "♂️" : "♀️")
-        .arg(reinterpret_cast<quint64>(this), 0, 16)
-        .arg( mPosition.x(), 0, 'f', 2)
-        .arg( mPosition.y(), 0, 'f', 2)
-        .arg( mVelocity.x(), 0, 'f', 2)
-        .arg( mVelocity.y(), 0, 'f', 2)
 
-        .arg( mRotationAngleTarget, 0, 'f', 2)
-        .arg( mRotationAngle, 0, 'f', 2)
+        .arg( location.latitude(), 0, 'f', 6)
+        .arg( location.longitude(), 0, 'f', 6)
 
         .arg( mStamina, 0, 'f', 2)
 
         .arg( static_cast<int>(mState) )
         .arg( currentStateString() )
 
-
-        .arg(reinterpret_cast<quint64>(mLawn), 0, 16)
         .arg(kg, 0, 'f', 2 )
         .arg(mLawn ? mLawn->animalsCount() : 0 );
+#endif
 }
 
 QString Animal::jsonInfo(bool isDevicesList)

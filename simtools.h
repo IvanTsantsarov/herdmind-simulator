@@ -15,6 +15,8 @@ public:
 
 private:
 
+    bool mIsDebuggerAttached = false;
+
     //////////////////////////////////////////
     /// Lorawan simulation
     //////////////////////////////////////////
@@ -69,8 +71,7 @@ public:
     bool sendToChirpStack(const QByteArray& phyPayload);
     bool sendCollar(const Collar& collar);
 
-
-
+    inline bool isDebuggerAttached(){ return mIsDebuggerAttached; }
 };
 
 extern SimTools* gSimTools;

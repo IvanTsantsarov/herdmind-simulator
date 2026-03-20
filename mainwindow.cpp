@@ -24,11 +24,10 @@
 
 MainWindow* gMainWindow = nullptr;
 
-MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
-    : QMainWindow(parent), mSettings(settings)
+MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *parent)
+    : QMainWindow(parent), mEnv(env), mSettings(settings)
     , ui(new Ui::MainWindow)
 {
-
     mConsole = new DialogConsole(settings, this);
     gMainWindow = this;
 
@@ -135,6 +134,23 @@ MainWindow::MainWindow(const QSettings &settings, QWidget *parent)
     QRect screenrect = qApp->primaryScreen()->geometry();
     mConsole->move(screenrect.left(), screenrect.bottom()/2);
     mDevMsg->move(screenrect.right()/2, screenrect.bottom()/2);
+
+    // restore environment
+    bool is = mEnv.value("UI/Console").toBool();
+    mConsole->setVisible( is );
+    ui->actionConsole->setChecked(is);
+
+    is = mEnv.value("UI/DevMsg").toBool();
+    mDevMsg->setVisible( is );
+    ui->actionDeviceMsg->setChecked(is);
+
+    is = mEnv.value("UI/GroupInfo").toBool();
+    ui->btnShowInfo->setChecked(is);
+    ui->groupInfo->setVisible(is);
+
+#if PRINT_DEBUG_INFO == false
+    ui->checkRecursiveCollision->setVisible(false);
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -144,7 +160,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
-
+    mEnv.setValue("UI/Console", mConsole->isVisible() );
+    mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
+    mEnv.setValue("UI/GroupInfo", ui->btnShowInfo->isChecked());
 }
 
 
@@ -455,5 +473,12 @@ void MainWindow::on_checkGrowingMeadow_toggled(bool checked)
     if( mMeadow ) {
         mMeadow->setGrowing(checked);
     }
+}
+
+
+void MainWindow::on_btnShowInfo_toggled(bool checked)
+{
+    ui->groupInfo->setVisible(checked);
+    ui->btnShowInfo->setText(checked ? ">" : "<");
 }
 

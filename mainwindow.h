@@ -42,13 +42,15 @@ class MainWindow : public QMainWindow
     DialogConsole* mConsole = nullptr;
     DialogDeviceMsg* mDevMsg = nullptr;
 
+    QSettings& mEnv;
     const QSettings &mSettings;
+
     void create(bool isLoad);
 
     void closeEvent(QCloseEvent* e);
 
 public:
-    MainWindow(const QSettings &settings, QWidget *parent = nullptr);
+    MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
 
     inline Herd* herd(){ return mHerd; }
@@ -85,6 +87,7 @@ private slots:
     void on_actionDeviceMsg_toggled(bool arg1);
     void on_btnRefill_clicked();
     void on_checkGrowingMeadow_toggled(bool checked);
+    void on_btnShowInfo_toggled(bool checked);
 };
 
 extern MainWindow* gMainWindow;
