@@ -31,6 +31,7 @@ void DialogConsole::appendText(const QString &msg, QColor col)
 
 void DialogConsole::closeEvent(QCloseEvent *e)
 {
+    Q_UNUSED(e);
     gMainWindow->onConsoleClose();
 }
 

@@ -250,6 +250,7 @@ void LoraDev::onDownlink(const QByteArray& phy)
     }
 
     quint8 mhdr = phy[0];
+    Q_UNUSED(mhdr);
 
     const QByteArray devAddr = phy.mid(1, 4);
 
@@ -335,6 +336,7 @@ void LoraDev::onDownlink(const QByteArray& phy)
 
 void LoraDev::onDownlinkDecrypted(const QByteArray &content)
 {
+    Q_UNUSED(content);
 
 }
 

@@ -89,8 +89,7 @@ QNetworkReply* ApiRest::del(const QString &url, RequestType type, QUrlQuery quer
 
 void ApiRest::addDevice(const QString& name,
                         const QString &profileId,
-                        const QString &devEUI,
-                        const QString &appKey )
+                        const QString &devEUI )
 {
     QString data = QString(
                        "{"
@@ -110,8 +109,6 @@ void ApiRest::addDevice(const QString& name,
 
     QNetworkReply* reply = post("devices", RequestType::AddDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
-    reply->setProperty("appKey", appKey);
-
 }
 
 

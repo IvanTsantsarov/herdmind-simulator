@@ -51,7 +51,7 @@ class Gateway
     bool mHasSIM = false;
     bool mIsSending = false;
 
-
+    void startHeartbeat();
 
 public:
     enum OutSubPackageType {

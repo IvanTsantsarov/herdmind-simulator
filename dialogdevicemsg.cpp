@@ -223,6 +223,8 @@ void DialogDeviceMsg::onDeviceBtnClicked()
 
 void DialogDeviceMsg::on_tableDevices_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous)
 {
+    Q_UNUSED(previous);
+
     if( !current ) {
         return;
     }

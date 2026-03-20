@@ -64,8 +64,7 @@ public:
     void deleteDevice(const QString& devEUI);
     void addDevice(const QString& name,
                    const QString &profileId,
-                   const QString &devEUI,
-                   const QString &appKey);
+                   const QString &devEUI);
 
     void getDeviceAddress(const QString& devEUI);
     void activateDevice(const QString &devEUI,

@@ -12,7 +12,6 @@ void ApiRest::onResponse()
     reply->deleteLater();
 
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    const QByteArray responseBody = reply->readAll();
 
     qDebug() << "ApiRest status:" << status << "Response:" << responseData;
 
@@ -24,7 +23,7 @@ void ApiRest::onResponse()
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
 
-    if (parseError.error != QJsonParseError::NoError && jsonDoc.isObject()) {
+    if (parseError.error != QJsonParseError::NoError || !jsonDoc.isObject()) {
         qDebug() << "REST:Failed to parse JSON:" << parseError.errorString();
         qCritical() << "REST:JSON parse error!";
         return;

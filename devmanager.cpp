@@ -53,7 +53,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
         }
 
         // if all devices are skipped call onDevicesReady
-        if( count && (mSkippedDevicesCount == count) ) {
+        if( (count && (mSkippedDevicesCount == count)) || mDevsMapJson.empty() ) {
             onDevicesReady(false);
             return;
         }
@@ -71,8 +71,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
 
             mApiRest->addDevice( jobj["name"].toString(),
                                 jobj["deviceProfileId"].toString(),
-                                jobj["devEui"].toString(),
-                                jobj["address"].toString() );
+                                jobj["devEui"].toString() );
         }
 
         qInfo() << "Sync devices first stage finished!";

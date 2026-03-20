@@ -160,6 +160,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
+    Q_UNUSED(e);
     mEnv.setValue("UI/Console", mConsole->isVisible() );
     mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
     mEnv.setValue("UI/GroupInfo", ui->btnShowInfo->isChecked());
@@ -168,7 +169,11 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::create(bool isLoad)
 {
+    mIsCreated = false;
+
     mFocusAnim->stop();
+
+    mSceneView->setMeadow(nullptr);
 
     if( mHerd) {
         delete mHerd;
@@ -235,7 +240,7 @@ void MainWindow::create(bool isLoad)
     mSceneView->setMeadow(mMeadow);
 
     ui->table->setColumnCount(TABLE_COLS_COUNT);
-    ui->table->setRowCount(ui->spinAnimalsCount->value());
+    ui->table->setRowCount(mHerd->count() );
 
     QFont boldFont;
     boldFont.setBold(true);
@@ -282,6 +287,8 @@ void MainWindow::create(bool isLoad)
     ui->checkRecursiveCollision->setEnabled(true);
 
     mDevMsg->updateDevices();
+
+    mIsCreated = true;
 }
 
 
@@ -289,7 +296,7 @@ void MainWindow::onUpdate()
 {
     gSimTimer->update();
 
-    if( !mHerd) {
+    if( !mIsCreated) {
         return;
     }
 

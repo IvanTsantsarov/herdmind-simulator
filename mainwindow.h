@@ -45,9 +45,11 @@ class MainWindow : public QMainWindow
     QSettings& mEnv;
     const QSettings &mSettings;
 
+    bool mIsCreated = false;
     void create(bool isLoad);
 
     void closeEvent(QCloseEvent* e);
+
 
 public:
     MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);

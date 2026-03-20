@@ -7,6 +7,7 @@
 
 #ifdef SIMULATION
 
+
 Gateway::Gateway(const QSettings &settings) :
     mClient(this)
 {
@@ -34,7 +35,7 @@ Gateway::Gateway(const QSettings &settings) :
 
     connect(&mClient, &QMqttClient::connected, this, [=]() {
         qInfo() << "MQTT connected";
-        publishOnline();
+        startHeartbeat();
         subscribe("command/down");
     });
 
@@ -56,7 +57,10 @@ void Gateway::start()
 {
     qInfo() << "Mqtt client connecting to" << mMqttAddr << ":" << mMqttPort << "...";
     mClient.connectToHost();
+}
 
+void Gateway::startHeartbeat()
+{
     // Periodically send "connected" state so ChirpStack sees the gateway
     QTimer* heartbeat = new QTimer(this);
     connect(heartbeat, &QTimer::timeout, this, [this]() {
@@ -80,6 +84,7 @@ void Gateway::start()
     });
     heartbeat->start(10000); // every 10 seconds
 }
+
 
 bool Gateway::publishOnline()
 {
@@ -195,7 +200,7 @@ bool Gateway::publish(const QByteArray &phyPayload)
     QByteArray jsonBA = doc.toJson(QJsonDocument::Compact);
     mClient.publish( topic, jsonBA );
 
-    return true;
+    return mClient.state() == QMqttClient::Connected;
 }
 
 void Gateway::onStopSending()
