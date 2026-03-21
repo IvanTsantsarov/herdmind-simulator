@@ -1,4 +1,6 @@
+#include <QFileDialog>
 #include <QMessageBox>
+#include <QClipboard>
 #include <QScreen>
 #include <QApplication>
 #include <QSettings>
@@ -289,6 +291,7 @@ void MainWindow::create(bool isLoad)
     mDevMsg->updateDevices();
 
     mIsCreated = true;
+    ui->actionSave->setEnabled(true);
 }
 
 
@@ -487,5 +490,59 @@ void MainWindow::on_btnShowInfo_toggled(bool checked)
 {
     ui->groupInfo->setVisible(checked);
     ui->btnShowInfo->setText(checked ? ">" : "<");
+}
+
+
+void MainWindow::on_btnCopyCenter_clicked()
+{
+    QGeoCoordinate location(ui->spinCenterLat->value(), ui->spinCenterLong->value());
+    QApplication::clipboard()->setText(location.toString());
+}
+
+
+void MainWindow::on_actionSave_triggered()
+{
+    while(1) {
+        QString choice = QFileDialog::getSaveFileName(this,
+                                                      "Choose save",
+                                                      SAVE_DIR, QString(), nullptr,
+                                                      QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly);
+        if( choice.isEmpty() ) {
+            return;
+        }
+
+        // TODO: implement this:
+        QString dir = SAVE_DIR + choice;
+
+        if( QFile::exists(dir) ) {
+            auto result = QMessageBox::question(this, "Rewrite save?",
+                                "Save already exists. Do you to overwrite it?",
+                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+            switch (result) {
+            case QMessageBox::Yes:
+                break;
+            case QMessageBox::No:
+                break;
+            default:
+                return;
+            }
+        }
+    }
+}
+
+
+void MainWindow::on_actionLoad_triggered()
+{
+    QString choice = QFileDialog::getOpenFileName(this,
+                                                  "Choose save",
+                                                  SAVE_DIR, QString(), nullptr,
+                                                  QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly);
+
+    if( choice.isEmpty() ) {
+        return;
+    }
+
+    // TODO: implement this:
 }
 

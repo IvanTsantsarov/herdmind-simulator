@@ -90,6 +90,9 @@ private slots:
     void on_btnRefill_clicked();
     void on_checkGrowingMeadow_toggled(bool checked);
     void on_btnShowInfo_toggled(bool checked);
+    void on_btnCopyCenter_clicked();
+    void on_actionSave_triggered();
+    void on_actionLoad_triggered();
 };
 
 extern MainWindow* gMainWindow;

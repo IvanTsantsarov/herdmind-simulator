@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>488</width>
+    <width>535</width>
     <height>1073</height>
    </rect>
   </property>
@@ -141,22 +141,6 @@
            <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
-              <widget class="QLineEdit" name="editTime">
-               <property name="toolTip">
-                <string>Time elapsed since the herd generation</string>
-               </property>
-               <property name="text">
-                <string>__:__:__</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-               </property>
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QPushButton" name="btnGenerate">
                <property name="toolTip">
                 <string>Generate a new herd. This will overwrite all the data on the server.</string>
@@ -172,7 +156,7 @@
                 <string>Load from json save after last generation</string>
                </property>
                <property name="text">
-                <string>Load</string>
+                <string>Load last</string>
                </property>
               </widget>
              </item>
@@ -204,6 +188,22 @@
            </item>
            <item row="2" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLineEdit" name="editTime">
+               <property name="toolTip">
+                <string>Time elapsed since the herd generation</string>
+               </property>
+               <property name="text">
+                <string>__:__:__</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
              <item>
               <widget class="QPushButton" name="btnRefill">
                <property name="toolTip">
@@ -241,7 +241,7 @@
            </size>
           </property>
           <property name="title">
-           <string>Center Long x Lat</string>
+           <string>Center Lat x Long</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <property name="spacing">
@@ -262,9 +262,9 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <widget class="QDoubleSpinBox" name="spinCenterLong">
+              <widget class="QDoubleSpinBox" name="spinCenterLat">
                <property name="toolTip">
-                <string>Center Longitude</string>
+                <string>Center Latitude</string>
                </property>
                <property name="decimals">
                 <number>6</number>
@@ -285,12 +285,31 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="spinCenterLat">
+              <widget class="QDoubleSpinBox" name="spinCenterLong">
                <property name="toolTip">
-                <string>Center Latitude</string>
+                <string>Center Longitude</string>
                </property>
                <property name="decimals">
                 <number>6</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnCopyCenter">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>Copy to clipboard</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset theme="QIcon::ThemeIcon::EditCopy"/>
                </property>
               </widget>
              </item>
@@ -318,7 +337,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>289</width>
+             <width>336</width>
              <height>792</height>
             </rect>
            </property>
@@ -1041,7 +1060,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>488</width>
+     <width>535</width>
      <height>26</height>
     </rect>
    </property>
@@ -1052,6 +1071,16 @@
     <addaction name="actionConsole"/>
     <addaction name="actionDeviceMsg"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSave"/>
+    <addaction name="actionLoad"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -1069,6 +1098,24 @@
    </property>
    <property name="text">
     <string>Device Msg</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

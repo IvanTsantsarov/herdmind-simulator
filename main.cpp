@@ -67,6 +67,13 @@ int main(int argc, char *argv[])
         }
     }
 
+    QDir currentDir = QDir::current();
+    if( !currentDir.exists(SAVE_DIR) ) {
+        if( !currentDir.mkdir(SAVE_DIR) ) {
+            qWarning() << "Cannot create save directory:" << SAVE_DIR;
+        }
+    }
+
 
     QApplication a(argc, argv);
 
