@@ -176,7 +176,9 @@ bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool is
     {
         QTextStream stream( &file );
         stream << content;
-        return true;
+        return stream.status() == QTextStream::Ok;
+    } else {
+        qCritical() << "Error opening for writing" << path;
     }
 
     return false;

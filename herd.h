@@ -109,7 +109,7 @@ public:
 
     QString jsonAnimalsList(bool isDevicesList);
 
-    void storeLists();
+    bool storeLists(const QString &dir = "./");
 
 signals:
 };

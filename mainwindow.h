@@ -46,7 +46,7 @@ class MainWindow : public QMainWindow
     const QSettings &mSettings;
 
     bool mIsCreated = false;
-    void create(bool isLoad);
+    bool create(bool isLoad, const QString &dir = "./");
 
     void closeEvent(QCloseEvent* e);
 

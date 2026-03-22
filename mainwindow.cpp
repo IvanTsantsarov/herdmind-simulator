@@ -169,7 +169,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 }
 
 
-void MainWindow::create(bool isLoad)
+bool MainWindow::create(bool isLoad, const QString& dir)
 {
     mIsCreated = false;
 
@@ -200,20 +200,23 @@ void MainWindow::create(bool isLoad)
     if( isLoad ) {
         // Load from stored file
         // generate only random position and the medow
-        mHerd->load(ANIMALS_LIST_FILE,
+        if( ! mHerd->load(dir + ANIMALS_LIST_FILE,
                     ui->doubleSpinArea->value(),
                     ui->doubleSpinAnimalSize->value(),
-                    ui->spinAnimalGrazingCapacity->value() );
+                    ui->spinAnimalGrazingCapacity->value() ) ) {
+            return false;
+        }
 
     }else {
         // generate from settings
-        mHerd->generate( ui->spinAnimalsCount->value(),
+        if( ! mHerd->generate( ui->spinAnimalsCount->value(),
                         ui->doubleSpinArea->value(),
                         ui->spinCollarsPercentage->value(),
                         ui->spinMalesPercentage->value(),
                         ui->doubleSpinAnimalSize->value(),
-                        ui->spinAnimalGrazingCapacity->value()
-                        );
+                        ui->spinAnimalGrazingCapacity->value()) ) {
+            return false;
+        }
 
     }
 
@@ -292,6 +295,8 @@ void MainWindow::create(bool isLoad)
 
     mIsCreated = true;
     ui->actionSave->setEnabled(true);
+
+    return true;
 }
 
 
@@ -502,7 +507,10 @@ void MainWindow::on_btnCopyCenter_clicked()
 
 void MainWindow::on_actionSave_triggered()
 {
-    while(1) {
+    QString dirStr;
+    bool isChoice = false;
+
+    while(!isChoice) {
         QString choice = QFileDialog::getSaveFileName(this,
                                                       "Choose save",
                                                       SAVE_DIR, QString(), nullptr,
@@ -511,38 +519,55 @@ void MainWindow::on_actionSave_triggered()
             return;
         }
 
-        // TODO: implement this:
-        QString dir = SAVE_DIR + choice;
+        dirStr = choice + "/";
 
-        if( QFile::exists(dir) ) {
+        if( QFile::exists(dirStr) ) {
             auto result = QMessageBox::question(this, "Rewrite save?",
                                 "Save already exists. Do you to overwrite it?",
                                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
             switch (result) {
             case QMessageBox::Yes:
-                break;
+                isChoice = true;
+                return;
             case QMessageBox::No:
                 break;
             default:
                 return;
             }
+        }else{
+            QDir dir(SAVE_DIR);
+            if(!dir.mkdir(choice)) {
+                qCritical() << "Error creating directory" << choice << "is" << SAVE_DIR;
+            }else{
+                isChoice = true;
+            }
         }
+    }
+
+    if( mHerd->storeLists(dirStr) ) {
+        setStatus(QString("Saved in %1").arg(dirStr));
+    }else{
+        setStatus(QString("Error saving in %1").arg(dirStr));
     }
 }
 
 
 void MainWindow::on_actionLoad_triggered()
 {
-    QString choice = QFileDialog::getOpenFileName(this,
-                                                  "Choose save",
-                                                  SAVE_DIR, QString(), nullptr,
-                                                  QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly);
+    QString choice = QFileDialog::getExistingDirectory(this,
+                                                  "Choose load",
+                                                  SAVE_DIR);
 
     if( choice.isEmpty() ) {
         return;
     }
 
-    // TODO: implement this:
+    QString dirStr = choice + "/";
+    if( create(true, dirStr) ) {
+        setStatus(QString("Loaded from %1").arg(dirStr));
+    }else{
+        setStatus(QString("Error loading from %1").arg(dirStr));
+    }
 }
 

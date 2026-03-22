@@ -60,12 +60,14 @@ Herd::~Herd()
 
 bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, float grazingCapacity )
 {
+    qDebug() << "Loading herd from" << jsonPath;
+
     float areaRadius = beforeGeneration( areaDimeter, animalSize);
 
     bool isOK;
     QByteArray content = gSimTools->fileRead(jsonPath, &isOK);
     if( !isOK ) {
-        qWarning() << "Error reading file:" << ANIMALS_LIST_FILE;
+        qWarning() << "Error reading file:" << jsonPath;
         return false;
     }
 
@@ -451,11 +453,16 @@ QString Herd::jsonAnimalsList( bool isDevicesList )
     return result;
 }
 
-void Herd::storeLists()
+bool Herd::storeLists(const QString& dir)
 {
     // If cannot load params from animals list - save animals list
-    gSimTools->fileWrite(ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true);
-    gSimTools->fileWrite(DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true);
-    qInfo() << "Animals and devices lists stored.";
+    if( !gSimTools->fileWrite(dir + ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true)) {
+        return false;
+    }
+    if( !gSimTools->fileWrite(dir + DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true) ) {
+        return false;
+    }
+    qInfo() << "Animals and devices lists stored in" << dir;
 
+    return true;
 }
