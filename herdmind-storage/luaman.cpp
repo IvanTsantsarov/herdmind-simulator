@@ -11,12 +11,34 @@ LuaMan::LuaMan(QObject *parent)
     : QObject{parent}
 {}
 
+LuaMan::Thread *LuaMan::next()
+{
+    Thread* t = *mCurrent;
+    mCurrent ++;
+
+    if(mCurrent == mThreads.end()) {
+        mCurrent = mThreads.begin();
+    }
+
+    return t;
+}
+
 void LuaMan::onThreadStarted()
 {
+    Thread* t = (Thread*) sender();
+    qInfo() << "Lua thread started" << t->path();
 }
 
 void LuaMan::onThreadFinished()
 {
+    Thread* t = (Thread*) sender();
+
+    if( t == *mCurrent ) {
+        next();
+    }
+
+    mThreads.removeOne(t);
+
 }
 
 void LuaMan::Thread::run() {
@@ -59,7 +81,6 @@ void LuaMan::Thread::onData(const QByteArray& data, const QString &profile)
         return;
     }
 
-    const QByteArray profileUtf8 = profile.toUtf8();
 
     lua_getglobal(mState, "onData");
     if (!lua_isfunction(mState, -1)) {
@@ -69,10 +90,10 @@ void LuaMan::Thread::onData(const QByteArray& data, const QString &profile)
     }
 
     // argument 1: profile name
-    lua_pushstring(mState, profileUtf8.constData());
+    lua_pushstring(mState, profile.toUtf8().constData());
 
     // argument 2: parsed package table
-    if (!pushUplinkPackage(data, profileUtf8)) {
+    if (!pushUplinkPackage(data, profile)) {
         lua_pop(mState, 2); // function + profile arg
         qWarning() << "Failed to parse package for profile" << profile;
         return;
@@ -92,5 +113,8 @@ bool LuaMan::run(const QString &fileName) {
     connect(t, &Thread::started, this, &LuaMan::onThreadStarted);
     connect(t, &Thread::finished, this, &LuaMan::onThreadFinished);
     t->start();
+
+    mThreads.append(t);
+    mCurrent = mThreads.begin();
     return true;
 }

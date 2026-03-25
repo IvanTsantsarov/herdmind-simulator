@@ -13,7 +13,6 @@ class LuaMan : public QObject
 {
     Q_OBJECT
 
-
 public:
     explicit LuaMan(QObject *parent = nullptr);
 
@@ -31,8 +30,6 @@ public:
         };
 
         static inline int binaryFormatLen(BinaryFormat fmt) { return ((uint8_t)fmt) >> 1; }
-
-
 
         struct BinaryField
         {
@@ -56,29 +53,38 @@ public:
 
 
         QString mFilePath;
+
         lua_State* mState = nullptr;
 
         void registerVariables();
 
         void run() override;
 
-
-
         static Thread* self(lua_State* state);
         static int l_uplink_setFormat(lua_State* state);
 
-        bool pushUplinkPackage(const QByteArray &data, const QString& profile);
+        bool pushUplinkPackage(const QByteArray &data, const QString &profile);
     public:
         Thread(const QString& fileName, QObject* parent) : QThread(parent), mFilePath(QString(LUA_SCRIPTS_ROOT_DIR) + "/" + fileName) { }
         ~Thread();
 
-        void onData(const QByteArray &data, const QString& profile);
+        inline QString path(){ return mFilePath; }
+        void onData(const QByteArray &data, const QString &profile);
 
     };
+
+    Thread* next();
+
+private:
+
+
+    QList<Thread*> mThreads;
+    QList<Thread*>::iterator mCurrent;
 
 protected slots:
     void onThreadStarted();
     void onThreadFinished();
+
 
 
 public:

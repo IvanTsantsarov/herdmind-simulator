@@ -5,6 +5,7 @@
 #include "mqtt.h"
 #include "tools.h"
 #include "luaman.h"
+#include "luaman.h"
 #include "../hardware/protocol.h"
 
 Storage::Storage(QSettings& settings, QObject *parent)
@@ -12,10 +13,6 @@ Storage::Storage(QSettings& settings, QObject *parent)
 {
     mApiRest = new ApiRest(this, settings);
     mMqtt = new Mqtt(this, settings);
-
-
-    mBolusProfile = settings.value(CHIRPSTACK_SECTION"/bolusProfileId").toString();
-    mCollarProfile = settings.value(CHIRPSTACK_SECTION"/collarProfileId").toString();
 }
 
 void Storage::run()
@@ -51,21 +48,12 @@ void Storage::registerDevices(QJsonObject &jobj)
         for( const auto& jsonElement: array ) {
             QJsonObject jobj = jsonElement.toObject();
             QString devEui = jobj["devEui"].toString();
-
-            DeviceProfile p = DeviceProfile::None;
-            QString profileStr = jobj["deviceProfileId"].toString();
-            if( profileStr == mBolusProfile) {
-                p = DeviceProfile::Bolus;
-            }
-            else
-            if( profileStr == mCollarProfile) {
-                p = DeviceProfile::Collar;
-            }
+            QByteArray profile = jobj["deviceProfileId"].toString().toLatin1();
 
             Device dev( devEui,
                        jobj["address"].toString(),
                        jobj["name"].toString(),
-                       p );
+                       profile );
 
             mDevices.insert(devEui, dev);
             qInfo() << "Added device:" << dev.name() << dev.eui();
@@ -125,46 +113,9 @@ void Storage::onMessage(const QJsonObject &jobj)
 
     QByteArray payload = QByteArray::fromBase64( jobj.value("data").toString().toUtf8() );
 
-    // parse here the data
-    switch (dev.profile()) {
-    case DeviceProfile::Bolus: {
-        Protocol::Bolus package;
-        package.fromByteArray((uint8_t*)payload.constData());
-        QString cond;
-        if( package.isOk() ) {
-            cond = "normal.";
-        }else {
-            if( package.hasAtony() ) {
-                cond = "Atony";
-            }
-
-            if( package.hasHiper() ) {
-                if( cond.length() ) cond += ",";
-                cond += "Hiper";
-            }
-
-            if( package.hasHypo() ) {
-                if( cond.length() ) cond += ",";
-                cond += "Hypo";
-            }
-
-            if( package.hasTemp() ) {
-                if( cond.length() ) cond += ",";
-                cond += "HTemp";
-            }
-        }
-        qInfo() << Tools::deviceTimestampString(package.mTimestamp) << dev.name() << cond;
-    }
-    break;
-    case DeviceProfile::Collar: {
-        Protocol::Collar package;
-        package.fromByteArray((uint8_t*)payload.constData());
-        QGeoCoordinate coord(package.decodeLat(), package.decodeLon());
-        qInfo() << Tools::deviceTimestampString(package.mTimestamp) << dev.name() << coord.toString(QGeoCoordinate::Degrees);
-    }
-    break;
-    default:
-        break;
+    LuaMan::Thread* t = gLua.next();
+    if( t ) {
+        t->onData(payload, dev.profile());
     }
 
     // qDebug() << "A message from" << eui << payload;

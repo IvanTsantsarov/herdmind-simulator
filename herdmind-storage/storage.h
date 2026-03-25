@@ -24,13 +24,6 @@ class Storage : public QObject
     bool mIsSubscribed = false;
     bool mHasDevices = false;
     int mSubscribedCount = 0;
-    QString mBolusProfile, mCollarProfile;
-
-    enum struct DeviceProfile {
-        None = 0,
-        Bolus = 1,
-        Collar = 2
-    };
 
     class Device {
 
@@ -38,20 +31,18 @@ class Storage : public QObject
         QString mEui;
         QString mAddress;
         QString mName;
-        DeviceProfile mProfile = DeviceProfile::None;
+        QString mProfile;
 
     public:
         Device(){}
-        Device(const QString& eui, const QString& a, const QString& n, DeviceProfile p)
+        Device(const QString& eui, const QString& a, const QString& n, const QString& p)
             : mEui(eui), mAddress(a), mName(n), mProfile(p) {}
 
         inline QString name() const { return mName; }
         inline QString addr() const{ return mAddress; }
         inline QString eui() const{ return mEui; }
-        inline DeviceProfile profile() const{ return mProfile; }
-        inline bool isValid() const{ return mProfile != DeviceProfile::None; }
-        inline bool isCollar() const{ return mProfile == DeviceProfile::Collar; }
-        inline bool isBolus(){ return mProfile == DeviceProfile::Bolus; }
+        inline QString profile() const{ return mProfile; }
+        inline bool isValid() const{ return !mProfile.isEmpty(); }
         inline bool isSubscribed() const{ return mIsSubscribed; }
 
         void subscribe(){ mIsSubscribed = true; }
