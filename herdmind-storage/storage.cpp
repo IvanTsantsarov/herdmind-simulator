@@ -4,6 +4,7 @@
 #include "defines.h"
 #include "mqtt.h"
 #include "tools.h"
+#include "luaman.h"
 #include "../hardware/protocol.h"
 
 Storage::Storage(QSettings& settings, QObject *parent)
@@ -11,6 +12,7 @@ Storage::Storage(QSettings& settings, QObject *parent)
 {
     mApiRest = new ApiRest(this, settings);
     mMqtt = new Mqtt(this, settings);
+
 
     mBolusProfile = settings.value(CHIRPSTACK_SECTION"/bolusProfileId").toString();
     mCollarProfile = settings.value(CHIRPSTACK_SECTION"/collarProfileId").toString();
@@ -20,6 +22,8 @@ void Storage::run()
 {
     mApiRest->getDevices(MAX_DEVICES_COUNT);
     mMqtt->start();
+
+    gLua.run("main.lua");
 }
 
 void Storage::subscribe()

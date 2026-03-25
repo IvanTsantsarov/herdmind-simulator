@@ -1,12 +1,16 @@
 #include <QSettings>
 #include <QFile>
 #include <QCoreApplication>
+#include "luaman.h"
 #include "storage.h"
 #include "defines.h"
 #include "tools.h"
 
 #include <iostream>
 using namespace std;
+
+LuaMan gLua;
+
 
 void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -70,6 +74,8 @@ int main(int argc, char *argv[])
     Storage s(settings);
 
     s.run();
+
+
 
     return a.exec();
 }

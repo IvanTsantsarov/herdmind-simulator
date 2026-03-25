@@ -15,9 +15,9 @@ class Storage : public QObject
     friend class ApiRest;
     friend class Mqtt;
 
-
     ApiRest* mApiRest = nullptr;
     Mqtt* mMqtt = nullptr;
+
     bool mHasDevicesCouns = false;
     bool mIsConnected = false;
     bool mIsSubscribing = false;
