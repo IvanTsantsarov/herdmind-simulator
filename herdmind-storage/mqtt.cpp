@@ -50,7 +50,7 @@ Mqtt::Mqtt(Storage *st, const QSettings &settings) :
             });
 
     connect(&mClient, &QMqttClient::messageReceived,
-            this, &Mqtt::onMessageReceived);
+            this, &Mqtt::onUplinkReceived);
 }
 
 void Mqtt::start()
@@ -102,9 +102,9 @@ void Mqtt::subscribeToDeviceUp(const QString &devEUI)
 */
 }
 
-void Mqtt::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
+void Mqtt::onUplinkReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
     const QJsonDocument doc = QJsonDocument::fromJson(message);
     const QJsonObject json = doc.object();
-    mStorage->onMessage(json);
+    mStorage->onUplink(json);
 }

@@ -55,7 +55,7 @@ class Storage : public QObject
 
 protected:
     void registerDevices(QJsonObject& jobj);
-    void onMessage(const QJsonObject &jobj);
+    void onUplink(const QJsonObject &jobj);
     void onConnected();
     void onSubscribed(const QString& eui);
 

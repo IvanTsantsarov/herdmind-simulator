@@ -9,7 +9,7 @@
 #include <iostream>
 using namespace std;
 
-LuaMan gLua;
+LuaMan* gLua = nullptr;
 
 
 void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -61,21 +61,24 @@ int main(int argc, char *argv[])
         return 2;
     }
 
+
     char choice;
     printf("Load external settins (to connect later to remote server)? [y/n]");
     flush(cout);
     a.processEvents();
-    cin >> choice;
+    choice =  'n';//    cin >> choice;
+
     a.processEvents();
     QString settingsName = choice =='y' || choice =='Y' ? SETTINGS_NAME_EXTERNAL : SETTINGS_NAME;
+
+
+    gLua = new LuaMan(settingsName);
 
     QSettings settings(settingsName, QSettings::IniFormat);
 
     Storage s(settings);
 
     s.run();
-
-
 
     return a.exec();
 }

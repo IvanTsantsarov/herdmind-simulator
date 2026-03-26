@@ -57,7 +57,7 @@ QNetworkReply* ApiRest::get(const QString &url, RequestType type, QUrlQuery quer
     QNetworkRequest request = createRequest(url, query, limit, offset);
     QNetworkReply* reply = mManager.get(request);
     prepareReply(reply, type);
-    qDebug() << "Get request:" << request.url().toString() << query.toString();
+    // qDebug() << "Get request:" << request.url().toString() << query.toString();
     return reply;
 }
 
@@ -69,7 +69,7 @@ QNetworkReply* ApiRest::post(const QString &url,
     QNetworkRequest request = createRequest(url, query);
     QNetworkReply* reply = mManager.post(request, data);
     prepareReply(reply, type);
-    qDebug() << "Post request:" << request.url().toString() << query.toString() << data;
+    // qDebug() << "Post request:" << request.url().toString() << query.toString() << data;
     return reply;
 }
 
@@ -78,7 +78,7 @@ QNetworkReply* ApiRest::del(const QString &url, RequestType type, QUrlQuery quer
     QNetworkRequest request = createRequest(url, query);
     QNetworkReply* reply = mManager.deleteResource(request);
     prepareReply(reply, type);
-    qDebug() << "Delete request:" << request.url().toString() << query.toString();
+    // qDebug() << "Delete request:" << request.url().toString() << query.toString();
     return reply;
 }
 

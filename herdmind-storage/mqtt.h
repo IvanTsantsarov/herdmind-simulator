@@ -39,7 +39,7 @@ signals:
     void downlinkReceived(const QByteArray& response);
 
 protected slots:
-    void onMessageReceived(const QByteArray &message,
+    void onUplinkReceived(const QByteArray &message,
                            const QMqttTopicName &topic);
 };
 

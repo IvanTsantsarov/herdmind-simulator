@@ -1,5 +1,6 @@
-#include "luaman.h"
 #include <QDebug>
+#include <QDateTime>
+#include "luaman.h"
 
 extern "C" {
 #include "lua/lua.h"
@@ -58,12 +59,19 @@ int LuaMan::Thread::pushInt32(const QByteArray &data, int offset)
 
 int LuaMan::Thread::pushUint32(const QByteArray &data, int offset)
 {
-    uint32_t val =    (((uint32_t)data[offset]) << 24)
-                    | (((uint32_t)data[offset + 1]) << 16)
-                    | (((uint32_t)data[offset + 2]) << 8)
-                    | (((uint32_t)data[offset + 3]));
-    lua_pushinteger(mState, val);
-    return 4;
+    if (offset < 0 || offset + 4 > data.size()) {
+        lua_pushnil(mState);
+        return 1; // or handle differently
+    }
+
+    uint32_t val =
+        (static_cast<uint32_t>(static_cast<uint8_t>(data[offset])) << 24) |
+        (static_cast<uint32_t>(static_cast<uint8_t>(data[offset + 1])) << 16) |
+        (static_cast<uint32_t>(static_cast<uint8_t>(data[offset + 2])) << 8) |
+        (static_cast<uint32_t>(static_cast<uint8_t>(data[offset + 3])));
+
+    lua_pushinteger(mState, static_cast<lua_Integer>(val));
+    return 4; // if this means bytes consumed
 }
 
 void LuaMan::Thread::registerVariables()
@@ -103,10 +111,32 @@ void LuaMan::Thread::registerVariables()
     lua_pushcfunction(mState, LuaMan::Thread::l_uplink_setFormat);
     lua_setfield(mState, -2, "setFormat");
 
-    // lua_pushcfunction(mState, LuaMan::Thread::l_uplink_data);
-    // lua_setfield(mState, -2, "data");
-
     lua_setglobal(mState, "uplink");
+
+    //
+    // 3) global table: tools
+    //
+    lua_newtable(mState);
+
+    lua_pushcfunction(mState, LuaMan::Thread::l_tools_geo2float);
+    lua_setfield(mState, -2, "geo2float");
+
+    lua_pushcfunction(mState, LuaMan::Thread::l_tools_timestamp2string );
+    lua_setfield(mState, -2, "ts2string");
+
+
+    lua_setglobal(mState, "tools");
+
+    //
+    // 4) global table: data base
+    //
+    // create db table
+    // lua_newtable(mState);
+
+    // lua_pushcfunction(mState, LuaMan::Thread::l_db_write);
+    // lua_setfield(mState, -2, "write");
+
+    // lua_setglobal(mState, "db");
 }
 
 int LuaMan::Thread::l_uplink_setFormat(lua_State *state)
@@ -168,41 +198,29 @@ int LuaMan::Thread::l_uplink_setFormat(lua_State *state)
     return 0;
 }
 
-bool LuaMan::Thread::pushUplinkPackage(const QByteArray &data, const QString &profile)
+
+int LuaMan::Thread::l_tools_geo2float(lua_State *state)
 {
-    if (!mProfileFormats.contains(profile)) {
-        qWarning() << "Unknown profile:" << profile;
-        return false;
-    }
+    uint32_t lati = luaL_checklong(state, 1);
+    uint32_t loni = luaL_checklong(state, 2);
 
-    BinaryFormatPackage format = mProfileFormats[profile];
-    if( data.length() != format.byteLength ) {
-        qWarning() << "Profile" << profile << "lenght missmatch " << data.length() << " vs " << format.byteLength;
-        return false;
-    }
+    double latf = ((double)lati / 4294967295.0L) * 180.0L - 90.0L;
+    double lonf = ((double)loni / 4294967295.0L) * 360.0L - 180.0L;
 
-    int offset = 0;
+    lua_pushnumber(state, latf);
+    lua_pushnumber(state, lonf);
 
-    lua_newtable(mState);
+    return 2;
+}
 
-    for (const BinaryField& field : format.fields) {
-        lua_pushstring(mState, field.name.constData());
+char gTS[100];
 
-        switch (field.format) {
-        case bf_int8: offset += pushInt8(data, offset); break;
-        case bf_uint8: offset += pushUint8(data, offset); break;
-        case bf_int16: offset += pushInt16(data, offset); break;
-        case bf_uint16: offset += pushUint16(data, offset); break;
-        case bf_int32: offset += pushInt32(data, offset); break;
-        case bf_uint32: offset += pushUint32(data, offset); break;
-        default:
-            lua_pop(mState, 2);
-            qWarning() << "Unsupported field type" << field.format << "for" << field.name;
-            return false;
-        }
-
-        lua_settable(mState, -3);
-    }
-
-    return true;
+int LuaMan::Thread::l_tools_timestamp2string(lua_State *state)
+{
+    uint32_t seconds = luaL_checkinteger(state, 1);
+    QDateTime dt = QDateTime(QDate(2000, 1, 1), QTime(0, 0)).addSecs(seconds);
+    QString str = dt.toString(gLua->timeFormat());
+    strcpy( gTS, str.toUtf8().constData());
+    lua_pushstring(state, gTS);
+    return 1;
 }

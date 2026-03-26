@@ -86,3 +86,6 @@ HEADERS += \
 
 RESOURCES += \
     res/res.qrc
+
+DISTFILES += \
+    examples/lua/main.lua

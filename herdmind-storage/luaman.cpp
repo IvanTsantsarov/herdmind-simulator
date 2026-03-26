@@ -7,12 +7,33 @@ extern "C" {
 #include "lua/lauxlib.h"
 }
 
-LuaMan::LuaMan(QObject *parent)
+#define LUA_GLOBAL_ON_UPLINK "onUplink"
+
+LuaMan::LuaMan(const QString &settingsPath, QObject *parent)
     : QObject{parent}
-{}
+{
+    QSettings settings(settingsPath, QSettings::IniFormat);
+
+    mTimeFormat = settings.value("Lua/TimeFormat").toString();
+
+    settings.beginGroup("Profiles");
+
+    QStringList keys = settings.childKeys();
+    for (const QString& key : keys) {
+        QString value = settings.value(key).toString();
+        mProfilesNameId[key] = value;
+        mProfilesIdName[value] = key;
+    }
+
+    settings.endGroup();
+}
 
 LuaMan::Thread *LuaMan::next()
 {
+    if( !mThreads.count() ) {
+        return nullptr;
+    }
+
     Thread* t = *mCurrent;
     mCurrent ++;
 
@@ -42,11 +63,14 @@ void LuaMan::onThreadFinished()
 }
 
 void LuaMan::Thread::run() {
-    mState = lua_open();
+    mState = luaL_newstate();
 
     lua_gc(mState, LUA_GCSTOP, 0);  // stop collector during initialization
     luaL_openlibs(mState);  // open libraries
     lua_gc(mState, LUA_GCRESTART, 0);
+
+    // register all tables and variables
+    registerVariables();
 
     // Load the script file first
     int status = luaL_loadfile(mState, mFilePath.toUtf8().constData());
@@ -66,45 +90,92 @@ void LuaMan::Thread::run() {
         return;
     }
 
-    registerVariables();
+    exec();
+
+    lua_close(mState);
+    mState = nullptr;
 }
 
 LuaMan::Thread::~Thread()
 {
-    lua_close(mState);
+
 }
 
-void LuaMan::Thread::onData(const QByteArray& data, const QString &profile)
+bool LuaMan::Thread::pushUplinkPackage(const QByteArray &data, const QString &profileName)
+{
+    if (!mProfileFormats.contains(profileName)) {
+        qWarning() << "Unknown profile:" << profileName;
+        return false;
+    }
+
+    BinaryFormatPackage& format = mProfileFormats[profileName];
+    if( data.length() != format.byteLength ) {
+        qWarning() << "Profile" << profileName << "lenght missmatch " << data.length() << " vs " << format.byteLength;
+        return false;
+    }
+
+    int offset = 0;
+
+    lua_newtable(mState);
+
+    for (const BinaryField& field : format.fields) {
+        lua_pushstring(mState, field.name.constData());
+
+        switch (field.format) {
+        case bf_int8: offset += pushInt8(data, offset); break;
+        case bf_uint8: offset += pushUint8(data, offset); break;
+        case bf_int16: offset += pushInt16(data, offset); break;
+        case bf_uint16: offset += pushUint16(data, offset); break;
+        case bf_int32: offset += pushInt32(data, offset); break;
+        case bf_uint32: offset += pushUint32(data, offset); break;
+        default:
+            lua_pop(mState, 2);
+            qWarning() << "Unsupported field type" << field.format << "for" << field.name;
+            return false;
+        }
+
+        lua_settable(mState, -3);
+    }
+
+    return true;
+}
+
+
+
+void LuaMan::Thread::onUplink(const QByteArray& data, const QString &profileId)
 {
     if (!mState) {
-        qWarning() << "Lua state or data is null";
+        qWarning() << "Lua state is null";
         return;
     }
 
-
-    lua_getglobal(mState, "onData");
+    lua_getglobal(mState, LUA_GLOBAL_ON_UPLINK);
     if (!lua_isfunction(mState, -1)) {
         lua_pop(mState, 1);
-        qWarning() << "Lua global function onData is not defined";
+        qWarning() << "Lua global function onUplink is not defined";
         return;
     }
 
-    // argument 1: profile name
-    lua_pushstring(mState, profile.toUtf8().constData());
-
-    // argument 2: parsed package table
-    if (!pushUplinkPackage(data, profile)) {
-        lua_pop(mState, 2); // function + profile arg
-        qWarning() << "Failed to parse package for profile" << profile;
+    QString profileName = luaMan()->getProfileName(profileId);
+    if (profileName.isEmpty()) {
+        lua_pop(mState, 1); // function
+        qCritical() << "Profile name missing for this id:" << profileId;
         return;
     }
 
-    // call onData(name, package)
+    if (!pushUplinkPackage(data, profileName)) {
+        lua_pop(mState, 1); // function only
+        qWarning() << "Failed to parse package for profile" << profileName;
+        return;
+    }
+
+    QByteArray profileNameUtf8 = profileName.toUtf8();
+    lua_pushstring(mState, profileNameUtf8.constData());
+
     const int status = lua_pcall(mState, 2, 0, 0);
     if (status) {
-        qWarning() << "Lua onData error:" << lua_tostring(mState, -1);
+        qWarning() << "Lua onUplink error:" << lua_tostring(mState, -1);
         lua_pop(mState, 1);
-        return;
     }
 }
 
@@ -118,3 +189,22 @@ bool LuaMan::run(const QString &fileName) {
     mCurrent = mThreads.begin();
     return true;
 }
+
+QString LuaMan::getProfileName(const QString &profileId)
+{
+    if( mProfilesIdName.contains(profileId)) {
+        return mProfilesIdName[profileId];
+    }
+
+    return QString();
+}
+
+QString LuaMan::getProfileId(const QString &profileName)
+{
+    if( mProfilesNameId.contains(profileName)) {
+        return mProfilesNameId[profileName];
+    }
+
+    return QString();
+}
+

@@ -20,7 +20,7 @@ void Storage::run()
     mApiRest->getDevices(MAX_DEVICES_COUNT);
     mMqtt->start();
 
-    gLua.run("main.lua");
+    gLua->run("main.lua");
 }
 
 void Storage::subscribe()
@@ -99,7 +99,7 @@ void Storage::onSubscribed(const QString &eui)
     }
 }
 
-void Storage::onMessage(const QJsonObject &jobj)
+void Storage::onUplink(const QJsonObject &jobj)
 {
     QJsonObject deviceInfo = jobj.value("deviceInfo").toObject();
     QString eui = deviceInfo.value("devEui").toString();
@@ -113,9 +113,9 @@ void Storage::onMessage(const QJsonObject &jobj)
 
     QByteArray payload = QByteArray::fromBase64( jobj.value("data").toString().toUtf8() );
 
-    LuaMan::Thread* t = gLua.next();
+    LuaMan::Thread* t = gLua->next();
     if( t ) {
-        t->onData(payload, dev.profile());
+        t->onUplink(payload, dev.profile());
     }
 
     // qDebug() << "A message from" << eui << payload;
