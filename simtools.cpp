@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include <QUdpSocket>
 #include <QFile>
+#include <QFileInfo>
 #include <fstream>
 
 #include "simtools.h"
@@ -168,6 +169,7 @@ bool SimTools::fileExists(const QString &path)
 bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool isOverwrite)
 {
     if( !isOverwrite && QFile::exists(path) ) {
+        qDebug() << "File will not be overwritten:" << path;
         return true;
     }
 
@@ -207,25 +209,39 @@ bool SimTools::fileCompare(const QString &pathFile1, const QString &pathFile2, b
     return md51 == md52;
 }
 
+// returns true if pathFile1 is newer than pathFile2
+bool SimTools::fileIsNewer(const QString &pathFile1, const QString &pathFile2)
+{
+    QFileInfo file1(pathFile1);
+    QFileInfo file2(pathFile2);
+
+    return file1.lastModified() > file2.lastModified();
+}
+
 bool SimTools::fileRestoreResources(const QString &fileName)
 {
     QString srcPath = "://" + fileName;
-    bool isOverwrite = false;
+    bool areDifferent = false;
     bool isExists = false;
 
     if( !QFile::exists(fileName) ) {
-        isOverwrite = true;
+        areDifferent = true;
     }else {
         isExists = true;
         bool isOk = false;
-        isOverwrite = !SimTools::fileCompare(srcPath, fileName, &isOk);
+        areDifferent = !SimTools::fileCompare(srcPath, fileName, &isOk);
         if( !isOk ) {
             qCritical() << "Files" << srcPath << fileName << "error";
             return false;
         }
     }
 
-    if( !isOverwrite ) {
+    if( !areDifferent ) {
+        return true;
+    }
+
+    if( !SimTools::fileIsNewer(srcPath, fileName) ) {
+        qInfo() << "Destination file" << fileName << "is newer than" << srcPath << "and will be overwritten.";
         return true;
     }
 

@@ -1,6 +1,7 @@
 #include <QIODevice>
 #include <QRandomGenerator>
 #include <QFile>
+#include <QFileInfo>
 #include <QCryptographicHash>
 
 #include "tools.h"
@@ -94,26 +95,39 @@ bool Tools::fileCompare(const QString &pathFile1, const QString &pathFile2, bool
     return md51 == md52;
 }
 
+// returns true if pathFile1 is newer than pathFile2
+bool Tools::fileIsNewer(const QString &pathFile1, const QString &pathFile2)
+{
+    QFileInfo file1(pathFile1);
+    QFileInfo file2(pathFile2);
+
+    return file1.lastModified() > file2.lastModified();
+}
 
 bool Tools::fileRestoreResources(const QString &fileName)
 {
     QString srcPath = "://" + fileName;
-    bool isOverwrite = false;
+    bool areDifferent = false;
     bool isExists = false;
 
     if( !QFile::exists(fileName) ) {
-        isOverwrite = true;
+        areDifferent = true;
     }else {
         isExists = true;
         bool isOk = false;
-        isOverwrite = !Tools::fileCompare(srcPath, fileName, &isOk);
+        areDifferent = !Tools::fileCompare(srcPath, fileName, &isOk);
         if( !isOk ) {
             qCritical() << "Files" << srcPath << fileName << "error";
             return false;
         }
     }
 
-    if( !isOverwrite ) {
+    if( !areDifferent ) {
+        return true;
+    }
+
+    if( !Tools::fileIsNewer(srcPath, fileName) ) {
+        qInfo() << "Destination file" << fileName << "is newer than" << srcPath << "and will be overwritten.";
         return true;
     }
 

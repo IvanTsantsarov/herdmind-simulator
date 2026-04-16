@@ -66,6 +66,7 @@ public:
     static bool fileExists(const QString& path);
     static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
     static bool fileCompare(const QString& pathFile1,  const QString& pathFile2 , bool *isOk = nullptr );
+    static bool fileIsNewer(const QString& pathFile1,  const QString& pathFile2 );
     static bool fileRestoreResources(const QString& fileName);
 
     bool sendToChirpStack(const QByteArray& phyPayload);
