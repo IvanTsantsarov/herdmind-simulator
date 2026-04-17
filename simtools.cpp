@@ -44,7 +44,6 @@ float SimTools::HarmonicsGenerator::sum(float x, float y, float angle) {
     return result;
 }
 
-
 QVector2D SimTools::rotated(const QVector2D &v, float deg)
 {
     float rad = qDegreesToRadians(deg);

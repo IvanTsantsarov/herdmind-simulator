@@ -29,12 +29,11 @@ Meadow::Meadow(const QPointF& center,
     mLawns.reserve(count);
     mLawnsMatrix.reserve(mLawnsDim.height());
 
-    int genPolyCount = 100;
+    int genPolyCount = 10;
     float genPolyMul = 1.0f / (float) genPolyCount;
 
     float radius = sqrtf( dimension.width()*dimension.width() + dimension.height()*dimension.height()) * 0.5f;
-    SimTools::HarmonicsGenerator gen(radius, genPolyCount, kgPerLawn, 4*kgPerLawn, ANIMAL_LENGTH*10, ANIMAL_LENGTH*100);
-
+    SimTools::HarmonicsGenerator gen(radius * 10, genPolyCount, kgPerLawn, 4*kgPerLawn, ANIMAL_LENGTH*10, ANIMAL_LENGTH*100);
 
     for( auto h = 0; h < mLawnsDim.height(); h++)  {
         float rowH = h * mLawnDiam - mOffsetH;
@@ -50,6 +49,26 @@ Meadow::Meadow(const QPointF& center,
         }
         mLawnsMatrix.append(row);
     }
+
+    // Commented code of smooting makes the
+    // whole simulator slower whithout even executing itself!
+    // WTF ?!?!
+ /*
+    for( auto i = 0; i < 20; i++) {
+        for( auto h = 1; h < mLawnsDim.height()-1; h++)  {
+            for( auto w = 1; w < mLawnsDim.width()-1; w++) {
+                mLawnsMatrix[h][w]->setKg(  (mLawnsMatrix[h-1][w-1]->kg() +
+                                            mLawnsMatrix[h-1][w]->kg() +
+                                            mLawnsMatrix[h-1][w+1]->kg() +
+                                            mLawnsMatrix[h][w-1]->kg() +
+                                            mLawnsMatrix[h][w+1]->kg() +
+                                            mLawnsMatrix[h+1][w-1]->kg() +
+                                            mLawnsMatrix[h+1][w]->kg() +
+                                           mLawnsMatrix[h+1][w+1]->kg()) / 8.0f );
+            }
+        }
+    }
+ */
 }
 
 Meadow::~Meadow()

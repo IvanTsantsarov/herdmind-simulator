@@ -73,6 +73,7 @@ public:
         // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
         void dettach(Animal* animal);
+        void setKg(float newKg){ mKg = newKg; }
 
     };
 

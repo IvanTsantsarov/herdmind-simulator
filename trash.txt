@@ -214,3 +214,8 @@ public:
     CoordsItem(Scene* scene, SceneView* view);
 
 };
+
+QVector<float> field(mLawnsDim.width()*mLawnsDim.height());
+for( auto i = 0; i < greenDotsCount; i ++ ) {
+
+}

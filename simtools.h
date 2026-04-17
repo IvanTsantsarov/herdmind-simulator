@@ -50,6 +50,8 @@ public:
         float sum(float x, float y, float angle = 0.0f);
     };
 
+
+
     static QVector2D rotated( const QVector2D& v, float deg);
 
     static float clamped(float val, float min = 0.0f, float max = 1.0f);
