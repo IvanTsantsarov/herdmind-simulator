@@ -4,6 +4,7 @@
 
 #include <QGeoCoordinate>
 #include <QObject>
+#include <QImage>
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsPolygonItem>
@@ -85,7 +86,8 @@ class Scene : public QGraphicsScene
     QVector<QGraphicsLineItem*> mLinesGateways;
 
     QGraphicsEllipseItem* mAttractor = nullptr;
-    QVector<QGraphicsRectItem*> mLawns;
+    QGraphicsRectItem *mMeadow = nullptr;
+    QImage mMeadowImage;
 
     TextItem* mItemInfo = nullptr;
     TextItem* mCursorInfo = nullptr;
@@ -93,11 +95,14 @@ class Scene : public QGraphicsScene
     SceneView* mView = nullptr;
 
     void clear();
+    void updateMeadowBrush();
 public:
     explicit Scene(QObject *parent = nullptr);
 
-    void create(SceneView *view, Herd *herd, Network* network, int lawnsCount, int collarPairsCount, int gatewayPairsCount);
-    void update(Herd* herd, Meadow *meadow, Network *network, bool isInitial = false, float diameter = 0.0f);
+    void create(SceneView *view, Herd *herd, Network* network,
+                QSize meadowDim, int collarPairsCount, int gatewayPairsCount);
+    void update(Herd* herd, Meadow *meadow, Network *network,
+                bool isInitial = false, float diameter = 0.0f);
 
     void selectAnimalItem(int index);
     void selectAnimalItem(AnimalItem* item);
@@ -107,10 +112,13 @@ public:
     inline AnimalItem* selectedAnimal(){ return mAnimalItemSelected; }
     void setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, float kg);
 
+    bool storeImage(const QString &path = QString() );
+
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);
     void onFigureMove(QGraphicsPolygonItem *item, QPointF pos);
     void onFigureDrop(QGraphicsPolygonItem *item, QPointF pos);
+
 
 };
 

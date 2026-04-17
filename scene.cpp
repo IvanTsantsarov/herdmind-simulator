@@ -54,9 +54,26 @@ void Scene::clear()
     mGatewayItems.clear();
     mLinesGateways.clear();
 
-    mLawns.clear();
+    mMeadow = nullptr;
 
     mAnimalItemSelected = nullptr;
+}
+
+void Scene::updateMeadowBrush()
+{
+    QBrush br;
+    br.setTextureImage(mMeadowImage);
+    QTransform tr;
+    tr.reset();
+
+    QRectF r = mMeadow->boundingRect();
+    tr.translate(r.x(), r.y());
+    tr.scale((float)r.width()/mMeadowImage.width(),
+             (float) r.height()/mMeadowImage.height() );
+
+    br.setTransform(tr);
+
+    mMeadow->setBrush(br);
 }
 
 Scene::Scene(QObject *parent)
@@ -64,7 +81,7 @@ Scene::Scene(QObject *parent)
 {}
 
 void Scene::create(SceneView* view, Herd* herd, Network* network,
-                   int lawnsCount, int collarPairsCount, int gatewayPairsCount )
+                   QSize meadowDim, int collarPairsCount, int gatewayPairsCount )
 {
     mView = view;
 
@@ -73,21 +90,17 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
 
     clear();
 
+
     // Create the meadow
-    mLawns.reserve(lawnsCount);
-    for( auto i = 0; i < lawnsCount; i ++) {
-        QGraphicsRectItem* r = addRect(-LAWN_RADIUS, -LAWN_RADIUS,
-                                       LAWN_DIAMETER, LAWN_DIAMETER,
-                                       Qt::NoPen, LAWN_BRUSH_COLOR_FULL);
+    mMeadowImage = QImage(meadowDim, QImage::Format_RGBA8888);
+    // mMeadowImage = QImage("image.png");
 
-        r->setFlag(QGraphicsItem::ItemIsSelectable, false);
-        r->setFlag(QGraphicsItem::ItemIsFocusable, false);
-        r->setFlag(QGraphicsItem::ItemIsMovable, false);
-        r->setFlag(QGraphicsItem::ItemIsFocusScope, false);
-        r->setFlag(QGraphicsItem::ItemIsPanel, false);
-        mLawns.append(r);
-
-    }
+    QSize sz(LAWN_DIAMETER*meadowDim.width(), LAWN_DIAMETER*meadowDim.height());
+    mMeadow = addRect(-sz.width()/2,
+                      -sz.height()/2,
+                      sz.width(),
+                      sz.height() );
+    updateMeadowBrush();
 
     // Create a triangle for the animal poly
     QList<QPointF> points;
@@ -158,11 +171,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
         return;
     }
 
-    // update lawns
-    int lawnIndex = 0;
-
     //mSceneInfo->setPlainText(QString("%1%").arg(meadow->kgRatio() * 100.0f, 0, 'f', 1));
-
 
     if( mItemInfo ) {
         if( mAnimalItemSelected ) {
@@ -174,22 +183,30 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
         }
     }
 
-    foreach(Meadow::Lawn* lawn, meadow->lawns()) {
-        QGraphicsRectItem* r = mLawns[lawnIndex++];
+    // update lawn colors
+    QSize dim = meadow->dim();
+    for(int h = 0; h < dim.height(); h ++) {
+        for(int w = 0; w < dim.width(); w ++) {
 
-        if( isInitial || lawn->animalsCount() || lawn->mustUpdate ) {
+            // QGraphicsRectItem* r = mLawns[lawnIndex++];
 
-            if( isInitial ) {
-                r->setPos(lawn->pos());
+            Meadow::Lawn* lawn = meadow->byIndex(w, h);
+            if( !isInitial ) {
+                if( !lawn->animalsCount() && !lawn->mustUpdate ) {
+                    continue;
+                }
             }
 
+            // QColor color = mMeadowImage.pixelColor(w, h);
             QColor color = LAWN_BRUSH_COLOR_FULL;
             color.setAlpha( lawn->kgNorm() * 255.0f );
-            r->setBrush(color);
+            mMeadowImage.setPixelColor(w, h, color);
             mView->updateCursorInfo();
             lawn->mustUpdate = false;
         }
     }
+
+    updateMeadowBrush();
 
 
     if( herd->isShepherdActive() ) {
@@ -302,13 +319,21 @@ void Scene::setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, 
 {
     if( mCursorInfo ) {
         mCursorInfo->setPos(pt);
-        QString str = QString("%1 %2 %3")
+        QString str = QString("%1 %2\n%3 %4 %5")
+                          .arg( pt.x(), 0, 'f', 2)
+                          .arg( pt.y(), 0, 'f', 2)
                           .arg( location.latitude(), 0, 'f', 6)
                           .arg( location.longitude(), 0, 'f', 6)
                           .arg( kg, 0, 'f', 2);
 
         mCursorInfo->setPlainText(str);
     }
+}
+
+bool Scene::storeImage(const QString &path)
+{
+    QString fileName = path.isEmpty() ? "image.png" : path;
+    return mMeadowImage.save(fileName);
 }
 
 void Scene::selectAnimalItem(int index)

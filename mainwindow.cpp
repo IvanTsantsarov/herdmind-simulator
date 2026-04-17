@@ -79,7 +79,8 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     ui->spinTransAngle->setValue(BOLUS_TRANSMIT_ANGLE);
 
     // Grazing parameters
-    ui->spinMeadowRadius->setValue(MEADOW_INITIAL_RADIUS);
+    ui->spinMeadowDimX->setValue(MEADOW_INITIAL_DIM_WIDTH);
+    ui->spinMeadowDimY->setValue(MEADOW_INITIAL_DIM_HEIGHT);
     ui->spinMeadowCapacity->setValue(MEADOW_INITIAL_CAPACITY);
     ui->spinMeadowGrowingSpeed->setValue(MEADOW_GROWING_SPEED);
     ui->spinAnimalGrazingCapacity->setValue(ANIMAL_INITIAL_GRAZING_CAPACITY);
@@ -150,9 +151,17 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     ui->btnShowInfo->setChecked(is);
     ui->groupInfo->setVisible(is);
 
+    is = mEnv.value("UI/isGrowing").toBool();
+    ui->checkGrowingMeadow->setChecked(is);
+
 #if PRINT_DEBUG_INFO == false
     ui->checkRecursiveCollision->setVisible(false);
 #endif
+
+    // is isLoadLast value is set to 1 in settings.ini then load last herd
+    if( settings.value("GUI/isLoadLast").toBool() ) {
+        create(true);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -166,6 +175,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     mEnv.setValue("UI/Console", mConsole->isVisible() );
     mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
     mEnv.setValue("UI/GroupInfo", ui->btnShowInfo->isChecked());
+    mEnv.setValue("UI/isGrowing", ui->checkGrowingMeadow->isChecked());
 }
 
 
@@ -227,7 +237,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     // Generate meadow
     mMeadow = new Meadow(QPoint(0, 0),
                          QGeoCoordinate(ui->spinCenterLat->value(), ui->spinCenterLong->value()),
-                         QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
+                         QSize( ui->spinMeadowDimX->value(), ui->spinMeadowDimY->value()),
                          ui->spinLawnRadius->value(),
                          ui->spinMeadowCapacity->value(),
                          ui->spinMeadowGrowingSpeed->value(),
@@ -239,7 +249,9 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,
-                   mMeadow->lawnsCount(), mHerd->collarsCount() * mHerd->count(),  mHerd->collarsCount() * mNetwork->gatewaysCount() );
+                   mMeadow->dim(),
+                   mHerd->collarsCount() * mHerd->count(),
+                   mHerd->collarsCount() * mNetwork->gatewaysCount() );
     mScene->update(mHerd, mMeadow, mNetwork, true, INITIAL_HERD_SPREAD);
 
     mSceneView->setMeadow(mMeadow);
@@ -439,6 +451,15 @@ void MainWindow::onDevicesReady(bool isStore )
     }
 }
 
+/*
+void MainWindow::onMqttConnected()
+{
+    if( mIsLoadLast ) {
+        create(true);
+    }
+}
+
+*/
 void MainWindow::errorMsgBox(const QString &msg)
 {
     QMessageBox::critical(this, "Error", msg);
@@ -569,5 +590,11 @@ void MainWindow::on_actionLoad_triggered()
     }else{
         setStatus(QString("Error loading from %1").arg(dirStr));
     }
+}
+
+
+void MainWindow::on_btnUnitTest_clicked()
+{
+    mScene->storeImage();
 }
 

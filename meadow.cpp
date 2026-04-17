@@ -4,22 +4,22 @@
 
 Meadow::Meadow(const QPointF& center,
                const QGeoCoordinate &geoCenter,
-               const QSize &areaSize,
+               const QSize &dimension,
                float lawnR,
                float kgPerSqMeter,
                float growingSpeed,
                uint animalsPerLawn,
                QObject *parent)
-    : QObject(parent), mAreaSize(areaSize),
-    mLawnRadius(lawnR),
+    : QObject(parent), mLawnRadius(lawnR),
     mLawnDiam(2.0f*lawnR),
+    mLawnsDim(dimension),
     mAnimalsPerLawn(animalsPerLawn),
     mGrowingSpeed(growingSpeed)
 {
     mGeoCenter = geoCenter;
 
-    mLawnsDim = QSize( mAreaSize.width() / mLawnDiam,
-                      mAreaSize.height() / mLawnDiam );
+    mAreaSize = QSize( mLawnsDim.width() * mLawnDiam ,
+                       mLawnsDim.height() * mLawnDiam );
 
     float kgPerLawn = kgPerSqMeter * (lawnR * lawnR * 4);
     mOffsetW = mAreaSize.width() * 0.5f;
@@ -27,14 +27,14 @@ Meadow::Meadow(const QPointF& center,
 
     int count = mLawnsDim.width() * mLawnsDim.height();
     mLawns.reserve(count);
-
-    // mLawnsMatrix.reserve(mLawnsDim.height());
+    mLawnsMatrix.reserve(mLawnsDim.height());
 
     int genPolyCount = 100;
     float genPolyMul = 1.0f / (float) genPolyCount;
 
-    float radius = sqrtf( areaSize.width()*areaSize.width() + areaSize.height()*areaSize.height()) * 0.5f;
+    float radius = sqrtf( dimension.width()*dimension.width() + dimension.height()*dimension.height()) * 0.5f;
     SimTools::HarmonicsGenerator gen(radius, genPolyCount, kgPerLawn, 4*kgPerLawn, ANIMAL_LENGTH*10, ANIMAL_LENGTH*100);
+
 
     for( auto h = 0; h < mLawnsDim.height(); h++)  {
         float rowH = h * mLawnDiam - mOffsetH;
@@ -83,20 +83,12 @@ void Meadow::refill()
 
 
 
-Meadow::Lawn *Meadow::lawn(float x, float y)
+Meadow::Lawn *Meadow::byPos(float x, float y)
 {
     int lw = (x + mOffsetW + mLawnRadius) / mLawnDiam;
     int lh = (y + mOffsetH + mLawnRadius) / mLawnDiam;
 
-    if( lw < 0 || lw >= mLawnsDim.width() ) {
-        return nullptr;
-    }
-
-    if( lh < 0 || lh >= mLawnsDim.height() ) {
-        return nullptr;
-    }
-
-    return mLawnsMatrix[lh][lw];
+    return byIndex(lh, lw);
 }
 
 Meadow::Lawn *Meadow::closestAvailable(const QPointF &pos, const Lawn* current)
@@ -165,6 +157,7 @@ Meadow::Lawn::Lawn(const QPointF &position, float currentKg, float maxKg, Meadow
 }
 
 bool Meadow::Lawn::graze(float weight) {
+
     if( isDepleted() ) {
         return true;
     }
@@ -220,4 +213,17 @@ QGeoCoordinate Meadow::getGeoLocation(const QPointF &mapPos)
     double dLon = mapPos.x() / metersPerDegLon;
 
     return QGeoCoordinate(lat + dLat, lon + dLon);
+}
+
+Meadow::Lawn *Meadow::byIndex(int lw, int lh)
+{
+    if( lw < 0 || lw >= mLawnsDim.width() ) {
+        return nullptr;
+    }
+
+    if( lh < 0 || lh >= mLawnsDim.height() ) {
+        return nullptr;
+    }
+
+    return mLawnsMatrix[lh][lw];
 }

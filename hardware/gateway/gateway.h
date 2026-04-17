@@ -16,6 +16,7 @@
 #define GATEWAY_SEND_INTERVAL 20000
 
 class QMqttClient;
+class Network;
 
 #ifdef  SIMULATION
     #include <QPointF>
@@ -33,9 +34,9 @@ class Gateway : public QObject {
 
     QMqttClient mClient;
     QList<QMqttSubscription*> mSubscribtions;
+    Network* mNetwork = nullptr;
 
     void sendPullData();
-
 
 #else
 class Gateway

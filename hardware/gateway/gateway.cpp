@@ -3,10 +3,12 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include "gateway.h"
+#include "network.h"
 #include "defines_settings.h"
 
 #ifdef SIMULATION
 
+// #include "mainwindow.h"
 
 Gateway::Gateway(const QSettings &settings) :
     mClient(this)
@@ -36,6 +38,9 @@ Gateway::Gateway(const QSettings &settings) :
     connect(&mClient, &QMqttClient::connected, this, [=]() {
         qInfo() << "MQTT connected";
         startHeartbeat();
+#ifdef SIMULATION
+        // gMainWindow->onMqttConnected();
+#endif
         subscribe("command/down");
     });
 
@@ -115,7 +120,7 @@ void Gateway::subscribe(const QString &topic)
 
 
     // Connect to subscription stateChanged signal
-    connect(subscription, &QMqttSubscription::stateChanged, this, [subscription](QMqttSubscription::SubscriptionState state){
+    connect(subscription, &QMqttSubscription::stateChanged, this, [&,subscription](QMqttSubscription::SubscriptionState state){
         switch(state) {
         case QMqttSubscription::Unsubscribed:
             qInfo() << "Subscription is unsubscribed";

@@ -57,10 +57,8 @@ public:
 private:
 
     QList <Gateway*> mGateways;
-
     PairsListG mPairs;
 
-signals:
 };
 
 #endif // NETWORK_H

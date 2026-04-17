@@ -32,7 +32,7 @@ class Meadow : public QObject
 public:
     explicit Meadow(const QPointF &center,
                     const QGeoCoordinate& geoCenter,
-                    const QSize& areaSize,
+                    const QSize& dimension,
                     float lawnRad,
                     float kgPerSqMeter,
                     float growingSpeed,
@@ -83,8 +83,8 @@ public:
     inline int lawnsCount(){ return mLawns.count(); }
     Lawn* closestAvailable(const QPointF& pos, const Lawn* current = nullptr);
     Lawn* bestAvailable(const QPointF& pos, const Lawn* current = nullptr);
-    Lawn* lawn(float x, float y);
-    inline Lawn *lawn( const QPointF& pos){ return lawn(pos.x(), pos.y()); }
+    Lawn* byPos(float x, float y);
+    inline Lawn* byPos( const QPointF& pos){ return byPos(pos.x(), pos.y()); }
 
     inline uint animalsPerLawn(){return mAnimalsPerLawn; }
     inline float kgMax(){ return mKgMax; }
@@ -103,6 +103,8 @@ public:
     inline QVector<Lawn*> & lawns(){ return mLawns; }
     inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
     QGeoCoordinate getGeoLocation(const QPointF& mapPos);
+    Lawn* byIndex( int lw, int lh );
+    inline QSize dim(){ return mLawnsDim; }
 
 
 signals:

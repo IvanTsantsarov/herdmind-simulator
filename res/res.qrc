@@ -10,5 +10,7 @@
         <file>icon-sound-on.svg</file>
         <file>settings_external.ini</file>
         <file>environment.ini</file>
+        <file>grass.png</file>
+        <file>grass_stroke.png</file>
     </qresource>
 </RCC>

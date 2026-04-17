@@ -15,6 +15,7 @@ SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
     setVisible(true);
 
     setRenderHint(QPainter::Antialiasing);
+    setRenderHint(QPainter::SmoothPixmapTransform);
     setDragMode(QGraphicsView::NoDrag);    // we'll handle dragging manually
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setResizeAnchor(QGraphicsView::AnchorViewCenter);
@@ -34,7 +35,7 @@ void SceneView::updateCursorInfo()
     float kg = 0.0f;
     QGeoCoordinate location;
 
-    Meadow::Lawn* lawn = mMeadow->lawn(mMousePointScene);
+    Meadow::Lawn* lawn = mMeadow->byPos(mMousePointScene);
     if( lawn ) {
         kg = lawn->kg();
     }

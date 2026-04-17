@@ -47,7 +47,6 @@ class MainWindow : public QMainWindow
 
     bool mIsCreated = false;
     bool create(bool isLoad, const QString &dir = "./");
-
     void closeEvent(QCloseEvent* e);
 
 
@@ -61,6 +60,7 @@ public:
     inline Network* network(){ return mNetwork; }
     inline SimTools* tools(){ return mTools; }
 
+    // void onMqttConnected();
     void onError(const QString &err);
     void onConsoleClose();
     void onDeviceMsgClose();
@@ -70,13 +70,13 @@ public:
     inline DialogConsole* console(){ return mConsole; }
     void errorMsgBox(const QString& msg);
 
+
 protected:
     void moveEvent(QMoveEvent *);
     void resizeEvent(QResizeEvent *);
 private:
     Ui::MainWindow *ui;
 private slots:
-
     void onUpdate();
     void on_btnGenerate_clicked();
     void onRowClicked(int row, int column);
@@ -93,6 +93,7 @@ private slots:
     void on_btnCopyCenter_clicked();
     void on_actionSave_triggered();
     void on_actionLoad_triggered();
+    void on_btnUnitTest_clicked();
 };
 
 extern MainWindow* gMainWindow;

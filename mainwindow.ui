@@ -178,6 +178,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="btnUnitTest">
+               <property name="text">
+                <string>Unit test</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QCheckBox" name="checkRecursiveCollision">
                <property name="text">
                 <string>Rec Coll</string>
@@ -337,8 +344,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>336</width>
-             <height>792</height>
+             <width>246</width>
+             <height>851</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
@@ -876,27 +883,14 @@
                   <item row="1" column="0">
                    <widget class="QLabel" name="label_15">
                     <property name="text">
-                     <string>M. radius</string>
+                     <string>M. dim</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="1">
-                   <widget class="QDoubleSpinBox" name="spinMeadowRadius">
-                    <property name="toolTip">
-                     <string>Meadow (array of lawns) radius in meters</string>
-                    </property>
-                    <property name="maximum">
-                     <double>10000.000000000000000</double>
-                    </property>
-                    <property name="singleStep">
-                     <double>10.000000000000000</double>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="0">
+                  <item row="3" column="0">
                    <widget class="QLabel" name="label_16">
                     <property name="toolTip">
                      <string>Meadow grass capacity in kg per square meter</string>
@@ -909,7 +903,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="2" column="1">
+                  <item row="3" column="1">
                    <widget class="QDoubleSpinBox" name="spinMeadowCapacity">
                     <property name="toolTip">
                      <string>Meadow capacity in kg per square meter</string>
@@ -919,7 +913,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="0">
+                  <item row="4" column="0">
                    <widget class="QLabel" name="label_23">
                     <property name="toolTip">
                      <string>Meadow grass capacity in kg per square meter</string>
@@ -932,7 +926,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="3" column="1">
+                  <item row="4" column="1">
                    <widget class="QDoubleSpinBox" name="spinMeadowGrowingSpeed">
                     <property name="toolTip">
                      <string>Meadow growing speed</string>
@@ -942,7 +936,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="0">
+                  <item row="5" column="0">
                    <widget class="QLabel" name="label_14">
                     <property name="text">
                      <string>A. cap</string>
@@ -952,7 +946,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="4" column="1">
+                  <item row="5" column="1">
                    <widget class="QDoubleSpinBox" name="spinAnimalGrazingCapacity">
                     <property name="toolTip">
                      <string>Animal grazing capacity in kg per day</string>
@@ -974,7 +968,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="5" column="0">
+                  <item row="6" column="0">
                    <widget class="QLabel" name="label_17">
                     <property name="text">
                      <string>L. radius</string>
@@ -984,7 +978,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="5" column="1">
+                  <item row="6" column="1">
                    <widget class="QDoubleSpinBox" name="spinLawnRadius">
                     <property name="toolTip">
                      <string>Lawn radius in meters. Lawn is part of the meadow.</string>
@@ -1000,7 +994,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="6" column="0">
+                  <item row="7" column="0">
                    <widget class="QLabel" name="label_18">
                     <property name="toolTip">
                      <string>Animals count per lawn</string>
@@ -1013,7 +1007,7 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="6" column="1">
+                  <item row="7" column="1">
                    <widget class="QSpinBox" name="spinAnimalsPerLawn">
                     <property name="toolTip">
                      <string>Animals count</string>
@@ -1025,6 +1019,30 @@
                      <number>10</number>
                     </property>
                    </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <item>
+                     <widget class="QSpinBox" name="spinMeadowDimX">
+                      <property name="toolTip">
+                       <string>Meadow width in lawns count</string>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinMeadowDimY">
+                      <property name="toolTip">
+                       <string>Meadow hight in lawns count</string>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
@@ -1061,7 +1079,7 @@
      <x>0</x>
      <y>0</y>
      <width>535</width>
-     <height>26</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuView">
