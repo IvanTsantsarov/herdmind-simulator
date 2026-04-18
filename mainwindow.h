@@ -94,6 +94,7 @@ private slots:
     void on_actionSave_triggered();
     void on_actionLoad_triggered();
     void on_btnUnitTest_clicked();
+    void on_checkPastureGenParams_toggled(bool checked);
 };
 
 extern MainWindow* gMainWindow;

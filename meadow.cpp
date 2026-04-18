@@ -9,6 +9,9 @@ Meadow::Meadow(const QPointF& center,
                float kgPerSqMeter,
                float growingSpeed,
                uint animalsPerLawn,
+               SimTools::HarmonicsGenerator::Params &genParams,
+               float genScale,
+               int genSmoothIterations,
                QObject *parent)
     : QObject(parent), mLawnRadius(lawnR),
     mLawnDiam(2.0f*lawnR),
@@ -29,11 +32,7 @@ Meadow::Meadow(const QPointF& center,
     mLawns.reserve(count);
     mLawnsMatrix.reserve(mLawnsDim.height());
 
-    int genPolyCount = 10;
-    float genPolyMul = 1.0f / (float) genPolyCount;
-
-    float radius = sqrtf( dimension.width()*dimension.width() + dimension.height()*dimension.height()) * 0.5f;
-    SimTools::HarmonicsGenerator gen(radius * 10, genPolyCount, kgPerLawn, 4*kgPerLawn, ANIMAL_LENGTH*10, ANIMAL_LENGTH*100);
+    SimTools::HarmonicsGenerator gen(genParams);
 
     for( auto h = 0; h < mLawnsDim.height(); h++)  {
         float rowH = h * mLawnDiam - mOffsetH;
@@ -42,7 +41,7 @@ Meadow::Meadow(const QPointF& center,
         for( auto w = 0; w < mLawnsDim.width(); w++) {
             QPointF pos( w * mLawnDiam - mOffsetW, rowH );
             pos += center;
-            float capacity = SimTools::clamped( kgPerLawn*0.5 + genPolyMul * gen.sum(pos.x(),pos.y()), 0.0f,  kgPerLawn);
+            float capacity = SimTools::clamped( kgPerLawn*0.5 + genScale * gen.sum(pos.x(),pos.y()), 0.0f,  kgPerLawn);
             Lawn* lawn = new Lawn( pos, capacity, kgPerLawn, this );
             mLawns.append(lawn);
             row.append(lawn);
@@ -50,11 +49,9 @@ Meadow::Meadow(const QPointF& center,
         mLawnsMatrix.append(row);
     }
 
-    // Commented code of smooting makes the
-    // whole simulator slower whithout even executing itself!
-    // WTF ?!?!
- /*
-    for( auto i = 0; i < 20; i++) {
+
+    // Smooting the result
+    for( auto i = 0; i < genSmoothIterations; i++) {
         for( auto h = 1; h < mLawnsDim.height()-1; h++)  {
             for( auto w = 1; w < mLawnsDim.width()-1; w++) {
                 mLawnsMatrix[h][w]->setKg(  (mLawnsMatrix[h-1][w-1]->kg() +
@@ -68,7 +65,7 @@ Meadow::Meadow(const QPointF& center,
             }
         }
     }
- */
+
 }
 
 Meadow::~Meadow()

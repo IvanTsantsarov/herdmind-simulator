@@ -14,18 +14,16 @@
 #include "defines_settings.h"
 #include "hardware/tools.h"
 
-SimTools::HarmonicsGenerator::HarmonicsGenerator(float radius, int count,
-                                                 float ampMin, float ampMax,
-                                                 float wavelenMin, float wavelenMax)
+SimTools::HarmonicsGenerator::HarmonicsGenerator(const Params& p)
 {
-    mCenters.reserve(count);
-    mAmplitudes.reserve(count);
-    mLength.reserve(count);
+    mCenters.reserve(p.count);
+    mAmplitudes.reserve(p.count);
+    mLength.reserve(p.count);
 
-    for( auto i = 0; i < count; i++) {
-        mAmplitudes.append( Tools::rnd(ampMin, ampMax) );
-        mLength.append( Tools::rnd(wavelenMin, wavelenMax) );
-        mCenters.append( QVector2D(Tools::rnd(-radius, radius), Tools::rnd(-radius, radius)) );
+    for( auto i = 0; i < p.count; i++) {
+        mAmplitudes.append( Tools::rnd(p.ampMin, p.ampMax) );
+        mLength.append( Tools::rnd(p.wavelenMin, p.wavelenMax) );
+        mCenters.append( QVector2D(Tools::rnd(-p.radius, p.radius), Tools::rnd(-p.radius, p.radius)) );
     }
 }
 

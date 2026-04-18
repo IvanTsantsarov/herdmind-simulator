@@ -40,13 +40,16 @@ public:
         QVector<float> mLength;
         QVector<QVector2D> mCenters;
 
-        HarmonicsGenerator(float radius,
-                           int count = 10,
-                           float ampMin = 1.0f,
-                           float ampMax = 1.0f,
-                           float wavelenMin = 0.1f,
-                           float wavelenMax = 10.0f
-                           );
+        struct Params{  float radius;
+                        int count = 10;
+                        float ampMin = 1.0f;
+                        float ampMax = 1.0f;
+                        float wavelenMin = 0.1f;
+                        float wavelenMax = 10.0f;
+                    };
+
+        HarmonicsGenerator(const Params& p);
+
         float sum(float x, float y, float angle = 0.0f);
     };
 

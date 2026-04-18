@@ -90,6 +90,16 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     ui->spinCenterLong->setValue(FARM_INITIAL_LOCATION_LONG);
     ui->spinCenterLat->setValue(FARM_INITIAL_LOCATION_LAT);
 
+    ui->spinPastureGenRadius->setValue(PASTURE_GEN_RADIUS);
+    ui->spinPastureGenScale->setValue(PASTURE_GEN_SCALE);
+    ui->spinPastureGenCount->setValue(PASTURE_GEN_COUNT);
+    ui->spinPastureGenSmothIt->setValue(PASTURE_GEN_SMOOTH_IT);
+    ui->spinPastureGenAmpMin->setValue(PASTURE_GEN_AMP_MIN);
+    ui->spinPastureGenAmpMax->setValue(PASTURE_GEN_AMP_MAX);
+    ui->spinPastureGenWaveMin->setValue(PASTURE_GEN_WAVE_MIN);
+    ui->spinPastureGenWaveMax->setValue(PASTURE_GEN_WAVE_MAX);
+
+
     QObject::connect(&mUpdateTimer, &QTimer::timeout, this, &MainWindow::onUpdate );
     mUpdateTimer.start(HERD_UPDATE_INTERVAL);
 
@@ -100,6 +110,7 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
 
     ui->widgetSim->setVisible(false);
     ui->widgetGrazing->setVisible(false);
+    ui->widgetPastureGen->setVisible(false);
     showMaximized();
 
     // ui->scrollAreaParams->setWidgetResizable(false); // chatGPT was wrong about this
@@ -234,6 +245,16 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() );
 
+    SimTools::HarmonicsGenerator::Params pastureParams;
+
+    pastureParams.radius = ui->spinPastureGenRadius->value();
+    pastureParams.count = ui->spinPastureGenCount->value();
+    pastureParams.ampMin = ui->spinPastureGenAmpMin->value();
+    pastureParams.ampMax = ui->spinPastureGenAmpMax->value();
+    pastureParams.wavelenMin = ui->spinPastureGenWaveMin->value();
+    pastureParams.wavelenMax = ui->spinPastureGenWaveMax->value();
+
+
     // Generate meadow
     mMeadow = new Meadow(QPoint(0, 0),
                          QGeoCoordinate(ui->spinCenterLat->value(), ui->spinCenterLong->value()),
@@ -241,8 +262,11 @@ bool MainWindow::create(bool isLoad, const QString& dir)
                          ui->spinLawnRadius->value(),
                          ui->spinMeadowCapacity->value(),
                          ui->spinMeadowGrowingSpeed->value(),
-                         ui->spinAnimalsPerLawn->value()
-                         );
+                         ui->spinAnimalsPerLawn->value(),
+                         pastureParams,
+                         ui->spinPastureGenScale->value(),
+                         ui->spinPastureGenSmothIt->value(),
+                         this );
 
     mMeadow->setGrowing(ui->checkGrowingMeadow->isChecked());
 
@@ -596,5 +620,11 @@ void MainWindow::on_actionLoad_triggered()
 void MainWindow::on_btnUnitTest_clicked()
 {
     mScene->storeImage();
+}
+
+
+void MainWindow::on_checkPastureGenParams_toggled(bool checked)
+{
+    ui->widgetPastureGen->setVisible(checked);
 }
 

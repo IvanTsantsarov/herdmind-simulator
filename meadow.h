@@ -5,7 +5,7 @@
 #include <QPointF>
 #include <QObject>
 #include <QGeoCoordinate>
-
+#include "simtools.h"
 
 class Animal;
 
@@ -37,6 +37,8 @@ public:
                     float kgPerSqMeter,
                     float growingSpeed,
                     uint animalsPerLawn,
+                    SimTools::HarmonicsGenerator::Params &genParams,
+                    float genScale, int genSmoothIterations,
                     QObject *parent = nullptr);
 
     ~Meadow();
