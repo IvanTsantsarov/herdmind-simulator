@@ -64,6 +64,7 @@ public:
 
         bool graze(float weight);
         bool grow(float weight);
+        inline bool needToGrow(){ return mKg < mKgStart; }
         float distSq(const QPointF &pt);
 
         inline float kg(){ return mKg; };
@@ -75,7 +76,11 @@ public:
         // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
         void dettach(Animal* animal);
-        void setKg(float newKg){ mKg = newKg; }
+        inline void setKg(float newKg)
+        {
+            mKg = newKg;
+            mKgStart = mKg;
+        }
 
     };
 

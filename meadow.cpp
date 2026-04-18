@@ -52,16 +52,27 @@ Meadow::Meadow(const QPointF& center,
 
     // Smooting the result
     for( auto i = 0; i < genSmoothIterations; i++) {
-        for( auto h = 1; h < mLawnsDim.height()-1; h++)  {
-            for( auto w = 1; w < mLawnsDim.width()-1; w++) {
-                mLawnsMatrix[h][w]->setKg(  (mLawnsMatrix[h-1][w-1]->kg() +
-                                            mLawnsMatrix[h-1][w]->kg() +
-                                            mLawnsMatrix[h-1][w+1]->kg() +
-                                            mLawnsMatrix[h][w-1]->kg() +
-                                            mLawnsMatrix[h][w+1]->kg() +
-                                            mLawnsMatrix[h+1][w-1]->kg() +
-                                            mLawnsMatrix[h+1][w]->kg() +
-                                           mLawnsMatrix[h+1][w+1]->kg()) / 8.0f );
+        for( auto h = 0; h < mLawnsDim.height(); h++)  {
+            int top = h-1;
+            if( top < 0) top = 0;
+            int bottom = h + 1;
+            if( bottom >= mLawnsDim.height()) bottom = mLawnsDim.height() - 1;
+
+            for( auto w = 0; w < mLawnsDim.width(); w++) {
+
+                int left = w-1;
+                if( left < 0) left = 0;
+                int right = w + 1;
+                if( right >= mLawnsDim.width()) right = mLawnsDim.width() - 1;
+
+                mLawnsMatrix[h][w]->setKg(  (mLawnsMatrix[top][left]->kg() +
+                                            mLawnsMatrix[top][w]->kg() +
+                                            mLawnsMatrix[top][right]->kg() +
+                                            mLawnsMatrix[h][left]->kg() +
+                                            mLawnsMatrix[h][right]->kg() +
+                                            mLawnsMatrix[bottom][left]->kg() +
+                                            mLawnsMatrix[bottom][w]->kg() +
+                                           mLawnsMatrix[bottom][right]->kg()) / 8.0f );
             }
         }
     }
@@ -79,12 +90,14 @@ void Meadow::update(float tickSeconds)
 {
     mKgMax = mKg = 0.0f;
 
+    float step = tickSeconds * mGrowingSpeed / 60;
+
     foreach( Lawn* l, mLawns) {
         mKg += l->kg();
         mKgMax += l->kgMax();
 
-        if( mIsGrowing ) {
-            l->grow(tickSeconds * mGrowingSpeed / 60);
+        if( mIsGrowing && l->needToGrow() ) {
+            l->grow(step);
         }
     }
 

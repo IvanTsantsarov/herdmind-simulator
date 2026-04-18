@@ -626,5 +626,7 @@ void MainWindow::on_btnUnitTest_clicked()
 void MainWindow::on_checkPastureGenParams_toggled(bool checked)
 {
     ui->widgetPastureGen->setVisible(checked);
+    ui->scrollAreaParamsWidget->adjustSize();
+    ui->scrollAreaParamsWidget->setMinimumSize(ui->scrollAreaParamsWidget->sizeHint());
 }
 
