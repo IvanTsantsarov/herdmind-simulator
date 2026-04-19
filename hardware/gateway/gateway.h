@@ -2,6 +2,7 @@
 #define GATEWAY_H
 
 #include <QMqttClient>
+#include <QDateTime>
 #include <QSettings>
 #include <QTimer>
 #include <QObject>
@@ -133,13 +134,34 @@ public:
 
     inline bool isSending(){ return mIsSending; }
 
+
+    struct Message {
+        enum Status {
+            Sending = 0,
+            Sent,
+            Failed
+        };
+
+        inline bool isSending(){ return Sending == mStatus; }
+        inline bool isSent(){ return Sent == mStatus; }
+        inline bool isFailed(){ return Failed == mStatus; }
+
+        Status mStatus  = Sending;
+        QDateTime mTime = QDateTime::currentDateTime();
+    };
+
+    QMap<quint32, Message> mMessages;
+
 signals:
     void downlinkReceived(const QByteArray& response);
 
 protected slots:
     void onStopSending();
+    void onMessageSent(quint32 id);
     void onMessageReceived(const QByteArray &message,
                            const QMqttTopicName &topic);
+    void onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties);
+
 
 
 

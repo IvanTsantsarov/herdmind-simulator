@@ -165,6 +165,10 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     is = mEnv.value("UI/isGrowing").toBool();
     ui->checkGrowingMeadow->setChecked(is);
 
+    is = mEnv.value("UI/DebugInfo").toBool();
+    mConsole->setDebugInfo(is);
+
+
 #if PRINT_DEBUG_INFO == false
     ui->checkRecursiveCollision->setVisible(false);
 #endif
@@ -187,6 +191,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
     mEnv.setValue("UI/GroupInfo", ui->btnShowInfo->isChecked());
     mEnv.setValue("UI/isGrowing", ui->checkGrowingMeadow->isChecked());
+    mEnv.setValue("UI/DebugInfo", mConsole->isDebugInfo());
 }
 
 

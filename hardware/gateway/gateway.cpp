@@ -56,6 +56,14 @@ Gateway::Gateway(const QSettings &settings) :
 
     connect(&mClient, &QMqttClient::messageReceived,
             this, &Gateway::onMessageReceived);
+
+
+    connect(&mClient, &QMqttClient::messageSent,
+            this, &Gateway::onMessageSent);
+
+    connect(&mClient, &QMqttClient::messageStatusChanged,
+            this, &Gateway::onMessageStatusChanged);
+
 }
 
 void Gateway::start()
@@ -86,6 +94,30 @@ void Gateway::startHeartbeat()
         const QByteArray payload = QJsonDocument(st).toJson(QJsonDocument::Compact);
         mClient.publish(topic, payload, 0, false);
 
+        int sending = 0;
+        int sent = 0;
+        int failed = 0;
+
+        QList<quint32> ids = mMessages.keys();
+        for( quint32 id: ids) {
+            Message& m = mMessages[id];
+            switch (m.mStatus) {
+            case Message::Status::Sending :
+                sending ++;
+                break;
+            case Message::Status::Sent :
+                sent ++;
+                mMessages.remove(id);
+                break;
+            case Message::Status::Failed :
+                failed ++;
+                break;
+            default:
+                break;
+            }
+        }
+
+        qInfo() << "Mqtt broker sending:" << sending << "sent:" << sent << "failed:" << failed;
     });
     heartbeat->start(10000); // every 10 seconds
 }
@@ -203,7 +235,16 @@ bool Gateway::publish(const QByteArray &phyPayload)
     QJsonDocument doc(root);
 
     QByteArray jsonBA = doc.toJson(QJsonDocument::Compact);
-    mClient.publish( topic, jsonBA );
+
+
+    quint32 id = mClient.publish( topic, jsonBA );
+
+    Message msg;
+    if( mMessages.contains(id)) {
+        qCritical() << "Message with this ID already exists in the mMessages:" << id;
+    }else {
+        mMessages[id] = msg;
+    }
 
     return mClient.state() == QMqttClient::Connected;
 }
@@ -211,6 +252,18 @@ bool Gateway::publish(const QByteArray &phyPayload)
 void Gateway::onStopSending()
 {
     mIsSending = false;
+}
+
+void Gateway::onMessageSent(quint32 id)
+{
+    if( !mMessages.contains(id) ) {
+        qCritical() << "Message notification received, but message never sent!. ID:" << id;
+        return;
+    }
+
+    Message& msg = mMessages[id];
+    qDebug() << "Message from" << msg.mTime.toString("hh:mm:ss.zzz") << "received by the broker";
+    msg.mStatus = Message::Status::Sent;
 }
 
 
@@ -275,6 +328,16 @@ void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName 
                         /*qos*/ 1,
                         /*retain*/ false);
     });
+}
+
+void Gateway::onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties)
+{
+    if( !mMessages.contains(id) ) {
+        qCritical() << "Message status changed on non existing message with ID:" << id;
+        return;
+    }
+
+    qCritical() << "Message status changed ID:" << id << "to:" << (int)s;
 }
 #else
 

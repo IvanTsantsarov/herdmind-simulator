@@ -211,24 +211,27 @@ bool SimTools::fileIsNewer(const QString &pathFile1, const QString &pathFile2)
 {
     QFileInfo file1(pathFile1);
     QFileInfo file2(pathFile2);
+    QDateTime tm1 = file1.lastModified();
+    QDateTime tm2 = file2.lastModified();
 
-    return file1.lastModified() > file2.lastModified();
+    return tm1 > tm2;
 }
 
 bool SimTools::fileRestoreResources(const QString &fileName)
 {
     QString srcPath = "://" + fileName;
+    QString dstPath = fileName;
     bool areDifferent = false;
     bool isExists = false;
 
-    if( !QFile::exists(fileName) ) {
+    if( !QFile::exists(dstPath) ) {
         areDifferent = true;
     }else {
         isExists = true;
         bool isOk = false;
-        areDifferent = !SimTools::fileCompare(srcPath, fileName, &isOk);
+        areDifferent = !SimTools::fileCompare(srcPath, dstPath, &isOk);
         if( !isOk ) {
-            qCritical() << "Files" << srcPath << fileName << "error";
+            qCritical() << "Files" << srcPath << dstPath << "error";
             return false;
         }
     }
@@ -237,8 +240,8 @@ bool SimTools::fileRestoreResources(const QString &fileName)
         return true;
     }
 
-    if( !SimTools::fileIsNewer(srcPath, fileName) ) {
-        qInfo() << "Destination file" << fileName << "is newer than" << srcPath << "and will be overwritten.";
+    if( !SimTools::fileIsNewer(srcPath, dstPath) ) {
+        qInfo() << "Destination file" << dstPath << "is newer than" << srcPath << "and will NOT be overwritten.";
         return true;
     }
 

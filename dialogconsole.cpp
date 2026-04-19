@@ -90,9 +90,14 @@ void DialogConsole::debug(const QString &msg)
     appendText(msg, mColorDebug);
 }
 
-bool DialogConsole::showDebug()
+bool DialogConsole::isDebugInfo()
 {
     return ui->checkDebug->isChecked();
+}
+
+void DialogConsole::setDebugInfo(bool is)
+{
+    ui->checkDebug->setChecked(is);
 }
 
 

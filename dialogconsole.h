@@ -32,7 +32,8 @@ public:
     void info(const QString& msg);
     void debug(const QString& msg);
 
-    bool showDebug();
+    bool isDebugInfo();
+    void setDebugInfo(bool is);
 
 private slots:
     void on_btnClear_clicked();

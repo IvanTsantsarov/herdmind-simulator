@@ -33,7 +33,7 @@ void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const Q
 
     switch (type) {
     case QtDebugMsg:
-        if( console->showDebug() ) {
+        if( console->isDebugInfo() ) {
             console->debug(msg);
         }
         break;
