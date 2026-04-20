@@ -191,6 +191,11 @@ void Gateway::onSend()
 
 bool Gateway::publish(const QByteArray &phyPayload)
 {
+    if( !isConnected() ) {
+        qCritical() << "Mqtt:publish: Not connected!";
+        return false;
+    }
+
     QString topic = QString("eu868/gateway/%1/event/up").arg(mId);
 
     QJsonObject root;
@@ -236,17 +241,19 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
     QByteArray jsonBA = doc.toJson(QJsonDocument::Compact);
 
-
-    quint32 id = mClient.publish( topic, jsonBA );
+    quint32 id = mClient.publish( topic, jsonBA, 1, false );
 
     Message msg;
+    if( 0 == id) {
+        qCritical() << "Mqtt:publish: Message with zero ID is not tracked";
+    }else
     if( mMessages.contains(id)) {
-        qCritical() << "Message with this ID already exists in the mMessages:" << id;
+        qCritical() << "Mqtt:publish: Message with this ID already exists in the mMessages:" << id;
     }else {
         mMessages[id] = msg;
     }
 
-    return mClient.state() == QMqttClient::Connected;
+    return isConnected();
 }
 
 void Gateway::onStopSending()
@@ -337,7 +344,17 @@ void Gateway::onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QM
         return;
     }
 
-    qCritical() << "Message status changed ID:" << id << "to:" << (int)s;
+    QString statusStr;
+    switch(s) {
+    case QMqtt::MessageStatus::Unknown: statusStr = "Unknown"; break;
+    case QMqtt::MessageStatus::Published: statusStr = "Published"; break;
+    case QMqtt::MessageStatus::Acknowledged: statusStr = "Acknowledged"; break;
+    case QMqtt::MessageStatus::Received: statusStr = "Received"; break;
+    case QMqtt::MessageStatus::Released: statusStr = "Released"; break;
+    case QMqtt::MessageStatus::Completed: statusStr = "Completed"; break;
+    }
+
+    qDebug() << "Message status changed ID:" << id << "to:" << statusStr << "(" << (int)s << ")";
 }
 #else
 

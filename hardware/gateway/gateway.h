@@ -151,6 +151,7 @@ public:
     };
 
     QMap<quint32, Message> mMessages;
+    inline bool isConnected() { return mClient.state() == QMqttClient::Connected;    }
 
 signals:
     void downlinkReceived(const QByteArray& response);
