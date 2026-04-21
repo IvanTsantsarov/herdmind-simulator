@@ -78,6 +78,41 @@ public:
     bool sendCollar(const Collar& collar);
 
     inline bool isDebuggerAttached(){ return mIsDebuggerAttached; }
+
+    template< typename T>
+    static T readSettingsValue(const QSettings& settings,
+                        const QString& section,
+                        const QString& paramName)
+    {
+        QString path = QString("%1/%2").arg(section).arg(paramName);
+        QVariant result;
+        if( !settings.contains(path) ) {
+            qCritical() << "Parameter" << paramName << "missing in" << settings.fileName();
+        }else {
+            result = settings.value(path);
+        }
+        return qvariant_cast<T>(result);
+    }
+
+    static QString readStringSettingsValue(const QSettings& settings,
+                                    const QString& path,
+                                    const QString& paramName) {
+        return readSettingsValue<QString>(settings, path, paramName);
+    }
+
+
+    static int readIntSettingsValue(const  QSettings& settings,
+                             const QString& path,
+                             const QString& paramName) {
+        return readSettingsValue<int>(settings, path, paramName);
+    }
+
+    static QByteArray readBytearraySettingsValue(const  QSettings& settings,
+                                    const QString& path,
+                                    const QString& paramName) {
+        return readSettingsValue<QByteArray>(settings, path, paramName);
+    }
+
 };
 
 extern SimTools* gSimTools;

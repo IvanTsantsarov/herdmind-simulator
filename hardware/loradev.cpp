@@ -219,6 +219,18 @@ bool LoraDev::uplink(const QByteArray& data)
     phy.append(mic);
 
     if( mGateway && mGateway->publish(phy) ) {
+
+        /*
+        qDebug() << "Uplink"
+                << "name=" << mName
+                << "devEUI=" << mDevEUI.toHex()
+                << "devAddr=" << mDevAddr.toHex()
+                << "fcntUp=" << mFCntUp
+                << "fport=" << fport()
+                << "appSKey=" << mAppSKey.toHex()
+                << "nwkSKey=" << mNwkSKey.toHex();
+        */
+
         mFCntUp ++;
         mIsUplinkReceived = false;
         return true;

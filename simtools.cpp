@@ -264,15 +264,13 @@ bool SimTools::fileRestoreResources(const QString &fileName)
     return true;
 }
 
-
-
 SimTools::SimTools(const QSettings &settings)
 {
-    mAppId  = settings.value(CHIRPSTACK_SECTION"/appId").toByteArray();
+    mAppId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "appId");
 
-    mBolusProfileId  = settings.value(CHIRPSTACK_SECTION"/bolusProfileId").toByteArray();
-    mCollarProfileId  = settings.value(CHIRPSTACK_SECTION"/collarProfileId").toByteArray();
-    mGatewayProfileId  = settings.value(CHIRPSTACK_SECTION"/gatewayProfileId").toByteArray();
+    mBolusProfileId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "bolusProfileId");
+    mCollarProfileId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION,"collarProfileId");
+    mGatewayProfileId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "gatewayProfileId");
 
     std::ifstream file("/proc/self/status");
     std::string line;
@@ -298,5 +296,7 @@ QString SimTools::profileId(LoraDev::Profile profile) {
 
     return "";
 }
+
+
 
 

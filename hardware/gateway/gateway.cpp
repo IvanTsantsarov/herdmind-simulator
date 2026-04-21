@@ -5,6 +5,7 @@
 #include "gateway.h"
 #include "network.h"
 #include "defines_settings.h"
+#include "simtools.h"
 
 #ifdef SIMULATION
 
@@ -13,11 +14,11 @@
 Gateway::Gateway(const QSettings &settings) :
     mClient(this)
 {
-    mMqttAddr = settings.value(MQTT_SECTION"/address").toString();
-    mMqttPort = settings.value(MQTT_SECTION"/port").toUInt();
-    mId = settings.value(MQTT_SECTION"/gatewayId").toString();
-    QString userName = settings.value(MQTT_SECTION"/username").toString();
-    QString password = settings.value(MQTT_SECTION"/password").toString();
+    mMqttAddr = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"address");
+    mMqttPort = SimTools::readIntSettingsValue(settings, MQTT_SECTION,"port");
+    mId = SimTools::readStringSettingsValue(settings, MQTT_SECTION, "gatewayId");
+    QString userName = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"username");
+    QString password = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"password");
 
     // From docker-compose: mosquitto exposes 1883 to host
     mClient.setHostname(mMqttAddr);
@@ -253,6 +254,8 @@ bool Gateway::publish(const QByteArray &phyPayload)
         mMessages[id] = msg;
     }
 
+
+
     return isConnected();
 }
 
@@ -264,7 +267,6 @@ void Gateway::onStopSending()
 void Gateway::onMessageSent(quint32 id)
 {
     if( !mMessages.contains(id) ) {
-        qCritical() << "Message notification received, but message never sent!. ID:" << id;
         return;
     }
 
@@ -339,11 +341,6 @@ void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName 
 
 void Gateway::onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties)
 {
-    if( !mMessages.contains(id) ) {
-        qCritical() << "Message status changed on non existing message with ID:" << id;
-        return;
-    }
-
     QString statusStr;
     switch(s) {
     case QMqtt::MessageStatus::Unknown: statusStr = "Unknown"; break;

@@ -106,6 +106,7 @@ bool Tools::fileIsNewer(const QString &pathFile1, const QString &pathFile2)
 
 bool Tools::fileRestoreResources(const QString &fileName)
 {
+    QString dstPath = fileName;
     QString srcPath = "://" + fileName;
     bool areDifferent = false;
     bool isExists = false;
@@ -115,9 +116,9 @@ bool Tools::fileRestoreResources(const QString &fileName)
     }else {
         isExists = true;
         bool isOk = false;
-        areDifferent = !Tools::fileCompare(srcPath, fileName, &isOk);
+        areDifferent = !Tools::fileCompare(srcPath, dstPath, &isOk);
         if( !isOk ) {
-            qCritical() << "Files" << srcPath << fileName << "error";
+            qCritical() << "Files" << srcPath << dstPath << "error";
             return false;
         }
     }
@@ -126,8 +127,8 @@ bool Tools::fileRestoreResources(const QString &fileName)
         return true;
     }
 
-    if( !Tools::fileIsNewer(srcPath, fileName) ) {
-        qInfo() << "Destination file" << fileName << "is newer than" << srcPath << "and will be overwritten.";
+    if( !Tools::fileIsNewer(srcPath, dstPath) ) {
+        qInfo() << "Destination file" << fileName << "is newer than" << srcPath << "and will NOT be overwritten.";
         return true;
     }
 

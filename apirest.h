@@ -27,20 +27,36 @@ class ApiRest : public QObject
         AddDevice,
         ActivateDevice,
         GetDeviceAddress,
-        SendDeviceMessage
+        SendDeviceMessage,
+        GetGateways
     };
 
     QString mApiUrl, mApiKey, mAppId;
+    QString mTenantId, mTenantKey;
     uint mApiPort = 0;
     QNetworkAccessManager mManager;
     // QNetworkReply *mReply = NULL;
 
-    QNetworkRequest createRequest(const QString& url, QUrlQuery query = QUrlQuery()
+    QNetworkRequest createRequest(bool isTenant, const QString& url, QUrlQuery query = QUrlQuery()
                                   , int limit = 0, int offset = 0);
     void prepareReply(QNetworkReply *reply, RequestType type);
-    QNetworkReply *get(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() , int limit = 0, int offset = 0);
-    QNetworkReply *post(const QString& url, RequestType type, const QByteArray &data = QByteArray(), QUrlQuery query = QUrlQuery() );
-    QNetworkReply *del(const QString& url, RequestType type, QUrlQuery query = QUrlQuery() );
+
+    QNetworkReply *get( bool isTenant,
+                        const QString& url,
+                        RequestType type,
+                        QUrlQuery query = QUrlQuery() ,
+                        int limit = 0, int offset = 0);
+
+    QNetworkReply *post(bool isTenant,
+                        const QString& url,
+                        RequestType type,
+                        const QByteArray &data = QByteArray(),
+                        QUrlQuery query = QUrlQuery() );
+
+    QNetworkReply *del( bool isTenant,
+                        const QString& url,
+                        RequestType type,
+                        QUrlQuery query = QUrlQuery() );
 
 
 
@@ -50,6 +66,7 @@ class ApiRest : public QObject
     void onActivateResponse(QJsonObject& jobj);
     void onGetDeviceAddress(QJsonObject& jobj);
     void onDeviceMessageResponse(QJsonObject& jobj);
+    void onGetGatewaysResponse(QJsonObject& jobj);
 
 
 private slots:
@@ -74,6 +91,9 @@ public:
 
     void sendDeviceMessage(const QString& devEUI, const QByteArray& msg, uint8_t fPort);
 
+    void getGateways(int count = 0);
+
+    const QString& tenantId() { return mTenantId; }
 };
 
 #endif // APIREST_H

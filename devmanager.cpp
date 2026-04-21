@@ -23,40 +23,42 @@ void DevManager::onDevices(const QJsonObject &jobj)
     if( States::GetDevicesCount == mState ) {
         mState = States::GetDevicesList;
         mApiRest->getDevices(count);
-    }else
-    if( States::GetDevicesList == mState ) {
-        QJsonArray array = jobj["result"].toArray();
+        return;
+    }
 
-        qInfo() << "Devices from chirpstack received! Syncing...";
+    Q_ASSERT( States::GetDevicesList == mState );
 
-        // mark devices that is in our list and present also in chirpstack
-        // and send delete request to chirpstack to devices that are not in our list
-        for( const auto& jsonElement: array ) {
-            QJsonObject jobj = jsonElement.toObject();
-            QString devEUI = jobj["devEui"].toString();
+    QJsonArray array = jobj["result"].toArray();
 
-            if( mDevsMapJson.contains(devEUI) ) {
-                mSkippedDevicesCount ++;
-                mDevsMapJson[devEUI].mIsMissing = false;
-                // if the device is already in the chirpstack, mark it as present
-                int index = mDevsMapJson[devEUI].mIndex;
-                QJsonObject jobjInternal = mDevicesJson[index].toObject();
-                qInfo() << devEUI << jobjInternal["name"].toString() << "presented";
-                continue;
-            }
+    qInfo() << "Devices from chirpstack received! Syncing...";
 
+    // mark devices that is in our list and present also in chirpstack
+    // and send delete request to chirpstack to devices that are not in our list
+    for( const auto& jsonElement: array ) {
+        QJsonObject jobj = jsonElement.toObject();
+        QString devEUI = jobj["devEui"].toString();
 
-            // delete the device, because it's not in our list
-            qInfo() << devEUI << jobj["name"].toString() << " to be deleted...";
-            mApiRest->deleteDevice(devEUI);
-            mDeletingDevicesCount ++;
+        if( mDevsMapJson.contains(devEUI) ) {
+            mSkippedDevicesCount ++;
+            mDevsMapJson[devEUI].mIsMissing = false;
+            // if the device is already in the chirpstack, mark it as present
+            int index = mDevsMapJson[devEUI].mIndex;
+            QJsonObject jobjInternal = mDevicesJson[index].toObject();
+            qInfo() << devEUI << jobjInternal["name"].toString() << "presented";
+            continue;
         }
 
-        // if all devices are skipped call onDevicesReady
-        if( (count && (mSkippedDevicesCount == count)) || mDevsMapJson.empty() ) {
-            onDevicesReady(false);
-            return;
-        }
+
+        // delete the device, because it's not in our list
+        qInfo() << devEUI << jobj["name"].toString() << " to be deleted...";
+        mApiRest->deleteDevice(devEUI);
+        mDeletingDevicesCount ++;
+    }
+
+    // if all devices are skipped call onDevicesReady
+    if( (count && (mSkippedDevicesCount == count)) || mDevsMapJson.empty() ) {
+        onDevicesReady(false);
+    } else {
 
         qInfo() << "Adding devices to chirpstack...";
 
@@ -78,8 +80,10 @@ void DevManager::onDevices(const QJsonObject &jobj)
         qInfo() << "Adding:" << mAddingDevicesCount;
         qInfo() << "Deleting:" << mDeletingDevicesCount;
         qInfo() << "Skipped:" << mSkippedDevicesCount;
-
     }
+
+    mState = States::GetGatewaysCount; // trash comment
+    mApiRest->getGateways(); // trash comment
 }
 
 void DevManager::onDeviceAdd(const QString &devEUI)
@@ -157,6 +161,7 @@ DevManager::DevManager(const QSettings &settings)
 
 void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs, Gateway* edge )
 {
+    mEdge = edge;
     mAddingDevicesCount = 0;
     mDeletingDevicesCount = 0;
     mAddedDevicesCount = 0;
@@ -174,7 +179,7 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
     mDevicesMap.clear();
     for( LoraDev* dev: devs) {
         mDevicesMap[dev->eui().toHex()] = dev;
-        dev->setGateway(edge);
+        dev->setGateway(mEdge);
         if( dev->isBolus() ) {
             mBolusesCount++;
         }else
@@ -236,7 +241,50 @@ bool DevManager::sendMessage(const QString &eui, const QByteArray &msg)
 
 void DevManager::onDevicesReady(bool isStore)
 {
+    Q_ASSERT(mEdge);
     mIsDevicesReady = true;
     gMainWindow->onDevicesReady(isStore);
-    gMainWindow->network()->edge()->start();
+    mEdge->start();
+}
+
+void DevManager::onGateways(const QJsonObject &jobj)
+{
+    Q_ASSERT(mEdge);
+
+     int count = jobj["totalCount"].toInt();
+
+    if( States::GetGatewaysCount == mState ) {
+         if( count < 1 ) {
+            qCritical() << "*** No Gateway registered for tenant" << mApiRest->tenantId();
+            return;
+         }
+
+        mState = States::GetGatewaysList;
+        mApiRest->getGateways(count);
+        return;
+    }
+
+    Q_ASSERT(States::GetGatewaysList == mState);
+
+    QJsonArray array = jobj["result"].toArray();
+
+    qInfo() << "Gateways from chirpstack count:" << count;
+
+    bool hasGateway = false;
+    for( const auto& jsonElement: array ) {
+        QJsonObject jobj = jsonElement.toObject();
+        QString gatewayId = jobj["gatewayId"].toString();
+        qInfo() << jobj["name"].toString() << gatewayId;
+        if( mEdge->id() == gatewayId ) {
+            hasGateway = true;
+        }
+    }
+
+    if( !hasGateway) {
+        qCritical() << "*** Gateway" << mEdge->id()
+                    <<" not registered for tenant" << mApiRest->tenantId()
+                    << "Please add it to Chirpstack UI!";
+    }else {
+        qInfo() << "Proper Gateway found!" << mEdge->id();
+    }
 }

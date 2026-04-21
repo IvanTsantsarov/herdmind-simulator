@@ -17,6 +17,8 @@ class DevManager
         None = 0,
         GetDevicesCount,
         GetDevicesList,
+        GetGatewaysCount,
+        GetGatewaysList
     };
 
     States mState = States::None;
@@ -49,6 +51,8 @@ class DevManager
     int mCollarsCount = 0;
     int mBolusesCount = 0;
 
+    Gateway *mEdge = nullptr;
+
 protected:
     void onDevices(const QJsonObject &jobj);
     void onDeviceAdd(const QString& devEUI);
@@ -57,6 +61,7 @@ protected:
     void onDeviceAddress(const QString& devEUI, const QString& devAddr);
 
     void onDevicesReady(bool isStore);
+    void onGateways(const QJsonObject &jobj);
 
 public:
     DevManager( const QSettings& settings );

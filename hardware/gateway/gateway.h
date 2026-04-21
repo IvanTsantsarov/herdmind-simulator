@@ -134,7 +134,6 @@ public:
 
     inline bool isSending(){ return mIsSending; }
 
-
     struct Message {
         enum Status {
             Sending = 0,
@@ -153,6 +152,8 @@ public:
     QMap<quint32, Message> mMessages;
     inline bool isConnected() { return mClient.state() == QMqttClient::Connected;    }
 
+    inline const QString& id(){ return mId; }
+
 signals:
     void downlinkReceived(const QByteArray& response);
 
@@ -162,9 +163,6 @@ protected slots:
     void onMessageReceived(const QByteArray &message,
                            const QMqttTopicName &topic);
     void onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties);
-
-
-
 
 #endif
 
