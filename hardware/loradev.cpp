@@ -3,6 +3,19 @@
 #include "hardware/tools.h"
 #include "../simtools.h"
 
+namespace {
+constexpr quint8 CID_LinkADRReq    = 0x03;
+constexpr quint8 CID_LinkADRAns    = 0x03;
+constexpr quint8 CID_NewChannelReq = 0x07;
+constexpr quint8 CID_NewChannelAns = 0x07;
+
+// Uplink FCtrl bits
+constexpr quint8 FCtrl_ACK_bit       = (1 << 5);
+constexpr quint8 FCtrl_FOptsLen_mask = 0x0F;
+
+// Keep FOpts <= 15 bytes
+constexpr int MaxFOptsLen = 15;
+}
 
 #ifdef SIMULATION
 
@@ -197,48 +210,46 @@ QByteArray LoraDev::calculateMIC(const QByteArray& msg, quint32 fCnt,
 
 bool LoraDev::uplink(const QByteArray& data)
 {
-    QByteArray encrypted = cryptPayload( data, mFCntUp, false, false );
+    QByteArray fOpts = mPendingMacAns.left(MaxFOptsLen);
+    mPendingMacAns.remove(0, fOpts.size());
+
+    QByteArray encrypted = cryptPayload(data, mFCntUp, false, false);
 
     QByteArray phy;
-
-    phy.append((quint8)0x40);  // MHDR
-
+    phy.append(static_cast<char>(0x40));  // Unconfirmed Data Up
     phy.append(mDevAddrRev);
 
-    phy.append(mIsUplinkReceived ? (quint8)FCtrl_ACK_bit : (quint8)0x00);  // FCtrl
+    quint8 fCtrl = 0x00;
+    if (mIsUplinkReceived) {
+        fCtrl |= FCtrl_ACK_bit;
+    }
+    fCtrl |= static_cast<quint8>(fOpts.size()) & FCtrl_FOptsLen_mask;
+    phy.append(static_cast<char>(fCtrl));
 
     quint16 fCnt16 = mFCntUp & 0xFFFF;
     phy.append(static_cast<char>(fCnt16 & 0xFF));
     phy.append(static_cast<char>((fCnt16 >> 8) & 0xFF));
 
-    phy.append(fport());     // FPort
+    // FOpts go here
+    phy.append(fOpts);
+
+    // Your app payload still goes on the normal FPort
+    phy.append(static_cast<char>(fport()));
     phy.append(encrypted);
 
     QByteArray mic = calculateMIC(phy, mFCntUp, false);
-
     phy.append(mic);
 
-    if( mGateway && mGateway->publish(phy) ) {
-
-        /*
-        qDebug() << "Uplink"
-                << "name=" << mName
-                << "devEUI=" << mDevEUI.toHex()
-                << "devAddr=" << mDevAddr.toHex()
-                << "fcntUp=" << mFCntUp
-                << "fport=" << fport()
-                << "appSKey=" << mAppSKey.toHex()
-                << "nwkSKey=" << mNwkSKey.toHex();
-        */
-
-        mFCntUp ++;
+    if (mGateway && mGateway->publish(phy)) {
+        mFCntUp++;
         mIsUplinkReceived = false;
         return true;
     }
 
+    // Put MAC answers back if publish failed
+    mPendingMacAns = fOpts + mPendingMacAns;
     return false;
 }
-
 void LoraDev::setAddress(const QByteArray &ba)
 {
     mDevAddr = ba;
@@ -256,103 +267,181 @@ void LoraDev::setGateway(Gateway *gw)
 
 void LoraDev::onDownlink(const QByteArray& phy)
 {
-    if( phy.size() < 12 ) {
-        // Invalid phy
+    if (phy.size() < 12) {
         return;
     }
-
-    quint8 mhdr = phy[0];
-    Q_UNUSED(mhdr);
 
     const QByteArray devAddr = phy.mid(1, 4);
-
-    if( devAddr != mDevAddrRev ) {
-        // Not for this device
+    if (devAddr != mDevAddrRev) {
         return;
     }
 
-    const int micLen = 4;
-    const int payloadLen = phy.size();
-
-    quint8 fCtrl = phy[5];
+    quint8 fCtrl = static_cast<quint8>(phy[5]);
     quint8 fOptsLen = fCtrl & 0x0F;
-
-    // FHDR starts at 1:
-    // DevAddr(4) + FCtrl(1) + FCnt(2) = 7 bytes
-    // so FOpts starts at index 8
-    const int fOptsStart = 8;
-    const int fPortIndex = fOptsStart + fOptsLen;
-
-    // If there is no FRMPayload, then packet ends right after FHDR + MIC.
-    // That means fPortIndex points into MIC area, so there is no FPort.
-    const bool hasFPortAndFrmPayload = (fPortIndex < payloadLen - micLen);
-
-    if( !hasFPortAndFrmPayload ) {
-        qDebug() << "No payload for device:" << mName << mDevAddr.toHex();
-        return;
-    }
-
-
-    if( fCtrl & FCtrl_ACK_bit ) {
-        mIsUplinkReceived = true;
-    }
 
     quint16 fCnt16 =
         static_cast<quint8>(phy[6]) |
         (static_cast<quint8>(phy[7]) << 8);
     quint32 fCnt32 = fCnt16;
 
-    quint8 fPort = phy[fPortIndex];
-
-    QByteArray frmPayload =
-        phy.mid(fPortIndex + 1,
-                phy.size() - (fPortIndex + 1) - 4);
-
-
-    bool isMacCommand = false;
-    if( 0 == fPort ) {
-        isMacCommand = true;
-        // ignore MAC command
-        // return;
-    }
-
-
     QByteArray mic = phy.right(4);
-
-    QByteArray calculated =
-        calculateMIC(phy.left(phy.size() - 4), fCnt32, true);
-
-    if (calculated != mic)
-    {
+    QByteArray calculated = calculateMIC(phy.left(phy.size() - 4), fCnt32, true);
+    if (calculated != mic) {
         qWarning() << "Invalid downlink MIC for" << mName << mDevAddr.toHex();
         return;
     }
 
+    if (fCtrl & FCtrl_ACK_bit) {
+        mIsUplinkReceived = true;
+    }
 
-    // Decrypt using AppSKey
-    QByteArray decrypted = cryptPayload( frmPayload, fCnt32, true, isMacCommand );
+    const int fOptsStart = 8;
+    QByteArray fOpts = phy.mid(fOptsStart, fOptsLen);
 
+    // Parse MAC commands in FOpts first
+    if (!fOpts.isEmpty()) {
+        qInfo() << "MAC commands in FOpts for" << mName << mDevAddr.toHex()
+        << fOpts.toHex();
+        onDownlinkDecrypted(fOpts);
+    }
 
-    if( isMacCommand ) {
-        qInfo() << "#4e693a" << "MAC command for device" << mName << mDevAddr.toHex() << decrypted.toHex();
-    }else {
-        qInfo() << "#c08feb" << "Device received:" << mName << decrypted;
+    const int micLen = 4;
+    const int fPortIndex = fOptsStart + fOptsLen;
+    const bool hasFPort = (fPortIndex < phy.size() - micLen);
+
+    if (!hasFPort) {
+        mFCntDown = fCnt32 + 1;
+        return;
+    }
+
+    quint8 fPort = static_cast<quint8>(phy[fPortIndex]);
+    QByteArray frmPayload =
+        phy.mid(fPortIndex + 1,
+                phy.size() - (fPortIndex + 1) - micLen);
+
+    if (frmPayload.isEmpty()) {
+        mFCntDown = fCnt32 + 1;
+        return;
+    }
+
+    bool isMacCommand = (fPort == 0);
+    QByteArray decrypted = cryptPayload(frmPayload, fCnt32, true, isMacCommand);
+
+    if (isMacCommand) {
+        qInfo() << "MAC commands in FRMPayload for" << mName << mDevAddr.toHex()
+        << decrypted.toHex();
+        onDownlinkDecrypted(decrypted);
+    } else {
+        qInfo() << "Device received:" << mName << decrypted;
         emit messageReceived(mDevAddr, decrypted);
     }
 
     mFCntDown = fCnt32 + 1;
-
-    onDownlinkDecrypted( isMacCommand ? decrypted.toHex() : decrypted );
 }
 
-
-void LoraDev::onDownlinkDecrypted(const QByteArray &content)
+void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
 {
-    Q_UNUSED(content);
+    int i = 0;
+    while (i < raw.size()) {
+        const quint8 cid = static_cast<quint8>(raw[i]);
 
+        switch (cid) {
+        case CID_LinkADRReq: {
+            if (i + 5 > raw.size()) {
+                qWarning() << "Truncated LinkADRReq for" << mName << mDevAddr.toHex();
+                return;
+            }
+
+            quint8 status = 0x07; // Channel mask ACK + Data rate ACK + TX power ACK
+
+            if (mPendingMacAns.size() + 2 <= MaxFOptsLen) {
+                mPendingMacAns.append(static_cast<char>(CID_LinkADRAns));
+                mPendingMacAns.append(static_cast<char>(status));
+            }
+
+            i += 5;
+            break;
+        }
+
+        case CID_NewChannelReq: {
+            if (i + 6 > raw.size()) {
+                qWarning() << "Truncated NewChannelReq for" << mName << mDevAddr.toHex();
+                return;
+            }
+
+            quint8 status = 0x03; // Data-rate range OK + Channel frequency OK
+
+            if (mPendingMacAns.size() + 2 <= MaxFOptsLen) {
+                mPendingMacAns.append(static_cast<char>(CID_NewChannelAns));
+                mPendingMacAns.append(static_cast<char>(status));
+            }
+
+            i += 6;
+            break;
+        }
+
+        case 0x05: { // RXParamSetupReq
+            if (i + 5 > raw.size()) {
+                qWarning() << "Truncated RXParamSetupReq for" << mName << mDevAddr.toHex();
+                return;
+            }
+
+            // status bits:
+            // bit0 = Channel ACK
+            // bit1 = RX2 data-rate ACK
+            // bit2 = RX1 DR offset ACK
+            quint8 status = 0x07; // accept all for now
+
+            if (mPendingMacAns.size() + 2 <= MaxFOptsLen) {
+                mPendingMacAns.append(char(0x05));
+                mPendingMacAns.append(char(status));
+            }
+
+            i += 5;
+            break;
+        }
+
+        case 0x08: { // RXTimingSetupReq
+            if (i + 2 > raw.size()) {
+                qWarning() << "Truncated RXTimingSetupReq for" << mName << mDevAddr.toHex();
+                return;
+            }
+
+            if (mPendingMacAns.size() + 1 <= MaxFOptsLen) {
+                mPendingMacAns.append(char(0x08));
+            }
+
+            i += 2;
+            break;
+        }
+
+        case 0x11: { // PingSlotChannelReq, Class B only
+            if (i + 5 > raw.size()) {
+                qWarning() << "Truncated PingSlotChannelReq for" << mName << mDevAddr.toHex();
+                return;
+            }
+
+            // If you do not implement Class B, better disable Class B in the device profile.
+            // For testing, you could still ACK it, but that would be pretending to support Class B.
+            quint8 status = 0x03; // frequency + data-rate OK
+
+            if (mPendingMacAns.size() + 2 <= MaxFOptsLen) {
+                mPendingMacAns.append(char(0x11));
+                mPendingMacAns.append(char(status));
+            }
+
+            i += 5;
+            break;
+        }
+
+        default:
+            qWarning() << "Unsupported MAC CID for" << mName
+                       << mDevAddr.toHex()
+                       << "cid=0x" << QByteArray::number(cid, 16);
+            return;
+        }
+    }
 }
-
-
 #else
 
 #endif

@@ -12,6 +12,7 @@ class Gateway;
 #define EUI_BYTES_LEN 8
 #define LORA_FPORT_START 9
 
+
 class LoraDev : public QObject
 {
     Q_OBJECT
