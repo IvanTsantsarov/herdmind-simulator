@@ -12,5 +12,9 @@
         <file>environment.ini</file>
         <file>grass.png</file>
         <file>grass_stroke.png</file>
+        <file>error.svg</file>
+        <file>fatal.svg</file>
+        <file>cross.svg</file>
+        <file>jump.svg</file>
     </qresource>
 </RCC>

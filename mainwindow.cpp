@@ -497,6 +497,11 @@ void MainWindow::errorMsgBox(const QString &msg)
 void MainWindow::onError(const QString &err)
 {
     setStatus(err);
+    if( !mConsole->isVisible() ) {
+        mConsole->setVisible(true);
+    }
+
+    mConsole->setFocus();
 }
 
 void MainWindow::onConsoleClose()

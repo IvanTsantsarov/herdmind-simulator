@@ -45,8 +45,7 @@ void gMessagehHandler(QtMsgType type, const QMessageLogContext &context, const Q
         break;
     case QtCriticalMsg:
         console->error(msg);
-        gMainWindow->setStatus( QString("Critical:%1").arg(msg) );
-        // gMainWindow->errorMsgBox(msg);
+        gMainWindow->onError(msg);
 
         break;
     case QtFatalMsg:
