@@ -20,6 +20,7 @@ class SceneView;
 class Gateway;
 class Network;
 
+
 class SelectableItem : public QObject, public QGraphicsPolygonItem {
     Q_OBJECT
 
@@ -76,6 +77,7 @@ public:
 class Scene : public QGraphicsScene
 {
     Q_OBJECT
+private:
 
     QVector<AnimalItem*> mAnimalItems;
     AnimalItem* mAnimalItemSelected = nullptr;
@@ -92,10 +94,17 @@ class Scene : public QGraphicsScene
     TextItem* mItemInfo = nullptr;
     TextItem* mCursorInfo = nullptr;
 
+    QPolygonF mFence;
+    QGraphicsPolygonItem* mFenceItem = nullptr;
+
     SceneView* mView = nullptr;
+
+
 
     void clear();
     void updateMeadowBrush();
+    void recreateFenceItem();
+
 public:
     explicit Scene(QObject *parent = nullptr);
 
@@ -113,6 +122,9 @@ public:
     void setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, float kg);
 
     bool storeImage(const QString &path = QString() );
+
+    void fenceAppend(const QPointF &pt);
+    void fenceRemove();
 
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);

@@ -1,6 +1,7 @@
 #ifndef DEVMANAGER_H
 #define DEVMANAGER_H
 
+#include <QGeoCoordinate>
 #include <QSettings>
 #include <QJsonArray>
 
@@ -73,6 +74,7 @@ public:
     QString deviceName(const QString& eui);
     QList<LoraDev*> devices(){ return mDevicesList; }
     bool sendMessage(const QString& eui, const QByteArray& msg);
+    bool setupFence(const QVector<QGeoCoordinate>& coords);
 };
 
 #endif // DEVMANAGER_H

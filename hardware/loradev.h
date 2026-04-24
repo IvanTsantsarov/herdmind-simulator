@@ -115,6 +115,7 @@ public:
 
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
+    virtual void onReceive(uint8_t* data) = 0; // data receiving
 
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());

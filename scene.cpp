@@ -41,6 +41,11 @@
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
+#define FENCE_COLOR QColor(QColor(110, 52, 235))
+#define FENCE_PEN QPen( QBrush(FENCE_COLOR), 0.3f, Qt::DashDotLine)
+#define FENCE_BRUSH QBrush( FENCE_COLOR, Qt::DiagCrossPattern)
+
+
 void Scene::clear()
 {
     foreach(QGraphicsItem * item, items()) {
@@ -74,6 +79,16 @@ void Scene::updateMeadowBrush()
     br.setTransform(tr);
 
     mMeadow->setBrush(br);
+}
+
+void Scene::recreateFenceItem()
+{
+
+    if( mFenceItem ) {
+        delete mFenceItem;
+    }
+
+    mFenceItem = addPolygon(mFence, FENCE_PEN, FENCE_BRUSH);
 }
 
 Scene::Scene(QObject *parent)
@@ -335,6 +350,21 @@ bool Scene::storeImage(const QString &path)
     QString fileName = path.isEmpty() ? "image.png" : path;
     return mMeadowImage.save(fileName);
 }
+
+void Scene::fenceAppend(const QPointF& pt)
+{
+    mFence.append(pt);
+    recreateFenceItem();
+}
+
+void Scene::fenceRemove()
+{
+    if( mFence.count() ) {
+        mFence.removeLast();
+        recreateFenceItem();
+    }
+}
+
 
 void Scene::selectAnimalItem(int index)
 {

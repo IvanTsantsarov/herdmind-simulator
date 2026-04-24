@@ -9,6 +9,16 @@
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
+void SceneView::setMode(Mode mode)
+{
+    mMode = mode;
+
+    switch(mMode) {
+    case Mode::Explore: setCursor(Qt::ArrowCursor); break;
+    case Mode::Fence: setCursor(Qt::CrossCursor); break;
+    }
+}
+
 SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
     QGraphicsView(scene, parent), mScene(reinterpret_cast<Scene*>(scene) )
 {
@@ -52,6 +62,10 @@ void SceneView::mousePressEvent(QMouseEvent *event)
     case Qt::LeftButton:
         mIsLeftPress = true;
         mLeftPosStart = mLeftPos = mapToScene(pt);
+
+        if( Mode::Fence == mMode ) {
+            mScene->fenceAppend(mLeftPos);
+        }
         break;
     case Qt::RightButton:
         setCursor(Qt::SizeAllCursor);
@@ -68,17 +82,25 @@ void SceneView::mousePressEvent(QMouseEvent *event)
     }
 
      QGraphicsView::mousePressEvent(event);
+
+
+
 }
 
 void SceneView::mouseReleaseEvent(QMouseEvent *event)
 {
     switch(event->button()) {
-    case Qt::LeftButton: setCursor(Qt::ArrowCursor); mIsLeftPress = false; break;
-    case Qt::RightButton: setCursor(Qt::ArrowCursor); mIsRightPress = false; break;
-    case Qt::MiddleButton: setCursor(Qt::ArrowCursor); mIsMiddlePress = false; break;
+    case Qt::LeftButton: mIsLeftPress = false; break;
+    case Qt::RightButton: mIsRightPress = false; break;
+    case Qt::MiddleButton: mIsMiddlePress = false; break;
     default:
         qDebug() << "Other mouse button released:" << event->button();
 
+    }
+
+    switch(mMode) {
+    case Mode::Explore: setCursor(Qt::ArrowCursor); break;
+    case Mode::Fence: setCursor(Qt::CrossCursor); break;
     }
 
      QGraphicsView::mouseReleaseEvent(event);

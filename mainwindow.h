@@ -95,6 +95,8 @@ private slots:
     void on_actionLoad_triggered();
     void on_btnUnitTest_clicked();
     void on_checkPastureGenParams_toggled(bool checked);
+    void on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state);
+    void on_btnFenceRemoveLast_clicked();
 };
 
 extern MainWindow* gMainWindow;

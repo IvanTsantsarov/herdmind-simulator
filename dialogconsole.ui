@@ -99,6 +99,12 @@
            <disabled/>
           </palette>
          </property>
+         <property name="currentText">
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>&lt;No erros&gt;</string>
+         </property>
         </widget>
        </item>
        <item>

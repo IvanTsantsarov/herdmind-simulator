@@ -43,6 +43,16 @@ void Collar::onSend()
     sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
 }
 
+void Collar::onReceive(uint8_t *data)
+{
+    const Protocol::Collar::Event event = static_cast<Protocol::Collar::Event>(data[0]);
+
+    switch(event) {
+    case Protocol::Collar::Event::SetupFence:
+        break;
+    }
+}
+
 
 #else
 //////////////////////////////////////////////////////////////

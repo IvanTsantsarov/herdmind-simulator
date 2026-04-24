@@ -158,9 +158,9 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     mDevMsg->setVisible( is );
     ui->actionDeviceMsg->setChecked(is);
 
-    is = mEnv.value("UI/GroupInfo").toBool();
+    is = mEnv.value("UI/GroupFold").toBool();
     ui->btnShowInfo->setChecked(is);
-    ui->groupInfo->setVisible(is);
+    ui->groupFold->setVisible(is);
 
     is = mEnv.value("UI/isGrowing").toBool();
     ui->checkGrowingMeadow->setChecked(is);
@@ -189,7 +189,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     Q_UNUSED(e);
     mEnv.setValue("UI/Console", mConsole->isVisible() );
     mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
-    mEnv.setValue("UI/GroupInfo", ui->btnShowInfo->isChecked());
+    mEnv.setValue("UI/GroupFold", ui->btnShowInfo->isChecked());
     mEnv.setValue("UI/isGrowing", ui->checkGrowingMeadow->isChecked());
     mEnv.setValue("UI/DebugInfo", mConsole->isDebugInfo());
 }
@@ -548,7 +548,7 @@ void MainWindow::on_checkGrowingMeadow_toggled(bool checked)
 
 void MainWindow::on_btnShowInfo_toggled(bool checked)
 {
-    ui->groupInfo->setVisible(checked);
+    ui->groupFold->setVisible(checked);
     ui->btnShowInfo->setText(checked ? ">" : "<");
 }
 
@@ -638,5 +638,21 @@ void MainWindow::on_checkPastureGenParams_toggled(bool checked)
     ui->widgetPastureGen->setVisible(checked);
     ui->scrollAreaParamsWidget->adjustSize();
     ui->scrollAreaParamsWidget->setMinimumSize(ui->scrollAreaParamsWidget->sizeHint());
+}
+
+
+void MainWindow::on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state)
+{
+    if( state == Qt::Checked ) {
+        mSceneView->setMode(SceneView::Mode::Fence);
+    }else {
+        mSceneView->setMode(SceneView::Mode::Explore);
+    }
+}
+
+
+void MainWindow::on_btnFenceRemoveLast_clicked()
+{
+    mScene->fenceRemove();
 }
 

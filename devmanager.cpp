@@ -3,11 +3,13 @@
 
 
 #include "hardware/gateway/gateway.h"
+#include "hardware/protocol.h"
 #include "network.h"
 #include "mainwindow.h"
 #include "devmanager.h"
 #include "apirest.h"
 #include "herd.h"
+
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -238,7 +240,6 @@ bool DevManager::sendMessage(const QString &eui, const QByteArray &msg)
     return true;
 }
 
-
 void DevManager::onDevicesReady(bool isStore)
 {
     Q_ASSERT(mEdge);
@@ -287,4 +288,32 @@ void DevManager::onGateways(const QJsonObject &jobj)
     }else {
         qInfo() << "Proper Gateway found!" << mEdge->id();
     }
+}
+
+
+bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
+{
+    QVector<uint32_t> newCoords;
+    newCoords.reserve(coords.count() + 1);
+    newCoords.append(coords.count());
+
+    for( QGeoCoordinate c: coords) {
+        newCoords.append( Protocol::encodeLat(c.latitude()) );
+        newCoords.append( Protocol::encodeLat(c.longitude()) );
+    }
+
+    uint32_t dataSize = sizeof(uint32_t) * newCoords.count();
+    QByteArray ba(dataSize, 0);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ba.data());
+    data[0] = static_cast<uint8_t>(Protocol::Collar::Event::SetupFence);
+
+    for( uint32_t i = 0; i < newCoords.count(); i ++) {
+        Protocol::writeUint32( newCoords[i], data, i*sizeof(uint32_t) );
+    }
+
+    for( LoraDev* dev: mDevicesList) {
+        sendMessage(dev->eui(), ba);
+    }
+
+    return true;
 }

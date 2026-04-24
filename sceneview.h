@@ -8,6 +8,16 @@ class Meadow;
 
 class SceneView : public QGraphicsView
 {
+public:
+    enum Mode {
+        Explore = 0,
+        Fence
+    };
+
+    void setMode( Mode mode );
+private:
+    Mode mMode = Mode::Explore;
+
     QPoint mMousePoint;
     QPointF mMousePointScene;
 

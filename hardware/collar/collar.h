@@ -28,21 +28,18 @@ class Collar
     uint16_t mSequence = 0;
 
 public:
-    typedef enum Event {
-        Light = 1,
-        Sound,
-        Shock
-    } EventType;
 
 private:
 #ifdef SIMULATION
     Animal* mAnimal;
-    void onUpdate();
-    void onSend();
 #else
     Collar();
 #endif
     Protocol::Collar mPackage;
+
+    void onUpdate();
+    void onSend();
+    void onReceive(uint8_t* data);
 
 public:
 
