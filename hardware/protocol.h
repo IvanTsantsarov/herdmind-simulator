@@ -116,10 +116,16 @@ public:
     struct Collar {
         enum struct Event : uint8_t {
             None = 0,
+
+            // First are individual messages
             Light = 16,
             Sound = 17,
             Shock = 18,
-            SetupFence = 128
+
+            // Mass messages starts from 128
+            SetupFence = 128,
+            FenceOn,
+            FenceOff,
         };
 
         uint32_t mTimestamp = timestamp();  // unix timestamp

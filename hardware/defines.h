@@ -1,4 +1,6 @@
-#ifndef DEFINES_H
-#define DEFINES_H
+#ifndef HARDWARE_DEFINES_H
+#define HARDWARE_DEFINES_H
 
-#endif // DEFINES_H
+#define VIRTUAL_FENCE_MAX_POINTS 10
+
+#endif // HARDWARE_DEFINES_H

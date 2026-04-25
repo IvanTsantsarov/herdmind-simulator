@@ -312,8 +312,13 @@ bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
     }
 
     for( LoraDev* dev: mDevicesList) {
-        sendMessage(dev->eui(), ba);
+        if( dev->isCollar() ) {
+            sendMessage(dev->eui(), ba);
+        }
     }
+
+    mState = States::SetupFence;
+    mSetupDevicesCount = 0;
 
     return true;
 }

@@ -63,11 +63,12 @@ public:
 
 class TextItem : public QGraphicsTextItem
 {
-    QColor mBackColor;
+    QColor mBackColor, mTextColor;
 public:
     TextItem(const QString &text, Scene* scene);
 
     void setBackColor(const QColor& c){ mBackColor = c; }
+    void setTextColor(const QColor& c){ mTextColor = c; }
 
     void paint( QPainter *painter, const QStyleOptionGraphicsItem *o, QWidget *w);
 };
@@ -93,13 +94,15 @@ private:
 
     TextItem* mItemInfo = nullptr;
     TextItem* mCursorInfo = nullptr;
+    TextItem* mPopup = nullptr;
 
     QPolygonF mFence;
     QGraphicsPolygonItem* mFenceItem = nullptr;
 
     SceneView* mView = nullptr;
-
-
+    QTimer* mPopupTimer = nullptr;
+    QString mPopupLastMsg;
+    int mPopupLastMsgCount = 0;
 
     void clear();
     void updateMeadowBrush();
@@ -123,13 +126,18 @@ public:
 
     bool storeImage(const QString &path = QString() );
 
-    void fenceAppend(const QPointF &pt);
+    bool fenceAppend(const QPointF &pt);
     void fenceRemove();
+    QVector<QGeoCoordinate> fenceGepPoints(Meadow *meadow);
+
+    void showPopup(const QString& msg);
+    bool isPopup();
 
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);
     void onFigureMove(QGraphicsPolygonItem *item, QPointF pos);
     void onFigureDrop(QGraphicsPolygonItem *item, QPointF pos);
+    void onPopupHide();
 
 
 };

@@ -337,6 +337,8 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     mIsCreated = true;
     ui->actionSave->setEnabled(true);
 
+    mScene->showPopup("Scene created!");
+
     return true;
 }
 
@@ -494,14 +496,19 @@ void MainWindow::errorMsgBox(const QString &msg)
     QMessageBox::critical(this, "Error", msg);
 }
 
+bool MainWindow::question(const QString &msg)
+{
+    return QMessageBox::Yes == QMessageBox::question(this, "Question?", msg);
+}
+
 void MainWindow::onError(const QString &err)
 {
     setStatus(err);
-    if( !mConsole->isVisible() ) {
-        mConsole->setVisible(true);
+    if( mConsole->isVisible() ) {
+        mConsole->setFocus();
     }
 
-    mConsole->setFocus();
+    mScene->showPopup("Critical errors! Open the console!");
 }
 
 void MainWindow::onConsoleClose()
@@ -654,5 +661,47 @@ void MainWindow::on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state)
 void MainWindow::on_btnFenceRemoveLast_clicked()
 {
     mScene->fenceRemove();
+}
+
+
+void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &state)
+{
+    if( mIsAskingForFence ) {
+        return;
+    }
+
+    QVector<QGeoCoordinate> fenceGeoPoints;
+    mIsAskingForFence = true;
+
+    if( Qt::Checked == state ) {
+        if( question("Activate the fence?") ) {
+            ui->checkFenceActive->setText("Activating...");
+            ui->checkFenceAdd->setEnabled(false);
+            ui->btnFenceRemoveLast->setEnabled(false);
+            ui->btnFenceClear->setEnabled(false);
+            fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
+        }else{
+            ui->checkFenceActive->setChecked(false);
+            return;
+        }
+    }else
+    if( Qt::Unchecked == state ) {
+        if( question("Deativate the fence?") ) {
+            ui->checkFenceActive->setText("Deactivating...");
+        }else{
+            ui->checkFenceActive->setChecked(true);
+            return;
+        }
+    }else {
+        return;
+    }
+
+    ui->progressFence->setMinimum(0);
+    ui->progressFence->setMaximum(mDevManager->devicesCount());
+    ui->progressFence->setEnabled(true);
+
+    mDevManager->setupFence(fenceGeoPoints);
+
+    mIsAskingForFence = false;
 }
 

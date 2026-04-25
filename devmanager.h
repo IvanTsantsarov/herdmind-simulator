@@ -19,7 +19,8 @@ class DevManager
         GetDevicesCount,
         GetDevicesList,
         GetGatewaysCount,
-        GetGatewaysList
+        GetGatewaysList,
+        SetupFence
     };
 
     States mState = States::None;
@@ -48,6 +49,7 @@ class DevManager
     int mDeletedDevicesCount = 0;
     int mActivatedDevicesCount = 0;
     bool mIsDevicesReady = false;
+    int mSetupDevicesCount = 0;
 
     int mCollarsCount = 0;
     int mBolusesCount = 0;
@@ -73,6 +75,7 @@ public:
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);
     QList<LoraDev*> devices(){ return mDevicesList; }
+    inline int devicesCount(){ return mDevicesList.count(); }
     bool sendMessage(const QString& eui, const QByteArray& msg);
     bool setupFence(const QVector<QGeoCoordinate>& coords);
 };

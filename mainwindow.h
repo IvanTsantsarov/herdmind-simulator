@@ -49,6 +49,7 @@ class MainWindow : public QMainWindow
     bool create(bool isLoad, const QString &dir = "./");
     void closeEvent(QCloseEvent* e);
 
+    bool mIsAskingForFence = false;
 
 public:
     MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);
@@ -69,6 +70,7 @@ public:
     void onDevicesReady(bool isStore);
     inline DialogConsole* console(){ return mConsole; }
     void errorMsgBox(const QString& msg);
+    bool question(const QString& msg);
 
 
 protected:
@@ -97,6 +99,7 @@ private slots:
     void on_checkPastureGenParams_toggled(bool checked);
     void on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state);
     void on_btnFenceRemoveLast_clicked();
+    void on_checkFenceActive_checkStateChanged(const Qt::CheckState &state);
 };
 
 extern MainWindow* gMainWindow;

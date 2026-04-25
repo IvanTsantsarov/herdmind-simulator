@@ -8,6 +8,7 @@
 #include "defines.h"
 #include "hardware/bolus/bolus.h"
 #include "hardware/gateway/gateway.h"
+#include "hardware/defines.h"
 #include "network.h"
 
 #define ITEM_WIDTH_HALF (ANIMAL_WIDTH * 0.5f)
@@ -41,9 +42,17 @@
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
-#define FENCE_COLOR QColor(QColor(110, 52, 235))
+#define FENCE_COLOR_ACTIVE QColor(QColor(110, 52, 235))
+#define FENCE_PEN_ACTIVE QPen( QBrush(FENCE_COLOR_ACTIVE), 0.3f, Qt::DashDotLine)
+#define FENCE_BRUSH_ACTIVE QBrush( FENCE_COLOR_ACTIVE, Qt::DiagCrossPattern)
+
+#define FENCE_COLOR QColor(QColor(10, 12, 55))
 #define FENCE_PEN QPen( QBrush(FENCE_COLOR), 0.3f, Qt::DashDotLine)
 #define FENCE_BRUSH QBrush( FENCE_COLOR, Qt::DiagCrossPattern)
+
+#define POPUP_TEXT_COLOR QColor(250, 150, 50)
+#define POPUP_BACK_COLOR QColor(10, 10, 10)
+#define POPUP_BORDER_COLOR QColor(100, 10, 10)
 
 
 void Scene::clear()
@@ -83,7 +92,6 @@ void Scene::updateMeadowBrush()
 
 void Scene::recreateFenceItem()
 {
-
     if( mFenceItem ) {
         delete mFenceItem;
     }
@@ -93,7 +101,11 @@ void Scene::recreateFenceItem()
 
 Scene::Scene(QObject *parent)
     : QGraphicsScene{parent}
-{}
+{
+    mPopupTimer = new QTimer(this);
+    mPopupTimer->setSingleShot(true);
+    connect( mPopupTimer, &QTimer::timeout, this, &Scene::onPopupHide );
+}
 
 void Scene::create(SceneView* view, Herd* herd, Network* network,
                    QSize meadowDim, int collarPairsCount, int gatewayPairsCount )
@@ -176,6 +188,7 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
 
     mItemInfo = new TextItem("", this);
     mCursorInfo = new TextItem("", this);
+    mPopup = new TextItem("", this);
 
     setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
@@ -351,10 +364,66 @@ bool Scene::storeImage(const QString &path)
     return mMeadowImage.save(fileName);
 }
 
-void Scene::fenceAppend(const QPointF& pt)
+bool Scene::fenceAppend(const QPointF& pt)
 {
+    if( mFence.count() > VIRTUAL_FENCE_MAX_POINTS ) {
+        showPopup("Maximum number of fence points reached!");
+        return false;
+    }
+
+    if( mFence.count() < 3 ) {
+        mFence.append(pt);
+        recreateFenceItem();
+        return true;
+    }
+
+
+    auto pointDistSq = [](const QPointF& pt1, const QPointF& pt2) {
+        QPointF sub = pt2 - pt1;
+        return QPointF::dotProduct(sub, sub);
+    };
+
+    auto hasLinesIntesection = [&]( const QLineF& line1, const QLineF& line2) {
+        QPointF intersectionPt;
+        if( !line1.intersects(line2, &intersectionPt) ) {
+            return false;
+        }
+
+        float dist1To1 = pointDistSq( intersectionPt, line1.p1());
+        float dist1To2 = pointDistSq( intersectionPt, line1.p2());
+        float line1Len = pointDistSq( line1.p1(), line1.p2());
+
+        float dist2To1 = pointDistSq( intersectionPt, line2.p1());
+        float dist2To2 = pointDistSq( intersectionPt, line2.p2());
+        float line2Len = pointDistSq( line2.p1(), line2.p2());
+
+        if( line1Len > dist1To1 &&  line1Len > dist1To2 &&
+            line2Len > dist2To1 &&  line2Len > dist2To2 )  {
+                return true;
+            }
+
+        return false;
+    };
+
+    // check the polygon border for interception
+    // with other polygon borders
+    QLineF lineToFirst(mFence.first(), pt);
+    QLineF lineToLast(mFence.last(), pt);
+    QPointF prevPt = mFence.first();
+    for( auto i = 1; i < mFence.count(); i++ ) {
+        QPointF nextPt = mFence[i];
+        QLineF line(prevPt, nextPt);
+        if( hasLinesIntesection( lineToFirst, line) ||
+            hasLinesIntesection( lineToLast, line) ) {
+                showPopup("Error:This border intersects other borders!");
+                return false;
+        }
+        prevPt = nextPt;
+    }
+
     mFence.append(pt);
     recreateFenceItem();
+    return true;
 }
 
 void Scene::fenceRemove()
@@ -363,6 +432,50 @@ void Scene::fenceRemove()
         mFence.removeLast();
         recreateFenceItem();
     }
+}
+
+QVector<QGeoCoordinate> Scene::fenceGepPoints(Meadow* meadow)
+{
+    QVector<QGeoCoordinate> geoPoints;
+    geoPoints.reserve(mFence.count());
+    for( auto i = 0; i < mFence.count(); i ++) {
+        geoPoints.append(meadow->getGeoLocation(mFence[i]));
+    }
+
+    return geoPoints;
+}
+
+void Scene::showPopup(const QString &msg)
+{
+    if( mPopupLastMsg == msg) {
+        mPopupLastMsgCount ++;
+    }else {
+        mPopupLastMsgCount = 1;
+        mPopupLastMsg = msg;
+    }
+    mPopup->setTextColor(POPUP_TEXT_COLOR);
+    mPopup->setBackColor(POPUP_BACK_COLOR);
+    mPopup->setPlainText(mPopupLastMsgCount > 1 ? QString("%1 (%2)").arg(msg).arg(mPopupLastMsgCount): msg);
+    mPopup->show();
+    QPointF pos = mView->mapToScene(QPoint(0, 0));
+    mPopup->setPos(pos);
+    int duration = msg.length() * 60;
+    if( duration < 1000 ) {
+        duration = 1000;
+    }
+
+    mPopupTimer->start(duration);
+}
+
+void Scene::onPopupHide()
+{
+    mPopup->hide();
+}
+
+
+bool Scene::isPopup()
+{
+    return mPopup && mPopup->isVisible();
 }
 
 
@@ -394,6 +507,7 @@ void Scene::onFigureDrop(QGraphicsPolygonItem *item, QPointF pos)
     (void)item;
     (void)pos;
 }
+
 
 
 SelectableItem::SelectableItem(const QPolygonF &poly) : QGraphicsPolygonItem(poly) {
@@ -473,7 +587,7 @@ QVariant SelectableItem::itemChange(GraphicsItemChange change, const QVariant &v
 
 TextItem::TextItem(const QString &text, Scene *scene) :
     QGraphicsTextItem(text) {
-    setDefaultTextColor(INFO_TEXT_COLOR);
+    mTextColor = INFO_TEXT_COLOR;
     setBackColor(INFO_BACK_COLOR);
     QTransform t = transform();
     t.scale(0.1f, -0.1f);
@@ -487,8 +601,9 @@ TextItem::TextItem(const QString &text, Scene *scene) :
 }
 
 void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o, QWidget *w) {
+    setDefaultTextColor(mTextColor);
     painter->setBrush(mBackColor);
-    painter->setPen(ITEM_PEN_SEL);
+    painter->setPen(mTextColor);
     painter->drawRect(boundingRect());
     QGraphicsTextItem::paint(painter, o, w);
 }
