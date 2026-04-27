@@ -8,7 +8,7 @@
 
 #define CHECK_EMPTY_SETTINGS_VALUE(__value__, __err_str__) __value__
 
-ApiRest::ApiRest(DevManager *DevManager, const QSettings &settings)
+ApiRest::ApiRest(const QSettings &settings, DevManager *DevManager)
 {
     mDevManager = DevManager;
     mApiUrl = SimTools::readStringSettingsValue(settings, CHIRPSTACK_SECTION, "apiUrl");

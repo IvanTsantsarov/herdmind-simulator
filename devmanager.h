@@ -5,13 +5,16 @@
 #include <QSettings>
 #include <QJsonArray>
 
-
 class ApiRest;
 class LoraDev;
 class Gateway;
+class Mqtt;
 
-class DevManager
+class DevManager : public QObject
 {
+
+    Q_OBJECT
+
     friend class ApiRest;
 
     enum struct States {
@@ -26,6 +29,7 @@ class DevManager
     States mState = States::None;
 
     ApiRest* mApiRest = nullptr;
+    Mqtt* mApiMqtt = nullptr;
 
     QList<LoraDev*> mDevicesList;
     QMap<QString, LoraDev*> mDevicesMap;
@@ -68,6 +72,7 @@ protected:
 
 public:
     DevManager( const QSettings& settings );
+    virtual ~DevManager();
     inline bool isReady(){ return mIsDevicesReady; }
     inline int collarsCount(){ return mCollarsCount; }
     inline int bolusesCount(){ return mBolusesCount; }
@@ -76,7 +81,7 @@ public:
     QString deviceName(const QString& eui);
     QList<LoraDev*> devices(){ return mDevicesList; }
     inline int devicesCount(){ return mDevicesList.count(); }
-    bool sendMessage(const QString& eui, const QByteArray& msg);
+    bool sendMessageRest(const QString& eui, const QByteArray& msg);
     bool setupFence(const QVector<QGeoCoordinate>& coords);
 };
 

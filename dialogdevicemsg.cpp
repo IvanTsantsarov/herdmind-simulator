@@ -216,7 +216,7 @@ void DialogDeviceMsg::onDeviceBtnClicked()
     QByteArray msg;
     msg.append(event);
 
-    mDevManager->sendMessage( eui, msg );
+    mDevManager->sendMessageRest( eui, msg );
 }
 
 
@@ -242,7 +242,7 @@ void DialogDeviceMsg::on_tableDevices_currentItemChanged(QTableWidgetItem *curre
 void DialogDeviceMsg::on_btnSend_clicked()
 {
     if( mDevManager->isReady() ) {
-        mDevManager->sendMessage( currentEUI(), ui->editSend->text().toUtf8() );
+        mDevManager->sendMessageRest( currentEUI(), ui->editSend->text().toUtf8() );
         ui->editSend->clear();
     }else {
         ui->editResponse->appendPlainText("Devices are not ready!");

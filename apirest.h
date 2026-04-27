@@ -74,7 +74,7 @@ private slots:
     void onError(QNetworkReply::NetworkError code);
 
 public:
-    explicit ApiRest(DevManager* DevManager, const QSettings& settings);
+    explicit ApiRest(const QSettings& settings, DevManager* DevManager);
 
     void getDevices(int count = 0);
 

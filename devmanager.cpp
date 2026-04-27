@@ -1,21 +1,37 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-
 #include "hardware/gateway/gateway.h"
 #include "hardware/protocol.h"
 #include "network.h"
 #include "mainwindow.h"
 #include "devmanager.h"
 #include "apirest.h"
+#include "mqtt.h"
 #include "herd.h"
-
-
 
 ///////////////////////////////////////////////////////////////////////////
 // Currently supporting only ABP (Activation By Personalization)
 // OTAA (Over the Air Activation) NOT SUPPORTED!
+// All devices are setup using Rest API (mApiRest)
+// Further communitions is made trough MQTT (mApiMqtt)
 ///////////////////////////////////////////////////////////////////////////
+
+
+DevManager::DevManager(const QSettings &settings)
+{
+    // Create rest api object
+    mApiRest = new ApiRest(settings, this);
+
+    // Create Mqtt client class
+    mApiMqtt = new Mqtt(settings, this);
+}
+
+DevManager::~DevManager()
+{
+    delete mApiRest;
+    delete mApiMqtt;
+}
 
 
 void DevManager::onDevices(const QJsonObject &jobj)
@@ -155,11 +171,6 @@ void DevManager::onDeviceActivated(const QString &devEUI)
 
 
 
-DevManager::DevManager(const QSettings &settings)
-{
-    // Create rest api object
-    mApiRest = new ApiRest(this, settings);
-}
 
 void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs, Gateway* edge )
 {
@@ -226,7 +237,7 @@ QString DevManager::deviceName(const QString &eui)
     return QString();
 }
 
-bool DevManager::sendMessage(const QString &eui, const QByteArray &msg)
+bool DevManager::sendMessageRest(const QString &eui, const QByteArray &msg)
 {
     LoraDev* dev = device(eui);
 
@@ -313,7 +324,7 @@ bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
 
     for( LoraDev* dev: mDevicesList) {
         if( dev->isCollar() ) {
-            sendMessage(dev->eui(), ba);
+            sendMessageRest(dev->eui(), ba);
         }
     }
 
