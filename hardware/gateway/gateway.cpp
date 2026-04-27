@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include "gateway.h"
 #include "network.h"
+#include "mqtt.h"
 #include "defines_settings.h"
 #include "simtools.h"
 
@@ -11,66 +12,33 @@
 
 // #include "mainwindow.h"
 
-Gateway::Gateway(const QSettings &settings) :
-    mClient(this)
+Gateway::Gateway(const QSettings &settings)
 {
-    mMqttAddr = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"address");
-    mMqttPort = SimTools::readIntSettingsValue(settings, MQTT_SECTION,"port");
     mId = SimTools::readStringSettingsValue(settings, MQTT_SECTION, "gatewayId");
-    QString userName = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"username");
-    QString password = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"password");
-
-    // From docker-compose: mosquitto exposes 1883 to host
-    mClient.setHostname(mMqttAddr);
-    mClient.setPort(mMqttPort);
-
-    if( !userName.isEmpty() ) {
-        mClient.setUsername(userName);
-    }
-
-    if( !password.isEmpty() ) {
-        mClient.setPassword(password);
-    }
 
     // If you later enable MQTT auth:
     // mClient->setUsername("user");
     // mClient->setPassword("password");
 
-    connect(&mClient, &QMqttClient::connected, this, [=]() {
-        qInfo() << "MQTT connected";
+    mClient = new Mqtt(settings, this);
+
+    connect(mClient, &Mqtt::connected, this, [&]() {
         startHeartbeat();
-#ifdef SIMULATION
-        // gMainWindow->onMqttConnected();
-#endif
         subscribe("command/down");
     });
 
-    connect(&mClient, &QMqttClient::disconnected, this, [=]() {
-        qInfo() << "MQTT disconnected";
-    });
+    connect( mClient, &Mqtt::messageReceived, this, &Gateway::onMessageReceived);
+}
 
-    connect(&mClient, &QMqttClient::errorChanged,
-            this,
-            [=](QMqttClient::ClientError error) {
-                qCritical() << "MQTT error:" << error << mClient.error();
-            });
-
-    connect(&mClient, &QMqttClient::messageReceived,
-            this, &Gateway::onMessageReceived);
-
-
-    connect(&mClient, &QMqttClient::messageSent,
-            this, &Gateway::onMessageSent);
-
-    connect(&mClient, &QMqttClient::messageStatusChanged,
-            this, &Gateway::onMessageStatusChanged);
-
+Gateway::~Gateway()
+{
+    delete mClient;
 }
 
 void Gateway::start()
 {
-    qInfo() << "Mqtt client connecting to" << mMqttAddr << ":" << mMqttPort << "...";
-    mClient.connectToHost();
+    qInfo() << "Gatewaty mqtt client connecting to" << mClient->addr() << ":" << mClient->port()<< "...";
+    mClient->connectToHost();
 }
 
 void Gateway::startHeartbeat()
@@ -93,32 +61,7 @@ void Gateway::startHeartbeat()
         st["txPacketsEmitted"] = 0;
 
         const QByteArray payload = QJsonDocument(st).toJson(QJsonDocument::Compact);
-        mClient.publish(topic, payload, 0, false);
-
-        int sending = 0;
-        int sent = 0;
-        int failed = 0;
-
-        QList<quint32> ids = mMessages.keys();
-        for( quint32 id: ids) {
-            Message& m = mMessages[id];
-            switch (m.mStatus) {
-            case Message::Status::Sending :
-                sending ++;
-                break;
-            case Message::Status::Sent :
-                sent ++;
-                mMessages.remove(id);
-                break;
-            case Message::Status::Failed :
-                failed ++;
-                break;
-            default:
-                break;
-            }
-        }
-
-        qInfo() << "Mqtt broker sending:" << sending << "sent:" << sent << "failed:" << failed;
+        mClient->publish(topic, payload);
     });
     heartbeat->start(10000); // every 10 seconds
 }
@@ -132,7 +75,7 @@ bool Gateway::publishOnline()
     root["state"] = "connected";
 
     QJsonDocument doc(root);
-    mClient.publish(topic, doc.toJson(QJsonDocument::Compact));
+    mClient->publish(topic, doc.toJson(QJsonDocument::Compact));
 
     return true;
 }
@@ -141,34 +84,7 @@ bool Gateway::publishOnline()
 void Gateway::subscribe(const QString &topic)
 {
     QString fullTopic = QString("eu868/gateway/%1/%2").arg(mId).arg(topic);
-
-    QMqttSubscription* subscription = mClient.subscribe(fullTopic, 0);
-
-    mSubscribtions.append(subscription);
-
-    if (!subscription)
-        qCritical() << "Mqtt subscription failed";
-    else
-        qInfo() << "Mqtt subscribtion sended..." << topic;
-
-
-    // Connect to subscription stateChanged signal
-    connect(subscription, &QMqttSubscription::stateChanged, this, [&,subscription](QMqttSubscription::SubscriptionState state){
-        switch(state) {
-        case QMqttSubscription::Unsubscribed:
-            qInfo() << "Subscription is unsubscribed";
-            break;
-        case QMqttSubscription::Subscribed:
-            qInfo() << "Subscription is active";
-            break;
-        case QMqttSubscription::Error:
-            qWarning() << "Subscription error:" << subscription->reason();
-            break;
-        default:
-            qInfo() << "Subscription pending...";
-            break;
-        }
-    });
+    mClient->subscribe(fullTopic);
 /*
     // Connect to messages for this subscription
     connect(subscription, &QMqttSubscription::messageReceived, this, [=](const QMqttMessage &msg){
@@ -192,7 +108,7 @@ void Gateway::onSend()
 
 bool Gateway::publish(const QByteArray &phyPayload)
 {
-    if( !isConnected() ) {
+    if( mClient && !mClient->isConnected() ) {
         qCritical() << "Mqtt:publish: Not connected!";
         return false;
     }
@@ -242,37 +158,12 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
     QByteArray jsonBA = doc.toJson(QJsonDocument::Compact);
 
-    quint32 id = mClient.publish( topic, jsonBA, 1, false );
-
-    Message msg;
-    if( 0 == id) {
-        qCritical() << "Mqtt:publish: Message with zero ID is not tracked";
-    }else
-    if( mMessages.contains(id)) {
-        qCritical() << "Mqtt:publish: Message with this ID already exists in the mMessages:" << id;
-    }else {
-        mMessages[id] = msg;
-    }
-
-
-
-    return isConnected();
+    return mClient->publish( topic, jsonBA );
 }
 
 void Gateway::onStopSending()
 {
     mIsSending = false;
-}
-
-void Gateway::onMessageSent(quint32 id)
-{
-    if( !mMessages.contains(id) ) {
-        return;
-    }
-
-    Message& msg = mMessages[id];
-    qDebug() << "Message from" << msg.mTime.toString("hh:mm:ss.zzz") << "received by the broker";
-    msg.mStatus = Message::Status::Sent;
 }
 
 
@@ -293,12 +184,12 @@ static int parseDelayMs(const QJsonObject& item) {
     return 0;
 }
 
-void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
+void Gateway::onMessageReceived(const QByteArray &message, const QString &topicName)
 {
     const QJsonDocument doc = QJsonDocument::fromJson(message);
     const QJsonObject obj = doc.object();
 
-    if (!topic.name().endsWith("/command/down"))
+    if (!topicName.endsWith("/command/down"))
         return;
 
     const QJsonValue downlinkIdVal = obj.value("downlinkId");
@@ -332,27 +223,11 @@ void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName 
         ack["items"] = ackItems;
 
         const QString ackTopic = QString("eu868/gateway/%1/event/ack").arg(mId);
-        mClient.publish(ackTopic,
-                        QJsonDocument(ack).toJson(QJsonDocument::Compact),
-                        /*qos*/ 1,
-                        /*retain*/ false);
+        mClient->publish(ackTopic,
+                        QJsonDocument(ack).toJson(QJsonDocument::Compact) );
     });
 }
 
-void Gateway::onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties)
-{
-    QString statusStr;
-    switch(s) {
-    case QMqtt::MessageStatus::Unknown: statusStr = "Unknown"; break;
-    case QMqtt::MessageStatus::Published: statusStr = "Published"; break;
-    case QMqtt::MessageStatus::Acknowledged: statusStr = "Acknowledged"; break;
-    case QMqtt::MessageStatus::Received: statusStr = "Received"; break;
-    case QMqtt::MessageStatus::Released: statusStr = "Released"; break;
-    case QMqtt::MessageStatus::Completed: statusStr = "Completed"; break;
-    }
-
-    qDebug() << "Message status changed ID:" << id << "to:" << statusStr << "(" << (int)s << ")";
-}
 #else
 
 

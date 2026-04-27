@@ -43,6 +43,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     meadow.cpp \
+    mqtt.cpp \
     network.cpp \
     scene.cpp \
     sceneview.cpp \
@@ -72,6 +73,7 @@ HEADERS += \
     herd.h \
     mainwindow.h \
     meadow.h \
+    mqtt.h \
     network.h \
     scene.h \
     sceneview.h \
