@@ -44,7 +44,7 @@ void DevManager::subscribeToDevicesUp()
 
     // subscribe to all devices messages to the chirpstack
     for( const QString& eui: mDevicesMap.keys()) {
-        mApiMqtt->subscribeToDeviceUp(eui);
+        mApiMqtt->subscribeToDeviceUpDown(eui);
     }
 
     mIsSubscribedToDevicesUp = true;

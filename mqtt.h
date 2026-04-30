@@ -24,7 +24,7 @@ public:
     inline quint16 port(){ return mPort; }
     inline void connectToHost(){ mClient.connectToHost(); };
     bool subscribe(const QString& topic);
-    bool subscribeToDeviceUp(const QString& eui);
+    bool subscribeToDeviceUpDown(const QString& eui);
 
     quint32 publish(const QString& topic, const QByteArray& content);
 

@@ -64,16 +64,16 @@ bool Mqtt::subscribe(const QString &topic)
     connect(subscription, &QMqttSubscription::stateChanged, this, [&,subscription](QMqttSubscription::SubscriptionState state){
         switch(state) {
         case QMqttSubscription::Unsubscribed:
-            qInfo() << "Mqtt Subscription is unsubscribed";
+            qInfo() << "Mqtt Subscription is unsubscribed:" << subscription->topic();
             break;
         case QMqttSubscription::Subscribed:
-            qInfo() << "Mqtt Subscription is active";
+            qInfo() << "Mqtt Subscription is active:" << subscription->topic();
             break;
         case QMqttSubscription::Error:
             qWarning() << "Mqtt Subscription error:" << subscription->reason();
             break;
         default:
-            qInfo() << "Mqtt Subscription pending...";
+            qInfo() << "Mqtt Subscription pending..." << subscription->topic();
             break;
         }
     });
@@ -81,10 +81,19 @@ bool Mqtt::subscribe(const QString &topic)
     return true;
 }
 
-bool Mqtt::subscribeToDeviceUp(const QString &eui)
+bool Mqtt::subscribeToDeviceUpDown(const QString &eui)
 {
     QString topic = QString("application/%1/device/%2/event/up").arg(mAppId).arg(eui);
-    return subscribe(topic);
+    if( !subscribe(topic)) {
+        return false;
+    };
+
+    topic = QString("application/%1/device/%2/event/down").arg(mAppId).arg(eui);
+    if( !subscribe(topic)) {
+        return false;
+    };
+
+    return true;
 }
 
 quint32 Mqtt::publish(const QString &topic, const QByteArray &content)
