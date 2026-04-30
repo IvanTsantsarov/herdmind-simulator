@@ -5,17 +5,18 @@
 #include <QSettings>
 #include <QJsonArray>
 
-class ApiRest;
 class LoraDev;
 class Gateway;
-class Mqtt;
+class ApiRest;
+class ApiMqtt;
+
 
 class DevManager : public QObject
 {
-
     Q_OBJECT
 
     friend class ApiRest;
+    friend class ApiMqtt;
 
     enum struct States {
         None = 0,
@@ -29,7 +30,7 @@ class DevManager : public QObject
     States mState = States::None;
 
     ApiRest* mApiRest = nullptr;
-    Mqtt* mApiMqtt = nullptr;
+    ApiMqtt* mApiMqtt = nullptr;
 
     QList<LoraDev*> mDevicesList;
     QMap<QString, LoraDev*> mDevicesMap;
@@ -60,6 +61,9 @@ class DevManager : public QObject
 
     Gateway *mEdge = nullptr;
 
+    bool mIsSubscribedToDevicesUp = false;
+    void subscribeToDevicesUp();
+
 protected:
     void onDevices(const QJsonObject &jobj);
     void onDeviceAdd(const QString& devEUI);
@@ -69,6 +73,7 @@ protected:
 
     void onDevicesReady(bool isStore);
     void onGateways(const QJsonObject &jobj);
+    void onDeviceMessageMqtt(const QString& devEUI, const QByteArray& msg);
 
 public:
     DevManager( const QSettings& settings );
@@ -82,7 +87,12 @@ public:
     QList<LoraDev*> devices(){ return mDevicesList; }
     inline int devicesCount(){ return mDevicesList.count(); }
     bool sendMessageRest(const QString& eui, const QByteArray& msg);
+    bool sendMessageMqtt(const QString& eui, const QByteArray& msg);
     bool setupFence(const QVector<QGeoCoordinate>& coords);
+
+private slots:
+    void onConnectedMqtt();
+
 };
 
 #endif // DEVMANAGER_H

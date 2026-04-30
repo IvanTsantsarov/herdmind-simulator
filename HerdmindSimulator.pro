@@ -26,6 +26,7 @@ CONFIG(release, debug|release) {
 SOURCES += \
     animal.cpp \
     animal_names.cpp \
+    apimqtt.cpp \
     apirest.cpp \
     apirest_response.cpp \
     devmanager.cpp \
@@ -53,6 +54,7 @@ SOURCES += \
 
 HEADERS += \
     animal.h \
+    apimqtt.h \
     apirest.h \
     defines_settings.h \
     devmanager.h \

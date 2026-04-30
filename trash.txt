@@ -278,3 +278,68 @@ struct InPackageAction {
     uint8_t sound = 0;
     uint8_t light = 0;
 };
+
+QString Scene::saveFence(Meadow* meadow, const QString &path)
+{
+    QVector<QGeoCoordinate> gp = fenceGepPoints(meadow);
+    if( gp.count() < 3) {
+        return "Fence points less then 3";
+    }
+
+    QString content;
+    bool isFirstPoint = true;
+    for( QGeoCoordinate p: gp ) {
+        if( !isFirstPoint ) {
+            content.append(',');
+        }
+        content.append(QString("%1").arg(p.latitude(), 0, 'f', 6));
+        content.append(QString("%1").arg(p.longitude(), 0, 'f', 6));
+        isFirstPoint = false;
+    }
+
+    if( !SimTools::fileWrite(path, content.toUtf8(), true)) {
+        return QString( "Saving fence in %1 failed!").arg(path);
+    }
+
+    return "";
+}
+
+
+QString Scene::loadFence(Meadow *meadow, const QString &path)
+{
+    bool isOk = true;
+    QByteArray ba = SimTools::fileRead(path, &isOk);
+
+    if( !isOk) {
+        return QString( "Loading fence from %1 failed!").arg(path);
+    }
+
+    QString content = QString::fromUtf8(ba);
+    QStringList valsList = content.split(',');
+    if( valsList.count() % 2 ) {
+        return QString( "Loading fence from %1 failed! Fence points %2 not even").arg(path).arg(valsList.count());
+    }
+
+    QVector<QString> valsVec = valsList.toVector();
+    int pointsCount = valsVec.size() / 2;
+
+    if( pointsCount < 3) {
+        return "Loading fence - points less then 3";
+    }
+
+    mFence.clear();
+    mFence.reserve(pointsCount);
+
+    for( auto i = 0; i < pointsCount; i ++) {
+        int valsIndex = pointsCount * 2;
+        float latitude = valsVec[valsIndex].toFloat();
+        float longitude = valsVec[valsIndex+1].toFloat();
+        QGeoCoordinate gp(latitude, longitude);
+        meadow->getGeoLocation()
+        // gp.append(QGeoCoordinate(latitude, longitude));
+    }
+
+
+
+    return "";
+}

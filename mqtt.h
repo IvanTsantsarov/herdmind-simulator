@@ -8,13 +8,15 @@
 class Mqtt : public QObject
 {
     Q_OBJECT
-
-    QString mAddr;
-    quint16 mPort = 0;
     QMqttClient mClient;
     QList<QMqttSubscription*> mSubscribtions;
 
     void updateMessages();
+
+protected:
+    QString mAddr;
+    quint16 mPort = 0;
+    QString mAppId;
 
 public:
     explicit Mqtt(const QSettings &settings, QObject *parent = nullptr);
@@ -22,6 +24,8 @@ public:
     inline quint16 port(){ return mPort; }
     inline void connectToHost(){ mClient.connectToHost(); };
     bool subscribe(const QString& topic);
+    bool subscribeToDeviceUp(const QString& eui);
+
     quint32 publish(const QString& topic, const QByteArray& content);
 
     struct Message {
@@ -43,10 +47,11 @@ public:
     inline bool isConnected() { return mClient.state() == QMqttClient::Connected;    }
 
 private slots:
-    void onMessageSent(quint32 id);
-    void onMessageReceived(const QByteArray &message,
+    virtual void onConnected();
+    virtual void onMessageSent(quint32 id);
+    virtual void onMessageReceived(const QByteArray &message,
                            const QMqttTopicName &topic);
-    void onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties);
+    virtual void onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqttMessageStatusProperties &properties);
 
 signals:
     void connected();

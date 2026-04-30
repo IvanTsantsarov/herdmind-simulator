@@ -192,6 +192,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     mEnv.setValue("UI/GroupFold", ui->btnShowInfo->isChecked());
     mEnv.setValue("UI/isGrowing", ui->checkGrowingMeadow->isChecked());
     mEnv.setValue("UI/DebugInfo", mConsole->isDebugInfo());
+    mScene->saveFence();
 }
 
 
@@ -328,7 +329,6 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     // ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-
     ui->checkShepard->setEnabled(true);
     ui->checkRecursiveCollision->setEnabled(true);
 
@@ -336,6 +336,8 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mIsCreated = true;
     ui->actionSave->setEnabled(true);
+
+    mScene->loadFence();
 
     mScene->showPopup("Scene created!");
 
@@ -698,6 +700,7 @@ void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &sta
 
     ui->progressFence->setMinimum(0);
     ui->progressFence->setMaximum(mDevManager->devicesCount());
+    ui->progressFence->setValue(0);
     ui->progressFence->setEnabled(true);
 
     mDevManager->setupFence(fenceGeoPoints);

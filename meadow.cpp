@@ -244,6 +244,11 @@ QGeoCoordinate Meadow::getGeoLocation(const QPointF &mapPos)
     return QGeoCoordinate(lat + dLat, lon + dLon);
 }
 
+QPointF Meadow::getMapPoint(const QGeoCoordinate &geoPt)
+{
+    // TODO: implemented it
+}
+
 Meadow::Lawn *Meadow::byIndex(int lw, int lh)
 {
     if( lw < 0 || lw >= mLawnsDim.width() ) {

@@ -8,6 +8,8 @@ Mqtt::Mqtt(const QSettings &settings, QObject *parent)
 {
     mAddr = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"address");
     mPort = SimTools::readIntSettingsValue(settings, MQTT_SECTION,"port");
+    mAppId= SimTools::readStringSettingsValue(settings, CHIRPSTACK_SECTION,"appId");
+
     QString userName = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"username");
     QString password = SimTools::readStringSettingsValue(settings, MQTT_SECTION,"password");
 
@@ -23,17 +25,10 @@ Mqtt::Mqtt(const QSettings &settings, QObject *parent)
     mClient.setHostname(mAddr);
     mClient.setPort(mPort);
 
-    connect(&mClient, &QMqttClient::connected, this, [=]() {
-        qInfo() << "MQTT connected";
-        emit connected();
-
-#ifdef SIMULATION
-        // gMainWindow->onMqttConnected();
-#endif
-    });
+    connect(&mClient, &QMqttClient::connected, this, &Mqtt::onConnected );
 
     connect(&mClient, &QMqttClient::disconnected, this, [=]() {
-        qInfo() << "MQTT disconnected";
+        qInfo() << "MQTT disconnected:" << mAddr << ":" << mPort;
     });
 
     connect(&mClient, &QMqttClient::errorChanged,
@@ -86,6 +81,12 @@ bool Mqtt::subscribe(const QString &topic)
     return true;
 }
 
+bool Mqtt::subscribeToDeviceUp(const QString &eui)
+{
+    QString topic = QString("application/%1/device/%2/event/up").arg(mAppId).arg(eui);
+    return subscribe(topic);
+}
+
 quint32 Mqtt::publish(const QString &topic, const QByteArray &content)
 {
     quint32 id = mClient.publish( topic, content, 1, false );
@@ -103,6 +104,16 @@ quint32 Mqtt::publish(const QString &topic, const QByteArray &content)
     }
 
     return id;
+}
+
+void Mqtt::onConnected()
+{
+    qInfo() << "MQTT connected:" << mAddr << ":" << mPort;
+    emit connected();
+#ifdef SIMULATION
+    // gMainWindow->onMqttConnected();
+#endif
+
 }
 
 void Mqtt::onMessageSent(quint32 id)

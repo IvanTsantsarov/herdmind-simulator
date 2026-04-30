@@ -20,6 +20,8 @@ class SceneView;
 class Gateway;
 class Network;
 
+#define SCENE_FENCE_PATH "fence.list"
+
 
 class SelectableItem : public QObject, public QGraphicsPolygonItem {
     Q_OBJECT
@@ -129,6 +131,8 @@ public:
     bool fenceAppend(const QPointF &pt);
     void fenceRemove();
     QVector<QGeoCoordinate> fenceGepPoints(Meadow *meadow);
+    bool saveFence(const QString& path = SCENE_FENCE_PATH);
+    bool loadFence(const QString& path = SCENE_FENCE_PATH);
 
     void showPopup(const QString& msg);
     bool isPopup();

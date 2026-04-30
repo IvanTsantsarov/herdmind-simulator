@@ -7,7 +7,7 @@
 #include "mainwindow.h"
 #include "devmanager.h"
 #include "apirest.h"
-#include "mqtt.h"
+#include "apimqtt.h"
 #include "herd.h"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,9 @@ DevManager::DevManager(const QSettings &settings)
     mApiRest = new ApiRest(settings, this);
 
     // Create Mqtt client class
-    mApiMqtt = new Mqtt(settings, this);
+    mApiMqtt = new ApiMqtt(settings, this);
+
+    connect( mApiMqtt, &Mqtt::connected, this, &DevManager::onConnectedMqtt );
 }
 
 DevManager::~DevManager()
@@ -33,6 +35,20 @@ DevManager::~DevManager()
     delete mApiMqtt;
 }
 
+
+void DevManager::subscribeToDevicesUp()
+{
+    if( mIsSubscribedToDevicesUp ) {
+        return;
+    }
+
+    // subscribe to all devices messages to the chirpstack
+    for( const QString& eui: mDevicesMap.keys()) {
+        mApiMqtt->subscribeToDeviceUp(eui);
+    }
+
+    mIsSubscribedToDevicesUp = true;
+}
 
 void DevManager::onDevices(const QJsonObject &jobj)
 {
@@ -251,12 +267,22 @@ bool DevManager::sendMessageRest(const QString &eui, const QByteArray &msg)
     return true;
 }
 
+bool DevManager::sendMessageMqtt(const QString &eui, const QByteArray &msg)
+{
+    return mApiMqtt->sendMessage(eui, msg);
+}
+
 void DevManager::onDevicesReady(bool isStore)
 {
     Q_ASSERT(mEdge);
+
     mIsDevicesReady = true;
     gMainWindow->onDevicesReady(isStore);
     mEdge->start();
+
+    if( mApiMqtt->isConnected() ) {
+        subscribeToDevicesUp();
+    }
 }
 
 void DevManager::onGateways(const QJsonObject &jobj)
@@ -302,6 +328,13 @@ void DevManager::onGateways(const QJsonObject &jobj)
 }
 
 
+// Sent with sendMessageMqtt
+void DevManager::onDeviceMessageMqtt(const QString &devEUI, const QByteArray &msg)
+{
+
+}
+
+
 bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
 {
     QVector<uint32_t> newCoords;
@@ -324,7 +357,8 @@ bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
 
     for( LoraDev* dev: mDevicesList) {
         if( dev->isCollar() ) {
-            sendMessageRest(dev->eui(), ba);
+            // sendMessageRest(dev->eui(), ba);
+            sendMessageMqtt(dev->eui().toHex(), ba);
         }
     }
 
@@ -332,4 +366,11 @@ bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
     mSetupDevicesCount = 0;
 
     return true;
+}
+
+void DevManager::onConnectedMqtt()
+{
+    if( mIsDevicesReady ) {
+        subscribeToDevicesUp();
+    }
 }
