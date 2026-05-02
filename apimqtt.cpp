@@ -28,9 +28,10 @@ bool ApiMqtt::sendMessage(const QString &eui, const QByteArray &message)
                         .arg(mAppId)
                         .arg(eui);
 
-    qDebug() << "MQTT downlink topic:" << topic << json;
+    qDebug() << "ApiMqtt::sendMessage:" << topic << json;
 
-    return publish(topic, json);}
+    return publish(topic, json);
+}
 
 void ApiMqtt::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
 {

@@ -90,6 +90,8 @@ public:
     bool sendMessageMqtt(const QString& eui, const QByteArray& msg);
     bool setupFence(const QVector<QGeoCoordinate>& coords);
 
+    LoraDev* findByAddress(const QByteArray &address );
+
 private slots:
     void onConnectedMqtt();
 

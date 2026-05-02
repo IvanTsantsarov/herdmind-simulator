@@ -306,13 +306,13 @@ void DevManager::onGateways(const QJsonObject &jobj)
 
     QJsonArray array = jobj["result"].toArray();
 
-    qInfo() << "Gateways from chirpstack count:" << count;
+    qDebug() << "Gateways from chirpstack count:" << count;
 
     bool hasGateway = false;
     for( const auto& jsonElement: array ) {
         QJsonObject jobj = jsonElement.toObject();
         QString gatewayId = jobj["gatewayId"].toString();
-        qInfo() << jobj["name"].toString() << gatewayId;
+        qDebug() << jobj["name"].toString() << gatewayId;
         if( mEdge->id() == gatewayId ) {
             hasGateway = true;
         }
@@ -323,7 +323,7 @@ void DevManager::onGateways(const QJsonObject &jobj)
                     <<" not registered for tenant" << mApiRest->tenantId()
                     << "Please add it to Chirpstack UI!";
     }else {
-        qInfo() << "Proper Gateway found!" << mEdge->id();
+        qDebug() << "Proper Gateway found!" << mEdge->id();
     }
 }
 
@@ -366,6 +366,17 @@ bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
     mSetupDevicesCount = 0;
 
     return true;
+}
+
+LoraDev *DevManager::findByAddress(const QByteArray &address)
+{
+    for( LoraDev* dev: mDevicesList) {
+        if( dev->addr() == address ) {
+            return dev;
+        }
+    }
+
+    return nullptr;
 }
 
 void DevManager::onConnectedMqtt()

@@ -58,19 +58,19 @@ bool Mqtt::subscribe(const QString &topic)
 
     mSubscribtions.append(subscription);
 
-    qInfo() << "Mqtt subscribtion sended:" << topic;
+    qDebug() << "Mqtt subscribtion sent:" << topic;
 
     // Connect to subscription stateChanged signal
     connect(subscription, &QMqttSubscription::stateChanged, this, [&,subscription](QMqttSubscription::SubscriptionState state){
         switch(state) {
         case QMqttSubscription::Unsubscribed:
-            qInfo() << "Mqtt Subscription is unsubscribed:" << subscription->topic();
+            qInfo() << "Mqtt Subscription unsubscribed:" << subscription->topic();
             break;
         case QMqttSubscription::Subscribed:
-            qInfo() << "Mqtt Subscription is active:" << subscription->topic();
+            qInfo() << "Mqtt Subscription active:" << subscription->topic();
             break;
         case QMqttSubscription::Error:
-            qWarning() << "Mqtt Subscription error:" << subscription->reason();
+            qCritical() << "Mqtt Subscription error:" << subscription->reason();
             break;
         default:
             qInfo() << "Mqtt Subscription pending..." << subscription->topic();
@@ -132,7 +132,7 @@ void Mqtt::onMessageSent(quint32 id)
     }
 
     Message& msg = mMessages[id];
-    qDebug() << "Mqtt message from" << msg.mTime.toString("hh:mm:ss.zzz") << "received by the broker";
+    qDebug() << "Mqtt message from" << msg.mTime.toString("[hh:mm:ss.zzz]") << "received by the broker";
     msg.mStatus = Message::Status::Sent;
 }
 

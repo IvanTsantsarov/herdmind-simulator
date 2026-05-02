@@ -37,7 +37,7 @@ Gateway::~Gateway()
 
 void Gateway::start()
 {
-    qInfo() << "Gatewaty mqtt client connecting to" << mClient->addr() << ":" << mClient->port()<< "...";
+    qDebug() << "Gatewaty mqtt client connecting to" << mClient->addr() << ":" << mClient->port()<< "...";
     mClient->connectToHost();
 }
 
@@ -186,8 +186,11 @@ static int parseDelayMs(const QJsonObject& item) {
 
 void Gateway::onMessageReceived(const QByteArray &message, const QString &topicName)
 {
+
     const QJsonDocument doc = QJsonDocument::fromJson(message);
     const QJsonObject obj = doc.object();
+
+    qDebug() << "Gateway msg:" << topicName << message.toBase64();
 
     if (!topicName.endsWith("/command/down"))
         return;

@@ -1,22 +1,8 @@
 #include "loradev.h"
+#include "loradev_def.h"
 #include "gateway/gateway.h"
 #include "hardware/tools.h"
 #include "../simtools.h"
-
-namespace {
-constexpr quint8 CID_LinkADRReq    = 0x03;
-constexpr quint8 CID_LinkADRAns    = 0x03;
-constexpr quint8 CID_NewChannelReq = 0x07;
-constexpr quint8 CID_NewChannelAns = 0x07;
-
-// Uplink FCtrl bits
-constexpr quint8 FCtrl_ACK_bit       = (1 << 5);
-constexpr quint8 FCtrl_FOptsLen_mask = 0x0F;
-
-// Keep FOpts <= 15 bytes
-constexpr int MaxFOptsLen = 15;
-}
-
 #ifdef SIMULATION
 
 #define SIMNODE_SENDING_DURATION 2000
@@ -265,6 +251,10 @@ void LoraDev::setGateway(Gateway *gw)
     connect(mGateway, &Gateway::downlinkReceived, this, &LoraDev::onDownlink );
 }
 
+
+// test it with:
+// mosquitto_sub -v -t 'application/+/device/+/command/+'
+// mosquitto_sub -v -t 'eu868/gateway/+/command/down'
 void LoraDev::onDownlink(const QByteArray& phy)
 {
     if (phy.size() < 12) {
@@ -300,8 +290,8 @@ void LoraDev::onDownlink(const QByteArray& phy)
 
     // Parse MAC commands in FOpts first
     if (!fOpts.isEmpty()) {
-        qInfo() << "MAC commands in FOpts for" << mName << mDevAddr.toHex()
-        << fOpts.toHex();
+        qDebug() << "MAC commands in FOpts for" <<
+            mName << mDevAddr.toHex() << fOpts.toHex();
         onDownlinkDecrypted(fOpts);
     }
 
@@ -328,8 +318,8 @@ void LoraDev::onDownlink(const QByteArray& phy)
     QByteArray decrypted = cryptPayload(frmPayload, fCnt32, true, isMacCommand);
 
     if (isMacCommand) {
-        qInfo() << "MAC commands in FRMPayload for" << mName << mDevAddr.toHex()
-        << decrypted.toHex();
+        qDebug() << "MAC commands in FRMPayload for"
+                 << mName << mDevAddr.toHex() << decrypted.toHex();
         onDownlinkDecrypted(decrypted);
     } else {
         qInfo() << "Device received:" << mName << decrypted;
@@ -380,7 +370,7 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
             break;
         }
 
-        case 0x05: { // RXParamSetupReq
+        case CID_RXParamSetupReq: { // RXParamSetupReq
             if (i + 5 > raw.size()) {
                 qWarning() << "Truncated RXParamSetupReq for" << mName << mDevAddr.toHex();
                 return;
@@ -401,7 +391,7 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
             break;
         }
 
-        case 0x08: { // RXTimingSetupReq
+        case CID_RXTimingSetupReq: { //
             if (i + 2 > raw.size()) {
                 qWarning() << "Truncated RXTimingSetupReq for" << mName << mDevAddr.toHex();
                 return;
@@ -415,7 +405,7 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
             break;
         }
 
-        case 0x11: { // PingSlotChannelReq, Class B only
+        case CID_PingSlotChannelReq: { // Class B only
             if (i + 5 > raw.size()) {
                 qWarning() << "Truncated PingSlotChannelReq for" << mName << mDevAddr.toHex();
                 return;
@@ -431,6 +421,19 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
             }
 
             i += 5;
+            break;
+        }
+        case CID_DevStatusReq: //
+        {
+            // qDebug() << "DevStatusReq received";
+
+            QByteArray ans;
+
+            ans.append((char)0x06);   // CID (DevStatusAns)
+            ans.append((char)255);    // Battery (255 = external power)
+            ans.append((char)10);     // Margin (e.g. 10 dB)
+
+            mPendingMacAns.append(ans);
             break;
         }
 

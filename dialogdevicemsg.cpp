@@ -14,6 +14,8 @@
 
 #define MSG_AFTER_INTERVAL 2000
 
+#define OUTPUT_STRING_FORMAT "hh:mm:ss"
+
 void DialogDeviceMsg::closeEvent(QCloseEvent *e)
 {
     Q_UNUSED(e);
@@ -152,7 +154,7 @@ QString DialogDeviceMsg::getSelectedDeviceEUI()
 void DialogDeviceMsg::onResponse(const QString &devEUI, const QJsonObject &jobjResponse)
 {
     QJsonDocument Doc(jobjResponse);
-    ui->editResponse->appendPlainText(QString("%1|%2").arg(devEUI).arg(Doc.toJson()));
+    addOutput(QString("%1|%2").arg(devEUI).arg(Doc.toJson()));
 }
 
 
@@ -195,11 +197,27 @@ void DialogDeviceMsg::onDeviceMessageAfter(const QByteArray &addr, const QByteAr
     changeDeviceMsgIcon(con.mRow, (Protocol::Collar::Event) msg[0], false);
 }
 
+void DialogDeviceMsg::addOutput(const QString &txt)
+{
+    QString dateTimeStr = QDateTime::currentDateTime().toString(OUTPUT_STRING_FORMAT);
+    ui->editResponse->appendPlainText(QString("[%1]%2").arg(dateTimeStr).arg(txt));
+}
+
 
 void DialogDeviceMsg::onDeviceMessage(const QByteArray &addr, const QByteArray &msg)
 {
     DevCon con = mDevsMap[addr];
     changeDeviceMsgIcon(con.mRow, (Protocol::Collar::Event)msg[0], true);
+
+    LoraDev* dev = mDevManager->findByAddress(addr);
+
+    QString respStr = msg.toBase64();
+    if( dev ) {
+        addOutput(QString("Device %1 responded with %2").arg(dev->name()).arg(respStr));
+    }else {
+        addOutput(QString("Device with address %1 responded with %2").arg(addr).arg(respStr));
+    }
+
     QTimer::singleShot(MSG_AFTER_INTERVAL, [=]() {
         onDeviceMessageAfter(addr, msg);
     });
@@ -216,7 +234,15 @@ void DialogDeviceMsg::onDeviceBtnClicked()
     QByteArray msg;
     msg.append(event);
 
-    mDevManager->sendMessageRest( eui, msg );
+    if(ui->radioRest->isChecked()) {
+        mDevManager->sendMessageRest( eui, msg );
+    }else {
+        if( mDevManager->sendMessageMqtt( eui, msg ) ) {
+            addOutput("Mqtt sent ok");
+        }else {
+            addOutput("** Mqtt sent failed. See console for more info!");
+        }
+    }
 }
 
 
@@ -245,7 +271,7 @@ void DialogDeviceMsg::on_btnSend_clicked()
         mDevManager->sendMessageRest( currentEUI(), ui->editSend->text().toUtf8() );
         ui->editSend->clear();
     }else {
-        ui->editResponse->appendPlainText("Devices are not ready!");
+        addOutput("Devices are not ready!");
     }
 }
 
