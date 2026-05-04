@@ -258,17 +258,25 @@ bool DevManager::sendMessageRest(const QString &eui, const QByteArray &msg)
     LoraDev* dev = device(eui);
 
     if( !dev ) {
-        qCritical() << "Sending to unknown device:" << msg;
+        qCritical() << "REST sending to unknown device:" << msg;
         return false;
     }
 
-    qInfo() << "Sending to device:" << dev->name() << msg;
+    qInfo() << "REST Sending to device:" << dev->name() << msg;
     mApiRest->sendDeviceMessage(eui, msg, dev->fport());
     return true;
 }
 
 bool DevManager::sendMessageMqtt(const QString &eui, const QByteArray &msg)
 {
+    LoraDev* dev = device(eui);
+
+    if( !dev ) {
+        qCritical() << "MQTT sending to unknown device:" << msg;
+        return false;
+    }
+
+    qInfo() << "MQTT Sending to device:" << dev->name() << msg;
     return mApiMqtt->sendMessage(eui, msg);
 }
 

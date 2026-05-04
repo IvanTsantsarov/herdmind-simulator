@@ -18,6 +18,7 @@ ApiMqtt::ApiMqtt(const QSettings &settings, DevManager *DevManager)
 bool ApiMqtt::sendMessage(const QString &eui, const QByteArray &message)
 {
     QJsonObject obj;
+    obj["devEui"] = eui;
     obj["confirmed"] = false;
     obj["fPort"] = devman()->device(eui)->fport();
     obj["data"] = QString::fromLatin1(message.toBase64());
