@@ -50,6 +50,7 @@ class MainWindow : public QMainWindow
     void closeEvent(QCloseEvent* e);
 
     bool mIsAskingForFence = false;
+    bool mIsFenceSetup = false;
 
 public:
     MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);

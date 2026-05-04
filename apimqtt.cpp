@@ -36,5 +36,12 @@ bool ApiMqtt::sendMessage(const QString &eui, const QByteArray &message)
 
 void ApiMqtt::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
-    // devman()->onDeviceMessageMqtt()
+    QJsonParseError parseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(message, &parseError);
+    QJsonObject jobj = jsonDoc.object();
+    QByteArray addr = QByteArray::fromHex( jobj["devAddr"].toString().toUtf8() );
+
+    QByteArray content = QByteArray::fromBase64( jobj["data"].toString().toUtf8());
+
+    devman()->onDeviceMessageMqtt(addr, content);
 }

@@ -69,6 +69,8 @@ void LoraDev::updateSendingSimulation(int msec) {
     mSendingMsec -= msec;
 }
 
+
+
 QString LoraDev::jsonInfo(const QString& animalName)
 {
     if( !animalName.length() ) {
@@ -323,7 +325,8 @@ void LoraDev::onDownlink(const QByteArray& phy)
         onDownlinkDecrypted(decrypted);
     } else {
         qInfo() << "Device received:" << mName << decrypted;
-        emit messageReceived(mDevAddr, decrypted);
+        emit messageReceivedAndDecrypted(mDevAddr, decrypted);
+        onReceive( (uint8_t*)decrypted.data(), decrypted.size() );
     }
 
     mFCntDown = fCnt32 + 1;

@@ -133,6 +133,7 @@ public:
     QVector<QGeoCoordinate> fenceGepPoints(Meadow *meadow);
     bool saveFence(const QString& path = SCENE_FENCE_PATH);
     bool loadFence(const QString& path = SCENE_FENCE_PATH);
+    void fenceActivate(bool is);
 
     void showPopup(const QString& msg);
     bool isPopup();

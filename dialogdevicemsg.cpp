@@ -126,7 +126,7 @@ void DialogDeviceMsg::updateDevices()
         ui->tableDevices->setItem(row, DLG_MSG_TABLE_NAME_COL, itemName);
 
         con.mRow = row++;
-        con.mConn = connect( dev, &LoraDev::messageReceived, this, &DialogDeviceMsg::onDeviceMessage );
+        con.mConn = connect( dev, &LoraDev::messageReceivedAndDecrypted, this, &DialogDeviceMsg::onDeviceMessage );
         mDevsMap[dev->addr()] = con;
     }
 

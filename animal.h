@@ -125,6 +125,8 @@ public:
 
     inline const QString& name(){return mName; }
     inline QVector2D& p(){ return mPosition; }
+    inline QVector2D& pos(){ return mPosition; }
+    QGeoCoordinate geoPos();
     inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
     inline QVector2D& v(){ return mVelocity; }
 

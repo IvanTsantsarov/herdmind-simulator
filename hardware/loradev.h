@@ -73,7 +73,6 @@ protected:
     // send to the chirpstack
     bool uplink(const QByteArray& data);
 
-
 public:
     inline QByteArray eui(){ return mDevEUI; };
     inline QByteArray addr(){ return mDevAddr; };
@@ -115,12 +114,13 @@ public:
 
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
-    virtual void onReceive(uint8_t* data) = 0; // data receiving
+    virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
+
 
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());
 signals:
-    void messageReceived(const QByteArray& addr, const QByteArray& msg);
+    void messageReceivedAndDecrypted(const QByteArray& addr, const QByteArray& msg);
 
 private slots:
     void onTimerStart();

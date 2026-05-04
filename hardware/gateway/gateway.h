@@ -82,6 +82,7 @@ protected slots:
     void onMessageReceived(const QByteArray &message, const QString &topicName);
 #endif
 
+
 };
 
 #endif // GATEWAY_H

@@ -117,6 +117,8 @@ public:
         enum struct Event : uint8_t {
             None = 0,
 
+            Package = 10,
+
             // First are individual messages
             Light = 16,
             Sound = 17,
@@ -128,30 +130,35 @@ public:
             FenceOff,
         };
 
+        Event mEvent = Event::None;       // mEvent type level
         uint32_t mTimestamp = timestamp();  // unix timestamp
         uint32_t mLatitude = 0;   // positioning mLatitude
         uint32_t mLongitude = 0;  // positioning mLongitude
-        Event mEvent = Event::None;       // mEvent type level
         uint8_t mRssi = 0;        // signal level
         uint8_t mBattery = 0;     // mBattery level
 
         inline void fromByteArray(const uint8_t* array) {
-            mTimestamp = Protocol::readUint32(array, 0);
-            mLatitude = Protocol::readUint32(array,   sizeof(uint32_t));
-            mLongitude = Protocol::readUint32(array, 2*sizeof(uint32_t));
-            mEvent   = (Event)array[ 3*sizeof(uint32_t)];
-            mRssi    = array[ 3*sizeof(uint32_t) + 1];
-            mBattery = array[ 3*sizeof(uint32_t) + 2];
+            int offset = 0;
+            mEvent   = (Event)array[ offset++ ];
+            mTimestamp = Protocol::readUint32(array, offset); offset += sizeof(uint32_t);
+            mLatitude = Protocol::readUint32(array,  offset); offset += sizeof(uint32_t);
+            mLongitude = Protocol::readUint32(array, offset); offset += sizeof(uint32_t);
+
+            mRssi    = array[ offset++];
+            mBattery = array[ offset++];
         }
 
         inline CollarByteArray toByteArray()  const {
             CollarByteArray ba;
-            Protocol::writeUint32(mTimestamp, ba, 0);
-            Protocol::writeUint32(mLatitude, ba,   sizeof(uint32_t));
-            Protocol::writeUint32(mLongitude,  ba, 2*sizeof(uint32_t));
-            ba[3*sizeof(uint32_t)]   = (uint8_t)mEvent;
-            ba[3*sizeof(uint32_t)+1] = mRssi;
-            ba[3*sizeof(uint32_t)+2] = mBattery;
+
+            int offset = 0;
+            ba[offset++]   = (uint8_t)mEvent;
+            Protocol::writeUint32(mTimestamp, ba, offset); offset += sizeof(uint32_t);
+            Protocol::writeUint32(mLatitude, ba, offset); offset += sizeof(uint32_t);
+            Protocol::writeUint32(mLongitude,  ba, offset); offset += sizeof(uint32_t);
+
+            ba[offset++] = mRssi;
+            ba[offset++] = mBattery;
             return ba;
         }
 

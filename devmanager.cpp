@@ -337,21 +337,48 @@ void DevManager::onGateways(const QJsonObject &jobj)
 
 
 // Sent with sendMessageMqtt
-void DevManager::onDeviceMessageMqtt(const QString &devEUI, const QByteArray &msg)
+void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray &msg)
 {
+    LoraDev* dev = findByAddress(devAddr);
+
+    if( !dev ) {
+        qCritical() << "DevManager received message from unknown device:" << devAddr;
+        return;
+    }
+
+    if( dev->isCollar() ) {
+        Protocol::Collar::Event event = static_cast<Protocol::Collar::Event>(msg[0]);
+        // const uint8_t* data = (uint8_t*)(msg.data()+1);
+        //uint32_t count = Protocol::readUint32(data, 1);
+
+        switch(event) {
+        case Protocol::Collar::Event::FenceOn:
+            mDevicesMapFence[dev->eui()] = true;
+            // uint32_t count = Protocol::readUint32(data, 1);
+            break;
+        case Protocol::Collar::Event::FenceOff:
+            mDevicesMapFence[dev->eui()] = false;
+            break;
+        }
+
+    }
 
 }
 
 
-bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
+bool DevManager::setupFence(const QGeoCoordinate& center,
+                            const QVector<QGeoCoordinate> &coords)
 {
     QVector<uint32_t> newCoords;
-    newCoords.reserve(coords.count() + 1);
+    newCoords.reserve(coords.count() + 3);
+
     newCoords.append(coords.count());
+    newCoords.append( Protocol::encodeLat(center.latitude()) );
+    newCoords.append( Protocol::encodeLon(center.longitude()) );
 
     for( QGeoCoordinate c: coords) {
         newCoords.append( Protocol::encodeLat(c.latitude()) );
-        newCoords.append( Protocol::encodeLat(c.longitude()) );
+        newCoords.append( Protocol::encodeLon(c.longitude()) );
     }
 
     uint32_t dataSize = sizeof(uint32_t) * newCoords.count();
@@ -360,7 +387,7 @@ bool DevManager::setupFence(const QVector<QGeoCoordinate> &coords)
     data[0] = static_cast<uint8_t>(Protocol::Collar::Event::SetupFence);
 
     for( uint32_t i = 0; i < newCoords.count(); i ++) {
-        Protocol::writeUint32( newCoords[i], data, i*sizeof(uint32_t) );
+        Protocol::writeUint32( newCoords[i], data, 1 + i*sizeof(uint32_t) );
     }
 
     for( LoraDev* dev: mDevicesList) {
@@ -385,6 +412,21 @@ LoraDev *DevManager::findByAddress(const QByteArray &address)
     }
 
     return nullptr;
+}
+
+int DevManager::getDevicesFenceStatus(bool isOn)
+{
+    int count = 0;
+
+    for(QString eui:mDevicesMapFence.keys()) {
+        if( isOn ) {
+            if( mDevicesMapFence[eui] ) count ++;
+        }else {
+            if( !mDevicesMapFence[eui] ) count ++;
+        }
+    }
+
+    return count;
 }
 
 void DevManager::onConnectedMqtt()

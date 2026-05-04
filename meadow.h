@@ -111,6 +111,8 @@ public:
     inline QVector<Lawn*> & lawns(){ return mLawns; }
     inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
     QGeoCoordinate getGeoLocation(const QPointF& mapPos);
+    inline QGeoCoordinate geoCenter(){ return mGeoCenter;}
+
     QPointF getMapPoint(const QGeoCoordinate& geoPt);
     Lawn* byIndex( int lw, int lh );
     inline QSize dim(){ return mLawnsDim; }

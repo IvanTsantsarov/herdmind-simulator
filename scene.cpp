@@ -57,10 +57,9 @@
 
 void Scene::clear()
 {
-    foreach(QGraphicsItem * item, items()) {
-        removeItem(item);
-        delete item;
-    }
+    mMeadow = nullptr;
+    mAnimalItemSelected = nullptr;
+    mFenceItem = nullptr;
 
     mAnimalItems.clear();
     mLinesAnimals.clear();
@@ -68,9 +67,10 @@ void Scene::clear()
     mGatewayItems.clear();
     mLinesGateways.clear();
 
-    mMeadow = nullptr;
-
-    mAnimalItemSelected = nullptr;
+    foreach(QGraphicsItem * item, items()) {
+        removeItem(item);
+        delete item;
+    }
 }
 
 void Scene::updateMeadowBrush()
@@ -431,6 +431,17 @@ void Scene::fenceRemove()
     if( mFence.count() ) {
         mFence.removeLast();
         recreateFenceItem();
+    }
+}
+
+void Scene::fenceActivate(bool is)
+{
+    if( is ) {
+        mFenceItem->setPen(FENCE_PEN_ACTIVE);
+        mFenceItem->setBrush(FENCE_BRUSH_ACTIVE);
+    }else {
+        mFenceItem->setPen(FENCE_PEN);
+        mFenceItem->setBrush(FENCE_BRUSH);
     }
 }
 

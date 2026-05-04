@@ -56,6 +56,8 @@ class DevManager : public QObject
     bool mIsDevicesReady = false;
     int mSetupDevicesCount = 0;
 
+    QMap<QString, bool> mDevicesMapFence;
+
     int mCollarsCount = 0;
     int mBolusesCount = 0;
 
@@ -63,6 +65,7 @@ class DevManager : public QObject
 
     bool mIsSubscribedToDevicesUp = false;
     void subscribeToDevicesUp();
+
 
 protected:
     void onDevices(const QJsonObject &jobj);
@@ -73,7 +76,7 @@ protected:
 
     void onDevicesReady(bool isStore);
     void onGateways(const QJsonObject &jobj);
-    void onDeviceMessageMqtt(const QString& devEUI, const QByteArray& msg);
+    void onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray& msg);
 
 public:
     DevManager( const QSettings& settings );
@@ -88,9 +91,11 @@ public:
     inline int devicesCount(){ return mDevicesList.count(); }
     bool sendMessageRest(const QString& eui, const QByteArray& msg);
     bool sendMessageMqtt(const QString& eui, const QByteArray& msg);
-    bool setupFence(const QVector<QGeoCoordinate>& coords);
+    bool setupFence(const QGeoCoordinate &center, const QVector<QGeoCoordinate>& coords);
 
     LoraDev* findByAddress(const QByteArray &address );
+
+    int getDevicesFenceStatus(bool isOn);
 
 private slots:
     void onConnectedMqtt();

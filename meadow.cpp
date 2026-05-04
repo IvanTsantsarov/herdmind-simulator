@@ -246,7 +246,17 @@ QGeoCoordinate Meadow::getGeoLocation(const QPointF &mapPos)
 
 QPointF Meadow::getMapPoint(const QGeoCoordinate &geoPt)
 {
-    // TODO: implemented it
+    // Approximate meters per degree
+    const double metersPerDegLat = 111320.0;
+    const double metersPerDegLon = 111320.0 * std::cos(qDegreesToRadians(mGeoCenter.latitude()));
+
+    double dLat = geoPt.latitude()  - mGeoCenter.latitude();
+    double dLon = geoPt.longitude() - mGeoCenter.longitude();
+
+    double x = dLon * metersPerDegLon;
+    double y = dLat * metersPerDegLat;
+
+    return QPointF(x, y);
 }
 
 Meadow::Lawn *Meadow::byIndex(int lw, int lh)

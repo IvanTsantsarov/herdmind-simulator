@@ -51,7 +51,7 @@ public:
 
     void onUpdate();
     void onSend();
-    void onReceive(uint8_t* data){};
+    void onReceive(uint8_t* data, uint32_t size){};
 #else
     Bolus();
 #endif

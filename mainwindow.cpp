@@ -400,6 +400,22 @@ void MainWindow::onUpdate()
         // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
     }
 
+
+    if( mIsFenceSetup ) {
+        bool isActivate = ui->checkFenceActive->isChecked();
+        int count = mDevManager->getDevicesFenceStatus(isActivate);
+        ui->progressFence->setValue(count);
+        if( count >= mHerd->collarsCount()) {
+            mIsFenceSetup = false;
+            if( isActivate ) {
+                ui->checkFenceActive->setText("Activated");
+            }else {
+                ui->checkFenceActive->setText("Deactivated");
+            }
+
+            mScene->fenceActivate(isActivate);
+        }
+    }
 }
 
 
@@ -703,7 +719,8 @@ void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &sta
     ui->progressFence->setValue(0);
     ui->progressFence->setEnabled(true);
 
-    mDevManager->setupFence(fenceGeoPoints);
+    mIsFenceSetup = true;
+    mDevManager->setupFence(mMeadow->geoCenter(), fenceGeoPoints);
 
     mIsAskingForFence = false;
 }

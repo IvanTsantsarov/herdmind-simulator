@@ -44,6 +44,11 @@ Animal::~Animal()
     }
 }
 
+QGeoCoordinate Animal::geoPos()
+{
+    return mHerd->meadow()->getGeoLocation(mPosition.toPointF());
+}
+
 
 
 QList<int> Animal::namesIndices(bool isMale)
@@ -186,7 +191,7 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
     }
 
     // if both not approaching to each other
-    float distanceNext = ((other->p()+other->v()) - (p()+v())).lengthSquared();
+    float distanceNext = ((other->pos()+other->v()) - (pos()+v())).lengthSquared();
     if( distanceNext > distanceSqared ) {
         return false;
     }
