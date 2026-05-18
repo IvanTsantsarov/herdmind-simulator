@@ -429,7 +429,6 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
         case CID_DevStatusReq: //
         {
             // qDebug() << "DevStatusReq received";
-
             QByteArray ans;
 
             ans.append((char)0x06);   // CID (DevStatusAns)
@@ -437,6 +436,7 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
             ans.append((char)10);     // Margin (e.g. 10 dB)
 
             mPendingMacAns.append(ans);
+            i++;
             break;
         }
 
