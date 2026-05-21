@@ -339,6 +339,13 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mScene->loadFence();
 
+    ui->progressFence->setValue(0);
+    mIsAskingForFence = true;
+    ui->checkFenceActive->setChecked(false);
+    mIsAskingForFence = false;
+    ui->checkFenceActive->setToolTip("Press to activate the fence.");
+
+
     mScene->showPopup("Scene created!");
 
     return true;
@@ -688,6 +695,8 @@ void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &sta
         return;
     }
 
+    ui->progressFence->setValue(0);
+
     QVector<QGeoCoordinate> fenceGeoPoints;
     mIsAskingForFence = true;
 
@@ -698,6 +707,7 @@ void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &sta
             ui->btnFenceRemoveLast->setEnabled(false);
             ui->btnFenceClear->setEnabled(false);
             fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
+            ui->checkFenceActive->setToolTip("Click to deactivate the fence");
         }else{
             ui->checkFenceActive->setChecked(false);
             return;
@@ -706,6 +716,7 @@ void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &sta
     if( Qt::Unchecked == state ) {
         if( question("Deativate the fence?") ) {
             ui->checkFenceActive->setText("Deactivating...");
+            ui->checkFenceActive->setToolTip("Click to activate the fence");
         }else{
             ui->checkFenceActive->setChecked(true);
             return;
@@ -716,7 +727,6 @@ void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &sta
 
     ui->progressFence->setMinimum(0);
     ui->progressFence->setMaximum(mDevManager->devicesCount());
-    ui->progressFence->setValue(0);
     ui->progressFence->setEnabled(true);
 
     mIsFenceSetup = true;

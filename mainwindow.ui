@@ -104,8 +104,11 @@
               </item>
               <item row="1" column="0">
                <widget class="QCheckBox" name="checkFenceActive">
+                <property name="toolTip">
+                 <string>Press to activated the fence</string>
+                </property>
                 <property name="text">
-                 <string>Active</string>
+                 <string>Deactivated</string>
                 </property>
                </widget>
               </item>

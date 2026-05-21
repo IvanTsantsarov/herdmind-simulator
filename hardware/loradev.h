@@ -64,6 +64,9 @@ private:
 
     bool mIsUplinkReceived = false;
 
+    // TODO: parse data rate from device info
+    uint8_t mDataRate = 5;
+
     Gateway* mGateway = nullptr;
 
     QByteArray mPendingMacAns;   // bytes to send in next uplink as FOpts
@@ -83,6 +86,7 @@ public:
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
+    inline uint8_t dataRate(){ return mDataRate; }
     void setAddress(const QByteArray& ba);;
     void setGateway(Gateway* gw);
 

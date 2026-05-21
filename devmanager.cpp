@@ -50,6 +50,22 @@ void DevManager::subscribeToDevicesUp()
     mIsSubscribedToDevicesUp = true;
 }
 
+int DevManager::bytesByDataRate(int dr)
+{
+    switch(dr) {
+        case 0: return 51; break; // DR0	SF12	51 bytes
+        case 1: return 51; break; // DR1	SF11	51 bytes
+        case 2: return 51; break; // DR2	SF10	51 bytes
+        case 3: return 115; break; // DR3	SF9	115 bytes
+        case 4: return 242; break; // DR4	SF8	242 bytes
+        case 5: return 242; break; // DR5	SF7	242 bytes
+        default:
+            return 0;
+        }
+
+        return 0;
+}
+
 void DevManager::onDevices(const QJsonObject &jobj)
 {
     int count = jobj["totalCount"].toInt();
@@ -276,6 +292,11 @@ bool DevManager::sendMessageMqtt(const QString &eui, const QByteArray &msg)
         return false;
     }
 
+    int dr = bytesByDataRate(dev->dataRate());
+    if( msg.size() > dr ){
+        qWarning() << "Msg to device" << dev->name() << msg.size() << " bytes is bigger than stadart of " << dr << "for DR" << dev->dataRate();
+    }
+
     qInfo() << "MQTT Sending to device:" << dev->name() << msg;
     return mApiMqtt->sendMessage(eui, msg);
 }
@@ -358,6 +379,8 @@ void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray
             break;
         case Protocol::Collar::Event::FenceOff:
             mDevicesMapFence[dev->eui()] = false;
+            break;
+        case Protocol::Collar::Event::Package:
             break;
         }
 

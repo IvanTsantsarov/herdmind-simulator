@@ -66,6 +66,9 @@ class DevManager : public QObject
     bool mIsSubscribedToDevicesUp = false;
     void subscribeToDevicesUp();
 
+    static int bytesByDataRate(int dr);
+
+
 
 protected:
     void onDevices(const QJsonObject &jobj);
