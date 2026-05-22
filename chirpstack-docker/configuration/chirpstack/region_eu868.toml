@@ -127,7 +127,10 @@
     rx1_dr_offset=0
 
     # RX2 data-rate
-    rx2_dr=0
+    # rx2_dr=0
+
+    # this allows sending 251 bytes to device instead of only 50 when rx2_dr=0
+    # rx2_dr=5
 
     # RX2 frequency (Hz)
     rx2_frequency=869525000

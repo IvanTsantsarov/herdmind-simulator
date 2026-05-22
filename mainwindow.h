@@ -49,8 +49,9 @@ class MainWindow : public QMainWindow
     bool create(bool isLoad, const QString &dir = "./");
     void closeEvent(QCloseEvent* e);
 
-    bool mIsAskingForFence = false;
     bool mIsFenceSetup = false;
+
+    void updateFenceButtons();
 
 public:
     MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);

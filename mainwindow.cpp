@@ -20,7 +20,7 @@
 #include "devmanager.h"
 #include "simtools.h"
 #include "simtimer.h"
-
+#include "hardware/defines.h"
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
@@ -196,6 +196,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 }
 
 
+
 bool MainWindow::create(bool isLoad, const QString& dir)
 {
     mIsCreated = false;
@@ -334,19 +335,17 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mDevMsg->updateDevices();
 
-    mIsCreated = true;
     ui->actionSave->setEnabled(true);
 
     mScene->loadFence();
 
     ui->progressFence->setValue(0);
-    mIsAskingForFence = true;
     ui->checkFenceActive->setChecked(false);
-    mIsAskingForFence = false;
     ui->checkFenceActive->setToolTip("Press to activate the fence.");
 
-
     mScene->showPopup("Scene created!");
+
+    mIsCreated = true;
 
     return true;
 }
@@ -680,6 +679,8 @@ void MainWindow::on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state)
     }else {
         mSceneView->setMode(SceneView::Mode::Explore);
     }
+
+    updateFenceButtons();
 }
 
 
@@ -691,47 +692,43 @@ void MainWindow::on_btnFenceRemoveLast_clicked()
 
 void MainWindow::on_checkFenceActive_checkStateChanged(const Qt::CheckState &state)
 {
-    if( mIsAskingForFence ) {
+    if( !mIsCreated) {
         return;
     }
 
     ui->progressFence->setValue(0);
 
     QVector<QGeoCoordinate> fenceGeoPoints;
-    mIsAskingForFence = true;
 
     if( Qt::Checked == state ) {
-        if( question("Activate the fence?") ) {
-            ui->checkFenceActive->setText("Activating...");
-            ui->checkFenceAdd->setEnabled(false);
-            ui->btnFenceRemoveLast->setEnabled(false);
-            ui->btnFenceClear->setEnabled(false);
-            fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
-            ui->checkFenceActive->setToolTip("Click to deactivate the fence");
-        }else{
-            ui->checkFenceActive->setChecked(false);
-            return;
-        }
+        ui->checkFenceActive->setText("Activating...");
+        ui->checkFenceAdd->setEnabled(false);
+        fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
+        ui->checkFenceActive->setToolTip("Click to deactivate the fence");
     }else
     if( Qt::Unchecked == state ) {
-        if( question("Deativate the fence?") ) {
-            ui->checkFenceActive->setText("Deactivating...");
-            ui->checkFenceActive->setToolTip("Click to activate the fence");
-        }else{
-            ui->checkFenceActive->setChecked(true);
-            return;
-        }
-    }else {
-        return;
+        ui->checkFenceActive->setText("Deactivating...");
+        ui->checkFenceAdd->setEnabled(true);
+        ui->checkFenceActive->setToolTip("Click to activate the fence");
     }
 
     ui->progressFence->setMinimum(0);
-    ui->progressFence->setMaximum(mDevManager->devicesCount());
+    ui->progressFence->setMaximum(mDevManager->collarsCount());
     ui->progressFence->setEnabled(true);
+    updateFenceButtons();
 
     mIsFenceSetup = true;
     mDevManager->setupFence(mMeadow->geoCenter(), fenceGeoPoints);
-
-    mIsAskingForFence = false;
 }
 
+
+void MainWindow::updateFenceButtons()
+{
+    if( ui->checkFenceAdd->isChecked() ) {
+        ui->btnFenceRemoveLast->setEnabled(mScene->fencePointsCount());
+        ui->btnFenceClear->setEnabled(mScene->fencePointsCount() < VIRTUAL_FENCE_MAX_POINTS);
+    }else {
+        ui->btnFenceRemoveLast->setEnabled(false);
+        ui->btnFenceClear->setEnabled(false);
+    }
+}

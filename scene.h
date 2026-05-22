@@ -131,6 +131,7 @@ public:
     bool fenceAppend(const QPointF &pt);
     void fenceRemove();
     QVector<QGeoCoordinate> fenceGepPoints(Meadow *meadow);
+    int fencePointsCount(){ return mFence.count(); }
     bool saveFence(const QString& path = SCENE_FENCE_PATH);
     bool loadFence(const QString& path = SCENE_FENCE_PATH);
     void fenceActivate(bool is);

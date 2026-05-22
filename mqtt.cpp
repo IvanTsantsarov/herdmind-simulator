@@ -96,6 +96,19 @@ bool Mqtt::subscribeToDeviceUpDown(const QString &eui)
     return true;
 }
 
+bool Mqtt::subscribeToLog()
+{
+    if( !subscribe("application/+/device/+/event/ack")) {
+        return false;
+    };
+
+    if( !subscribe("application/+/device/+/event/log")) {
+        return false;
+    };
+
+    return true;
+}
+
 quint32 Mqtt::publish(const QString &topic, const QByteArray &content)
 {
     quint32 id = mClient.publish( topic, content, 1, false );
@@ -132,12 +145,13 @@ void Mqtt::onMessageSent(quint32 id)
     }
 
     Message& msg = mMessages[id];
-    qDebug() << "Mqtt message from" << msg.mTime.toString("[hh:mm:ss.zzz]") << "received by the broker";
+    // qDebug() << "Mqtt message from" << msg.mTime.toString("[hh:mm:ss.zzz]") << "received by the broker";
     msg.mStatus = Message::Status::Sent;
 }
 
 void Mqtt::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
+    qDebug() << "onMessageReceived" << topic.name() << message;
     emit messageReceived( message, topic.name() );
 }
 
@@ -154,7 +168,7 @@ void Mqtt::onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqtt
     case QMqtt::MessageStatus::Completed: statusStr = "Completed"; break;
     }
 
-    qDebug() << "Mqtt Message status changed ID:" << id << "to:" << statusStr << "(" << (int)s << ")";
+    // qDebug() << "Mqtt Message status changed ID:" << id << "to:" << statusStr << "(" << (int)s << ")";
 
     updateMessages();
 }
@@ -184,5 +198,7 @@ void Mqtt::updateMessages()
         }
     }
 
-    qDebug() << "Mqtt client sending:" << sending << "sent:" << sent << "failed:" << failed;
+    if( failed ) {
+        qDebug() << "Mqtt client sending:" << sending << "sent:" << sent << "failed:" << failed;
+    }
 }

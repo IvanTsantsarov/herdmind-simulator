@@ -25,6 +25,7 @@ public:
     inline void connectToHost(){ mClient.connectToHost(); };
     bool subscribe(const QString& topic);
     bool subscribeToDeviceUpDown(const QString& eui);
+    bool subscribeToLog();
 
     quint32 publish(const QString& topic, const QByteArray& content);
 

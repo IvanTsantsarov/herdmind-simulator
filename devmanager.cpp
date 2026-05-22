@@ -52,18 +52,20 @@ void DevManager::subscribeToDevicesUp()
 
 int DevManager::bytesByDataRate(int dr)
 {
+    int sz = -13; // munus lora header size
+
     switch(dr) {
-        case 0: return 51; break; // DR0	SF12	51 bytes
-        case 1: return 51; break; // DR1	SF11	51 bytes
-        case 2: return 51; break; // DR2	SF10	51 bytes
-        case 3: return 115; break; // DR3	SF9	115 bytes
-        case 4: return 242; break; // DR4	SF8	242 bytes
-        case 5: return 242; break; // DR5	SF7	242 bytes
+        case 0: ; // DR0	SF12	51 bytes
+        case 1: ; // DR1	SF11	51 bytes
+        case 2: sz += 51; break; // DR2	SF10	51 bytes
+        case 3: sz += 115; break; // DR3	SF9	115 bytes
+        case 4: ; break; // DR4	SF8	242 bytes
+        case 5: sz += 242; break; // DR5	SF7	242 bytes
         default:
             return 0;
         }
 
-        return 0;
+        return sz;
 }
 
 void DevManager::onDevices(const QJsonObject &jobj)
@@ -311,6 +313,7 @@ void DevManager::onDevicesReady(bool isStore)
 
     if( mApiMqtt->isConnected() ) {
         subscribeToDevicesUp();
+        // mApiMqtt->subscribeToLog();
     }
 }
 
