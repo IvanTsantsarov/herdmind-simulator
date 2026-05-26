@@ -118,9 +118,10 @@ void Collar::onSetupFence(uint8_t count, const GeoPoint& center, const uint8_t *
         mFencePoints[ptIndex] = Point::fromGeoPoint(center, geoPt);
     }
 
-    mFenceBordersCount = mFencePointsCount/2;
-    for( auto bIndex = 0; bIndex < mFenceBordersCount; bIndex ++ ) {
-        mFenceBorders[bIndex] = Border(mFencePoints[bIndex*2], mFencePoints[bIndex*2+1]);
+
+    mFenceBorders[0] = Border(mFencePoints[mFencePointsCount-1], mFencePoints[0]);
+    for( auto bIndex = 1; bIndex < mFencePointsCount; bIndex ++ ) {
+        mFenceBorders[bIndex] = Border(mFencePoints[bIndex-1], mFencePoints[bIndex]);
     }
 
     sendEvent(Protocol::Collar::Event::FenceOn, mFencePointsCount);
@@ -150,7 +151,7 @@ void Collar::testFence()
 
     Point p = mLastPoint;
 
-    for( auto i = 0; i < mFenceBordersCount; i ++) {
+    for( auto i = 0; i < mFencePointsCount; i ++) {
         Border& border = mFenceBorders[i];
 
         if( border.isOn(mLastPoint)) {
@@ -162,11 +163,12 @@ void Collar::testFence()
         const Point& b = border.end();
 
         bool intersects =
-            ((a.mY > mLastPoint.mY) != (b.mY > p.mY)) &&
+            ((a.mY > p.mY) != (b.mY > p.mY)) &&
             (p.mX < (b.mX - a.mX) * (p.mY - a.mY) /
                             (b.mY - a.mY) + a.mX);
 
-        if (intersects)
+        if (intersects) {
             mIsInsideFence = !mIsInsideFence;
+        }
     }
 }

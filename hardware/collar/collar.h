@@ -1,16 +1,16 @@
 #ifndef COLLAR_H
 #define COLLAR_H
 
+#include <cmath>
 #include <cstdint>
+
+#include "../defines.h"
 
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 5000
 
 // interval for sending data to collars/gateways
 #define COLLAR_SEND_INTERVAL 20000
-
-#define COLLAR_MAX_FENCE_POINTS 10
-#define COLLAR_MAX_FENCE_BORDERS (COLLAR_MAX_FENCE_POINTS/2)
 
 #define COLLAR_MAX_GPS_POINTS 500
 
@@ -44,7 +44,7 @@ class Collar
     struct Point {
         double mX, mY;
         inline Point(): mX{0.0}, mY{0.0}{};
-        inline Point(float x, float y): mX{x}, mY{y}{};
+        inline Point(double x, double y): mX{x}, mY{y}{};
 
         inline Point operator +(const Point& pt) const{
             return Point(mX + pt.mX, mY + pt.mY);
@@ -60,7 +60,7 @@ class Collar
 
         inline double distSq(const Point& pt) const {
             Point d = *this - pt;
-            return d.cross(d);
+            return d.dot(d);
         }
 
 
@@ -114,7 +114,7 @@ class Collar
         inline Point d() const { return mD; }
         inline double lenSq() const { return mLenSq; }
 
-        inline bool isOn(const Point& pt) {
+        inline bool isOn(const Point& pt) const {
             Point d = pt - mBegin;
 
             if( fabs(mD.cross(d)) > MIN_DOUBLE_VALUE ) {
@@ -136,14 +136,14 @@ class Collar
         Vector( const Point& begin, const Point& end): mBegin{begin}, mEnd{end}{}
 
         // First, calculate the common denominator.
-        bool isTowards(const Border& border) {
+        bool isTowards(const Border& border) const {
 
             Point d1 = mBegin - mEnd;
             Point d2 = border.d();
 
             double d = d1.mX * d2.mY - d1.mY * d2.mX;
 
-            if( abs(d) < MIN_DOUBLE_VALUE ) {
+            if( std::fabs(d) < MIN_DOUBLE_VALUE ) {
                 return false;
             }
 
@@ -174,11 +174,9 @@ class Collar
 
     GeoPoint mGeoCenter;
     int mFencePointsCount = 0;
-    GeoPoint mFenceGeoPoints[COLLAR_MAX_FENCE_POINTS];
-    Point mFencePoints[COLLAR_MAX_FENCE_POINTS];
-
-    int mFenceBordersCount = 0;
-    Border mFenceBorders[COLLAR_MAX_FENCE_BORDERS];
+    GeoPoint mFenceGeoPoints[VIRTUAL_FENCE_MAX_POINTS];
+    Point mFencePoints[VIRTUAL_FENCE_MAX_POINTS];
+    Border mFenceBorders[VIRTUAL_FENCE_MAX_POINTS];
 
     int mTrajectoryPointsCount = 0;
     GeoPoint mTrajectoryPoints[COLLAR_MAX_GPS_POINTS];
