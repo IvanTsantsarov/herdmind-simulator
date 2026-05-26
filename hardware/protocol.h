@@ -1,6 +1,11 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#ifdef SIMULATION
+#include "qdebug.h"
+#include "qlogging.h"
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -9,6 +14,8 @@
 #define PROTOCOL_VERSION 1
 
 #define UNIX_TO_2000 946684800
+
+#define GEO_OFFSET_SCALE 1e6
 
 class Protocol
 {
@@ -26,12 +33,36 @@ public:
                 (static_cast<uint32_t>(array[offset+3]));
 
     }
-    inline static void writeUint32(uint32_t value, uint8_t* array, int offset) {
+    inline static int writeUint32(uint32_t value, uint8_t* array, int offset) {
         array[offset]   = (value & 0xFF000000) >> 24;
         array[offset+1] = (value & 0x00FF0000) >> 16;
         array[offset+2] = (value & 0x0000FF00) >> 8;
         array[offset+3] =  value & 0x000000FF ;
+        return offset + sizeof(uint32_t);
     }
+
+    inline static int16_t readInt16(const uint8_t* array, int offset) {
+        int16_t value = (static_cast<int16_t>(array[offset]) << 8) |
+                    (static_cast<int16_t>(array[offset+1]));
+        // qInfo() << "readInt16" << value;
+        return  value;
+    }
+
+    inline static int writeInt16(int16_t value, uint8_t* array, int offset) {
+        // qInfo() << "writeInt16" << value;
+        array[offset]   = (value & 0xFF00) >> 8;
+        array[offset+1] =  value & 0x00FF ;
+        return offset + sizeof(int16_t);
+    }
+
+    inline static int16_t encodeCoordOffset(double  coordDeg, double coordDegCenter) {
+        return (coordDeg - coordDegCenter) * GEO_OFFSET_SCALE;
+    }
+
+    inline static double decodeCoordOffset(double  offsetDeg, double coordDegCenter) {
+        return (offsetDeg / GEO_OFFSET_SCALE) + coordDegCenter;
+    }
+
 
     inline static uint32_t encodeLat(double latDeg)
     {

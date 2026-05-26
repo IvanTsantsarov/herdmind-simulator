@@ -19,6 +19,7 @@
 #define ANIMAL_OPACITY 220
 #define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
 #define ITEM_BRUSH QBrush(QColor(250, 150, 150, ANIMAL_OPACITY))
+#define ITEM_BRUSH_OUTSIDE_FENCE QBrush(QColor(250, 250, 150, ANIMAL_OPACITY))
 
 #define BOLUS_PAIR_PEN QPen(QColor(250, 200, 100, 200),  ITEM_PEN_WIDTH, Qt::DashLine)
 #define BOLUS_PAIR_PEN_SENDING QPen(QColor(250, 250, 200, 255),  ITEM_PEN_WIDTH * 2, Qt::SolidLine)
@@ -245,7 +246,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     }
 
     for( auto i = 0; i < mAnimalItems.count(); i++) {
-        QGraphicsPolygonItem* item = mAnimalItems[i];
+        AnimalItem* item = mAnimalItems[i];
         Animal* animal = herd->animal(i);
         item->setPos(animal->pt());
         item->setRotation( qRadiansToDegrees(animal->rotationAngle()));
@@ -256,12 +257,22 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
             int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 200;
             int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 200;
 
-            QColor colBrush(cx, 30, cy, 150);
+            item->mBrush = QBrush(QColor(cx, 30, cy, 150));
             QColor colPen(cx, 30, cy, 250);
-            item->setBrush(colBrush);
+            item->setBrush(item->mBrush);
             item->setPen( animal->hasCollar() ?
                              QPen(Qt::white, ITEM_PEN_WIDTH_COLLAR) :
                              QPen(colPen, ITEM_PEN_WIDTH) );
+        }
+
+        if( animal->hasCollar() && animal->collar()->isFence()) {
+
+            if( !animal->collar()->isInsideFence() ) {
+                item->setBrush(ITEM_BRUSH_OUTSIDE_FENCE);
+            }else {
+                item->setBrush(item->mBrush);
+            }
+
         }
     }
 
@@ -302,6 +313,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
         line->setPen( pair.isSending() ? GATEWAY_PAIR_PEN_SENDING : GATEWAY_PAIR_PEN );
         line->show();
     }
+
 
 
 }
@@ -366,7 +378,7 @@ bool Scene::storeImage(const QString &path)
 
 bool Scene::fenceAppend(const QPointF& pt)
 {
-    if( mFence.count() > VIRTUAL_FENCE_MAX_POINTS ) {
+    if( mFence.count() >= VIRTUAL_FENCE_MAX_POINTS ) {
         showPopup("Maximum number of fence points reached!");
         return false;
     }

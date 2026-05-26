@@ -50,6 +50,7 @@ protected:
 public:
     AnimalItem( Animal* animal, const QPolygonF& poly) : SelectableItem(poly), mAnimal(animal) { }
     Animal* animal(){ return mAnimal; }
+    QBrush mBrush;
 };
 
 class GatewayItem : public SelectableItem {

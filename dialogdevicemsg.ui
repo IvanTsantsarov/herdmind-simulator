@@ -70,7 +70,7 @@
                <string>REST</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -80,6 +80,9 @@
            <widget class="QRadioButton" name="radioMqtt">
             <property name="text">
              <string>MQTT</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

@@ -14,7 +14,7 @@
 
 #define COLLAR_MAX_GPS_POINTS 500
 
-#define MIN_DOUBLE_VALUE 0.00001
+#define MIN_DOUBLE_VALUE 1e-9
 
 struct CollarData;
 
@@ -54,17 +54,17 @@ class Collar
             return Point(mX - pt.mX, mY - pt.mY);
         }
 
-        double dot(const Point& pt) const {
+        inline double dot(const Point& pt) const {
             return mX*pt.mX + mY*pt.mY;
         }
 
-        double distSq(const Point& pt) const {
+        inline double distSq(const Point& pt) const {
             Point d = *this - pt;
             return d.cross(d);
         }
 
 
-        double cross(const Point& pt) const {
+        inline double cross(const Point& pt) const {
             return mX*pt.mY - mY*pt.mX;
         }
 
@@ -94,25 +94,41 @@ class Collar
         }
     };
 
-    struct Border {
+    class Border {
         Point mBegin, mEnd;
-        float mA, mB, mK;
-        Border() :  mA{0.0}, mB{0.0}{}
+
+        Point mD;
+        double mLenSq = 0.0;
+        bool mIsFlat = false;
+    public:
+        inline Border() { }
         inline Border(const Point& b, const Point& e): mBegin{b}, mEnd{e}
         {
-            Point dd = mBegin - mEnd;
-            mA = dd.mY / dd.mX;
-            mB = mBegin.mY - mA * mBegin.mX;
-            mK = 1.0 / sqrt(mA*mA + 1);
+            mD = mEnd - mBegin;
+            mIsFlat = (mD.mY < 0.0f ? -mD.mY : mD.mY) < MIN_DOUBLE_VALUE;
+            mLenSq = mD.dot(mD);
         };
 
-        inline bool isInside(const Point& pt) {
-            return mA * pt.mX + pt.mY > 0.0f;
+        inline Point begin() const { return mBegin; }
+        inline Point end() const { return mEnd; }
+        inline Point d() const { return mD; }
+        inline double lenSq() const { return mLenSq; }
+
+        inline bool isOn(const Point& pt) {
+            Point d = pt - mBegin;
+
+            if( fabs(mD.cross(d)) > MIN_DOUBLE_VALUE ) {
+                return false;
+            }
+
+            double dot = d.dot( mD );
+            if( dot < 0 ) {
+                return false;
+            }
+
+            return dot <= mLenSq;
         }
 
-        double distance(const Point& pt) {
-            return (mA*pt.mX - pt.mY + mB) * mK;
-        }
     };
 
     struct Vector {
@@ -123,7 +139,7 @@ class Collar
         bool isTowards(const Border& border) {
 
             Point d1 = mBegin - mEnd;
-            Point d2 = border.mBegin - border.mEnd;
+            Point d2 = border.d();
 
             double d = d1.mX * d2.mY - d1.mY * d2.mX;
 
@@ -134,7 +150,7 @@ class Collar
             double k = 1.0 / d;
 
             double cross1 = mBegin.cross(mEnd);
-            double cross2 = border.mBegin.cross(border.mEnd);
+            double cross2 = border.begin().cross(border.end());
 
             double px = ( cross1*d2.mX - d1.mX*cross2 ) * k;
             double py = ( cross1*d2.mY - d1.mY*cross2 ) * k;
@@ -147,10 +163,14 @@ class Collar
 
 
     GeoPoint readGPS();
+    GeoPoint mLastGeoPos;
+    Point mLastPoint;
+
 
     float mFenceDistanceSound1;
     float mFenceDistanceSound2;
     float mFenceDistanceSoundShock;
+    bool mIsInsideFence = true;
 
     GeoPoint mGeoCenter;
     int mFencePointsCount = 0;
@@ -164,9 +184,10 @@ class Collar
     GeoPoint mTrajectoryPoints[COLLAR_MAX_GPS_POINTS];
 
 public:
-    inline bool isFence(){ return mFencePointsCount > 0; }
+
 
 private:
+    void testFence();
 #ifdef SIMULATION
     Animal* mAnimal;
 #else
@@ -178,9 +199,9 @@ private:
     void onSend();
     void onReceive(uint8_t* data, uint32_t size);
 
-    void onSetupFence(uint32_t count,
+    void onSetupFence(uint8_t count,
                       const GeoPoint &center,
-                      uint32_t *coordsPtr);
+                      const uint8_t *offsetsPtr);
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 public:
@@ -195,7 +216,8 @@ public:
     QList<Protocol::Collar> getBoluses();
 #endif
 
-
+    inline bool isFence(){ return mFencePointsCount > 0; }
+    inline bool isInsideFence(){ return mIsInsideFence; }
 };
 
 struct CollarData {

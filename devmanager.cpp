@@ -3,6 +3,7 @@
 
 #include "hardware/gateway/gateway.h"
 #include "hardware/protocol.h"
+#include "hardware/defines.h"
 #include "network.h"
 #include "mainwindow.h"
 #include "devmanager.h"
@@ -391,29 +392,28 @@ void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray
 
 }
 
-
+// 1 byte message type
+// 1 byte points count
+// 8 bytes geo center
+// n * 4 bytes fence offset points
 bool DevManager::setupFence(const QGeoCoordinate& center,
                             const QVector<QGeoCoordinate> &coords)
 {
-    QVector<uint32_t> newCoords;
-    newCoords.reserve(coords.count() + 3);
+    Q_ASSERT(coords.count() <= VIRTUAL_FENCE_MAX_POINTS);
 
-    newCoords.append(coords.count());
-    newCoords.append( Protocol::encodeLat(center.latitude()) );
-    newCoords.append( Protocol::encodeLon(center.longitude()) );
-
-    for( QGeoCoordinate c: coords) {
-        newCoords.append( Protocol::encodeLat(c.latitude()) );
-        newCoords.append( Protocol::encodeLon(c.longitude()) );
-    }
-
-    uint32_t dataSize = sizeof(uint32_t) * newCoords.count();
+    int dataSize = 1 + 1 + 2*sizeof(uint32_t) + coords.count() * 2 * sizeof(int16_t);
     QByteArray ba(dataSize, 0);
     uint8_t* data = reinterpret_cast<uint8_t*>(ba.data());
     data[0] = static_cast<uint8_t>(Protocol::Collar::Event::SetupFence);
+    data[1] = coords.count();
+    Protocol::writeUint32(Protocol::encodeLat(center.latitude()), data, 2);
+    Protocol::writeUint32(Protocol::encodeLon(center.longitude()), data, 2 + sizeof(uint32_t));
 
-    for( uint32_t i = 0; i < newCoords.count(); i ++) {
-        Protocol::writeUint32( newCoords[i], data, 1 + i*sizeof(uint32_t) );
+    int offset = 2 + 2*sizeof(uint32_t);
+    for( uint32_t i = 0; i < coords.count(); i ++) {
+        qInfo() << coords[i]; // trash
+        offset = Protocol::writeInt16( Protocol::encodeCoordOffset(coords[i].latitude(), center.latitude()), data, offset );
+        offset = Protocol::writeInt16( Protocol::encodeCoordOffset(coords[i].longitude(), center.longitude()), data, offset );
     }
 
     for( LoraDev* dev: mDevicesList) {

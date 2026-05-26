@@ -43,20 +43,16 @@ void Collar::onUpdate()
         mTrajectoryPointsCount = COLLAR_MAX_GPS_POINTS;
     }
 
+    mLastGeoPos = geoPt;
+    mLastPoint = Point::fromGeoPoint(mGeoCenter, mLastGeoPos);
+    if( isFence()) {
+        testFence();
+    }
+
     // add current geo location to the end of the tragectory points buffer
     mTrajectoryPoints[mTrajectoryPointsCount-1] = geoPt;
     if( mTrajectoryPointsCount < 2 ) {
         return;
-    }
-
-
-    if( isFence()) {
-        Point pt = Point::fromGeoPoint(mGeoCenter, geoPt);
-
-        for( auto bIndex = 0; bIndex < mFenceBordersCount; bIndex ++) {
-            // TODO: implement fence signaling
-
-        }
     }
 
 }
@@ -82,21 +78,25 @@ void Collar::onReceive(uint8_t *data, uint32_t size)
     switch(event) {
     case Protocol::Collar::Event::SetupFence:
     {
-        uint32_t count = Protocol::readUint32(data, offset); offset += sizeof(uint32_t);
+        uint32_t count = data[offset]; offset += 1;
         double lat = Protocol::decodeLat( Protocol::readUint32(data, offset )); offset += sizeof(uint32_t);
         double lon = Protocol::decodeLon( Protocol::readUint32(data, offset)); offset += sizeof(uint32_t);
-        uint32_t* pointsData = reinterpret_cast<uint32_t*>(data + offset);
-        onSetupFence( count, GeoPoint(lat, lon), pointsData );
+        onSetupFence( count, GeoPoint(lat, lon), data + offset );
     }
         break;
     case Protocol::Collar::Event::Light: break;
     case Protocol::Collar::Event::Sound: break;
     case Protocol::Collar::Event::Shock: break;
     // default: assert(0);
+    case Protocol::Collar::Event::None:
+    case Protocol::Collar::Event::Package:
+    case Protocol::Collar::Event::FenceOn:
+    case Protocol::Collar::Event::FenceOff:
+        break;
     }
 }
 
-void Collar::onSetupFence(uint32_t count, const GeoPoint& center, uint32_t *coordsPtr)
+void Collar::onSetupFence(uint8_t count, const GeoPoint& center, const uint8_t *offsetsPtr)
 {
     mFencePointsCount = count;
     if( !mFencePointsCount) {
@@ -105,12 +105,15 @@ void Collar::onSetupFence(uint32_t count, const GeoPoint& center, uint32_t *coor
     }
 
     mGeoCenter = center;
-    for( uint32_t ptIndex = 0; ptIndex < count; ptIndex ++ ) {
-        int coordsIndex = ptIndex*2;
+    int coordsIndex = 0;
+    for( uint8_t ptIndex = 0; ptIndex < count; ptIndex ++, coordsIndex += 4 ) {
+        int16_t offsetLat = Protocol::readInt16(offsetsPtr, coordsIndex);
+        int16_t offsetLon = Protocol::readInt16(offsetsPtr, coordsIndex + 2);
         GeoPoint geoPt(
-            Protocol::decodeLat(coordsPtr[coordsIndex]),
-            Protocol::decodeLon(coordsPtr[coordsIndex + 1]) );
+            Protocol::decodeCoordOffset(offsetLat, center.mLat ),
+            Protocol::decodeCoordOffset(offsetLon, center.mLon ) );
 
+        qInfo() << QString::number(geoPt.mLat, 'f', 6) << QString::number(geoPt.mLon, 'f', 6); // trash
         mFenceGeoPoints[ptIndex] = geoPt;
         mFencePoints[ptIndex] = Point::fromGeoPoint(center, geoPt);
     }
@@ -139,3 +142,31 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 
 
 #endif // SIMULATION
+
+
+void Collar::testFence()
+{
+    mIsInsideFence = false;
+
+    Point p = mLastPoint;
+
+    for( auto i = 0; i < mFenceBordersCount; i ++) {
+        Border& border = mFenceBorders[i];
+
+        if( border.isOn(mLastPoint)) {
+            mIsInsideFence = true;
+            break;
+        }
+
+        const Point& a = border.begin();
+        const Point& b = border.end();
+
+        bool intersects =
+            ((a.mY > mLastPoint.mY) != (b.mY > p.mY)) &&
+            (p.mX < (b.mX - a.mX) * (p.mY - a.mY) /
+                            (b.mY - a.mY) + a.mX);
+
+        if (intersects)
+            mIsInsideFence = !mIsInsideFence;
+    }
+}
