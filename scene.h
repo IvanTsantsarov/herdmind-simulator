@@ -99,8 +99,12 @@ private:
     TextItem* mCursorInfo = nullptr;
     TextItem* mPopup = nullptr;
 
+    bool mIsActiveFence = true;
     QPolygonF mFence;
     QGraphicsPolygonItem* mFenceItem = nullptr;
+    QGraphicsLineItem* mFenceClosestBorder = nullptr;
+    QGraphicsEllipseItem* mFenceClosestPoint = nullptr;
+
 
     SceneView* mView = nullptr;
     QTimer* mPopupTimer = nullptr;
@@ -110,6 +114,8 @@ private:
     void clear();
     void updateMeadowBrush();
     void recreateFenceItem();
+    void recreateFenceBorderItem();
+    void updateFenceBorderItem();
 
 public:
     explicit Scene(QObject *parent = nullptr);

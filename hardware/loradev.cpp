@@ -10,8 +10,6 @@
 
 uint32_t LoraDev::NODE_ADDR = 1000;
 
-
-
 LoraDev::LoraDev(const QString &name,
                  Profile profile,
                  int updateInterval,

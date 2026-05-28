@@ -252,17 +252,14 @@
            <item row="2" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
-              <widget class="QLineEdit" name="editTime">
-               <property name="toolTip">
-                <string>Time elapsed since the herd generation</string>
-               </property>
+              <widget class="QPushButton" name="btnPause">
                <property name="text">
                 <string>__:__:__</string>
                </property>
-               <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+               <property name="checkable">
+                <bool>true</bool>
                </property>
-               <property name="readOnly">
+               <property name="flat">
                 <bool>true</bool>
                </property>
               </widget>
@@ -400,7 +397,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>246</width>
+             <width>249</width>
              <height>851</height>
             </rect>
            </property>

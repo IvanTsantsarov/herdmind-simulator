@@ -11,6 +11,19 @@
 #include "hardware/defines.h"
 #include "network.h"
 
+
+#define Z_MEADOW 10
+#define Z_ANIMAL 20
+#define Z_GATEWAY 20
+#define Z_SHEPARD 30
+#define Z_CONNECTIONS 40
+#define Z_FENCE 50
+#define Z_FENCE_INFO 55
+#define Z_POPUP_ANIMAL 60
+#define Z_POPUP_CURSOR 70
+#define Z_POPUP_ALERT 80
+
+
 #define ITEM_WIDTH_HALF (ANIMAL_WIDTH * 0.5f)
 #define ITEM_LENGTH_HALF (ANIMAL_LENGTH * 0.5f)
 #define ITEM_PEN_WIDTH (ANIMAL_LENGTH * 0.1f)
@@ -50,6 +63,9 @@
 #define FENCE_COLOR QColor(QColor(10, 12, 55))
 #define FENCE_PEN QPen( QBrush(FENCE_COLOR), 0.3f, Qt::DashDotLine)
 #define FENCE_BRUSH QBrush( FENCE_COLOR, Qt::DiagCrossPattern)
+#define FENCE_CLOSEST_BORDER_PEN QPen( QColor(250, 250, 0), 0.5f, Qt::DotLine)
+#define FENCE_CLOSEST_BORDER_POINT_SIZE 0.6f
+#define FENCE_CLOSEST_BORDER_POINT_PEN QPen( QColor(250, 100, 100), 0.05f, Qt::SolidLine)
 
 #define POPUP_TEXT_COLOR QColor(250, 150, 50)
 #define POPUP_BACK_COLOR QColor(10, 10, 10)
@@ -61,6 +77,8 @@ void Scene::clear()
     mMeadow = nullptr;
     mAnimalItemSelected = nullptr;
     mFenceItem = nullptr;
+    mFenceClosestBorder = nullptr;
+    mFenceClosestPoint = nullptr;
 
     mAnimalItems.clear();
     mLinesAnimals.clear();
@@ -98,6 +116,49 @@ void Scene::recreateFenceItem()
     }
 
     mFenceItem = addPolygon(mFence, FENCE_PEN, FENCE_BRUSH);
+    mFenceItem->setZValue(Z_FENCE);
+}
+
+void Scene::recreateFenceBorderItem()
+{
+    if( mFenceClosestBorder ) {
+        delete mFenceClosestBorder;
+        mFenceClosestBorder = nullptr;
+
+        delete mFenceClosestPoint;
+        mFenceClosestPoint = nullptr;
+    }
+
+    if( mAnimalItemSelected && mIsActiveFence && mAnimalItemSelected->animal()->hasCollar() ) {
+        Collar* c = mAnimalItemSelected->animal()->collar();
+        if( c->hasClosestFenceBorder() ) {
+            mFenceClosestBorder = addLine(c->fenceClosestBorder(), FENCE_CLOSEST_BORDER_PEN );
+            QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
+            mFenceClosestPoint = addEllipse(r, FENCE_CLOSEST_BORDER_POINT_PEN);
+            mFenceClosestBorder->setZValue(Z_FENCE_INFO);
+            mFenceClosestPoint->setZValue(Z_FENCE_INFO);
+        }
+    }
+}
+
+void Scene::updateFenceBorderItem()
+{
+    if( !mFenceClosestBorder || !mFenceClosestPoint ) {
+        if( mAnimalItemSelected && mIsActiveFence && mAnimalItemSelected->animal()->hasCollar() ) {
+            recreateFenceBorderItem();
+        }else {
+            return;
+        }
+    }
+
+    if( !mFenceClosestBorder || !mFenceClosestPoint ) {
+        return;
+    }
+
+    Collar* c = mAnimalItemSelected->animal()->collar();
+    mFenceClosestBorder->setLine( c->fenceClosestBorder());
+    QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
+    mFenceClosestPoint->setRect(r);
 }
 
 Scene::Scene(QObject *parent)
@@ -128,6 +189,7 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
                       -sz.height()/2,
                       sz.width(),
                       sz.height() );
+    mMeadow->setZValue(Z_MEADOW);
     updateMeadowBrush();
 
     // Create a triangle for the animal poly
@@ -144,6 +206,7 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mAnimalItems.reserve(animalsCount);
     for( auto i = 0; i < animalsCount; i ++) {
         AnimalItem* item = new AnimalItem(herd->animal(i), triangle);
+        item->setZValue(Z_ANIMAL);
         addItem(item);
         mAnimalItems.append(item);
     }
@@ -170,6 +233,7 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mGatewayItems.reserve(network->gatewaysCount());
     for( auto i = 0; i < network->gatewaysCount(); i ++) {
         GatewayItem* item = new GatewayItem(network->gateway(i), poly);
+        item->setZValue(Z_GATEWAY);
         item->setPen(ITEM_PEN);
         item->setBrush(ITEM_BRUSH);
         addItem(item);
@@ -181,15 +245,22 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mLinesGateways.reserve(gatewayPairsCount);
     for( auto i = 0; i < gatewayPairsCount; i ++) {
         QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
+        line->setZValue(Z_CONNECTIONS);
         mLinesGateways.append(line);
         line->hide();
     }
 
     mAttractor = addEllipse(0, 0, ANIMAL_LENGTH, ANIMAL_LENGTH, ATTRACTOR_PEN, ATTRACTOR_BRUSH );
+    mAttractor->setZValue(Z_SHEPARD);
 
     mItemInfo = new TextItem("", this);
+    mItemInfo->setZValue(Z_POPUP_ANIMAL);
+
     mCursorInfo = new TextItem("", this);
+    mCursorInfo->setZValue(Z_POPUP_CURSOR);
+
     mPopup = new TextItem("", this);
+    mPopup->setZValue(Z_POPUP_ALERT);
 
     setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
@@ -315,7 +386,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     }
 
 
-
+    updateFenceBorderItem();
 }
 
 void Scene::selectAnimalItem(AnimalItem *item)
@@ -329,6 +400,7 @@ void Scene::selectAnimalItem(AnimalItem *item)
         // deselect current item
         if( item == mAnimalItemSelected ) {
             mAnimalItemSelected = nullptr;
+            recreateFenceBorderItem();
             return;
         }
     }
@@ -336,6 +408,7 @@ void Scene::selectAnimalItem(AnimalItem *item)
     mAnimalItemSelected = item;
 
     mAnimalItemSelected->ensureVisible();
+    recreateFenceBorderItem();
 }
 
 void Scene::selectGatewayItem(GatewayItem *item)
@@ -455,6 +528,8 @@ void Scene::fenceActivate(bool is)
         mFenceItem->setPen(FENCE_PEN);
         mFenceItem->setBrush(FENCE_BRUSH);
     }
+
+    mIsActiveFence = is;
 }
 
 QVector<QGeoCoordinate> Scene::fenceGepPoints(Meadow* meadow)
@@ -542,6 +617,7 @@ void Scene::showPopup(const QString &msg)
         mPopupLastMsgCount = 1;
         mPopupLastMsg = msg;
     }
+
     mPopup->setTextColor(POPUP_TEXT_COLOR);
     mPopup->setBackColor(POPUP_BACK_COLOR);
     mPopup->setPlainText(mPopupLastMsgCount > 1 ? QString("%1 (%2)").arg(msg).arg(mPopupLastMsgCount): msg);

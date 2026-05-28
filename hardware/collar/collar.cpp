@@ -118,10 +118,12 @@ void Collar::onSetupFence(uint8_t count, const GeoPoint& center, const uint8_t *
         mFencePoints[ptIndex] = Point::fromGeoPoint(center, geoPt);
     }
 
-
-    mFenceBorders[0] = Border(mFencePoints[mFencePointsCount-1], mFencePoints[0]);
-    for( auto bIndex = 1; bIndex < mFencePointsCount; bIndex ++ ) {
-        mFenceBorders[bIndex] = Border(mFencePoints[bIndex-1], mFencePoints[bIndex]);
+    for( auto bIndex = 0; bIndex < mFencePointsCount; bIndex ++ ) {
+        int nextIndex = bIndex + 1;
+        if( nextIndex >= mFencePointsCount) {
+            nextIndex = 0;
+        }
+        mFenceBorders[bIndex] = Border(mFencePoints[bIndex], mFencePoints[nextIndex]);
     }
 
     sendEvent(Protocol::Collar::Event::FenceOn, mFencePointsCount);
@@ -151,11 +153,20 @@ void Collar::testFence()
 
     Point p = mLastPoint;
 
+    // Find closest border and poind
+    double closestDistSq = MAXFLOAT;
+    int closestBorderIndex = -1;
+    Point closestProj;
+
+    // Test for inside/outside of the fence
     for( auto i = 0; i < mFencePointsCount; i ++) {
         Border& border = mFenceBorders[i];
 
         if( border.isOn(mLastPoint)) {
+            closestDistSq = 0.0;
             mIsInsideFence = true;
+            closestBorderIndex = i;
+            closestProj = mLastPoint;
             break;
         }
 
@@ -170,5 +181,59 @@ void Collar::testFence()
         if (intersects) {
             mIsInsideFence = !mIsInsideFence;
         }
+
+        // find closest side by the projection point
+        Point proj = border.proj(p);
+        double distSq = p.distSq(proj);
+        if( distSq < closestDistSq && border.isInside(proj)) {
+            closestProj = proj;
+            closestDistSq = distSq;
+            closestBorderIndex = i;
+        }
+    }
+
+    // if no closest border found
+    // reset search for closest end point
+    // else try to find closest end point
+    if( closestBorderIndex < 0 ) {
+        closestDistSq = MAXFLOAT;
+    }
+
+    // Fist closest border end point then projection point
+    int closestPointIndex = -1;
+    for( auto i = 0; i < mFencePointsCount; i ++) {
+        Point& bp = mFencePoints[i];
+        double distSq = bp.distSq(p);
+        if( distSq < closestDistSq ) {
+            closestDistSq = distSq;
+            closestPointIndex = i;
+        }
+    }
+
+    // If closer end point of the border found,
+    // then find which border is better visible
+    // from the current animal point
+    if( closestPointIndex >= 0 ) {
+        int borderRightIndex = closestPointIndex;
+        int borderLeftIndex = closestPointIndex - 1;
+        if( borderLeftIndex < 0 ) {
+            borderLeftIndex = mFencePointsCount - 1;
+        }
+
+        Border& borderRight = mFenceBorders[borderRightIndex];
+        Border& borderLeft = mFenceBorders[borderLeftIndex];
+
+        closestBorderIndex = borderLeft.isBetterVisible(borderRight, p) ?
+                                 borderLeftIndex : borderRightIndex;
+    }
+
+    if(closestBorderIndex >= 0) {
+        mFenceIsGoingAway = closestDistSq > mFenceClosestDistSq;
+        mFenceClosestDistSq = closestDistSq;
+        mFenceClosestBorder = &mFenceBorders[closestBorderIndex];
+        mFenceClosestPoint = closestProj;
+        mFenceDistance = std::sqrt(mFenceClosestDistSq);
+    }else {
+        assert(0);
     }
 }

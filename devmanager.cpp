@@ -411,7 +411,7 @@ bool DevManager::setupFence(const QGeoCoordinate& center,
 
     int offset = 2 + 2*sizeof(uint32_t);
     for( uint32_t i = 0; i < coords.count(); i ++) {
-        qInfo() << coords[i]; // trash
+        // qInfo() << coords[i]; // trash
         offset = Protocol::writeInt16( Protocol::encodeCoordOffset(coords[i].latitude(), center.latitude()), data, offset );
         offset = Protocol::writeInt16( Protocol::encodeCoordOffset(coords[i].longitude(), center.longitude()), data, offset );
     }

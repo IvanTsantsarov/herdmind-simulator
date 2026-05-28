@@ -353,6 +353,10 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
 void MainWindow::onUpdate()
 {
+    if( ui->btnPause->isChecked() ) {
+        return;
+    }
+
     gSimTimer->update();
 
     if( !mIsCreated) {
@@ -363,7 +367,7 @@ void MainWindow::onUpdate()
 
     ui->editInfo->setText( QString("Food:%1%").arg( mMeadow->kgRatio(100), 0, 'f', 2) );
 
-    ui->editTime->setText(QString("%1:%2:%3")
+    ui->btnPause->setText(QString("%1:%2:%3")
                               .arg(gSimTimer->hours(), 2, 10, '0')
                               .arg(gSimTimer->minutes(), 2, 10, '0')
                               .arg(gSimTimer->seconds(), 2, 10, '0'));
