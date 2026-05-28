@@ -508,6 +508,7 @@ bool Scene::fenceAppend(const QPointF& pt)
 
     mFence.append(pt);
     recreateFenceItem();
+    saveFence();
     return true;
 }
 
@@ -516,6 +517,7 @@ void Scene::fenceRemove()
     if( mFence.count() ) {
         mFence.removeLast();
         recreateFenceItem();
+        saveFence();
     }
 }
 
