@@ -26,8 +26,18 @@ class Network;
 class SelectableItem : public QObject, public QGraphicsPolygonItem {
     Q_OBJECT
 
-    float mScale = 0.0;
 public:
+    enum struct Type {
+        None = 0,
+        Animal,
+        Gateway
+    };
+
+protected:
+    float mScale = 0.0;
+    Type mType = Type::None;
+public:
+
     SelectableItem( const QPolygonF& poly);
     SelectableItem( float radius );
 
@@ -48,7 +58,7 @@ class AnimalItem : public SelectableItem {
 protected:
     void onSelection();
 public:
-    AnimalItem( Animal* animal, const QPolygonF& poly) : SelectableItem(poly), mAnimal(animal) { }
+    AnimalItem( Animal* animal, const QPolygonF& poly) : SelectableItem(poly), mAnimal(animal) { mType = Type::Animal; }
     Animal* animal(){ return mAnimal; }
     QBrush mBrush;
 };
@@ -59,7 +69,7 @@ class GatewayItem : public SelectableItem {
 protected:
     void onSelection();
 public:
-    GatewayItem( Gateway* gw, const QPolygonF& poly) : SelectableItem(poly), mGateway(gw) { }
+    GatewayItem( Gateway* gw, const QPolygonF& poly) : SelectableItem(poly), mGateway(gw) { mType = Type::Gateway; }
     Gateway* gateway(){ return mGateway; }
 };
 
@@ -130,6 +140,7 @@ public:
 
     void selectAnimalItem(int index);
     void selectAnimalItem(AnimalItem* item);
+    void clearSelectedAnimalItem();
 
     void selectGatewayItem(GatewayItem* item);
 

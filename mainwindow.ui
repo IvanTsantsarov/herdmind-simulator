@@ -73,15 +73,21 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QGroupBox" name="groupBox_2">
+            <widget class="QGroupBox" name="checkFence">
              <property name="title">
               <string>Fence</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
               <item row="0" column="1">
                <widget class="QPushButton" name="btnFenceRemoveLast">
                 <property name="enabled">
                  <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>Remove last point added from the fence</string>
                 </property>
                 <property name="text">
                  <string>Remove last</string>
@@ -90,6 +96,9 @@
               </item>
               <item row="0" column="0">
                <widget class="QCheckBox" name="checkFenceAdd">
+                <property name="toolTip">
+                 <string>Check to enable drawing fence</string>
+                </property>
                 <property name="text">
                  <string>Draw</string>
                 </property>
@@ -100,18 +109,11 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="toolTip">
+                 <string>Cleall all points from the fence</string>
+                </property>
                 <property name="text">
                  <string>Clear</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QCheckBox" name="checkFenceActive">
-                <property name="toolTip">
-                 <string>Press to activated the fence</string>
-                </property>
-                <property name="text">
-                 <string>Deactivated</string>
                 </property>
                </widget>
               </item>

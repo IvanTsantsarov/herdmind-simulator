@@ -85,9 +85,6 @@ void SceneView::mousePressEvent(QMouseEvent *event)
     }
 
      QGraphicsView::mousePressEvent(event);
-
-
-
 }
 
 void SceneView::mouseReleaseEvent(QMouseEvent *event)

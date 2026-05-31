@@ -120,6 +120,7 @@ void Scene::recreateFenceItem()
     }
 
     mFenceItem = addPolygon(mFence, FENCE_PEN, FENCE_BRUSH);
+    mFenceItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
     mFenceItem->setZValue(Z_FENCE);
 }
 
@@ -141,7 +142,8 @@ void Scene::recreateFenceBorderItem()
             mFenceClosestPoint = addEllipse(r, FENCE_CLOSEST_BORDER_POINT_PEN);
             mFenceClosestBorder->setZValue(Z_FENCE_INFO);
             mFenceClosestPoint->setZValue(Z_FENCE_INFO);
-
+            mFenceClosestBorder->setFlag(QGraphicsItem::ItemIsSelectable, false);
+            mFenceClosestPoint->setFlag(QGraphicsItem::ItemIsSelectable, false);
             mFenceClosestBorder->setToolTip("Closest fence border");
             mFenceClosestPoint->setToolTip("Closest point to fence border");
         }
@@ -227,6 +229,8 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mLinesAnimals.reserve(collarPairsCount);
     for( auto i = 0; i < collarPairsCount; i ++) {
         QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
+        line->setFlag(QGraphicsItem::ItemIsSelectable, false);
+        line->setZValue(Z_CONNECTIONS);
         mLinesAnimals.append(line);
         line->hide();
     }
@@ -259,21 +263,26 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     for( auto i = 0; i < gatewayPairsCount; i ++) {
         QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
         line->setZValue(Z_CONNECTIONS);
+        line->setFlag(QGraphicsItem::ItemIsSelectable, false);
         mLinesGateways.append(line);
         line->hide();
     }
 
     mAttractor = addEllipse(0, 0, ANIMAL_LENGTH, ANIMAL_LENGTH, ATTRACTOR_PEN, ATTRACTOR_BRUSH );
     mAttractor->setZValue(Z_SHEPARD);
+    mAttractor->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     mItemInfo = new TextItem("", this);
     mItemInfo->setZValue(Z_POPUP_ANIMAL);
+    mItemInfo->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     mCursorInfo = new TextItem("", this);
     mCursorInfo->setZValue(Z_POPUP_CURSOR);
+    mCursorInfo->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     mPopup = new TextItem("", this);
     mPopup->setZValue(Z_POPUP_ALERT);
+    mPopup->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
@@ -407,21 +416,18 @@ void Scene::selectAnimalItem(AnimalItem *item)
     clearSelection();
     clearFocus();
 
-    if( mAnimalItemSelected ) {
-        mAnimalItemSelected->setSelected(false);
-
-        // deselect current item
-        if( item == mAnimalItemSelected ) {
-            mAnimalItemSelected = nullptr;
-            recreateFenceBorderItem();
-            return;
-        }
-    }
-
     mAnimalItemSelected = item;
 
     mAnimalItemSelected->ensureVisible();
     recreateFenceBorderItem();
+}
+
+void Scene::clearSelectedAnimalItem()
+{
+    // deselect current item
+    mAnimalItemSelected = nullptr;
+    recreateFenceBorderItem();
+    return;
 }
 
 void Scene::selectGatewayItem(GatewayItem *item)
@@ -626,11 +632,17 @@ bool Scene::loadFence(const QString &path)
 
 void Scene::showPopup(const QString &msg)
 {
+
     if( mPopupLastMsg == msg) {
         mPopupLastMsgCount ++;
     }else {
         mPopupLastMsgCount = 1;
         mPopupLastMsg = msg;
+    }
+
+    // do not show the popup if ui is disabled
+    if( !mIsUI ) {
+        return;
     }
 
     mPopup->setTextColor(POPUP_TEXT_COLOR);
@@ -661,10 +673,6 @@ bool Scene::isPopup()
 void Scene::showUI(bool is)
 {
     mIsUI = is;
-
-    if(mPopup) {
-        mPopup->setVisible(mIsUI);
-    }
 
     if( mItemInfo && mAnimalItemSelected ) {
         mItemInfo->setVisible(mIsUI);
@@ -775,13 +783,17 @@ void SelectableItem::startPulseAnimation() {
 
 
 QVariant SelectableItem::itemChange(GraphicsItemChange change, const QVariant &v) {
+
     if (change == ItemSelectedHasChanged) {
+        qInfo() << "has changed";
+    }else
+    if (change == ItemSelectedChange) {
+        qInfo() << "changed" << v.toBool();
         if (v.toBool()) {
             startPulseAnimation();   // trigger when selected
-        }
-
-        if( v.toBool() ) {
             onSelection();
+        }else {
+            parentScene()->clearSelectedAnimalItem();
         }
     }
     return QGraphicsPolygonItem::itemChange(change, v);
