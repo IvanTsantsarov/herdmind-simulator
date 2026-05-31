@@ -445,7 +445,7 @@ void Scene::setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, 
 {
     if( mCursorInfo ) {
         mCursorInfo->setPos(pt);
-        QString str = QString("%1 %2\n%3 %4 %5")
+        QString str = QString("%1 %2\n%3 %4\n%5kg")
                           .arg( pt.x(), 0, 'f', 2)
                           .arg( pt.y(), 0, 'f', 2)
                           .arg( location.latitude(), 0, 'f', 6)
