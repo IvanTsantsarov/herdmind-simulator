@@ -29,6 +29,8 @@ private:
 
     Scene* mScene = nullptr;
     Meadow* mMeadow = nullptr;
+    QTransform mInitialTransform;
+
 
 public:
     SceneView(QGraphicsScene *scene, QWidget *parent = nullptr);
@@ -44,6 +46,8 @@ public:
     QPointF middlePos(){ return mMiddlePos;}
 
     void updateCursorInfo();
+
+    void setInitialTransform();
 
 protected:
     void mousePressEvent(QMouseEvent* event);

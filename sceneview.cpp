@@ -29,11 +29,8 @@ SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
     setDragMode(QGraphicsView::NoDrag);    // we'll handle dragging manually
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setResizeAnchor(QGraphicsView::AnchorViewCenter);
-
-    scale(1, -1);
-
-    scale(10, 10);
-
+    scale(10, -10);
+    mInitialTransform = transform();
 }
 
 void SceneView::updateCursorInfo()
@@ -52,6 +49,12 @@ void SceneView::updateCursorInfo()
 
     location = mMeadow->getGeoLocation(mMousePointScene);
     mScene->setCursorInfoPos(mMousePointScene, location, kg);
+}
+
+void SceneView::setInitialTransform()
+{
+    setTransform(mInitialTransform);
+    centerOn(0, 0);
 }
 
 void SceneView::mousePressEvent(QMouseEvent *event)
@@ -121,8 +124,8 @@ void SceneView::mouseMoveEvent(QMouseEvent *event)
     if( mIsMiddlePress ) {
         mMiddlePos = mMousePointScene;
 
-        float dx = mLeftPos.x() - mLeftPosStart.x();
-        float dy = mLeftPos.y() - mLeftPosStart.y();
+        float dx = mMiddlePos.x() - mMiddlePosStart.x();
+        float dy = mMiddlePos.y() - mMiddlePosStart.y();
 
         mMiddlePosStart = mMiddlePos;
 

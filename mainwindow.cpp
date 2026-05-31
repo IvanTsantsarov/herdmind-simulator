@@ -736,3 +736,23 @@ void MainWindow::updateFenceButtons()
         ui->btnFenceClear->setEnabled(false);
     }
 }
+
+void MainWindow::on_btnPause_toggled(bool checked)
+{
+    ui->btnPause->setToolTip( checked ? "Unpause simulation" : "Pause simulation");
+}
+
+
+void MainWindow::on_actionScene_UI_toggled(bool is)
+{
+    mScene->showUI(is);
+}
+
+
+void MainWindow::on_actionReset_triggered()
+{
+    if( mScene ) {
+        mScene->resetView();
+    }
+}
+

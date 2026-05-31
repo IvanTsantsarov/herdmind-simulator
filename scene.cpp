@@ -13,6 +13,7 @@
 
 
 #define Z_MEADOW 10
+#define Z_CENTER 15
 #define Z_ANIMAL 20
 #define Z_GATEWAY 20
 #define Z_SHEPARD 30
@@ -28,6 +29,9 @@
 #define ITEM_LENGTH_HALF (ANIMAL_LENGTH * 0.5f)
 #define ITEM_PEN_WIDTH (ANIMAL_LENGTH * 0.1f)
 #define ITEM_PEN_WIDTH_COLLAR (ITEM_PEN_WIDTH * 2.5f)
+
+#define CENTER_PEN QPen(QColor(0, 0, 255), 0.2f)
+#define CENTER_LEN 2
 
 #define ANIMAL_OPACITY 220
 #define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
@@ -56,16 +60,16 @@
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
-#define FENCE_COLOR_ACTIVE QColor(QColor(110, 52, 235))
+#define FENCE_COLOR_ACTIVE QColor(QColor(110, 52, 235, 150))
 #define FENCE_PEN_ACTIVE QPen( QBrush(FENCE_COLOR_ACTIVE), 0.3f, Qt::DashDotLine)
 #define FENCE_BRUSH_ACTIVE QBrush( FENCE_COLOR_ACTIVE, Qt::DiagCrossPattern)
 
-#define FENCE_COLOR QColor(QColor(10, 12, 55))
+#define FENCE_COLOR QColor(QColor(10, 12, 55, 150))
 #define FENCE_PEN QPen( QBrush(FENCE_COLOR), 0.3f, Qt::DashDotLine)
 #define FENCE_BRUSH QBrush( FENCE_COLOR, Qt::DiagCrossPattern)
 #define FENCE_CLOSEST_BORDER_PEN QPen( QColor(250, 250, 0), 0.5f, Qt::DotLine)
 #define FENCE_CLOSEST_BORDER_POINT_SIZE 0.6f
-#define FENCE_CLOSEST_BORDER_POINT_PEN QPen( QColor(250, 100, 100), 0.05f, Qt::SolidLine)
+#define FENCE_CLOSEST_BORDER_POINT_PEN QPen( QColor(250, 100, 100), 0.2f, Qt::SolidLine)
 
 #define POPUP_TEXT_COLOR QColor(250, 150, 50)
 #define POPUP_BACK_COLOR QColor(10, 10, 10)
@@ -137,6 +141,9 @@ void Scene::recreateFenceBorderItem()
             mFenceClosestPoint = addEllipse(r, FENCE_CLOSEST_BORDER_POINT_PEN);
             mFenceClosestBorder->setZValue(Z_FENCE_INFO);
             mFenceClosestPoint->setZValue(Z_FENCE_INFO);
+
+            mFenceClosestBorder->setToolTip("Closest fence border");
+            mFenceClosestPoint->setToolTip("Closest point to fence border");
         }
     }
 }
@@ -192,6 +199,11 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mMeadow->setZValue(Z_MEADOW);
     updateMeadowBrush();
 
+    mCenterX = addLine( QLine(-CENTER_LEN, 0, CENTER_LEN, 0), CENTER_PEN);
+    mCenterY = addLine( QLine(0, -CENTER_LEN, 0, CENTER_LEN), CENTER_PEN);
+    mCenterX->setToolTip("Center");
+    mCenterY->setToolTip("Center");
+
     // Create a triangle for the animal poly
     QList<QPointF> points;
     points.reserve(3);
@@ -238,6 +250,7 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
         item->setBrush(ITEM_BRUSH);
         addItem(item);
         mGatewayItems.append(item);
+        item->setToolTip("Gateway");
     }
 
 
@@ -275,9 +288,9 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
 
     if( mItemInfo ) {
         if( mAnimalItemSelected ) {
-            mItemInfo->show();
             mItemInfo->setPlainText(mAnimalItemSelected->animal()->info());
             mItemInfo->setPos(mAnimalItemSelected->pos());
+            mItemInfo->setVisible(mIsUI);
         }else {
             mItemInfo->hide();
         }
@@ -643,6 +656,28 @@ void Scene::onPopupHide()
 bool Scene::isPopup()
 {
     return mPopup && mPopup->isVisible();
+}
+
+void Scene::showUI(bool is)
+{
+    mIsUI = is;
+
+    if(mPopup) {
+        mPopup->setVisible(mIsUI);
+    }
+
+    if( mItemInfo && mAnimalItemSelected ) {
+        mItemInfo->setVisible(mIsUI);
+    }
+
+    if( mCursorInfo ) {
+        mCursorInfo->setVisible(mIsUI);
+    }
+}
+
+void Scene::resetView()
+{
+    mView->setInitialTransform();
 }
 
 

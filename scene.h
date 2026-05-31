@@ -81,6 +81,7 @@ public:
 class Scene : public QGraphicsScene
 {
     Q_OBJECT
+    bool mIsUI = true;
 private:
 
     QVector<AnimalItem*> mAnimalItems;
@@ -105,6 +106,8 @@ private:
     QGraphicsLineItem* mFenceClosestBorder = nullptr;
     QGraphicsEllipseItem* mFenceClosestPoint = nullptr;
 
+    QGraphicsLineItem* mCenterX = nullptr;
+    QGraphicsLineItem* mCenterY = nullptr;
 
     SceneView* mView = nullptr;
     QTimer* mPopupTimer = nullptr;
@@ -145,6 +148,10 @@ public:
 
     void showPopup(const QString& msg);
     bool isPopup();
+
+    void showUI(bool is);
+
+    void resetView();
 
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);

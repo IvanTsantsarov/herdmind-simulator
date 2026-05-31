@@ -253,6 +253,9 @@
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
               <widget class="QPushButton" name="btnPause">
+               <property name="toolTip">
+                <string>Pause simulation</string>
+               </property>
                <property name="text">
                 <string>__:__:__</string>
                </property>
@@ -1405,6 +1408,9 @@
     </property>
     <addaction name="actionConsole"/>
     <addaction name="actionDeviceMsg"/>
+    <addaction name="actionScene_UI"/>
+    <addaction name="separator"/>
+    <addaction name="actionReset"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -1451,6 +1457,22 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionScene_UI">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Scene UI</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>
