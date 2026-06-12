@@ -214,3 +214,132 @@ public:
     CoordsItem(Scene* scene, SceneView* view);
 
 };
+
+QVector<float> field(mLawnsDim.width()*mLawnsDim.height());
+for( auto i = 0; i < greenDotsCount; i ++ ) {
+
+}
+
+
+enum OutSubPackageType {
+    Empty = 0,
+    Bolus = 1,
+    CollarSmall = 2,
+    CollarBig = 3,
+    BolusAndCollarSmall = 4,
+    BolusAndCollarBig = 5
+};
+
+struct OutSubPackageBolus {
+    uint8_t battery;  // battery charge
+    uint8_t status;
+    int16_t temperature;
+};
+
+struct OutSubPackageCollarSmall {
+    uint8_t battery;  // battery charge
+    int16_t lonDelta; // longitude delta from the cented of the herd
+    int16_t latDelta; // latitude delta from the cented of the herd
+};
+
+struct OutSubPackageCollarBig {
+    uint8_t battery;  // battery charge
+    uint32_t longitude; // full position longitue
+    uint32_t latitude; // full position longitue
+};
+
+struct OutPackageHerd {
+    uint32_t herd_id;  // herd id
+    uint32_t ts;       // time stamp
+    int32_t longitude; // herd longitude
+    int32_t latitude;  // herd latitude
+    uint16_t data_sz;  // folowing data  size
+};
+
+enum InPackageType {
+    Init = 0,
+    Action = 1
+};
+
+struct InPackageInit {
+    uint32_t herd_id;
+    uint16_t count = 0; // animals count
+};
+
+struct InPackageAnimal {
+    uint32_t animal_id = 0;
+    uint32_t bolus_id  = 0;
+    uint32_t collar_id = 0;
+};
+
+struct InPackageAction {
+    uint32_t request_id = 0;
+    uint32_t animal_id = 0;
+    uint8_t sound = 0;
+    uint8_t light = 0;
+};
+
+QString Scene::saveFence(Meadow* meadow, const QString &path)
+{
+    QVector<QGeoCoordinate> gp = fenceGepPoints(meadow);
+    if( gp.count() < 3) {
+        return "Fence points less then 3";
+    }
+
+    QString content;
+    bool isFirstPoint = true;
+    for( QGeoCoordinate p: gp ) {
+        if( !isFirstPoint ) {
+            content.append(',');
+        }
+        content.append(QString("%1").arg(p.latitude(), 0, 'f', 6));
+        content.append(QString("%1").arg(p.longitude(), 0, 'f', 6));
+        isFirstPoint = false;
+    }
+
+    if( !SimTools::fileWrite(path, content.toUtf8(), true)) {
+        return QString( "Saving fence in %1 failed!").arg(path);
+    }
+
+    return "";
+}
+
+
+QString Scene::loadFence(Meadow *meadow, const QString &path)
+{
+    bool isOk = true;
+    QByteArray ba = SimTools::fileRead(path, &isOk);
+
+    if( !isOk) {
+        return QString( "Loading fence from %1 failed!").arg(path);
+    }
+
+    QString content = QString::fromUtf8(ba);
+    QStringList valsList = content.split(',');
+    if( valsList.count() % 2 ) {
+        return QString( "Loading fence from %1 failed! Fence points %2 not even").arg(path).arg(valsList.count());
+    }
+
+    QVector<QString> valsVec = valsList.toVector();
+    int pointsCount = valsVec.size() / 2;
+
+    if( pointsCount < 3) {
+        return "Loading fence - points less then 3";
+    }
+
+    mFence.clear();
+    mFence.reserve(pointsCount);
+
+    for( auto i = 0; i < pointsCount; i ++) {
+        int valsIndex = pointsCount * 2;
+        float latitude = valsVec[valsIndex].toFloat();
+        float longitude = valsVec[valsIndex+1].toFloat();
+        QGeoCoordinate gp(latitude, longitude);
+        meadow->getGeoLocation()
+        // gp.append(QGeoCoordinate(latitude, longitude));
+    }
+
+
+
+    return "";
+}

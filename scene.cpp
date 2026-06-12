@@ -8,16 +8,35 @@
 #include "defines.h"
 #include "hardware/bolus/bolus.h"
 #include "hardware/gateway/gateway.h"
+#include "hardware/defines.h"
 #include "network.h"
+
+
+#define Z_MEADOW 10
+#define Z_CENTER 15
+#define Z_ANIMAL 20
+#define Z_GATEWAY 20
+#define Z_SHEPARD 30
+#define Z_CONNECTIONS 40
+#define Z_FENCE 50
+#define Z_FENCE_INFO 55
+#define Z_POPUP_ANIMAL 60
+#define Z_POPUP_CURSOR 70
+#define Z_POPUP_ALERT 80
+
 
 #define ITEM_WIDTH_HALF (ANIMAL_WIDTH * 0.5f)
 #define ITEM_LENGTH_HALF (ANIMAL_LENGTH * 0.5f)
 #define ITEM_PEN_WIDTH (ANIMAL_LENGTH * 0.1f)
 #define ITEM_PEN_WIDTH_COLLAR (ITEM_PEN_WIDTH * 2.5f)
 
+#define CENTER_PEN QPen(QColor(0, 0, 255), 0.2f)
+#define CENTER_LEN 2
+
 #define ANIMAL_OPACITY 220
 #define ITEM_PEN QPen(QColor(200, 200, 200, ANIMAL_OPACITY),  ITEM_PEN_WIDTH)
 #define ITEM_BRUSH QBrush(QColor(250, 150, 150, ANIMAL_OPACITY))
+#define ITEM_BRUSH_OUTSIDE_FENCE QBrush(QColor(250, 250, 150, ANIMAL_OPACITY))
 
 #define BOLUS_PAIR_PEN QPen(QColor(250, 200, 100, 200),  ITEM_PEN_WIDTH, Qt::DashLine)
 #define BOLUS_PAIR_PEN_SENDING QPen(QColor(250, 250, 200, 255),  ITEM_PEN_WIDTH * 2, Qt::SolidLine)
@@ -41,12 +60,29 @@
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
+#define FENCE_COLOR_ACTIVE QColor(QColor(110, 52, 235, 150))
+#define FENCE_PEN_ACTIVE QPen( QBrush(FENCE_COLOR_ACTIVE), 0.3f, Qt::DashDotLine)
+#define FENCE_BRUSH_ACTIVE QBrush( FENCE_COLOR_ACTIVE, Qt::DiagCrossPattern)
+
+#define FENCE_COLOR QColor(QColor(10, 12, 55, 150))
+#define FENCE_PEN QPen( QBrush(FENCE_COLOR), 0.3f, Qt::DashDotLine)
+#define FENCE_BRUSH QBrush( FENCE_COLOR, Qt::DiagCrossPattern)
+#define FENCE_CLOSEST_BORDER_PEN QPen( QColor(250, 250, 0), 0.5f, Qt::DotLine)
+#define FENCE_CLOSEST_BORDER_POINT_SIZE 0.6f
+#define FENCE_CLOSEST_BORDER_POINT_PEN QPen( QColor(250, 100, 100), 0.2f, Qt::SolidLine)
+
+#define POPUP_TEXT_COLOR QColor(250, 150, 50)
+#define POPUP_BACK_COLOR QColor(10, 10, 10)
+#define POPUP_BORDER_COLOR QColor(100, 10, 10)
+
+
 void Scene::clear()
 {
-    foreach(QGraphicsItem * item, items()) {
-        removeItem(item);
-        delete item;
-    }
+    mMeadow = nullptr;
+    mAnimalItemSelected = nullptr;
+    mFenceItem = nullptr;
+    mFenceClosestBorder = nullptr;
+    mFenceClosestPoint = nullptr;
 
     mAnimalItems.clear();
     mLinesAnimals.clear();
@@ -54,17 +90,96 @@ void Scene::clear()
     mGatewayItems.clear();
     mLinesGateways.clear();
 
-    mLawns.clear();
+    foreach(QGraphicsItem * item, items()) {
+        removeItem(item);
+        delete item;
+    }
+}
 
-    mAnimalItemSelected = nullptr;
+void Scene::updateMeadowBrush()
+{
+    QBrush br;
+    br.setTextureImage(mMeadowImage);
+    QTransform tr;
+    tr.reset();
+
+    QRectF r = mMeadow->boundingRect();
+    tr.translate(r.x(), r.y());
+    tr.scale((float)r.width()/mMeadowImage.width(),
+             (float) r.height()/mMeadowImage.height() );
+
+    br.setTransform(tr);
+
+    mMeadow->setBrush(br);
+}
+
+void Scene::recreateFenceItem()
+{
+    if( mFenceItem ) {
+        delete mFenceItem;
+    }
+
+    mFenceItem = addPolygon(mFence, FENCE_PEN, FENCE_BRUSH);
+    mFenceItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
+    mFenceItem->setZValue(Z_FENCE);
+}
+
+void Scene::recreateFenceBorderItem()
+{
+    if( mFenceClosestBorder ) {
+        delete mFenceClosestBorder;
+        mFenceClosestBorder = nullptr;
+
+        delete mFenceClosestPoint;
+        mFenceClosestPoint = nullptr;
+    }
+
+    if( mAnimalItemSelected && mIsActiveFence && mAnimalItemSelected->animal()->hasCollar() ) {
+        Collar* c = mAnimalItemSelected->animal()->collar();
+        if( c->hasClosestFenceBorder() ) {
+            mFenceClosestBorder = addLine(c->fenceClosestBorder(), FENCE_CLOSEST_BORDER_PEN );
+            QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
+            mFenceClosestPoint = addEllipse(r, FENCE_CLOSEST_BORDER_POINT_PEN);
+            mFenceClosestBorder->setZValue(Z_FENCE_INFO);
+            mFenceClosestPoint->setZValue(Z_FENCE_INFO);
+            mFenceClosestBorder->setFlag(QGraphicsItem::ItemIsSelectable, false);
+            mFenceClosestPoint->setFlag(QGraphicsItem::ItemIsSelectable, false);
+            mFenceClosestBorder->setToolTip("Closest fence border");
+            mFenceClosestPoint->setToolTip("Closest point to fence border");
+        }
+    }
+}
+
+void Scene::updateFenceBorderItem()
+{
+    if( !mFenceClosestBorder || !mFenceClosestPoint ) {
+        if( mAnimalItemSelected && mIsActiveFence && mAnimalItemSelected->animal()->hasCollar() ) {
+            recreateFenceBorderItem();
+        }else {
+            return;
+        }
+    }
+
+    if( !mFenceClosestBorder || !mFenceClosestPoint ) {
+        return;
+    }
+
+    Collar* c = mAnimalItemSelected->animal()->collar();
+    mFenceClosestBorder->setLine( c->fenceClosestBorder());
+    QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
+    mFenceClosestPoint->setRect(r);
 }
 
 Scene::Scene(QObject *parent)
     : QGraphicsScene{parent}
-{}
+{
+    mPopupTimer = new QTimer(this);
+    mPopupTimer->setSingleShot(true);
+    connect( mPopupTimer, &QTimer::timeout, this, &Scene::onPopupHide );
+}
 
 void Scene::create(SceneView* view, Herd* herd, Network* network,
-                   int lawnsCount, int collarPairsCount, int gatewayPairsCount )
+                   QSize meadowDim, int collarPairsCount, int gatewayPairsCount )
 {
     mView = view;
 
@@ -73,21 +188,23 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
 
     clear();
 
+
     // Create the meadow
-    mLawns.reserve(lawnsCount);
-    for( auto i = 0; i < lawnsCount; i ++) {
-        QGraphicsRectItem* r = addRect(-LAWN_RADIUS, -LAWN_RADIUS,
-                                       LAWN_DIAMETER, LAWN_DIAMETER,
-                                       Qt::NoPen, LAWN_BRUSH_COLOR_FULL);
+    mMeadowImage = QImage(meadowDim, QImage::Format_RGBA8888);
+    // mMeadowImage = QImage("image.png");
 
-        r->setFlag(QGraphicsItem::ItemIsSelectable, false);
-        r->setFlag(QGraphicsItem::ItemIsFocusable, false);
-        r->setFlag(QGraphicsItem::ItemIsMovable, false);
-        r->setFlag(QGraphicsItem::ItemIsFocusScope, false);
-        r->setFlag(QGraphicsItem::ItemIsPanel, false);
-        mLawns.append(r);
+    QSize sz(LAWN_DIAMETER*meadowDim.width(), LAWN_DIAMETER*meadowDim.height());
+    mMeadow = addRect(-sz.width()/2,
+                      -sz.height()/2,
+                      sz.width(),
+                      sz.height() );
+    mMeadow->setZValue(Z_MEADOW);
+    updateMeadowBrush();
 
-    }
+    mCenterX = addLine( QLine(-CENTER_LEN, 0, CENTER_LEN, 0), CENTER_PEN);
+    mCenterY = addLine( QLine(0, -CENTER_LEN, 0, CENTER_LEN), CENTER_PEN);
+    mCenterX->setToolTip("Center");
+    mCenterY->setToolTip("Center");
 
     // Create a triangle for the animal poly
     QList<QPointF> points;
@@ -103,6 +220,7 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mAnimalItems.reserve(animalsCount);
     for( auto i = 0; i < animalsCount; i ++) {
         AnimalItem* item = new AnimalItem(herd->animal(i), triangle);
+        item->setZValue(Z_ANIMAL);
         addItem(item);
         mAnimalItems.append(item);
     }
@@ -111,6 +229,8 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mLinesAnimals.reserve(collarPairsCount);
     for( auto i = 0; i < collarPairsCount; i ++) {
         QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
+        line->setFlag(QGraphicsItem::ItemIsSelectable, false);
+        line->setZValue(Z_CONNECTIONS);
         mLinesAnimals.append(line);
         line->hide();
     }
@@ -129,10 +249,12 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mGatewayItems.reserve(network->gatewaysCount());
     for( auto i = 0; i < network->gatewaysCount(); i ++) {
         GatewayItem* item = new GatewayItem(network->gateway(i), poly);
+        item->setZValue(Z_GATEWAY);
         item->setPen(ITEM_PEN);
         item->setBrush(ITEM_BRUSH);
         addItem(item);
         mGatewayItems.append(item);
+        item->setToolTip("Gateway");
     }
 
 
@@ -140,14 +262,27 @@ void Scene::create(SceneView* view, Herd* herd, Network* network,
     mLinesGateways.reserve(gatewayPairsCount);
     for( auto i = 0; i < gatewayPairsCount; i ++) {
         QGraphicsLineItem* line = addLine(0, 0, 1, 1, BOLUS_PAIR_PEN);
+        line->setZValue(Z_CONNECTIONS);
+        line->setFlag(QGraphicsItem::ItemIsSelectable, false);
         mLinesGateways.append(line);
         line->hide();
     }
 
     mAttractor = addEllipse(0, 0, ANIMAL_LENGTH, ANIMAL_LENGTH, ATTRACTOR_PEN, ATTRACTOR_BRUSH );
+    mAttractor->setZValue(Z_SHEPARD);
+    mAttractor->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     mItemInfo = new TextItem("", this);
+    mItemInfo->setZValue(Z_POPUP_ANIMAL);
+    mItemInfo->setFlag(QGraphicsItem::ItemIsSelectable, false);
+
     mCursorInfo = new TextItem("", this);
+    mCursorInfo->setZValue(Z_POPUP_CURSOR);
+    mCursorInfo->setFlag(QGraphicsItem::ItemIsSelectable, false);
+
+    mPopup = new TextItem("", this);
+    mPopup->setZValue(Z_POPUP_ALERT);
+    mPopup->setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     setBackgroundBrush(LAWN_BRUSH_COLOR_DEPLETED);
 }
@@ -158,38 +293,42 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
         return;
     }
 
-    // update lawns
-    int lawnIndex = 0;
-
     //mSceneInfo->setPlainText(QString("%1%").arg(meadow->kgRatio() * 100.0f, 0, 'f', 1));
-
 
     if( mItemInfo ) {
         if( mAnimalItemSelected ) {
-            mItemInfo->show();
             mItemInfo->setPlainText(mAnimalItemSelected->animal()->info());
             mItemInfo->setPos(mAnimalItemSelected->pos());
+            mItemInfo->setVisible(mIsUI);
         }else {
             mItemInfo->hide();
         }
     }
 
-    foreach(Meadow::Lawn* lawn, meadow->lawns()) {
-        QGraphicsRectItem* r = mLawns[lawnIndex++];
+    // update lawn colors
+    QSize dim = meadow->dim();
+    for(int h = 0; h < dim.height(); h ++) {
+        for(int w = 0; w < dim.width(); w ++) {
 
-        if( isInitial || lawn->animalsCount() || lawn->mustUpdate ) {
+            // QGraphicsRectItem* r = mLawns[lawnIndex++];
 
-            if( isInitial ) {
-                r->setPos(lawn->pos());
+            Meadow::Lawn* lawn = meadow->byIndex(w, h);
+            if( !isInitial ) {
+                if( !lawn->animalsCount() && !lawn->mustUpdate ) {
+                    continue;
+                }
             }
 
+            // QColor color = mMeadowImage.pixelColor(w, h);
             QColor color = LAWN_BRUSH_COLOR_FULL;
             color.setAlpha( lawn->kgNorm() * 255.0f );
-            r->setBrush(color);
+            mMeadowImage.setPixelColor(w, h, color);
             mView->updateCursorInfo();
             lawn->mustUpdate = false;
         }
     }
+
+    updateMeadowBrush();
 
 
     if( herd->isShepherdActive() ) {
@@ -200,7 +339,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     }
 
     for( auto i = 0; i < mAnimalItems.count(); i++) {
-        QGraphicsPolygonItem* item = mAnimalItems[i];
+        AnimalItem* item = mAnimalItems[i];
         Animal* animal = herd->animal(i);
         item->setPos(animal->pt());
         item->setRotation( qRadiansToDegrees(animal->rotationAngle()));
@@ -211,12 +350,22 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
             int cx = (animal->pt().x() + diameter * 0.5f) / diameter * 200;
             int cy = (animal->pt().y() + diameter * 0.5f) / diameter * 200;
 
-            QColor colBrush(cx, 30, cy, 150);
+            item->mBrush = QBrush(QColor(cx, 30, cy, 150));
             QColor colPen(cx, 30, cy, 250);
-            item->setBrush(colBrush);
+            item->setBrush(item->mBrush);
             item->setPen( animal->hasCollar() ?
                              QPen(Qt::white, ITEM_PEN_WIDTH_COLLAR) :
                              QPen(colPen, ITEM_PEN_WIDTH) );
+        }
+
+        if( animal->hasCollar() && animal->collar()->isFence()) {
+
+            if( !animal->collar()->isInsideFence() ) {
+                item->setBrush(ITEM_BRUSH_OUTSIDE_FENCE);
+            }else {
+                item->setBrush(item->mBrush);
+            }
+
         }
     }
 
@@ -259,6 +408,7 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     }
 
 
+    updateFenceBorderItem();
 }
 
 void Scene::selectAnimalItem(AnimalItem *item)
@@ -266,19 +416,18 @@ void Scene::selectAnimalItem(AnimalItem *item)
     clearSelection();
     clearFocus();
 
-    if( mAnimalItemSelected ) {
-        mAnimalItemSelected->setSelected(false);
-
-        // deselect current item
-        if( item == mAnimalItemSelected ) {
-            mAnimalItemSelected = nullptr;
-            return;
-        }
-    }
-
     mAnimalItemSelected = item;
 
     mAnimalItemSelected->ensureVisible();
+    recreateFenceBorderItem();
+}
+
+void Scene::clearSelectedAnimalItem()
+{
+    // deselect current item
+    mAnimalItemSelected = nullptr;
+    recreateFenceBorderItem();
+    return;
 }
 
 void Scene::selectGatewayItem(GatewayItem *item)
@@ -302,7 +451,9 @@ void Scene::setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, 
 {
     if( mCursorInfo ) {
         mCursorInfo->setPos(pt);
-        QString str = QString("%1 %2 %3")
+        QString str = QString("%1 %2\n%3 %4\n%5kg")
+                          .arg( pt.x(), 0, 'f', 2)
+                          .arg( pt.y(), 0, 'f', 2)
                           .arg( location.latitude(), 0, 'f', 6)
                           .arg( location.longitude(), 0, 'f', 6)
                           .arg( kg, 0, 'f', 2);
@@ -310,6 +461,233 @@ void Scene::setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, 
         mCursorInfo->setPlainText(str);
     }
 }
+
+bool Scene::storeImage(const QString &path)
+{
+    QString fileName = path.isEmpty() ? "image.png" : path;
+    return mMeadowImage.save(fileName);
+}
+
+bool Scene::fenceAppend(const QPointF& pt)
+{
+    if( mFence.count() >= VIRTUAL_FENCE_MAX_POINTS ) {
+        showPopup("Maximum number of fence points reached!");
+        return false;
+    }
+
+    if( mFence.count() < 3 ) {
+        mFence.append(pt);
+        recreateFenceItem();
+        return true;
+    }
+
+
+    auto pointDistSq = [](const QPointF& pt1, const QPointF& pt2) {
+        QPointF sub = pt2 - pt1;
+        return QPointF::dotProduct(sub, sub);
+    };
+
+    auto hasLinesIntesection = [&]( const QLineF& line1, const QLineF& line2) {
+        QPointF intersectionPt;
+        if( !line1.intersects(line2, &intersectionPt) ) {
+            return false;
+        }
+
+        float dist1To1 = pointDistSq( intersectionPt, line1.p1());
+        float dist1To2 = pointDistSq( intersectionPt, line1.p2());
+        float line1Len = pointDistSq( line1.p1(), line1.p2());
+
+        float dist2To1 = pointDistSq( intersectionPt, line2.p1());
+        float dist2To2 = pointDistSq( intersectionPt, line2.p2());
+        float line2Len = pointDistSq( line2.p1(), line2.p2());
+
+        if( line1Len > dist1To1 &&  line1Len > dist1To2 &&
+            line2Len > dist2To1 &&  line2Len > dist2To2 )  {
+                return true;
+            }
+
+        return false;
+    };
+
+    // check the polygon border for interception
+    // with other polygon borders
+    QLineF lineToFirst(mFence.first(), pt);
+    QLineF lineToLast(mFence.last(), pt);
+    QPointF prevPt = mFence.first();
+    for( auto i = 1; i < mFence.count(); i++ ) {
+        QPointF nextPt = mFence[i];
+        QLineF line(prevPt, nextPt);
+        if( hasLinesIntesection( lineToFirst, line) ||
+            hasLinesIntesection( lineToLast, line) ) {
+                showPopup("Error:This border intersects other borders!");
+                return false;
+        }
+        prevPt = nextPt;
+    }
+
+    mFence.append(pt);
+    recreateFenceItem();
+    saveFence();
+    return true;
+}
+
+void Scene::fenceRemove()
+{
+    if( mFence.count() ) {
+        mFence.removeLast();
+        recreateFenceItem();
+        saveFence();
+    }
+}
+
+void Scene::fenceActivate(bool is)
+{
+    if( is ) {
+        mFenceItem->setPen(FENCE_PEN_ACTIVE);
+        mFenceItem->setBrush(FENCE_BRUSH_ACTIVE);
+    }else {
+        mFenceItem->setPen(FENCE_PEN);
+        mFenceItem->setBrush(FENCE_BRUSH);
+    }
+
+    mIsActiveFence = is;
+}
+
+QVector<QGeoCoordinate> Scene::fenceGepPoints(Meadow* meadow)
+{
+    QVector<QGeoCoordinate> geoPoints;
+    geoPoints.reserve(mFence.count());
+    for( auto i = 0; i < mFence.count(); i ++) {
+        geoPoints.append(meadow->getGeoLocation(mFence[i]));
+    }
+
+    return geoPoints;
+}
+
+bool Scene::saveFence(const QString &path)
+{
+    if( mFence.count() < 3) {
+        qCritical() << "Fence points less then 3:" << path;
+        return false;
+    }
+
+    QString content;
+    bool isFirstPoint = true;
+    for( QPointF p: mFence ) {
+        if( !isFirstPoint ) {
+            content.append(',');
+        }
+        content.append(QString("%1,").arg(p.x(), 0, 'f', 6));
+        content.append(QString("%1").arg(p.y(), 0, 'f', 6));
+        isFirstPoint = false;
+    }
+
+    if( !SimTools::fileWrite(path, content.toUtf8(), true)) {
+        qCritical() << "Saving fence in %1 failed!" << path;
+        return false;
+    }
+
+    return true;
+}
+
+bool Scene::loadFence(const QString &path)
+{
+    bool isOk = true;
+    QByteArray ba = SimTools::fileRead(path, &isOk);
+
+    if( !isOk) {
+        qCritical() << "Loading fence from %1 failed!" << path;
+        return false;
+    }
+
+    QString content = QString::fromUtf8(ba);
+    QStringList valsList = content.split(',');
+    if( valsList.count() % 2 ) {
+        qCritical() << "Loading fence from %1 failed! Fence points %2 not even" << path << valsList.count();
+        return false;
+    }
+
+    QVector<QString> valsVec = valsList.toVector();
+    int pointsCount = valsVec.size() / 2;
+
+    if( pointsCount < 3) {
+        qCritical() << "Loading fence - points less then 3" << path;
+        return false;
+    }
+
+    mFence.clear();
+    mFence.reserve(pointsCount);
+
+    for( auto i = 0; i < pointsCount; i ++) {
+        int valsIndex = i * 2;
+        float x = valsVec[valsIndex].toFloat();
+        float y = valsVec[valsIndex+1].toFloat();
+        mFence.append(QPointF(x, y));
+    }
+
+    recreateFenceItem();
+
+    return true;
+}
+
+void Scene::showPopup(const QString &msg)
+{
+
+    if( mPopupLastMsg == msg) {
+        mPopupLastMsgCount ++;
+    }else {
+        mPopupLastMsgCount = 1;
+        mPopupLastMsg = msg;
+    }
+
+    // do not show the popup if ui is disabled
+    if( !mIsUI ) {
+        return;
+    }
+
+    mPopup->setTextColor(POPUP_TEXT_COLOR);
+    mPopup->setBackColor(POPUP_BACK_COLOR);
+    mPopup->setPlainText(mPopupLastMsgCount > 1 ? QString("%1 (%2)").arg(msg).arg(mPopupLastMsgCount): msg);
+    mPopup->show();
+    QPointF pos = mView->mapToScene(QPoint(0, 0));
+    mPopup->setPos(pos);
+    int duration = msg.length() * 60;
+    if( duration < 1000 ) {
+        duration = 1000;
+    }
+
+    mPopupTimer->start(duration);
+}
+
+void Scene::onPopupHide()
+{
+    mPopup->hide();
+}
+
+
+bool Scene::isPopup()
+{
+    return mPopup && mPopup->isVisible();
+}
+
+void Scene::showUI(bool is)
+{
+    mIsUI = is;
+
+    if( mItemInfo && mAnimalItemSelected ) {
+        mItemInfo->setVisible(mIsUI);
+    }
+
+    if( mCursorInfo ) {
+        mCursorInfo->setVisible(mIsUI);
+    }
+}
+
+void Scene::resetView()
+{
+    mView->setInitialTransform();
+}
+
 
 void Scene::selectAnimalItem(int index)
 {
@@ -339,6 +717,7 @@ void Scene::onFigureDrop(QGraphicsPolygonItem *item, QPointF pos)
     (void)item;
     (void)pos;
 }
+
 
 
 SelectableItem::SelectableItem(const QPolygonF &poly) : QGraphicsPolygonItem(poly) {
@@ -404,13 +783,17 @@ void SelectableItem::startPulseAnimation() {
 
 
 QVariant SelectableItem::itemChange(GraphicsItemChange change, const QVariant &v) {
+
     if (change == ItemSelectedHasChanged) {
+        qInfo() << "has changed";
+    }else
+    if (change == ItemSelectedChange) {
+        qInfo() << "changed" << v.toBool();
         if (v.toBool()) {
             startPulseAnimation();   // trigger when selected
-        }
-
-        if( v.toBool() ) {
             onSelection();
+        }else {
+            parentScene()->clearSelectedAnimalItem();
         }
     }
     return QGraphicsPolygonItem::itemChange(change, v);
@@ -418,7 +801,7 @@ QVariant SelectableItem::itemChange(GraphicsItemChange change, const QVariant &v
 
 TextItem::TextItem(const QString &text, Scene *scene) :
     QGraphicsTextItem(text) {
-    setDefaultTextColor(INFO_TEXT_COLOR);
+    mTextColor = INFO_TEXT_COLOR;
     setBackColor(INFO_BACK_COLOR);
     QTransform t = transform();
     t.scale(0.1f, -0.1f);
@@ -432,8 +815,9 @@ TextItem::TextItem(const QString &text, Scene *scene) :
 }
 
 void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o, QWidget *w) {
+    setDefaultTextColor(mTextColor);
     painter->setBrush(mBackColor);
-    painter->setPen(ITEM_PEN_SEL);
+    painter->setPen(mTextColor);
     painter->drawRect(boundingRect());
     QGraphicsTextItem::paint(painter, o, w);
 }

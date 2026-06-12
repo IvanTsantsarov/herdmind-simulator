@@ -118,7 +118,10 @@
     # 0: RX1 / RX2
     # 1: RX1 only
     # 2: RX2 only
-    rx_window=0
+    # rx_window=0
+
+    # Force using tx2
+    rx_window=2
 
     # RX1 delay (1 - 15 seconds).
     rx1_delay=1
@@ -127,7 +130,10 @@
     rx1_dr_offset=0
 
     # RX2 data-rate
-    rx2_dr=0
+    # rx2_dr=0
+
+    # this allows sending 251 bytes to device instead of only 50 when rx2_dr=0
+    rx2_dr=5
 
     # RX2 frequency (Hz)
     rx2_frequency=869525000

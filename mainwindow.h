@@ -47,9 +47,11 @@ class MainWindow : public QMainWindow
 
     bool mIsCreated = false;
     bool create(bool isLoad, const QString &dir = "./");
-
     void closeEvent(QCloseEvent* e);
 
+    bool mIsFenceSetup = false;
+
+    void updateFenceButtons();
 
 public:
     MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);
@@ -61,6 +63,7 @@ public:
     inline Network* network(){ return mNetwork; }
     inline SimTools* tools(){ return mTools; }
 
+    // void onMqttConnected();
     void onError(const QString &err);
     void onConsoleClose();
     void onDeviceMsgClose();
@@ -69,6 +72,8 @@ public:
     void onDevicesReady(bool isStore);
     inline DialogConsole* console(){ return mConsole; }
     void errorMsgBox(const QString& msg);
+    bool question(const QString& msg);
+
 
 protected:
     void moveEvent(QMoveEvent *);
@@ -76,7 +81,6 @@ protected:
 private:
     Ui::MainWindow *ui;
 private slots:
-
     void onUpdate();
     void on_btnGenerate_clicked();
     void onRowClicked(int row, int column);
@@ -93,6 +97,14 @@ private slots:
     void on_btnCopyCenter_clicked();
     void on_actionSave_triggered();
     void on_actionLoad_triggered();
+    void on_btnUnitTest_clicked();
+    void on_checkPastureGenParams_toggled(bool checked);
+    void on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state);
+    void on_btnFenceRemoveLast_clicked();
+    void on_btnPause_toggled(bool checked);
+    void on_actionScene_UI_toggled(bool is);
+    void on_actionReset_triggered();
+    void on_checkFence_toggled(bool is);
 };
 
 extern MainWindow* gMainWindow;

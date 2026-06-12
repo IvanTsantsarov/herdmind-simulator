@@ -12,6 +12,7 @@ class Gateway;
 #define EUI_BYTES_LEN 8
 #define LORA_FPORT_START 9
 
+
 class LoraDev : public QObject
 {
     Q_OBJECT
@@ -63,6 +64,9 @@ private:
 
     bool mIsUplinkReceived = false;
 
+    // TODO: parse data rate from device info
+    uint8_t mDataRate = 5;
+
     Gateway* mGateway = nullptr;
 
     QByteArray mPendingMacAns;   // bytes to send in next uplink as FOpts
@@ -71,7 +75,6 @@ protected:
 
     // send to the chirpstack
     bool uplink(const QByteArray& data);
-
 
 public:
     inline QByteArray eui(){ return mDevEUI; };
@@ -83,6 +86,7 @@ public:
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
+    inline uint8_t dataRate(){ return mDataRate; }
     void setAddress(const QByteArray& ba);;
     void setGateway(Gateway* gw);
 
@@ -114,11 +118,13 @@ public:
 
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
+    virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
+
 
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());
 signals:
-    void messageReceived(const QByteArray& addr, const QByteArray& msg);
+    void messageReceivedAndDecrypted(const QByteArray& addr, const QByteArray& msg);
 
 private slots:
     void onTimerStart();

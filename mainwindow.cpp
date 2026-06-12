@@ -20,7 +20,7 @@
 #include "devmanager.h"
 #include "simtools.h"
 #include "simtimer.h"
-
+#include "hardware/defines.h"
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
@@ -79,7 +79,8 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     ui->spinTransAngle->setValue(BOLUS_TRANSMIT_ANGLE);
 
     // Grazing parameters
-    ui->spinMeadowRadius->setValue(MEADOW_INITIAL_RADIUS);
+    ui->spinMeadowDimX->setValue(MEADOW_INITIAL_DIM_WIDTH);
+    ui->spinMeadowDimY->setValue(MEADOW_INITIAL_DIM_HEIGHT);
     ui->spinMeadowCapacity->setValue(MEADOW_INITIAL_CAPACITY);
     ui->spinMeadowGrowingSpeed->setValue(MEADOW_GROWING_SPEED);
     ui->spinAnimalGrazingCapacity->setValue(ANIMAL_INITIAL_GRAZING_CAPACITY);
@@ -88,6 +89,16 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
 
     ui->spinCenterLong->setValue(FARM_INITIAL_LOCATION_LONG);
     ui->spinCenterLat->setValue(FARM_INITIAL_LOCATION_LAT);
+
+    ui->spinPastureGenRadius->setValue(PASTURE_GEN_RADIUS);
+    ui->spinPastureGenScale->setValue(PASTURE_GEN_SCALE);
+    ui->spinPastureGenCount->setValue(PASTURE_GEN_COUNT);
+    ui->spinPastureGenSmothIt->setValue(PASTURE_GEN_SMOOTH_IT);
+    ui->spinPastureGenAmpMin->setValue(PASTURE_GEN_AMP_MIN);
+    ui->spinPastureGenAmpMax->setValue(PASTURE_GEN_AMP_MAX);
+    ui->spinPastureGenWaveMin->setValue(PASTURE_GEN_WAVE_MIN);
+    ui->spinPastureGenWaveMax->setValue(PASTURE_GEN_WAVE_MAX);
+
 
     QObject::connect(&mUpdateTimer, &QTimer::timeout, this, &MainWindow::onUpdate );
     mUpdateTimer.start(HERD_UPDATE_INTERVAL);
@@ -99,6 +110,7 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
 
     ui->widgetSim->setVisible(false);
     ui->widgetGrazing->setVisible(false);
+    ui->widgetPastureGen->setVisible(false);
     showMaximized();
 
     // ui->scrollAreaParams->setWidgetResizable(false); // chatGPT was wrong about this
@@ -146,13 +158,25 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     mDevMsg->setVisible( is );
     ui->actionDeviceMsg->setChecked(is);
 
-    is = mEnv.value("UI/GroupInfo").toBool();
+    is = mEnv.value("UI/GroupFold").toBool();
     ui->btnShowInfo->setChecked(is);
-    ui->groupInfo->setVisible(is);
+    ui->groupFold->setVisible(is);
+
+    is = mEnv.value("UI/isGrowing").toBool();
+    ui->checkGrowingMeadow->setChecked(is);
+
+    is = mEnv.value("UI/DebugInfo").toBool();
+    mConsole->setDebugInfo(is);
+
 
 #if PRINT_DEBUG_INFO == false
     ui->checkRecursiveCollision->setVisible(false);
 #endif
+
+    // is isLoadLast value is set to 1 in settings.ini then load last herd
+    if( settings.value("GUI/isLoadLast").toBool() ) {
+        create(true);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -165,8 +189,12 @@ void MainWindow::closeEvent(QCloseEvent *e)
     Q_UNUSED(e);
     mEnv.setValue("UI/Console", mConsole->isVisible() );
     mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
-    mEnv.setValue("UI/GroupInfo", ui->btnShowInfo->isChecked());
+    mEnv.setValue("UI/GroupFold", ui->btnShowInfo->isChecked());
+    mEnv.setValue("UI/isGrowing", ui->checkGrowingMeadow->isChecked());
+    mEnv.setValue("UI/DebugInfo", mConsole->isDebugInfo());
+    mScene->saveFence();
 }
+
 
 
 bool MainWindow::create(bool isLoad, const QString& dir)
@@ -224,22 +252,37 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() );
 
+    SimTools::HarmonicsGenerator::Params pastureParams;
+
+    pastureParams.radius = ui->spinPastureGenRadius->value();
+    pastureParams.count = ui->spinPastureGenCount->value();
+    pastureParams.ampMin = ui->spinPastureGenAmpMin->value();
+    pastureParams.ampMax = ui->spinPastureGenAmpMax->value();
+    pastureParams.wavelenMin = ui->spinPastureGenWaveMin->value();
+    pastureParams.wavelenMax = ui->spinPastureGenWaveMax->value();
+
+
     // Generate meadow
     mMeadow = new Meadow(QPoint(0, 0),
                          QGeoCoordinate(ui->spinCenterLat->value(), ui->spinCenterLong->value()),
-                         QSize( ui->spinMeadowRadius->value() * 2, ui->spinMeadowRadius->value() * 2),
+                         QSize( ui->spinMeadowDimX->value(), ui->spinMeadowDimY->value()),
                          ui->spinLawnRadius->value(),
                          ui->spinMeadowCapacity->value(),
                          ui->spinMeadowGrowingSpeed->value(),
-                         ui->spinAnimalsPerLawn->value()
-                         );
+                         ui->spinAnimalsPerLawn->value(),
+                         pastureParams,
+                         ui->spinPastureGenScale->value(),
+                         ui->spinPastureGenSmothIt->value(),
+                         this );
 
     mMeadow->setGrowing(ui->checkGrowingMeadow->isChecked());
 
 
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,
-                   mMeadow->lawnsCount(), mHerd->collarsCount() * mHerd->count(),  mHerd->collarsCount() * mNetwork->gatewaysCount() );
+                   mMeadow->dim(),
+                   mHerd->collarsCount() * mHerd->count(),
+                   mHerd->collarsCount() * mNetwork->gatewaysCount() );
     mScene->update(mHerd, mMeadow, mNetwork, true, INITIAL_HERD_SPREAD);
 
     mSceneView->setMeadow(mMeadow);
@@ -287,14 +330,22 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     // ui->table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-
     ui->checkShepard->setEnabled(true);
     ui->checkRecursiveCollision->setEnabled(true);
 
     mDevMsg->updateDevices();
 
-    mIsCreated = true;
     ui->actionSave->setEnabled(true);
+
+    mScene->loadFence();
+
+    ui->progressFence->setValue(0);
+    ui->checkFence->setChecked(false);
+    ui->checkFence->setToolTip("Press to activate the fence.");
+
+    mScene->showPopup("Scene created!");
+
+    mIsCreated = true;
 
     return true;
 }
@@ -302,6 +353,10 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
 void MainWindow::onUpdate()
 {
+    if( ui->btnPause->isChecked() ) {
+        return;
+    }
+
     gSimTimer->update();
 
     if( !mIsCreated) {
@@ -312,7 +367,7 @@ void MainWindow::onUpdate()
 
     ui->editInfo->setText( QString("Food:%1%").arg( mMeadow->kgRatio(100), 0, 'f', 2) );
 
-    ui->editTime->setText(QString("%1:%2:%3")
+    ui->btnPause->setText(QString("%1:%2:%3")
                               .arg(gSimTimer->hours(), 2, 10, '0')
                               .arg(gSimTimer->minutes(), 2, 10, '0')
                               .arg(gSimTimer->seconds(), 2, 10, '0'));
@@ -355,6 +410,17 @@ void MainWindow::onUpdate()
         // item->setBackground(QBrush(QColor(220, 240, 255))); // light blue
     }
 
+
+    if( mIsFenceSetup ) {
+        bool isActivate = ui->checkFence->isChecked();
+        int count = mDevManager->getDevicesFenceStatus(isActivate);
+        ui->progressFence->setValue(count);
+        if( count >= mHerd->collarsCount()) {
+            mIsFenceSetup = false;
+
+            mScene->fenceActivate(isActivate);
+        }
+    }
 }
 
 
@@ -439,14 +505,33 @@ void MainWindow::onDevicesReady(bool isStore )
     }
 }
 
+/*
+void MainWindow::onMqttConnected()
+{
+    if( mIsLoadLast ) {
+        create(true);
+    }
+}
+
+*/
 void MainWindow::errorMsgBox(const QString &msg)
 {
     QMessageBox::critical(this, "Error", msg);
 }
 
+bool MainWindow::question(const QString &msg)
+{
+    return QMessageBox::Yes == QMessageBox::question(this, "Question?", msg);
+}
+
 void MainWindow::onError(const QString &err)
 {
     setStatus(err);
+    if( mConsole->isVisible() ) {
+        mConsole->setFocus();
+    }
+
+    mScene->showPopup("Critical errors! Open the console!");
 }
 
 void MainWindow::onConsoleClose()
@@ -493,7 +578,7 @@ void MainWindow::on_checkGrowingMeadow_toggled(bool checked)
 
 void MainWindow::on_btnShowInfo_toggled(bool checked)
 {
-    ui->groupInfo->setVisible(checked);
+    ui->groupFold->setVisible(checked);
     ui->btnShowInfo->setText(checked ? ">" : "<");
 }
 
@@ -569,5 +654,100 @@ void MainWindow::on_actionLoad_triggered()
     }else{
         setStatus(QString("Error loading from %1").arg(dirStr));
     }
+}
+
+
+void MainWindow::on_btnUnitTest_clicked()
+{
+    mScene->storeImage();
+}
+
+
+void MainWindow::on_checkPastureGenParams_toggled(bool checked)
+{
+    ui->widgetPastureGen->setVisible(checked);
+    ui->scrollAreaParamsWidget->adjustSize();
+    ui->scrollAreaParamsWidget->setMinimumSize(ui->scrollAreaParamsWidget->sizeHint());
+}
+
+
+void MainWindow::on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state)
+{
+    if( state == Qt::Checked ) {
+        mSceneView->setMode(SceneView::Mode::Fence);
+    }else {
+        mSceneView->setMode(SceneView::Mode::Explore);
+    }
+
+    updateFenceButtons();
+}
+
+
+void MainWindow::on_btnFenceRemoveLast_clicked()
+{
+    mScene->fenceRemove();
+}
+
+
+
+void MainWindow::updateFenceButtons()
+{
+    if( ui->checkFenceAdd->isChecked() ) {
+        ui->btnFenceRemoveLast->setEnabled(mScene->fencePointsCount());
+        ui->btnFenceClear->setEnabled(mScene->fencePointsCount() < VIRTUAL_FENCE_MAX_POINTS);
+    }else {
+        ui->btnFenceRemoveLast->setEnabled(false);
+        ui->btnFenceClear->setEnabled(false);
+    }
+}
+
+void MainWindow::on_btnPause_toggled(bool checked)
+{
+    ui->btnPause->setToolTip( checked ? "Unpause simulation" : "Pause simulation");
+}
+
+
+void MainWindow::on_actionScene_UI_toggled(bool is)
+{
+    mScene->showUI(is);
+}
+
+
+void MainWindow::on_actionReset_triggered()
+{
+    if( mScene ) {
+        mScene->resetView();
+    }
+}
+
+
+
+void MainWindow::on_checkFence_toggled(bool is)
+{
+    if( !mIsCreated) {
+        return;
+    }
+
+    ui->progressFence->setValue(0);
+
+    QVector<QGeoCoordinate> fenceGeoPoints;
+
+    if( is ) {
+        ui->checkFenceAdd->setEnabled(false);
+        fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
+        ui->checkFence->setToolTip("Click to deactivate the fence");
+    }else
+    {
+        ui->checkFenceAdd->setEnabled(true);
+        ui->checkFence->setToolTip("Click to activate the fence");
+    }
+
+    ui->progressFence->setMinimum(0);
+    ui->progressFence->setMaximum(mDevManager->collarsCount());
+    ui->progressFence->setEnabled(true);
+    updateFenceButtons();
+
+    mIsFenceSetup = true;
+    mDevManager->setupFence(mMeadow->geoCenter(), fenceGeoPoints);
 }
 

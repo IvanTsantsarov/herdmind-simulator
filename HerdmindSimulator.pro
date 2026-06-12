@@ -26,6 +26,7 @@ CONFIG(release, debug|release) {
 SOURCES += \
     animal.cpp \
     animal_names.cpp \
+    apimqtt.cpp \
     apirest.cpp \
     apirest_response.cpp \
     devmanager.cpp \
@@ -43,6 +44,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     meadow.cpp \
+    mqtt.cpp \
     network.cpp \
     scene.cpp \
     sceneview.cpp \
@@ -52,6 +54,7 @@ SOURCES += \
 
 HEADERS += \
     animal.h \
+    apimqtt.h \
     apirest.h \
     defines_settings.h \
     devmanager.h \
@@ -67,11 +70,13 @@ HEADERS += \
     hardware/defines.h \
     hardware/gateway/gateway.h \
     hardware/loradev.h \
+    hardware/loradev_def.h \
     hardware/protocol.h \
     hardware/tools.h \
     herd.h \
     mainwindow.h \
     meadow.h \
+    mqtt.h \
     network.h \
     scene.h \
     sceneview.h \

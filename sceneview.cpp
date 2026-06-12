@@ -9,20 +9,28 @@
 #define INFO_TEXT_COLOR QColor(250, 220, 100)
 #define INFO_BACK_COLOR QColor(30, 30, 30, 150)
 
+void SceneView::setMode(Mode mode)
+{
+    mMode = mode;
+
+    switch(mMode) {
+    case Mode::Explore: setCursor(Qt::ArrowCursor); break;
+    case Mode::Fence: setCursor(Qt::CrossCursor); break;
+    }
+}
+
 SceneView::SceneView(QGraphicsScene *scene, QWidget *parent) :
     QGraphicsView(scene, parent), mScene(reinterpret_cast<Scene*>(scene) )
 {
     setVisible(true);
 
     setRenderHint(QPainter::Antialiasing);
+    setRenderHint(QPainter::SmoothPixmapTransform);
     setDragMode(QGraphicsView::NoDrag);    // we'll handle dragging manually
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setResizeAnchor(QGraphicsView::AnchorViewCenter);
-
-    scale(1, -1);
-
-    scale(10, 10);
-
+    scale(10, -10);
+    mInitialTransform = transform();
 }
 
 void SceneView::updateCursorInfo()
@@ -34,13 +42,19 @@ void SceneView::updateCursorInfo()
     float kg = 0.0f;
     QGeoCoordinate location;
 
-    Meadow::Lawn* lawn = mMeadow->lawn(mMousePointScene);
+    Meadow::Lawn* lawn = mMeadow->byPos(mMousePointScene);
     if( lawn ) {
         kg = lawn->kg();
     }
 
     location = mMeadow->getGeoLocation(mMousePointScene);
     mScene->setCursorInfoPos(mMousePointScene, location, kg);
+}
+
+void SceneView::setInitialTransform()
+{
+    setTransform(mInitialTransform);
+    centerOn(0, 0);
 }
 
 void SceneView::mousePressEvent(QMouseEvent *event)
@@ -51,6 +65,10 @@ void SceneView::mousePressEvent(QMouseEvent *event)
     case Qt::LeftButton:
         mIsLeftPress = true;
         mLeftPosStart = mLeftPos = mapToScene(pt);
+
+        if( Mode::Fence == mMode ) {
+            mScene->fenceAppend(mLeftPos);
+        }
         break;
     case Qt::RightButton:
         setCursor(Qt::SizeAllCursor);
@@ -72,12 +90,17 @@ void SceneView::mousePressEvent(QMouseEvent *event)
 void SceneView::mouseReleaseEvent(QMouseEvent *event)
 {
     switch(event->button()) {
-    case Qt::LeftButton: setCursor(Qt::ArrowCursor); mIsLeftPress = false; break;
-    case Qt::RightButton: setCursor(Qt::ArrowCursor); mIsRightPress = false; break;
-    case Qt::MiddleButton: setCursor(Qt::ArrowCursor); mIsMiddlePress = false; break;
+    case Qt::LeftButton: mIsLeftPress = false; break;
+    case Qt::RightButton: mIsRightPress = false; break;
+    case Qt::MiddleButton: mIsMiddlePress = false; break;
     default:
         qDebug() << "Other mouse button released:" << event->button();
 
+    }
+
+    switch(mMode) {
+    case Mode::Explore: setCursor(Qt::ArrowCursor); break;
+    case Mode::Fence: setCursor(Qt::CrossCursor); break;
     }
 
      QGraphicsView::mouseReleaseEvent(event);
@@ -98,8 +121,8 @@ void SceneView::mouseMoveEvent(QMouseEvent *event)
     if( mIsMiddlePress ) {
         mMiddlePos = mMousePointScene;
 
-        float dx = mLeftPos.x() - mLeftPosStart.x();
-        float dy = mLeftPos.y() - mLeftPosStart.y();
+        float dx = mMiddlePos.x() - mMiddlePosStart.x();
+        float dy = mMiddlePos.y() - mMiddlePosStart.y();
 
         mMiddlePosStart = mMiddlePos;
 

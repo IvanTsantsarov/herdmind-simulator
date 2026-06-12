@@ -8,6 +8,16 @@ class Meadow;
 
 class SceneView : public QGraphicsView
 {
+public:
+    enum Mode {
+        Explore = 0,
+        Fence
+    };
+
+    void setMode( Mode mode );
+private:
+    Mode mMode = Mode::Explore;
+
     QPoint mMousePoint;
     QPointF mMousePointScene;
 
@@ -19,6 +29,8 @@ class SceneView : public QGraphicsView
 
     Scene* mScene = nullptr;
     Meadow* mMeadow = nullptr;
+    QTransform mInitialTransform;
+
 
 public:
     SceneView(QGraphicsScene *scene, QWidget *parent = nullptr);
@@ -34,6 +46,8 @@ public:
     QPointF middlePos(){ return mMiddlePos;}
 
     void updateCursorInfo();
+
+    void setInitialTransform();
 
 protected:
     void mousePressEvent(QMouseEvent* event);

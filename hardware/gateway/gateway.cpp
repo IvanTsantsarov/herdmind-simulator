@@ -3,60 +3,42 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include "gateway.h"
+#include "network.h"
+#include "mqtt.h"
 #include "defines_settings.h"
+#include "simtools.h"
 
 #ifdef SIMULATION
 
+// #include "mainwindow.h"
 
-Gateway::Gateway(const QSettings &settings) :
-    mClient(this)
+Gateway::Gateway(const QSettings &settings)
 {
-    mMqttAddr = settings.value(MQTT_SECTION"/address").toString();
-    mMqttPort = settings.value(MQTT_SECTION"/port").toUInt();
-    mId = settings.value(MQTT_SECTION"/gatewayId").toString();
-    QString userName = settings.value(MQTT_SECTION"/username").toString();
-    QString password = settings.value(MQTT_SECTION"/password").toString();
-
-    // From docker-compose: mosquitto exposes 1883 to host
-    mClient.setHostname(mMqttAddr);
-    mClient.setPort(mMqttPort);
-
-    if( !userName.isEmpty() ) {
-        mClient.setUsername(userName);
-    }
-
-    if( !password.isEmpty() ) {
-        mClient.setPassword(password);
-    }
+    mId = SimTools::readStringSettingsValue(settings, MQTT_SECTION, "gatewayId");
 
     // If you later enable MQTT auth:
     // mClient->setUsername("user");
     // mClient->setPassword("password");
 
-    connect(&mClient, &QMqttClient::connected, this, [=]() {
-        qInfo() << "MQTT connected";
+    mClient = new Mqtt(settings, this);
+
+    connect(mClient, &Mqtt::connected, this, [&]() {
         startHeartbeat();
         subscribe("command/down");
     });
 
-    connect(&mClient, &QMqttClient::disconnected, this, [=]() {
-        qInfo() << "MQTT disconnected";
-    });
+    connect( mClient, &Mqtt::messageReceived, this, &Gateway::onMessageReceived);
+}
 
-    connect(&mClient, &QMqttClient::errorChanged,
-            this,
-            [=](QMqttClient::ClientError error) {
-                qCritical() << "MQTT error:" << error << mClient.error();
-            });
-
-    connect(&mClient, &QMqttClient::messageReceived,
-            this, &Gateway::onMessageReceived);
+Gateway::~Gateway()
+{
+    delete mClient;
 }
 
 void Gateway::start()
 {
-    qInfo() << "Mqtt client connecting to" << mMqttAddr << ":" << mMqttPort << "...";
-    mClient.connectToHost();
+    qDebug() << "Gatewaty mqtt client connecting to" << mClient->addr() << ":" << mClient->port()<< "...";
+    mClient->connectToHost();
 }
 
 void Gateway::startHeartbeat()
@@ -79,8 +61,7 @@ void Gateway::startHeartbeat()
         st["txPacketsEmitted"] = 0;
 
         const QByteArray payload = QJsonDocument(st).toJson(QJsonDocument::Compact);
-        mClient.publish(topic, payload, 0, false);
-
+        mClient->publish(topic, payload);
     });
     heartbeat->start(10000); // every 10 seconds
 }
@@ -94,7 +75,7 @@ bool Gateway::publishOnline()
     root["state"] = "connected";
 
     QJsonDocument doc(root);
-    mClient.publish(topic, doc.toJson(QJsonDocument::Compact));
+    mClient->publish(topic, doc.toJson(QJsonDocument::Compact));
 
     return true;
 }
@@ -103,34 +84,7 @@ bool Gateway::publishOnline()
 void Gateway::subscribe(const QString &topic)
 {
     QString fullTopic = QString("eu868/gateway/%1/%2").arg(mId).arg(topic);
-
-    QMqttSubscription* subscription = mClient.subscribe(fullTopic, 0);
-
-    mSubscribtions.append(subscription);
-
-    if (!subscription)
-        qCritical() << "Mqtt subscription failed";
-    else
-        qInfo() << "Mqtt subscribtion sended..." << topic;
-
-
-    // Connect to subscription stateChanged signal
-    connect(subscription, &QMqttSubscription::stateChanged, this, [subscription](QMqttSubscription::SubscriptionState state){
-        switch(state) {
-        case QMqttSubscription::Unsubscribed:
-            qInfo() << "Subscription is unsubscribed";
-            break;
-        case QMqttSubscription::Subscribed:
-            qInfo() << "Subscription is active";
-            break;
-        case QMqttSubscription::Error:
-            qWarning() << "Subscription error:" << subscription->reason();
-            break;
-        default:
-            qInfo() << "Subscription pending...";
-            break;
-        }
-    });
+    mClient->subscribe(fullTopic);
 /*
     // Connect to messages for this subscription
     connect(subscription, &QMqttSubscription::messageReceived, this, [=](const QMqttMessage &msg){
@@ -154,6 +108,11 @@ void Gateway::onSend()
 
 bool Gateway::publish(const QByteArray &phyPayload)
 {
+    if( mClient && !mClient->isConnected() ) {
+        qCritical() << "Mqtt:publish: Not connected!";
+        return false;
+    }
+
     QString topic = QString("eu868/gateway/%1/event/up").arg(mId);
 
     QJsonObject root;
@@ -198,9 +157,8 @@ bool Gateway::publish(const QByteArray &phyPayload)
     QJsonDocument doc(root);
 
     QByteArray jsonBA = doc.toJson(QJsonDocument::Compact);
-    mClient.publish( topic, jsonBA );
 
-    return mClient.state() == QMqttClient::Connected;
+    return mClient->publish( topic, jsonBA );
 }
 
 void Gateway::onStopSending()
@@ -226,12 +184,15 @@ static int parseDelayMs(const QJsonObject& item) {
     return 0;
 }
 
-void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
+void Gateway::onMessageReceived(const QByteArray &message, const QString &topicName)
 {
+
     const QJsonDocument doc = QJsonDocument::fromJson(message);
     const QJsonObject obj = doc.object();
 
-    if (!topic.name().endsWith("/command/down"))
+    qDebug() << "Gateway msg:" << topicName << message.toBase64();
+
+    if (!topicName.endsWith("/command/down"))
         return;
 
     const QJsonValue downlinkIdVal = obj.value("downlinkId");
@@ -265,12 +226,11 @@ void Gateway::onMessageReceived(const QByteArray &message, const QMqttTopicName 
         ack["items"] = ackItems;
 
         const QString ackTopic = QString("eu868/gateway/%1/event/ack").arg(mId);
-        mClient.publish(ackTopic,
-                        QJsonDocument(ack).toJson(QJsonDocument::Compact),
-                        /*qos*/ 1,
-                        /*retain*/ false);
+        mClient->publish(ackTopic,
+                        QJsonDocument(ack).toJson(QJsonDocument::Compact) );
     });
 }
+
 #else
 
 

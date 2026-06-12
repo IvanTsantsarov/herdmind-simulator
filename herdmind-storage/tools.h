@@ -21,6 +21,7 @@ public:
     static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
     static QDateTime deviceTimestamp(uint32_t tstamp);
     static QString deviceTimestampString(uint32_t tstamp);
+    static bool fileIsNewer(const QString& pathFile1,  const QString& pathFile2 );
     static bool fileCompare(const QString &pathFile1, const QString &pathFile2, bool *isOk = nullptr);
     static bool fileRestoreResources(const QString &fileName);
 };

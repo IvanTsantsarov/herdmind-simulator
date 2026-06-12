@@ -1,6 +1,11 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#ifdef SIMULATION
+#include "qdebug.h"
+#include "qlogging.h"
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -10,8 +15,11 @@
 
 #define UNIX_TO_2000 946684800
 
+#define GEO_OFFSET_SCALE 1e6
+
 class Protocol
 {
+public:
     inline static uint32_t timestamp()
     {
         auto tm = std::time(nullptr);
@@ -25,16 +33,65 @@ class Protocol
                 (static_cast<uint32_t>(array[offset+3]));
 
     }
-    inline static void writeUint32(uint32_t value, uint8_t* array, int offset) {
+    inline static int writeUint32(uint32_t value, uint8_t* array, int offset) {
         array[offset]   = (value & 0xFF000000) >> 24;
         array[offset+1] = (value & 0x00FF0000) >> 16;
         array[offset+2] = (value & 0x0000FF00) >> 8;
         array[offset+3] =  value & 0x000000FF ;
-
-
-
+        return offset + sizeof(uint32_t);
     }
-public:
+
+    inline static int16_t readInt16(const uint8_t* array, int offset) {
+        int16_t value = (static_cast<int16_t>(array[offset]) << 8) |
+                    (static_cast<int16_t>(array[offset+1]));
+        // qInfo() << "readInt16" << value;
+        return  value;
+    }
+
+    inline static int writeInt16(int16_t value, uint8_t* array, int offset) {
+        // qInfo() << "writeInt16" << value;
+        array[offset]   = (value & 0xFF00) >> 8;
+        array[offset+1] =  value & 0x00FF ;
+        return offset + sizeof(int16_t);
+    }
+
+    inline static int16_t encodeCoordOffset(double  coordDeg, double coordDegCenter) {
+        return (coordDeg - coordDegCenter) * GEO_OFFSET_SCALE;
+    }
+
+    inline static double decodeCoordOffset(double  offsetDeg, double coordDegCenter) {
+        return (offsetDeg / GEO_OFFSET_SCALE) + coordDegCenter;
+    }
+
+
+    inline static uint32_t encodeLat(double latDeg)
+    {
+        latDeg = std::clamp(latDeg, -90.0, 90.0);
+        // map [-90, 90] -> [0, 2^32-1]
+        long double u = ( (long double)(latDeg + 90.0L) / 180.0L ) * 4294967295.0L;
+        return (uint32_t) llround(u);
+    }
+
+    inline static double decodeLat(uint32_t latInt) {
+        long double lat = ((long double)latInt / 4294967295.0L) * 180.0L - 90.0L;
+        return (double)lat;
+    }
+
+    inline static uint32_t encodeLon(double lonDeg)
+    {
+        lonDeg = std::clamp(lonDeg, -180.0, 180.0);
+        // map [-180, 180] -> [0, 2^32-1]
+        long double u = ( (long double)(lonDeg + 180.0L) / 360.0L ) * 4294967295.0L;
+        return (uint32_t) llround(u);
+    }
+
+    inline static double decodeLon(uint32_t lonInt)
+    {
+        // map [0, 2^32-1] -> [-180, 180]
+        long double lon = ((long double)lonInt / 4294967295.0L) * 360.0L - 180.0L;
+        return (double)lon;
+    }
+
 
     #pragma pack(push, 1)
 
@@ -90,64 +147,69 @@ public:
     struct Collar {
         enum struct Event : uint8_t {
             None = 0,
-            Light = 10,
-            Sound = 11,
-            Shock = 12
+
+            Package = 10,
+
+            // First are individual messages
+            Light = 16,
+            Sound = 17,
+            Shock = 18,
+
+            // Mass messages starts from 128
+            SetupFence = 128,
+            FenceOn,
+            FenceOff,
         };
 
+        Event mEvent = Event::None;       // mEvent type level
         uint32_t mTimestamp = timestamp();  // unix timestamp
         uint32_t mLatitude = 0;   // positioning mLatitude
         uint32_t mLongitude = 0;  // positioning mLongitude
-        Event mEvent = Event::None;       // mEvent type level
         uint8_t mRssi = 0;        // signal level
         uint8_t mBattery = 0;     // mBattery level
 
         inline void fromByteArray(const uint8_t* array) {
-            mTimestamp = Protocol::readUint32(array, 0);
-            mLatitude = Protocol::readUint32(array,   sizeof(uint32_t));
-            mLongitude = Protocol::readUint32(array, 2*sizeof(uint32_t));
-            mEvent   = (Event)array[ 3*sizeof(uint32_t)];
-            mRssi    = array[ 3*sizeof(uint32_t) + 1];
-            mBattery = array[ 3*sizeof(uint32_t) + 2];
+            int offset = 0;
+            mEvent   = (Event)array[ offset++ ];
+            mTimestamp = Protocol::readUint32(array, offset); offset += sizeof(uint32_t);
+            mLatitude = Protocol::readUint32(array,  offset); offset += sizeof(uint32_t);
+            mLongitude = Protocol::readUint32(array, offset); offset += sizeof(uint32_t);
+
+            mRssi    = array[ offset++];
+            mBattery = array[ offset++];
         }
 
         inline CollarByteArray toByteArray()  const {
             CollarByteArray ba;
-            Protocol::writeUint32(mTimestamp, ba, 0);
-            Protocol::writeUint32(mLatitude, ba,   sizeof(uint32_t));
-            Protocol::writeUint32(mLongitude,  ba, 2*sizeof(uint32_t));
-            ba[3*sizeof(uint32_t)]   = (uint8_t)mEvent;
-            ba[3*sizeof(uint32_t)+1] = mRssi;
-            ba[3*sizeof(uint32_t)+2] = mBattery;
+
+            int offset = 0;
+            ba[offset++]   = (uint8_t)mEvent;
+            Protocol::writeUint32(mTimestamp, ba, offset); offset += sizeof(uint32_t);
+            Protocol::writeUint32(mLatitude, ba, offset); offset += sizeof(uint32_t);
+            Protocol::writeUint32(mLongitude,  ba, offset); offset += sizeof(uint32_t);
+
+            ba[offset++] = mRssi;
+            ba[offset++] = mBattery;
             return ba;
         }
 
         inline void encodeLat(double latDeg)
         {
-            latDeg = std::clamp(latDeg, -90.0, 90.0);
-            // map [-90, 90] -> [0, 2^32-1]
-            long double u = ( (long double)(latDeg + 90.0L) / 180.0L ) * 4294967295.0L;
-            mLatitude = (uint32_t) llround(u);
+            mLatitude = Protocol::encodeLat(latDeg);
         }
 
         inline double decodeLat() {
-            long double lat = ((long double)mLatitude / 4294967295.0L) * 180.0L - 90.0L;
-            return (double)lat;
+            return Protocol::decodeLat(mLatitude);
         }
 
         inline void encodeLon(double lonDeg)
         {
-            lonDeg = std::clamp(lonDeg, -180.0, 180.0);
-            // map [-180, 180] -> [0, 2^32-1]
-            long double u = ( (long double)(lonDeg + 180.0L) / 360.0L ) * 4294967295.0L;
-            mLongitude = (uint32_t) llround(u);
+            mLongitude = Protocol::encodeLon(lonDeg);
         }
 
         inline double decodeLon()
         {
-            // map [0, 2^32-1] -> [-180, 180]
-            long double lon = ((long double)mLongitude / 4294967295.0L) * 360.0L - 180.0L;
-            return (double)lon;
+            return Protocol::decodeLon(mLongitude);
         }
 
     };

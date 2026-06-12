@@ -40,15 +40,20 @@ public:
         QVector<float> mLength;
         QVector<QVector2D> mCenters;
 
-        HarmonicsGenerator(float radius,
-                           int count = 10,
-                           float ampMin = 1.0f,
-                           float ampMax = 1.0f,
-                           float wavelenMin = 0.1f,
-                           float wavelenMax = 10.0f
-                           );
+        struct Params{  float radius;
+                        int count = 10;
+                        float ampMin = 1.0f;
+                        float ampMax = 1.0f;
+                        float wavelenMin = 0.1f;
+                        float wavelenMax = 10.0f;
+                    };
+
+        HarmonicsGenerator(const Params& p);
+
         float sum(float x, float y, float angle = 0.0f);
     };
+
+
 
     static QVector2D rotated( const QVector2D& v, float deg);
 
@@ -66,12 +71,48 @@ public:
     static bool fileExists(const QString& path);
     static bool fileWrite(const QString& path, const QByteArray& content, bool isOverwrite = true);
     static bool fileCompare(const QString& pathFile1,  const QString& pathFile2 , bool *isOk = nullptr );
+    static bool fileIsNewer(const QString& pathFile1,  const QString& pathFile2 );
     static bool fileRestoreResources(const QString& fileName);
 
     bool sendToChirpStack(const QByteArray& phyPayload);
     bool sendCollar(const Collar& collar);
 
     inline bool isDebuggerAttached(){ return mIsDebuggerAttached; }
+
+    template< typename T>
+    static T readSettingsValue(const QSettings& settings,
+                        const QString& section,
+                        const QString& paramName)
+    {
+        QString path = QString("%1/%2").arg(section).arg(paramName);
+        QVariant result;
+        if( !settings.contains(path) ) {
+            qCritical() << "Parameter" << paramName << "missing in" << settings.fileName();
+        }else {
+            result = settings.value(path);
+        }
+        return qvariant_cast<T>(result);
+    }
+
+    static QString readStringSettingsValue(const QSettings& settings,
+                                    const QString& path,
+                                    const QString& paramName) {
+        return readSettingsValue<QString>(settings, path, paramName);
+    }
+
+
+    static int readIntSettingsValue(const  QSettings& settings,
+                             const QString& path,
+                             const QString& paramName) {
+        return readSettingsValue<int>(settings, path, paramName);
+    }
+
+    static QByteArray readBytearraySettingsValue(const  QSettings& settings,
+                                    const QString& path,
+                                    const QString& paramName) {
+        return readSettingsValue<QByteArray>(settings, path, paramName);
+    }
+
 };
 
 extern SimTools* gSimTools;

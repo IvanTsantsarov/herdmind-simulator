@@ -5,7 +5,7 @@
 #include <QPointF>
 #include <QObject>
 #include <QGeoCoordinate>
-
+#include "simtools.h"
 
 class Animal;
 
@@ -32,11 +32,13 @@ class Meadow : public QObject
 public:
     explicit Meadow(const QPointF &center,
                     const QGeoCoordinate& geoCenter,
-                    const QSize& areaSize,
+                    const QSize& dimension,
                     float lawnRad,
                     float kgPerSqMeter,
                     float growingSpeed,
                     uint animalsPerLawn,
+                    SimTools::HarmonicsGenerator::Params &genParams,
+                    float genScale, int genSmoothIterations,
                     QObject *parent = nullptr);
 
     ~Meadow();
@@ -62,6 +64,7 @@ public:
 
         bool graze(float weight);
         bool grow(float weight);
+        inline bool needToGrow(){ return mKg < mKgStart; }
         float distSq(const QPointF &pt);
 
         inline float kg(){ return mKg; };
@@ -73,6 +76,11 @@ public:
         // quint8 kg255(){ return mKg/mKgStart * 255; };
         void attach(Animal* animal){ mAnimals.append(animal);        }
         void dettach(Animal* animal);
+        inline void setKg(float newKg)
+        {
+            mKg = newKg;
+            mKgStart = mKg;
+        }
 
     };
 
@@ -83,8 +91,8 @@ public:
     inline int lawnsCount(){ return mLawns.count(); }
     Lawn* closestAvailable(const QPointF& pos, const Lawn* current = nullptr);
     Lawn* bestAvailable(const QPointF& pos, const Lawn* current = nullptr);
-    Lawn* lawn(float x, float y);
-    inline Lawn *lawn( const QPointF& pos){ return lawn(pos.x(), pos.y()); }
+    Lawn* byPos(float x, float y);
+    inline Lawn* byPos( const QPointF& pos){ return byPos(pos.x(), pos.y()); }
 
     inline uint animalsPerLawn(){return mAnimalsPerLawn; }
     inline float kgMax(){ return mKgMax; }
@@ -103,6 +111,11 @@ public:
     inline QVector<Lawn*> & lawns(){ return mLawns; }
     inline QVector<QVector<Lawn*>> & lawnsMatrix(){ return mLawnsMatrix; }
     QGeoCoordinate getGeoLocation(const QPointF& mapPos);
+    inline QGeoCoordinate geoCenter(){ return mGeoCenter;}
+
+    QPointF getMapPoint(const QGeoCoordinate& geoPt);
+    Lawn* byIndex( int lw, int lh );
+    inline QSize dim(){ return mLawnsDim; }
 
 
 signals:

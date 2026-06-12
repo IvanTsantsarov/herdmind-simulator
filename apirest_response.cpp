@@ -8,6 +8,8 @@ void ApiRest::onResponse()
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     if (!reply)
         return;
+
+
     QByteArray responseData = reply->readAll();
     reply->deleteLater();
 
@@ -42,8 +44,8 @@ void ApiRest::onResponse()
         case RequestType::GetDeviceAddress: onGetDeviceAddress(json); break;
         case RequestType::ActivateDevice: onActivateResponse(json); break;
         case RequestType::SendDeviceMessage: onDeviceMessageResponse(json); break;
-
-        }
+        case RequestType::GetGateways: onGetGatewaysResponse(json); break;
+    }
 }
 
 void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
@@ -91,4 +93,9 @@ void ApiRest::onDeviceMessageResponse(QJsonObject &jobj)
     gMainWindow->onDeviceMessage(devEUI, jobj);
 }
 
-
+void ApiRest::onGetGatewaysResponse(QJsonObject& jobj)
+{
+    Q_UNUSED(jobj);
+    // tell manager / gateway layer that the gateway exists
+    mDevManager->onGateways(jobj);
+}

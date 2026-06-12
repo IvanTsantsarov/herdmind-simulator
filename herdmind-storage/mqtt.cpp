@@ -76,17 +76,17 @@ void Mqtt::subscribeToDeviceUp(const QString &devEUI)
 
     // Connect to subscription stateChanged signal
     connect(subscription, &QMqttSubscription::stateChanged, this,
-            [&,subscription](QMqttSubscription::SubscriptionState state){
+            [subscription](QMqttSubscription::SubscriptionState state){
         switch(state) {
         case QMqttSubscription::Unsubscribed:
-            qWarning() << "MQTT:Subscription is unsubscribed:" << devEUI;
+            qWarning() << "MQTT:Subscription is unsubscribed:" << subscription->topic();
             break;
         case QMqttSubscription::Subscribed:
-            qDebug() << "Subscription is active" << devEUI;
-            mStorage->onSubscribed(devEUI);
+            qDebug() << "Subscription is active" << subscription->topic();
+            // mStorage->onSubscribed(devEUI);
             break;
         case QMqttSubscription::Error:
-            qWarning() << "MQTT:Subscription error:" << subscription->reason() << devEUI;
+            qWarning() << "MQTT:Subscription error:" << subscription->reason() << subscription->topic();
             break;
         default:
             qInfo() << "Subscription pending...";

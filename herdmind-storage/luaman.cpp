@@ -54,6 +54,8 @@ void LuaMan::onThreadFinished()
 {
     Thread* t = (Thread*) sender();
 
+    qInfo() << "Lua thread finished" << t->path();
+
     if( t == *mCurrent ) {
         next();
     }
@@ -63,6 +65,8 @@ void LuaMan::onThreadFinished()
 }
 
 void LuaMan::Thread::run() {
+    qDebug() << "Starging new thread and lua instance...";
+
     mState = luaL_newstate();
 
     lua_gc(mState, LUA_GCSTOP, 0);  // stop collector during initialization

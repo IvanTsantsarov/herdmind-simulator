@@ -4,6 +4,7 @@
 
 #include <QGeoCoordinate>
 #include <QObject>
+#include <QImage>
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsPolygonItem>
@@ -19,11 +20,24 @@ class SceneView;
 class Gateway;
 class Network;
 
+#define SCENE_FENCE_PATH "fence.list"
+
+
 class SelectableItem : public QObject, public QGraphicsPolygonItem {
     Q_OBJECT
 
-    float mScale = 0.0;
 public:
+    enum struct Type {
+        None = 0,
+        Animal,
+        Gateway
+    };
+
+protected:
+    float mScale = 0.0;
+    Type mType = Type::None;
+public:
+
     SelectableItem( const QPolygonF& poly);
     SelectableItem( float radius );
 
@@ -44,8 +58,9 @@ class AnimalItem : public SelectableItem {
 protected:
     void onSelection();
 public:
-    AnimalItem( Animal* animal, const QPolygonF& poly) : SelectableItem(poly), mAnimal(animal) { }
+    AnimalItem( Animal* animal, const QPolygonF& poly) : SelectableItem(poly), mAnimal(animal) { mType = Type::Animal; }
     Animal* animal(){ return mAnimal; }
+    QBrush mBrush;
 };
 
 class GatewayItem : public SelectableItem {
@@ -54,18 +69,19 @@ class GatewayItem : public SelectableItem {
 protected:
     void onSelection();
 public:
-    GatewayItem( Gateway* gw, const QPolygonF& poly) : SelectableItem(poly), mGateway(gw) { }
+    GatewayItem( Gateway* gw, const QPolygonF& poly) : SelectableItem(poly), mGateway(gw) { mType = Type::Gateway; }
     Gateway* gateway(){ return mGateway; }
 };
 
 
 class TextItem : public QGraphicsTextItem
 {
-    QColor mBackColor;
+    QColor mBackColor, mTextColor;
 public:
     TextItem(const QString &text, Scene* scene);
 
     void setBackColor(const QColor& c){ mBackColor = c; }
+    void setTextColor(const QColor& c){ mTextColor = c; }
 
     void paint( QPainter *painter, const QStyleOptionGraphicsItem *o, QWidget *w);
 };
@@ -75,6 +91,8 @@ public:
 class Scene : public QGraphicsScene
 {
     Q_OBJECT
+    bool mIsUI = true;
+private:
 
     QVector<AnimalItem*> mAnimalItems;
     AnimalItem* mAnimalItemSelected = nullptr;
@@ -85,32 +103,73 @@ class Scene : public QGraphicsScene
     QVector<QGraphicsLineItem*> mLinesGateways;
 
     QGraphicsEllipseItem* mAttractor = nullptr;
-    QVector<QGraphicsRectItem*> mLawns;
+    QGraphicsRectItem *mMeadow = nullptr;
+    QImage mMeadowImage;
 
     TextItem* mItemInfo = nullptr;
     TextItem* mCursorInfo = nullptr;
+    TextItem* mPopup = nullptr;
+
+    bool mIsActiveFence = true;
+    QPolygonF mFence;
+    QGraphicsPolygonItem* mFenceItem = nullptr;
+    QGraphicsLineItem* mFenceClosestBorder = nullptr;
+    QGraphicsEllipseItem* mFenceClosestPoint = nullptr;
+
+    QGraphicsLineItem* mCenterX = nullptr;
+    QGraphicsLineItem* mCenterY = nullptr;
 
     SceneView* mView = nullptr;
+    QTimer* mPopupTimer = nullptr;
+    QString mPopupLastMsg;
+    int mPopupLastMsgCount = 0;
 
     void clear();
+    void updateMeadowBrush();
+    void recreateFenceItem();
+    void recreateFenceBorderItem();
+    void updateFenceBorderItem();
+
 public:
     explicit Scene(QObject *parent = nullptr);
 
-    void create(SceneView *view, Herd *herd, Network* network, int lawnsCount, int collarPairsCount, int gatewayPairsCount);
-    void update(Herd* herd, Meadow *meadow, Network *network, bool isInitial = false, float diameter = 0.0f);
+    void create(SceneView *view, Herd *herd, Network* network,
+                QSize meadowDim, int collarPairsCount, int gatewayPairsCount);
+    void update(Herd* herd, Meadow *meadow, Network *network,
+                bool isInitial = false, float diameter = 0.0f);
 
     void selectAnimalItem(int index);
     void selectAnimalItem(AnimalItem* item);
+    void clearSelectedAnimalItem();
 
     void selectGatewayItem(GatewayItem* item);
 
     inline AnimalItem* selectedAnimal(){ return mAnimalItemSelected; }
     void setCursorInfoPos(const QPointF &pt, const QGeoCoordinate& location, float kg);
 
+    bool storeImage(const QString &path = QString() );
+
+    bool fenceAppend(const QPointF &pt);
+    void fenceRemove();
+    QVector<QGeoCoordinate> fenceGepPoints(Meadow *meadow);
+    int fencePointsCount(){ return mFence.count(); }
+    bool saveFence(const QString& path = SCENE_FENCE_PATH);
+    bool loadFence(const QString& path = SCENE_FENCE_PATH);
+    void fenceActivate(bool is);
+
+    void showPopup(const QString& msg);
+    bool isPopup();
+
+    void showUI(bool is);
+
+    void resetView();
+
 public slots:
     void onFigurePick(QGraphicsPolygonItem* item, QPointF pos);
     void onFigureMove(QGraphicsPolygonItem *item, QPointF pos);
     void onFigureDrop(QGraphicsPolygonItem *item, QPointF pos);
+    void onPopupHide();
+
 
 };
 

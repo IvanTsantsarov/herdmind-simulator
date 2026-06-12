@@ -455,13 +455,21 @@ QString Herd::jsonAnimalsList( bool isDevicesList )
 
 bool Herd::storeLists(const QString& dir)
 {
+    qDebug() << "Storing herd lists in:" << dir;
+
     // If cannot load params from animals list - save animals list
-    if( !gSimTools->fileWrite(dir + ANIMALS_LIST_FILE, jsonAnimalsList(false).toUtf8(), true)) {
+    QString filePath = dir + ANIMALS_LIST_FILE;
+    if( !gSimTools->fileWrite(filePath, jsonAnimalsList(false).toUtf8(), true)) {
+        qCritical() << "Error saving file" << filePath;
         return false;
     }
+
+    filePath = dir + DEVICES_LIST_FILE;
     if( !gSimTools->fileWrite(dir + DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true) ) {
+        qCritical() << "Error saving file" << filePath;
         return false;
     }
+
     qInfo() << "Animals and devices lists stored in" << dir;
 
     return true;

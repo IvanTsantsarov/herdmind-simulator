@@ -4,7 +4,7 @@
   # Log level.
   #
   # Options are: trace, debug, info, warn error.
-  level="info"
+  level="debug"
 
 
 # PostgreSQL configuration.
@@ -103,5 +103,5 @@ type="mqtt"
   enabled=["mqtt"]
 
   [integration.mqtt]
-    server="tcp://$MQTT_BROKER_HOST:1883/"
+    server="tcp://localhost:1883/"
     json=true

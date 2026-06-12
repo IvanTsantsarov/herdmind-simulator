@@ -40,6 +40,7 @@ class DialogDeviceMsg : public QDialog
     void clearConnections();
     bool changeDeviceMsgIcon(int row, Protocol::Collar::Event event, bool isOn);
     void onDeviceMessageAfter(const QByteArray &addr, const QByteArray& msg);
+    void addOutput(const QString &txt);
 public:
     explicit DialogDeviceMsg(DevManager *devManager, QWidget *parent = nullptr);
     ~DialogDeviceMsg();

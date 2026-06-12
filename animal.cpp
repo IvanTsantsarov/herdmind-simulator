@@ -44,6 +44,11 @@ Animal::~Animal()
     }
 }
 
+QGeoCoordinate Animal::geoPos()
+{
+    return mHerd->meadow()->getGeoLocation(mPosition.toPointF());
+}
+
 
 
 QList<int> Animal::namesIndices(bool isMale)
@@ -186,7 +191,7 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
     }
 
     // if both not approaching to each other
-    float distanceNext = ((other->p()+other->v()) - (p()+v())).lengthSquared();
+    float distanceNext = ((other->pos()+other->v()) - (pos()+v())).lengthSquared();
     if( distanceNext > distanceSqared ) {
         return false;
     }
@@ -313,31 +318,33 @@ QString Animal::info()
     float kg = mLawn ? mLawn->kg() : 0.0f;
 
     QGeoCoordinate location = geoLocation();
+    QString result;
 
 #if PRINT_DEBUG_INFO == true
-        return QString("%1 %2\nPtr:0x%3\nP:%4,%5\nV:%6,%7\nA:%8,%9\nStamina:%10\nState:%11 %12\nLawn:0x%13\nKg=%14\nAnimals:%15")
-            .arg(mName)
-            .arg(mIsMale ? "♂️" : "♀️")
-            .arg(reinterpret_cast<quint64>(this), 0, 16)
-            .arg( location.latitude(), 0, 'f', 6)
-            .arg( location.longitude(), 0, 'f', 6)
-            .arg( mVelocity.x(), 0, 'f', 2)
-            .arg( mVelocity.y(), 0, 'f', 2)
+    result = QString("%1 %2\nPtr:0x%3\nP:%4,%5\nV:%6,%7\nA:%8,%9\nStamina:%10\nState:%11 %12\nLawn:0x%13\nKg=%14\nAnimals:%15")
+        .arg(mName)
+        .arg(mIsMale ? "♂️" : "♀️")
+        .arg(reinterpret_cast<quint64>(this), 0, 16)
+        .arg( location.latitude(), 0, 'f', 6)
+        .arg( location.longitude(), 0, 'f', 6)
+        .arg( mVelocity.x(), 0, 'f', 2)
+        .arg( mVelocity.y(), 0, 'f', 2)
 
-            .arg( mRotationAngleTarget, 0, 'f', 2)
-            .arg( mRotationAngle, 0, 'f', 2)
+        .arg( mRotationAngleTarget, 0, 'f', 2)
+        .arg( mRotationAngle, 0, 'f', 2)
 
-            .arg( mStamina, 0, 'f', 2)
+        .arg( mStamina, 0, 'f', 2)
 
-            .arg( static_cast<int>(mState) )
-            .arg( currentStateString() )
+        .arg( static_cast<int>(mState) )
+        .arg( currentStateString() )
 
 
-            .arg(reinterpret_cast<quint64>(mLawn), 0, 16)
-            .arg(kg, 0, 'f', 2 )
-            .arg(mLawn ? mLawn->animalsCount() : 0 );
+        .arg(reinterpret_cast<quint64>(mLawn), 0, 16)
+        .arg(kg, 0, 'f', 2 )
+        .arg(mLawn ? mLawn->animalsCount() : 0 );
 #else
-    return QString("%1 %2\nP:%3,%4\nStamina:%5\nState:%6 %7\nKg=%8\nAnimals:%9")
+
+    result = QString("%1 %2\nP:%3,%4\nStamina:%5\nState:%6 %7\nGrazed:%8kg\nAnimals:%9")
         .arg(mName)
         .arg(mIsMale ? "♂️" : "♀️")
 
@@ -350,8 +357,17 @@ QString Animal::info()
         .arg( currentStateString() )
 
         .arg(kg, 0, 'f', 2 )
-        .arg(mLawn ? mLawn->animalsCount() : 0 );
+        .arg(mLawn ? mLawn->animalsCount() : 0);
 #endif
+
+    QString fenceString;
+    if(hasCollar() && collar()->isFence()) {
+        Collar* c = collar();
+        result.append( QString("\nFence:%1m %2").arg(c->fanceDistance(), 3,'g', 2).arg(c->isInsideFence() ? "✓" : "❗" ) );
+    }
+
+
+    return result;
 }
 
 QString Animal::jsonInfo(bool isDevicesList)

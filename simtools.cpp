@@ -7,24 +7,23 @@
 #include <QRandomGenerator>
 #include <QUdpSocket>
 #include <QFile>
+#include <QFileInfo>
 #include <fstream>
 
 #include "simtools.h"
 #include "defines_settings.h"
 #include "hardware/tools.h"
 
-SimTools::HarmonicsGenerator::HarmonicsGenerator(float radius, int count,
-                                                 float ampMin, float ampMax,
-                                                 float wavelenMin, float wavelenMax)
+SimTools::HarmonicsGenerator::HarmonicsGenerator(const Params& p)
 {
-    mCenters.reserve(count);
-    mAmplitudes.reserve(count);
-    mLength.reserve(count);
+    mCenters.reserve(p.count);
+    mAmplitudes.reserve(p.count);
+    mLength.reserve(p.count);
 
-    for( auto i = 0; i < count; i++) {
-        mAmplitudes.append( Tools::rnd(ampMin, ampMax) );
-        mLength.append( Tools::rnd(wavelenMin, wavelenMax) );
-        mCenters.append( QVector2D(Tools::rnd(-radius, radius), Tools::rnd(-radius, radius)) );
+    for( auto i = 0; i < p.count; i++) {
+        mAmplitudes.append( Tools::rnd(p.ampMin, p.ampMax) );
+        mLength.append( Tools::rnd(p.wavelenMin, p.wavelenMax) );
+        mCenters.append( QVector2D(Tools::rnd(-p.radius, p.radius), Tools::rnd(-p.radius, p.radius)) );
     }
 }
 
@@ -42,7 +41,6 @@ float SimTools::HarmonicsGenerator::sum(float x, float y, float angle) {
     }
     return result;
 }
-
 
 QVector2D SimTools::rotated(const QVector2D &v, float deg)
 {
@@ -168,6 +166,7 @@ bool SimTools::fileExists(const QString &path)
 bool SimTools::fileWrite(const QString &path, const QByteArray &content, bool isOverwrite)
 {
     if( !isOverwrite && QFile::exists(path) ) {
+        qDebug() << "File will not be overwritten:" << path;
         return true;
     }
 
@@ -207,25 +206,42 @@ bool SimTools::fileCompare(const QString &pathFile1, const QString &pathFile2, b
     return md51 == md52;
 }
 
+// returns true if pathFile1 is newer than pathFile2
+bool SimTools::fileIsNewer(const QString &pathFile1, const QString &pathFile2)
+{
+    QFileInfo file1(pathFile1);
+    QFileInfo file2(pathFile2);
+    QDateTime tm1 = file1.lastModified();
+    QDateTime tm2 = file2.lastModified();
+
+    return tm1 > tm2;
+}
+
 bool SimTools::fileRestoreResources(const QString &fileName)
 {
     QString srcPath = "://" + fileName;
-    bool isOverwrite = false;
+    QString dstPath = fileName;
+    bool areDifferent = false;
     bool isExists = false;
 
-    if( !QFile::exists(fileName) ) {
-        isOverwrite = true;
+    if( !QFile::exists(dstPath) ) {
+        areDifferent = true;
     }else {
         isExists = true;
         bool isOk = false;
-        isOverwrite = !SimTools::fileCompare(srcPath, fileName, &isOk);
+        areDifferent = !SimTools::fileCompare(srcPath, dstPath, &isOk);
         if( !isOk ) {
-            qCritical() << "Files" << srcPath << fileName << "error";
+            qCritical() << "Files" << srcPath << dstPath << "error";
             return false;
         }
     }
 
-    if( !isOverwrite ) {
+    if( !areDifferent ) {
+        return true;
+    }
+
+    if( !SimTools::fileIsNewer(srcPath, dstPath) ) {
+        qInfo() << "Destination file" << dstPath << "is newer than" << srcPath << "and will NOT be overwritten.";
         return true;
     }
 
@@ -248,15 +264,13 @@ bool SimTools::fileRestoreResources(const QString &fileName)
     return true;
 }
 
-
-
 SimTools::SimTools(const QSettings &settings)
 {
-    mAppId  = settings.value(CHIRPSTACK_SECTION"/appId").toByteArray();
+    mAppId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "appId");
 
-    mBolusProfileId  = settings.value(CHIRPSTACK_SECTION"/bolusProfileId").toByteArray();
-    mCollarProfileId  = settings.value(CHIRPSTACK_SECTION"/collarProfileId").toByteArray();
-    mGatewayProfileId  = settings.value(CHIRPSTACK_SECTION"/gatewayProfileId").toByteArray();
+    mBolusProfileId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "bolusProfileId");
+    mCollarProfileId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION,"collarProfileId");
+    mGatewayProfileId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "gatewayProfileId");
 
     std::ifstream file("/proc/self/status");
     std::string line;
@@ -282,5 +296,7 @@ QString SimTools::profileId(LoraDev::Profile profile) {
 
     return "";
 }
+
+
 
 

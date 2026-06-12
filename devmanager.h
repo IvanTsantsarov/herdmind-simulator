@@ -1,27 +1,36 @@
 #ifndef DEVMANAGER_H
 #define DEVMANAGER_H
 
+#include <QGeoCoordinate>
 #include <QSettings>
 #include <QJsonArray>
 
-
-class ApiRest;
 class LoraDev;
 class Gateway;
+class ApiRest;
+class ApiMqtt;
 
-class DevManager
+
+class DevManager : public QObject
 {
+    Q_OBJECT
+
     friend class ApiRest;
+    friend class ApiMqtt;
 
     enum struct States {
         None = 0,
         GetDevicesCount,
         GetDevicesList,
+        GetGatewaysCount,
+        GetGatewaysList,
+        SetupFence
     };
 
     States mState = States::None;
 
     ApiRest* mApiRest = nullptr;
+    ApiMqtt* mApiMqtt = nullptr;
 
     QList<LoraDev*> mDevicesList;
     QMap<QString, LoraDev*> mDevicesMap;
@@ -45,9 +54,21 @@ class DevManager
     int mDeletedDevicesCount = 0;
     int mActivatedDevicesCount = 0;
     bool mIsDevicesReady = false;
+    int mSetupDevicesCount = 0;
+
+    QMap<QString, bool> mDevicesMapFence;
 
     int mCollarsCount = 0;
     int mBolusesCount = 0;
+
+    Gateway *mEdge = nullptr;
+
+    bool mIsSubscribedToDevicesUp = false;
+    void subscribeToDevicesUp();
+
+    static int bytesByDataRate(int dr);
+
+
 
 protected:
     void onDevices(const QJsonObject &jobj);
@@ -57,9 +78,12 @@ protected:
     void onDeviceAddress(const QString& devEUI, const QString& devAddr);
 
     void onDevicesReady(bool isStore);
+    void onGateways(const QJsonObject &jobj);
+    void onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray& msg);
 
 public:
     DevManager( const QSettings& settings );
+    virtual ~DevManager();
     inline bool isReady(){ return mIsDevicesReady; }
     inline int collarsCount(){ return mCollarsCount; }
     inline int bolusesCount(){ return mBolusesCount; }
@@ -67,7 +91,18 @@ public:
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);
     QList<LoraDev*> devices(){ return mDevicesList; }
-    bool sendMessage(const QString& eui, const QByteArray& msg);
+    inline int devicesCount(){ return mDevicesList.count(); }
+    bool sendMessageRest(const QString& eui, const QByteArray& msg);
+    bool sendMessageMqtt(const QString& eui, const QByteArray& msg);
+    bool setupFence(const QGeoCoordinate &center, const QVector<QGeoCoordinate>& coords);
+
+    LoraDev* findByAddress(const QByteArray &address );
+
+    int getDevicesFenceStatus(bool isOn);
+
+private slots:
+    void onConnectedMqtt();
+
 };
 
 #endif // DEVMANAGER_H
