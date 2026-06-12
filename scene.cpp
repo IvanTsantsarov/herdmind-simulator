@@ -632,6 +632,9 @@ bool Scene::loadFence(const QString &path)
 
 void Scene::showPopup(const QString &msg)
 {
+    if( !mPopup) {
+        return;
+    }
 
     if( mPopupLastMsg == msg) {
         mPopupLastMsgCount ++;
