@@ -8,6 +8,7 @@ CONFIG += c++17 cmdline
 
 SOURCES += \
         apirest.cpp \
+        console_reader.cpp \
         lua/lapi.c \
         lua/lauxlib.c \
         lua/lbaselib.c \
@@ -55,6 +56,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     ../hardware/protocol.h \
     apirest.h \
+    console_reader.h \
     defines.h \
     lua/lapi.h \
     lua/lauxlib.h \

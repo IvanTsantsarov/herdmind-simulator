@@ -5,6 +5,9 @@
 #include "storage.h"
 #include "defines.h"
 #include "tools.h"
+#include "console_reader.h"
+
+ConsoleReader gConsoleReader(false);
 
 #include <iostream>
 using namespace std;
@@ -62,15 +65,37 @@ int main(int argc, char *argv[])
     }
 
 
-    char choice;
-    printf("Load external settins (to connect later to remote server)? [y/n]");
-    flush(cout);
-    a.processEvents();
-    choice =  'n';//    cin >> choice;
+    // search for argument in CLI
+    auto findArg = [=](const QString& name, const QString& nick, QString* param = nullptr) {
+        QString fullName = "--" + name;
+        QString fullNick = "-" + nick;
 
-    a.processEvents();
-    QString settingsName = choice =='y' || choice =='Y' ? SETTINGS_NAME_EXTERNAL : SETTINGS_NAME;
+        for( auto i = 0; i < argc; i++) {
+            if( argv[i] == fullName || argv[i] == fullNick ) {
+                if( param && i < (argc - 1) ) {
+                    *param = argv[i+1];
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
 
+    QString settingsName = SETTINGS_NAME;
+
+    if( findArg("external", "e") ) {
+        settingsName = SETTINGS_NAME_EXTERNAL;
+    }else
+    if( findArg("prompt", "p") ) {
+        char choice;
+        printf("Load external settins (to connect later to remote server)? [y/n]");
+        flush(cout);
+        a.processEvents();
+        choice =  'n';//    cin >> choice;
+
+        a.processEvents();
+        settingsName = choice =='y' || choice =='Y' ? SETTINGS_NAME_EXTERNAL : SETTINGS_NAME;
+    }
 
     gLua = new LuaMan(settingsName);
 
