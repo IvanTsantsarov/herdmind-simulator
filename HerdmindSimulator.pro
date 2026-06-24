@@ -1,4 +1,4 @@
-QT       += core gui widgets positioning network mqtt
+QT += core gui widgets positioning network mqtt
 
 CONFIG += c++17
 
@@ -96,6 +96,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    Readme.md \
     bolus_chirpstack.js \
     collar_chirpstack.js \
     deploy.sh \
