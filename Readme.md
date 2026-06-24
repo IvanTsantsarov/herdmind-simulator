@@ -1,6 +1,6 @@
 # HerdMind Simulator - Development Environment Setup
 
-This document describes how to set up a development environment for **HerdMind Simulator** on **Ubuntu 22.04 LTS** using **Qt Creator**, **Qt 6.11**, and **Qt MQTT**.
+This document describes how to set up a development environment for **HerdMind Simulator** on **Ubuntu 22.04 LTS** using **Qt Creator**, **Qt 6.11**, **Qt MQTT**, Docker, and ChirpStack.
 
 ---
 
@@ -33,17 +33,7 @@ sudo apt update
 Install essential build tools:
 
 ```bash
-sudo apt install -y \
-    build-essential \
-    cmake \
-    ninja-build \
-    git \
-    gdb \
-    clang \
-    pkg-config \
-    libgl1-mesa-dev \
-    libxkbcommon-dev \
-    libssl-dev
+sudo apt install -y build-essential cmake ninja-build git gdb clang pkg-config libgl1-mesa-dev libxkbcommon-dev libssl-dev
 ```
 
 Verify installation:
@@ -80,7 +70,7 @@ Install:
 
 * Qt Creator
 * Qt 6.11.x
-* Desktop gcc_64 kit
+* Desktop gcc_64 Kit
 
 Recommended installation path:
 
@@ -88,27 +78,21 @@ Recommended installation path:
 ~/Qt/6.11.0/gcc_64
 ```
 
----
-
-## Verify Qt Installation
-
-Check that qmake is available:
+Verify installation:
 
 ```bash
 ~/Qt/6.11.0/gcc_64/bin/qmake -query
 ```
 
-Expected output should show the Qt installation paths.
-
 ---
 
 # 4. Install Qt MQTT Module
 
-The HerdMind Simulator project requires the **Qt MQTT** module.
+The HerdMind Simulator project requires the official Qt MQTT module.
 
 ## Important
 
-There are two different MQTT libraries commonly confused:
+There are two MQTT libraries commonly confused:
 
 ### Qt MQTT (Official)
 
@@ -124,13 +108,7 @@ QT += mqtt
 
 External library that is **not** an official Qt module.
 
-This library cannot be used directly through:
-
-```pro
-QT += mqtt
-```
-
-and should not be used for this project.
+Do not use QMQTT for this project.
 
 ---
 
@@ -149,9 +127,7 @@ cd qtmqtt
 Configure:
 
 ```bash
-cmake -S . -B build \
-    -DCMAKE_PREFIX_PATH=$HOME/Qt/6.11.0/gcc_64 \
-    -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.11.0/gcc_64
+cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/Qt/6.11.0/gcc_64 -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.11.0/gcc_64
 ```
 
 Build:
@@ -166,23 +142,13 @@ Install:
 cmake --install build
 ```
 
----
-
-## Verify MQTT Installation
-
-Check that MQTT files are installed inside Qt:
+Verify installation:
 
 ```bash
 find $HOME/Qt/6.11.0/gcc_64 -iname "*mqtt*"
 ```
 
-The module should be discoverable by qmake.
-
----
-
-## Using MQTT in the Project
-
-In a `.pro` file:
+Example usage in the project:
 
 ```pro
 QT += core gui widgets positioning network mqtt
@@ -196,104 +162,113 @@ Example include:
 
 ---
 
-# 5. Open Project in Qt Creator
+# 5. Install Docker
 
-Launch Qt Creator:
+The project uses Docker containers for local services and development tooling.
 
-```bash
-qtcreator
-```
+## Install Docker Engine
 
-or
+Remove old Docker packages if present:
 
 ```bash
-$HOME/Qt/Tools/QtCreator/bin/qtcreator
+sudo apt remove docker docker-engine docker.io containerd runc
 ```
 
-Open:
+Install prerequisites:
 
-```text
-herdmind-simulator.pro
+```bash
+sudo apt update
+
+sudo apt install -y ca-certificates curl gnupg lsb-release
 ```
 
-Select:
+Add Docker's official GPG key:
 
-* Desktop Qt 6.11.0 gcc_64 Kit
+```bash
+sudo mkdir -p /etc/apt/keyrings
 
-Configure the project and build.
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+```
+
+Add Docker repository:
+
+```bash
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+Install Docker:
+
+```bash
+sudo apt update
+
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Verify installation:
+
+```bash
+docker --version
+docker compose version
+```
+
+Allow running Docker without sudo:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Log out and log back in for the group membership change to take effect.
+
+Verify:
+
+```bash
+docker run hello-world
+```
 
 ---
 
-# 6. Build from Command Line
+# 6. Install ChirpStack Docker Images
 
-Generate Makefiles:
+Pull the required ChirpStack images:
 
 ```bash
-$HOME/Qt/6.11.0/gcc_64/bin/qmake
+git clone https://github.com/chirpstack/chirpstack-docker.git
+cd chirpstack-docker
 ```
 
-Build:
+Expected images:
 
-```bash
-make -j$(nproc)
-```
-
-Run:
-
-```bash
-./herdmind-simulator
+```text
+chirpstack/chirpstack
+chirpstack/chirpstack-gateway-bridge
+postgres
+redis
+eclipse-mosquitto
 ```
 
 ---
 
-# Troubleshooting
+# 7. Verify Development Environment
 
-## MQTT Module Not Found
+Verify the following components are available:
 
-Error:
-
-```text
-Unknown module(s) in QT: mqtt
+```bash
+git --version
+cmake --version
+docker --version
+docker compose version
 ```
 
-Verify that:
+Verify Qt:
+
+```bash
+$HOME/Qt/6.11.0/gcc_64/bin/qmake -query
+```
+
+Verify Qt MQTT:
 
 ```bash
 find $HOME/Qt/6.11.0/gcc_64 -iname "*mqtt*"
 ```
 
-returns installed MQTT files.
-
-If not, repeat the Qt MQTT installation steps.
-
----
-
-## Qt Version Mismatch
-
-Error:
-
-```text
-Could not find a configuration file for package "Qt6"
-```
-
-Ensure that:
-
-```bash
--DCMAKE_PREFIX_PATH=$HOME/Qt/6.11.0/gcc_64
-```
-
-matches the installed Qt version exactly.
-
-Qt module source version and installed Qt version should match (e.g. 6.11.0 ↔ 6.11.0).
-
----
-
-## Clean Build
-
-Remove build artifacts:
-
-```bash
-rm -rf build
-```
-
-Reconfigure and rebuild the project.
+At this point the development environment should be ready for building and running HerdMind Simulator.
