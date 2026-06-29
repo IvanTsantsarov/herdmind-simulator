@@ -168,72 +168,23 @@ The project uses Docker containers for local services and development tooling.
 
 ## Install Docker Engine
 
-Remove old Docker packages if present:
-
-```bash
-sudo apt remove docker docker-engine docker.io containerd runc
-```
-
-Install prerequisites:
-
 ```bash
 sudo apt update
-
-sudo apt install -y ca-certificates curl gnupg lsb-release
+sudo apt install docker.io docker-compose-v2
 ```
 
-Add Docker's official GPG key:
-
-```bash
-sudo mkdir -p /etc/apt/keyrings
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-```
-
-Add Docker repository:
-
-```bash
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-```
-
-Install Docker:
-
-```bash
-sudo apt update
-
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-Verify installation:
-
-```bash
-docker --version
-docker compose version
-```
-
-Allow running Docker without sudo:
-
+Add to user:
 ```bash
 sudo usermod -aG docker $USER
+newgrp docker
 ```
 
-Log out and log back in for the group membership change to take effect.
-
-Verify:
-
-```bash
-docker run hello-world
-```
-
----
 
 # 6. Install ChirpStack Docker Images
 
-Pull the required ChirpStack images:
-
 ```bash
-git clone https://github.com/chirpstack/chirpstack-docker.git
 cd chirpstack-docker
+docker compose up -d
 ```
 
 Expected images:
@@ -248,7 +199,7 @@ eclipse-mosquitto
 
 ---
 
-# 7. Verify Development Environment
+# 7. Verify Development Environment (if needed)
 
 Verify the following components are available:
 
@@ -271,4 +222,34 @@ Verify Qt MQTT:
 find $HOME/Qt/6.11.0/gcc_64 -iname "*mqtt*"
 ```
 
-At this point the development environment should be ready for building and running HerdMind Simulator.
+___
+# 8. Configure chirpstack from Web UI
+
+Login to localhost:8080 with name "admin" and password "admin".
+There are two settings.ini and settings_external.ini (for external connection). 
+All of next steps requres creating new intries into these settings accordingly
+Web UI Chirpstack configuration.
+
+## From Network side bar menu
+### In API keys
+1. Create new api key and before closing it key copy it
+2. Add copied api key to [Chirpstack] tenantKey="..."
+
+### In Tenants
+1. Create new Tenant (Hermind tenant) alonside chirpstack tentant
+2. Open created tetant and copy the id in [Chirpstack] tenantId="..."
+
+## From Tenant side bar menu
+### Into Applications: 
+1. Create new application
+2. Copy its id into [Chirpstack] appId="..."
+
+### Into Api keys: 
+1. Create new API key
+2. Add it to config file into [Chirpstack] apiKey="..."
+
+### In Device profiles:
+ 1. Add Bolus device profile and add it to [Chirpstack] bolusProfileId="..."
+ 2. Add Collar device profile and add it to [Chirpstack] collarProfileId="..."  
+ 3. Enable Class C for Collar
+
