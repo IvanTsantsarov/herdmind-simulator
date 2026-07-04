@@ -238,6 +238,8 @@ Web UI Chirpstack configuration.
 ### In Tenants
 1. Create new Tenant (Hermind tenant) alonside chirpstack tentant
 2. Open created tetant and copy the id in [Chirpstack] tenantId="..."
+3. Check "Tenant can have gateways" on in selected tenant / configuration
+4. Press Submit
 
 ## From Tenant side bar menu
 ### Into Applications: 
@@ -253,3 +255,19 @@ Web UI Chirpstack configuration.
  2. Add Collar device profile and add it to [Chirpstack] collarProfileId="..."  
  3. Enable Class C for Collar
 
+### In Gateways 
+1. Add gateway
+2. Copy gateway id into [MQTT] gatewayId="..."
+
+
+## Debug
+
+docker logs -f chirpstack-docker-chirpstack-1
+
+
+sudo apt install mosquitto-clients
+
+mosquitto_sub -t "#" -v
+
+
+mosquitto_sub -h localhost -p 1883 -t "#" -v
