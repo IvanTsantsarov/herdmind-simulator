@@ -337,7 +337,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     ui->actionSave->setEnabled(true);
 
-    mScene->loadFence();
+    ui->checkFenceActivate->setEnabled(mScene->loadFence());
 
     ui->progressFence->setValue(0);
     ui->checkFence->setChecked(false);
@@ -346,6 +346,9 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     mScene->showPopup("Scene created!");
 
     mIsCreated = true;
+
+    ui->checkFence->setEnabled(true);
+    ui->checkFenceAdd->setEnabled(true);
 
     return true;
 }
@@ -412,13 +415,11 @@ void MainWindow::onUpdate()
 
 
     if( mIsFenceSetup ) {
-        bool isActivate = ui->checkFence->isChecked();
-        int count = mDevManager->getDevicesFenceStatus(isActivate);
+        int count = mDevManager->getDevicesFenceStatus(mIsFenceActivating);
         ui->progressFence->setValue(count);
         if( count >= mHerd->collarsCount()) {
             mIsFenceSetup = false;
-
-            mScene->fenceActivate(isActivate);
+            mScene->fenceActivate(mIsFenceActivating);
         }
     }
 }
@@ -673,6 +674,10 @@ void MainWindow::on_checkPastureGenParams_toggled(bool checked)
 
 void MainWindow::on_checkFenceAdd_checkStateChanged(const Qt::CheckState &state)
 {
+    if( !mIsCreated ) {
+        return;
+    }
+
     if( state == Qt::Checked ) {
         mSceneView->setMode(SceneView::Mode::Fence);
     }else {
@@ -692,6 +697,10 @@ void MainWindow::on_btnFenceRemoveLast_clicked()
 
 void MainWindow::updateFenceButtons()
 {
+    if( !mIsCreated ) {
+        return;
+    }
+
     if( ui->checkFenceAdd->isChecked() ) {
         ui->btnFenceRemoveLast->setEnabled(mScene->fencePointsCount());
         ui->btnFenceClear->setEnabled(mScene->fencePointsCount() < VIRTUAL_FENCE_MAX_POINTS);
@@ -720,19 +729,24 @@ void MainWindow::on_actionReset_triggered()
     }
 }
 
-
-
-void MainWindow::on_checkFence_toggled(bool is)
+void MainWindow::on_checkFenceActivate_toggled(bool checked)
 {
     if( !mIsCreated) {
         return;
     }
 
-    ui->progressFence->setValue(0);
-
     QVector<QGeoCoordinate> fenceGeoPoints;
 
-    if( is ) {
+    ui->checkFenceAdd->setEnabled(!checked);
+
+    if( checked ) {
+        ui->btnFenceClear->setEnabled(false);
+        ui->btnFenceRemoveLast->setEnabled(false);
+    }else {
+        updateFenceButtons();
+    }
+
+    if( checked ) {
         ui->checkFenceAdd->setEnabled(false);
         fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
         ui->checkFence->setToolTip("Click to deactivate the fence");
@@ -745,9 +759,11 @@ void MainWindow::on_checkFence_toggled(bool is)
     ui->progressFence->setMinimum(0);
     ui->progressFence->setMaximum(mDevManager->collarsCount());
     ui->progressFence->setEnabled(true);
+    ui->progressFence->setValue(0);
     updateFenceButtons();
 
     mIsFenceSetup = true;
+    mIsFenceActivating = checked;
     mDevManager->setupFence(mMeadow->geoCenter(), fenceGeoPoints);
 }
 

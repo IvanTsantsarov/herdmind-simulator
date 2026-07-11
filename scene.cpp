@@ -542,6 +542,11 @@ void Scene::fenceRemove()
 
 void Scene::fenceActivate(bool is)
 {
+    if( !mFenceItem)  {
+        qWarning() << "Fence item cannot be" << (is ? "activated" : "deactivated") << "cause it's null!";
+        return;
+    }
+
     if( is ) {
         mFenceItem->setPen(FENCE_PEN_ACTIVE);
         mFenceItem->setBrush(FENCE_BRUSH_ACTIVE);

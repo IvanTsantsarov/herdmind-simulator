@@ -50,6 +50,7 @@ class MainWindow : public QMainWindow
     void closeEvent(QCloseEvent* e);
 
     bool mIsFenceSetup = false;
+    bool mIsFenceActivating = false;
 
     void updateFenceButtons();
 
@@ -104,7 +105,7 @@ private slots:
     void on_btnPause_toggled(bool checked);
     void on_actionScene_UI_toggled(bool is);
     void on_actionReset_triggered();
-    void on_checkFence_toggled(bool is);
+        void on_checkFenceActivate_toggled(bool checked);
 };
 
 extern MainWindow* gMainWindow;
