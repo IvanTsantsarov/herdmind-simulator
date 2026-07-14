@@ -119,7 +119,7 @@ Clone the official Qt MQTT module matching the installed Qt version:
 ```bash
 cd ~/Projects
 
-git clone --branch 6.11.0 https://github.com/qt/qtmqtt.git
+git clone --branch 6.10.3 https://github.com/qt/qtmqtt.git
 
 cd qtmqtt
 ```
@@ -127,7 +127,7 @@ cd qtmqtt
 Configure:
 
 ```bash
-cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/Qt/6.11.0/gcc_64 -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.11.0/gcc_64
+cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/Qt/6.10.3/gcc_64 -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.10.3/gcc_64
 ```
 
 Build:
@@ -145,7 +145,7 @@ cmake --install build
 Verify installation:
 
 ```bash
-find $HOME/Qt/6.11.0/gcc_64 -iname "*mqtt*"
+find $HOME/Qt/6.10.3/gcc_64 -iname "*mqtt*"
 ```
 
 Example usage in the project:
