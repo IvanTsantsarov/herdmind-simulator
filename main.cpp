@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 
     qInfo() << "Gegga herdmind simulator v. " << VERSION;
     qInfo() << "by Ivan Tsantsarov " << 2025;
+    qInfo() << "Platform:" << QGuiApplication::platformName();
     qInfo() << "Qt version:" << qVersion();
     qInfo() << "Current dir:" << QDir::current().absolutePath();
     qInfo() << "Executable:" << QDir::currentPath();

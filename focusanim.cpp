@@ -18,7 +18,7 @@ FocusAnim::FocusAnim(QWidget *parent)
     ui->setupUi(this);
 
     setWindowFlags( Qt::Tool | Qt::FramelessWindowHint );
-    setAttribute(Qt::WA_TranslucentBackground);
+    // setAttribute(Qt::WA_TranslucentBackground);
 }
 
 FocusAnim::~FocusAnim()
@@ -32,13 +32,18 @@ void FocusAnim::start(QWidget *target)
     show();
 
     mTarget = target;
+    double ratio = target->devicePixelRatioF();
 
     QRect r = target->rect();
-    QPoint p1 = target->mapToGlobal( r.topLeft() );
-    QPoint p2 = target->mapToGlobal( r.bottomRight() );
+    QPoint p1 = target->mapToGlobal( r.topLeft() )  * ratio ;
+    QPoint p2 = target->mapToGlobal( r.bottomRight() )  * ratio ;
+
 
     if( mAnimSize ) {
         delete mAnimSize;
+    }
+
+    if( mAnimFade ) {
         delete mAnimFade;
     }
 
@@ -50,13 +55,17 @@ void FocusAnim::start(QWidget *target)
     mAnimSize->setLoopCount( FOCUS_ANIM_LOOPS );
     mAnimSize->start();
 
-    mAnimFade = new QPropertyAnimation( this ,"windowOpacity" );
-    mAnimFade->setStartValue( 1.0f );
-    mAnimFade->setEndValue( 0.0f );
-    mAnimFade->setEasingCurve(FOCUS_ANIM_CURVE);
-    mAnimFade->setDuration( FOCUS_ANIM_DURATION );
-    mAnimFade->setLoopCount( FOCUS_ANIM_LOOPS );
-    mAnimFade->start();
+    QString platform = QGuiApplication::platformName();
+
+    if (platform == "windows" || platform == "cocoa" || platform == "xcb") {
+        mAnimFade = new QPropertyAnimation( this ,"windowOpacity" );
+        mAnimFade->setStartValue( 1.0f );
+        mAnimFade->setEndValue( 0.0f );
+        mAnimFade->setEasingCurve(FOCUS_ANIM_CURVE);
+        mAnimFade->setDuration( FOCUS_ANIM_DURATION );
+        mAnimFade->setLoopCount( FOCUS_ANIM_LOOPS );
+        mAnimFade->start();
+    }
 
     mIsPlaying = true;
 
@@ -68,6 +77,9 @@ void FocusAnim::stop()
 {
     if( mAnimSize) {
         mAnimSize->stop();
+    }
+
+    if( mAnimFade ) {
         mAnimFade->stop();
     }
 
@@ -93,8 +105,9 @@ void FocusAnim::paintEvent(QPaintEvent *) {
     p.drawRoundedRect(rect(), 10, 10 );
 
     // Cut out inner transparent hole
-    QRegion outer(rect());
-    QRegion inner(rect().adjusted(FOCUS_RECT_TICKNESS, FOCUS_RECT_TICKNESS, -FOCUS_RECT_TICKNESS, -FOCUS_RECT_TICKNESS), QRegion::Rectangle);
+    QRect r = rect();
+    QRegion outer(r);
+    QRegion inner(r.adjusted(FOCUS_RECT_TICKNESS, FOCUS_RECT_TICKNESS, -FOCUS_RECT_TICKNESS, -FOCUS_RECT_TICKNESS), QRegion::Rectangle);
     QRegion hollow = outer.subtracted(inner);
     setMask(hollow);
 }

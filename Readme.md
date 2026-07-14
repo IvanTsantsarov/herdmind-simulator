@@ -263,6 +263,8 @@ Web UI Chirpstack configuration.
 3. Check "Tenant can have gateways" on in selected tenant / configuration
 4. Press Submit
 
+#### * Tenant is now created and selected. All device profiles created will be assciated with selected tenant.
+
 ## From Tenant side bar menu
 ### Into Applications: 
 1. Create new application

@@ -116,7 +116,9 @@ MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *paren
     // ui->scrollAreaParams->setWidgetResizable(false); // chatGPT was wrong about this
 
     // Create focus animation
-    mFocusAnim = new FocusAnim(this);
+    if( settings.value("GUI/isFocusAnim").toBool() ) {
+        mFocusAnim = new FocusAnim(this);
+    }
 
     // Setup click reminder timer to show focus animation when needed
     mReminder = new QTimer(this);
@@ -201,7 +203,9 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 {
     mIsCreated = false;
 
-    mFocusAnim->stop();
+    if( mFocusAnim ) {
+        mFocusAnim->stop();
+    }
 
     mSceneView->setMeadow(nullptr);
 
@@ -483,7 +487,9 @@ void MainWindow::resizeEvent(QResizeEvent *)
 void MainWindow::onConnectReminger()
 {
     if( !mHerd ) {
-        mFocusAnim->start(gSimTools->fileExists(ANIMALS_LIST_FILE) ? ui->btnLoad : ui->btnGenerate);
+        if( mFocusAnim ) {
+            mFocusAnim->start(gSimTools->fileExists(ANIMALS_LIST_FILE) ? ui->btnLoad : ui->btnGenerate);
+        }
     }
 }
 

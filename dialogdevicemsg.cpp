@@ -186,7 +186,12 @@ bool DialogDeviceMsg::changeDeviceMsgIcon(int row, Protocol::Collar::Event event
 
 
     QPushButton* btn = qobject_cast<QPushButton*>(ui->tableDevices->cellWidget(row, col));
-    btn->setIcon(icon);
+    if( !btn) {
+        qWarning() << "Btn in bool DialogDeviceMsg::changeDeviceMsgIcon() was NULL";
+    }else {
+        btn->setIcon(icon);
+    }
+
     return true;
 }
 
