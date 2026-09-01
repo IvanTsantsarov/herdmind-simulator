@@ -240,7 +240,7 @@
        <item row="4" column="3">
         <widget class="QPushButton" name="btnCopyNSKey">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="toolTip">
           <string>Copy NSKey into the Clipboard</string>
@@ -257,7 +257,7 @@
        <item row="3" column="3">
         <widget class="QPushButton" name="btnCopyASKey">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="toolTip">
           <string>Copy ASKey into the Clipboard</string>
@@ -274,7 +274,7 @@
        <item row="2" column="3">
         <widget class="QPushButton" name="btnCopyEUI">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="toolTip">
           <string>Copy EUI into the Clipboard</string>

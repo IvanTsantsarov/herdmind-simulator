@@ -38,9 +38,9 @@ void DialogRegisterDevice::on_checkVirtual_toggled(bool checked)
     ui->btnGenAKey->setEnabled(checked);
     ui->btnGenNKey->setEnabled(checked);
 
-    ui->btnCopyEUI->setEnabled(checked);
-    ui->btnCopyASKey->setEnabled(checked);
-    ui->btnCopyNSKey->setEnabled(checked);
+    //ui->btnCopyEUI->setEnabled(checked);
+    //ui->btnCopyASKey->setEnabled(checked);
+    //ui->btnCopyNSKey->setEnabled(checked);
 }
 
 
