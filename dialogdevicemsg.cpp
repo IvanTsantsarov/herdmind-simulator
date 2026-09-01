@@ -5,6 +5,7 @@
 #include "devmanager.h"
 #include "dialogdevicemsg.h"
 #include "ui_dialogdevicemsg.h"
+#include "dialogregisterdevice.h"
 
 #define DLG_MSG_TABLE_COLS 4
 #define DLG_MSG_TABLE_LIGHT_COL 0
@@ -273,5 +274,12 @@ void DialogDeviceMsg::on_btnSend_clicked()
     }else {
         addOutput("Devices are not ready!");
     }
+}
+
+
+void DialogDeviceMsg::on_btnAddDevice_clicked()
+{
+    DialogRegisterDevice dlg(this);
+    dlg.exec();
 }
 

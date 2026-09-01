@@ -72,6 +72,7 @@ private:
     QByteArray mPendingMacAns;   // bytes to send in next uplink as FOpts
 
 protected:
+    bool isVirtual = true;
 
     // send to the chirpstack
     bool uplink(const QByteArray& data);

@@ -113,6 +113,8 @@ public:
         return readSettingsValue<QByteArray>(settings, path, paramName);
     }
 
+    static void clipboardCopy(const QString& txt);
+
 };
 
 extern SimTools* gSimTools;

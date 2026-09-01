@@ -9,6 +9,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <fstream>
+#include <QClipboard>
+#include <QGuiApplication>
 
 #include "simtools.h"
 #include "defines_settings.h"
@@ -262,6 +264,13 @@ bool SimTools::fileRestoreResources(const QString &fileName)
     qInfo() << "File" << fileName << " restored from resources.";
 
     return true;
+}
+
+void SimTools::clipboardCopy(const QString &txt)
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    // QString originalText = clipboard->text();
+    clipboard->setText(txt);
 }
 
 SimTools::SimTools(const QSettings &settings)

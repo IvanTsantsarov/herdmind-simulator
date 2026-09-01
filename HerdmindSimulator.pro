@@ -38,6 +38,7 @@ SOURCES += \
     hardware/bolus/bolus.cpp \
     hardware/collar/collar.cpp \
     hardware/gateway/gateway.cpp \
+    dialogregisterdevice.cpp \
     hardware/loradev.cpp \
     hardware/tools.cpp \
     herd.cpp \
@@ -73,6 +74,7 @@ HEADERS += \
     hardware/loradev_def.h \
     hardware/protocol.h \
     hardware/tools.h \
+    dialogregisterdevice.h \
     herd.h \
     mainwindow.h \
     meadow.h \
@@ -88,6 +90,7 @@ FORMS += \
     dialogconsole.ui \
     dialogdevicemsg.ui \
     focusanim.ui \
+    hardware/dialogregisterdevice.ui \
     mainwindow.ui
 
 # Default rules for deployment.

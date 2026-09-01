@@ -16,5 +16,8 @@
         <file>fatal.svg</file>
         <file>cross.svg</file>
         <file>jump.svg</file>
+        <file>gears.svg</file>
+        <file>clear.svg</file>
+        <file>copy.svg</file>
     </qresource>
 </RCC>
