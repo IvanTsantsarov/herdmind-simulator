@@ -417,7 +417,7 @@ void MainWindow::onUpdate()
         ui->progressFence->setValue(count);
         if( count >= mHerd->collarsCount()) {
             mIsFenceSetup = false;
-
+            ui->checkFence->setTitle("Fence");
             mScene->fenceActivate(isActivate);
         }
     }
@@ -736,10 +736,12 @@ void MainWindow::on_checkFence_toggled(bool is)
         ui->checkFenceAdd->setEnabled(false);
         fenceGeoPoints = mScene->fenceGepPoints(mMeadow);
         ui->checkFence->setToolTip("Click to deactivate the fence");
+        ui->checkFence->setTitle("Fence (activating)");
     }else
     {
         ui->checkFenceAdd->setEnabled(true);
         ui->checkFence->setToolTip("Click to activate the fence");
+        ui->checkFence->setTitle("Fence (deactivating)");
     }
 
     ui->progressFence->setMinimum(0);
