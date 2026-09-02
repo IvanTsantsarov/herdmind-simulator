@@ -10,6 +10,7 @@
 #include "hardware/gateway/gateway.h"
 #include "hardware/defines.h"
 #include "network.h"
+#include "mainwindow.h"
 
 
 #define Z_MEADOW 10
@@ -411,7 +412,17 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
     updateFenceBorderItem();
 }
 
-void Scene::selectAnimalItem(AnimalItem *item)
+Animal* Scene::selectAnimalItem(int index)
+{
+    if( index >= mAnimalItems.length() ) {
+        return nullptr;
+    }
+
+    AnimalItem* item = mAnimalItems[index];
+    return selectAnimalItem(item);
+}
+
+Animal* Scene::selectAnimalItem(AnimalItem *item)
 {
     clearSelection();
     clearFocus();
@@ -420,6 +431,11 @@ void Scene::selectAnimalItem(AnimalItem *item)
 
     mAnimalItemSelected->ensureVisible();
     recreateFenceBorderItem();
+
+    // Captain spagetti talking
+    gMainWindow->onSceneItemSelected();
+
+    return mAnimalItemSelected->animal();
 }
 
 void Scene::clearSelectedAnimalItem()
@@ -632,7 +648,6 @@ bool Scene::loadFence(const QString &path)
 
 void Scene::showPopup(const QString &msg)
 {
-
     if( mPopupLastMsg == msg) {
         mPopupLastMsgCount ++;
     }else {
@@ -641,7 +656,7 @@ void Scene::showPopup(const QString &msg)
     }
 
     // do not show the popup if ui is disabled
-    if( !mIsUI ) {
+    if( !mPopup || !mIsUI ) {
         return;
     }
 
@@ -686,17 +701,6 @@ void Scene::showUI(bool is)
 void Scene::resetView()
 {
     mView->setInitialTransform();
-}
-
-
-void Scene::selectAnimalItem(int index)
-{
-    if( index >= mAnimalItems.length() ) {
-        return;
-    }
-
-    AnimalItem* item = mAnimalItems[index];
-    selectAnimalItem(item);
 }
 
 
@@ -785,10 +789,10 @@ void SelectableItem::startPulseAnimation() {
 QVariant SelectableItem::itemChange(GraphicsItemChange change, const QVariant &v) {
 
     if (change == ItemSelectedHasChanged) {
-        qInfo() << "has changed";
+        qDebug() << "has changed";
     }else
     if (change == ItemSelectedChange) {
-        qInfo() << "changed" << v.toBool();
+        qDebug() << "changed" << v.toBool();
         if (v.toBool()) {
             startPulseAnimation();   // trigger when selected
             onSelection();

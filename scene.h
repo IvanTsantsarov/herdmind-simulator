@@ -138,8 +138,8 @@ public:
     void update(Herd* herd, Meadow *meadow, Network *network,
                 bool isInitial = false, float diameter = 0.0f);
 
-    void selectAnimalItem(int index);
-    void selectAnimalItem(AnimalItem* item);
+    Animal* selectAnimalItem(int index);
+    Animal *selectAnimalItem(AnimalItem* item);
     void clearSelectedAnimalItem();
 
     void selectGatewayItem(GatewayItem* item);

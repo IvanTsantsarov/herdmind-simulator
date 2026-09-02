@@ -240,6 +240,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
         if( ! mHerd->generate( ui->spinAnimalsCount->value(),
                         ui->doubleSpinArea->value(),
                         ui->spinCollarsPercentage->value(),
+                        ui->spinBolusesPercentage->value(),
                         ui->spinMalesPercentage->value(),
                         ui->doubleSpinAnimalSize->value(),
                         ui->spinAnimalGrazingCapacity->value()) ) {
@@ -250,7 +251,10 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mNetwork = new Network( mSettings, ui->spinGateways->value(),  ui->doubleSpinArea->value());
 
-    mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() );
+    if( !mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() ) ) {
+        errorMsgBox("Error sync devices! See console.");
+        return false;
+    }
 
     SimTools::HarmonicsGenerator::Params pastureParams;
 
@@ -346,6 +350,10 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     mScene->showPopup("Scene created!");
 
     mIsCreated = true;
+
+    if( !isLoad ) {
+        mHerd->storeAnimals();
+    }
 
     return true;
 }
@@ -501,7 +509,7 @@ void MainWindow::onDeviceMessage(const QString &devEUI, const QJsonObject &jobjR
 void MainWindow::onDevicesReady(bool isStore )
 {
     if( isStore ) {
-        mHerd->storeLists();
+        mHerd->storeDevices();
     }
 }
 
@@ -522,6 +530,18 @@ void MainWindow::errorMsgBox(const QString &msg)
 bool MainWindow::question(const QString &msg)
 {
     return QMessageBox::Yes == QMessageBox::question(this, "Question?", msg);
+}
+
+void MainWindow::onSceneItemSelected()
+{
+    if( !mScene->selectedAnimal() ) {
+        return;
+    }
+
+    Animal* a = mScene->selectedAnimal()->animal();
+    if( a && a->hasCollar() ) {
+        mDevMsg->selectCollarByEUI( a->collar()->eui() );
+    }
 }
 
 void MainWindow::onError(const QString &err)
@@ -630,11 +650,8 @@ void MainWindow::on_actionSave_triggered()
         }
     }
 
-    if( mHerd->storeLists(dirStr) ) {
-        setStatus(QString("Saved in %1").arg(dirStr));
-    }else{
-        setStatus(QString("Error saving in %1").arg(dirStr));
-    }
+    mHerd->storeAnimals(dirStr);
+    mHerd->storeDevices(dirStr);
 }
 
 

@@ -69,7 +69,7 @@ public:
 
     bool generate(int count,
                   int areaDimeter,
-                  int percentageCollars, int percentageMales,
+                  int percentageCollars, int percentageBoluses, int percentageMales,
                   float animalSize,
                   float grazingCapacity );
 
@@ -109,7 +109,8 @@ public:
 
     QString jsonAnimalsList(bool isDevicesList);
 
-    bool storeLists(const QString &dir = "./");
+    bool storeDevices(const QString &dir = "./");
+    bool storeAnimals(const QString &dir = "./");
 
 signals:
 };

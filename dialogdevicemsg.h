@@ -32,10 +32,11 @@ class DialogDeviceMsg : public QDialog
 
     typedef struct DevCon {
         int mRow;
+        LoraDev* mDev;
         QMetaObject::Connection mConn;
     } DeviceConnection;
 
-    QMap<QByteArray, DevCon> mDevsMap;
+    QMap<QByteArray, DevCon> mDevsMap; // dev address, struct DevCon
 
     void clearConnections();
     bool changeDeviceMsgIcon(int row, Protocol::Collar::Event event, bool isOn);
@@ -48,6 +49,8 @@ public:
     void updateDevices();
     void onResponse(const QString &devEUI, const QJsonObject &jobjResponse);
     void onDeviceMessage(const QByteArray &addr, const QByteArray& msg);
+
+    bool selectCollarByEUI(const QByteArray& addr);
 
 private slots:
     void onDeviceBtnClicked();

@@ -71,7 +71,15 @@ bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, floa
         return false;
     }
 
-    QJsonArray jarr = QJsonDocument::fromJson(content).array();
+    QJsonParseError err;
+    QJsonArray jarr = QJsonDocument::fromJson(content, &err).array();
+    if( QJsonParseError::NoError != err.error ) {
+        qCritical() << "Herd::load error:" << err.errorString() << err.offset << jsonPath;
+        QString jsonListStr = QString::fromUtf8(content);
+        qDebug() << jsonListStr;
+        return false;
+    }
+
 
     mAnimals.reserve(jarr.size());
     for(const auto& jsonElement: jarr) {
@@ -117,6 +125,7 @@ float Herd::beforeGeneration( int areaDimeter, float animalSize )
 bool Herd::generate(int count,
                     int areaDimeter,
                     int percentageCollars,
+                    int percentageBoluses,
                     int percentageMales,
                     float animalSize,
                     float grazingCapacity)
@@ -124,6 +133,7 @@ bool Herd::generate(int count,
     float areaRadius = beforeGeneration( areaDimeter, animalSize);
 
     int collarsCount = count * percentageCollars / 100;
+    int bollusesCount = count * percentageBoluses / 100;
 
     qDebug() << "Generating" << count << "herd in radius:" << areaRadius << "and" << collarsCount << "collars";
 
@@ -158,7 +168,12 @@ bool Herd::generate(int count,
         float y = Tools::rnd(-areaRadius, areaRadius);
         Animal* animal = new Animal(this, isMale, nameIndex, x, y, grazingCapacity);
         mAnimals.append(animal);
-        animal->putBolus(); /// TODO: put only ot specified percentage
+
+        // Put boluses only ot specified percentage
+        if( i < bollusesCount ) {
+            animal->putBolus();
+        }
+
         processCollision(animalSize * 2.0f);
     }
 
@@ -324,6 +339,10 @@ void Herd::update(  float tickSeconds,
 
         foreach(Animal* otherAnimal, mAnimals) {
 
+            if( !otherAnimal->hasBolus() ) {
+                continue;
+            }
+
             float distanceOtherSq = animal->distanceSq(otherAnimal);
 
             if( distanceOtherSq > maxTransmitDistanceSq ) {
@@ -439,13 +458,21 @@ void Herd::AnimalPair::appendTo(QList<AnimalPair> &ls)
 QString Herd::jsonAnimalsList( bool isDevicesList )
 {
     QString result = "[";
-    bool isFirst = true;
+    bool hasInfoPrev = false;
     foreach(Animal* animal, mAnimals) {
-        if( !isFirst) {
+
+        QString info = animal->jsonInfo(isDevicesList);
+
+        bool hasInfo = !info.isEmpty();
+
+        if( hasInfoPrev && hasInfo) {
             result.append(",");
         }
-        result.append( animal->jsonInfo(isDevicesList) );
-        isFirst = false;
+
+        if( hasInfo ) {
+            result.append( info );
+            hasInfoPrev = true;
+        }
     }
 
     result.append("]");
@@ -453,7 +480,7 @@ QString Herd::jsonAnimalsList( bool isDevicesList )
     return result;
 }
 
-bool Herd::storeLists(const QString& dir)
+bool Herd::storeAnimals(const QString& dir)
 {
     qDebug() << "Storing herd lists in:" << dir;
 
@@ -464,13 +491,22 @@ bool Herd::storeLists(const QString& dir)
         return false;
     }
 
-    filePath = dir + DEVICES_LIST_FILE;
+    qInfo() << "Animals lists stored in" << dir;
+
+    return true;
+}
+
+bool Herd::storeDevices(const QString& dir)
+{
+    qDebug() << "Storing herd lists in:" << dir;
+
+    QString filePath = dir + DEVICES_LIST_FILE;
     if( !gSimTools->fileWrite(dir + DEVICES_LIST_FILE, jsonAnimalsList(true).toUtf8(), true) ) {
         qCritical() << "Error saving file" << filePath;
         return false;
     }
 
-    qInfo() << "Animals and devices lists stored in" << dir;
+    qInfo() << "Devices lists stored in" << dir;
 
     return true;
 }

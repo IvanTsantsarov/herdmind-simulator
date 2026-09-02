@@ -111,6 +111,9 @@ void DialogDeviceMsg::updateDevices()
 
     int row = 0;
     for(LoraDev* dev : devices) {
+        DevCon con;
+
+        con.mDev = dev;
 
         if( dev->isCollar() ) {
             QString eui = dev->eui().toHex();
@@ -119,7 +122,7 @@ void DialogDeviceMsg::updateDevices()
             createItemButton( row, DLG_MSG_TABLE_SHOCK_COL, mIconShockOff, eui, Protocol::Collar::Event::Shock );
         }
 
-        DevCon con;
+
         QTableWidgetItem* itemName = new QTableWidgetItem(dev->name());
         QString eui = dev->eui().toHex();
         itemName->setToolTip(QString("0x%1 0x%2").arg(dev->addr().toHex()).arg(eui));
@@ -222,6 +225,20 @@ void DialogDeviceMsg::onDeviceMessage(const QByteArray &addr, const QByteArray &
     QTimer::singleShot(MSG_AFTER_INTERVAL, [=]() {
         onDeviceMessageAfter(addr, msg);
     });
+}
+
+bool DialogDeviceMsg::selectCollarByEUI(const QByteArray &eui)
+{
+    int rowsCount = ui->tableDevices->rowCount();
+    for( auto row = 0; row < rowsCount; row ++) {
+        LoraDev* dev = deviceByRow(row);
+        if( eui == dev->eui() ) {
+            ui->tableDevices->selectRow(row);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void DialogDeviceMsg::onDeviceBtnClicked()

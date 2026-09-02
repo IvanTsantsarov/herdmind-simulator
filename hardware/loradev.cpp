@@ -323,6 +323,7 @@ void LoraDev::onDownlink(const QByteArray& phy)
         onDownlinkDecrypted(decrypted);
     } else {
         qInfo() << "Device received:" << mName << decrypted;
+        updateLastSeen();
         emit messageReceivedAndDecrypted(mDevAddr, decrypted);
         onReceive( (uint8_t*)decrypted.data(), decrypted.size() );
     }
@@ -450,3 +451,45 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
 
 #endif
 
+
+void LoraDev::updateLastSeen()
+{
+    if( !mLastSeen.isValid() ) {
+        mLastSeen.start();
+        return;
+    }
+    mLastSeen.restart();
+}
+
+LoraDev::LastSeenStruct LoraDev::lastSeen()
+{
+    LastSeenStruct ls;
+
+    if( !mLastSeen.isValid() ) {
+        return ls;
+    }
+
+    qint64 elapsed = mLastSeen.elapsed();
+    qint64 sec = elapsed / 1000;
+    qint64 mins = sec / 60;
+    qint64 hours = mins / 60;
+    mins -= hours * 60;
+    sec -= hours * 60 + mins * 60;
+
+    ls.hours = hours;
+    ls.minutes = mins;
+    ls.seconds = sec;
+    return ls;
+}
+
+QString LoraDev::lastSeenInfo()
+{
+    LastSeenStruct ls = lastSeen();
+    if( ls.hours < 0) {
+        return "Not seen";
+    }
+
+    return QString("%1:%2:%3").arg(ls.hours)
+        .arg(QString(ls.minutes < 10 ? "0%1" : "%1").arg(ls.minutes))
+        .arg(QString(ls.seconds < 10 ? "0%1" : "%1").arg(ls.seconds));
+}

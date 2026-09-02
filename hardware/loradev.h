@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QObject>
 #include <QTimer>
+#include <QElapsedTimer>
 
 class Animal;
 class Gateway;
@@ -27,6 +28,7 @@ private:
 
     QString mName;
     Profile mProfile = LoraDev::Profile::None;
+    QElapsedTimer mLastSeen;
 
     static uint32_t NODE_ADDR;
 
@@ -120,6 +122,16 @@ public:
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
     virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
+    void updateLastSeen();
+
+    struct LastSeenStruct {
+        int hours = -1;
+        int minutes = -1;
+        int seconds = -1;
+    };
+
+    LastSeenStruct lastSeen();
+    QString lastSeenInfo();
 
 
     // if animal name is specified - returns full info for chirpstack device registration

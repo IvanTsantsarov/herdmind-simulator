@@ -207,7 +207,7 @@ void DevManager::onDeviceActivated(const QString &devEUI)
 
 
 
-void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs, Gateway* edge )
+bool DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs, Gateway* edge )
 {
     mEdge = edge;
     mAddingDevicesCount = 0;
@@ -220,7 +220,15 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
     mBolusesCount = 0;
 
     mDevicesList = devs;
-    mDevicesJson = QJsonDocument::fromJson( jsonList ).array();
+    QJsonParseError err;
+    QJsonDocument jdoc = QJsonDocument::fromJson( jsonList, &err );
+    if( QJsonParseError::NoError != err.error ) {
+        qCritical() << "DevManager::syncDevices error:" << err.errorString() << err.offset;
+        QString jsonListStr = QString::fromUtf8(jsonList);
+        qDebug() << jsonListStr;
+    }
+
+    mDevicesJson = jdoc.array();
 
     mDevsMapJson.clear();
 
@@ -250,6 +258,8 @@ void DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
 
     mState = States::GetDevicesCount;
     mApiRest->getDevices();
+
+    return true;
 }
 
 

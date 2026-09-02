@@ -87,7 +87,7 @@ public:
     inline bool isReady(){ return mIsDevicesReady; }
     inline int collarsCount(){ return mCollarsCount; }
     inline int bolusesCount(){ return mBolusesCount; }
-    void syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
+    bool syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
     LoraDev* device(const QString& eui);
     QString deviceName(const QString& eui);
     QList<LoraDev*> devices(){ return mDevicesList; }

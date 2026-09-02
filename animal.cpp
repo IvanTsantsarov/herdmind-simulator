@@ -344,7 +344,7 @@ QString Animal::info()
         .arg(mLawn ? mLawn->animalsCount() : 0 );
 #else
 
-    result = QString("%1 %2\nP:%3,%4\nStamina:%5\nState:%6 %7\nGrazed:%8kg\nAnimals:%9")
+    result = QString("%1 %2\nP:%3,%4\nStamina:%5\nState:%6 %7\nGrazed:%8kg\nAnimals:%9\nLast seen:%10")
         .arg(mName)
         .arg(mIsMale ? "♂️" : "♀️")
 
@@ -357,7 +357,8 @@ QString Animal::info()
         .arg( currentStateString() )
 
         .arg(kg, 0, 'f', 2 )
-        .arg(mLawn ? mLawn->animalsCount() : 0);
+        .arg(mLawn ? mLawn->animalsCount() : 0)
+        .arg(hasCollar() ? collar()->lastSeenInfo() : "N/A");
 #endif
 
     QString fenceString;
@@ -396,20 +397,22 @@ QString Animal::jsonInfo(bool isDevicesList)
 
         result.append( "\"male\":");
         result.append( mIsMale ? "true" : "false");
-        result.append(",");
 
+        if( hasBolus() || hasCollar()) {
+            result.append(",");
 
-        if( hasBolus() ) {
-            result.append( "\"bolus\":");
-            result.append( mBolus->jsonInfo() );
-        }
-
-        if( hasCollar() ) {
             if( hasBolus() ) {
-                result.append(",");
+                result.append( "\"bolus\":");
+                result.append( mBolus->jsonInfo() );
             }
-            result.append( "\"collar\":");
-            result.append( mCollar->jsonInfo() );
+
+            if( hasCollar() ) {
+                if( hasBolus() ) {
+                    result.append(",");
+                }
+                result.append( "\"collar\":");
+                result.append( mCollar->jsonInfo() );
+            }
         }
 
         result.append("}");

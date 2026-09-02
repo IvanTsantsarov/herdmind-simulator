@@ -73,6 +73,7 @@ public:
     inline DialogConsole* console(){ return mConsole; }
     void errorMsgBox(const QString& msg);
     bool question(const QString& msg);
+    void onSceneItemSelected();
 
 
 protected:
