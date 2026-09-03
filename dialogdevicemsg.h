@@ -59,7 +59,6 @@ private slots:
 
     void on_btnSend_clicked();
 
-    void on_btnAddDevice_clicked();
 
 private:
     Ui::DialogDeviceMsg *ui;

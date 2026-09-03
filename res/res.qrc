@@ -19,5 +19,11 @@
         <file>gears.svg</file>
         <file>clear.svg</file>
         <file>copy.svg</file>
+        <file>load.svg</file>
+        <file>add.svg</file>
+        <file>female.svg</file>
+        <file>male.svg</file>
+        <file>usb-dongle.svg</file>
+        <file>usb-cable.svg</file>
     </qresource>
 </RCC>

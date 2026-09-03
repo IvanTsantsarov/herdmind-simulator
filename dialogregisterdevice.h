@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+class Herd;
+
 namespace Ui {
 class DialogRegisterDevice;
 }
@@ -11,9 +13,19 @@ class DialogRegisterDevice : public QDialog
 {
     Q_OBJECT
 
+    QStringList mHerdNames;
+    void updateExisting();
+
 public:
-    explicit DialogRegisterDevice(QWidget *parent = nullptr);
+    explicit DialogRegisterDevice(QStringList animals, QWidget *parent = nullptr);
     ~DialogRegisterDevice();
+
+    bool isVirtual();
+    bool isNew();
+    QString name();
+
+
+
 
 private slots:
     void on_checkVirtual_toggled(bool checked);
@@ -37,6 +49,8 @@ private slots:
     void on_btnCopyASKey_clicked();
 
     void on_btnCopyNSKey_clicked();
+
+    void on_radioAnimalNew_toggled(bool checked);
 
 private:
     Ui::DialogRegisterDevice *ui;

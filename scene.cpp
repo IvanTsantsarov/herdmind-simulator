@@ -165,10 +165,12 @@ void Scene::updateFenceBorderItem()
         return;
     }
 
-    Collar* c = mAnimalItemSelected->animal()->collar();
-    mFenceClosestBorder->setLine( c->fenceClosestBorder());
-    QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
-    mFenceClosestPoint->setRect(r);
+    if( mAnimalItemSelected &&  mAnimalItemSelected->animal()->hasCollar()) {
+        Collar* c = mAnimalItemSelected->animal()->collar();
+        mFenceClosestBorder->setLine( c->fenceClosestBorder());
+        QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
+        mFenceClosestPoint->setRect(r);
+    }
 }
 
 Scene::Scene(QObject *parent)

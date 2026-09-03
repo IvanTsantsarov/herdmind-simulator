@@ -21,6 +21,7 @@
 #include "simtools.h"
 #include "simtimer.h"
 #include "hardware/defines.h"
+#include "dialogregisterdevice.h"
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
@@ -770,3 +771,29 @@ void MainWindow::on_checkFence_toggled(bool is)
     mDevManager->setupFence(mMeadow->geoCenter(), fenceGeoPoints);
 }
 
+
+void MainWindow::on_btnClearCount_clicked()
+{
+    if( gSimTools->fileExists(ANIMALS_LIST_FILE) ) {
+        if( QMessageBox::Yes != QMessageBox::question(this, "Clear herd?", "This will erase existing saved animals list! Proceed with clearing the herd?") ) {
+            return;
+        }
+    }
+
+    ui->spinAnimalsCount->setValue(0);
+
+    create(false);
+}
+
+
+// Add device (animal)
+void MainWindow::on_btnAdd_clicked()
+{
+    QStringList names(mHerd->animalsCount());
+    for( auto i = 0; i < mHerd->animalsCount(); i++) {
+        names.append(mHerd->animal(i)->name());
+    }
+
+    DialogRegisterDevice dlg(names, this);
+    dlg.exec();
+}

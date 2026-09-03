@@ -9,16 +9,46 @@
 #include <QToolTip>
 
 
-DialogRegisterDevice::DialogRegisterDevice(QWidget *parent)
+void DialogRegisterDevice::updateExisting()
+{
+    if( ui->comboHerd->count() < 1 ) {
+        ui->radioAnimalExisting->setEnabled(false);
+        ui->radioAnimalExisting->setChecked(false);
+        ui->radioAnimalNew->setChecked(true);
+        ui->comboHerd->setVisible(false);
+    }else {
+        ui->radioAnimalExisting->setEnabled(true);
+    }
+}
+
+DialogRegisterDevice::DialogRegisterDevice(QStringList animals, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::DialogRegisterDevice)
 {
     ui->setupUi(this);
+
+    mHerdNames = animals;
+
+    for( const QString& name: animals) {
+        ui->comboHerd->addItem(name);
+    }
+
+    updateExisting();
 }
 
 DialogRegisterDevice::~DialogRegisterDevice()
 {
     delete ui;
+}
+
+bool DialogRegisterDevice::isVirtual()
+{
+    return ui->checkVirtual->isChecked();
+}
+
+bool DialogRegisterDevice::isNew()
+{
+    return ui->radioAnimalNew->isChecked();
 }
 
 void DialogRegisterDevice::on_checkVirtual_toggled(bool checked)
@@ -108,5 +138,15 @@ void DialogRegisterDevice::on_btnCopyNSKey_clicked()
 {
     SimTools::clipboardCopy(ui->editNSKey->text());
     QToolTip::showText( QCursor::pos(), "NSKey copied!");
+}
+
+
+void DialogRegisterDevice::on_radioAnimalNew_toggled(bool checked)
+{
+    ui->editName->setVisible(checked);
+    ui->radioFemale->setVisible(checked);
+    ui->radioMale->setVisible(checked);
+
+    ui->comboHerd->setVisible(!checked);
 }
 

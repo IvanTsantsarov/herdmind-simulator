@@ -106,6 +106,8 @@ private slots:
     void on_actionScene_UI_toggled(bool is);
     void on_actionReset_triggered();
     void on_checkFence_toggled(bool is);
+    void on_btnAdd_clicked();
+    void on_btnClearCount_clicked();
 };
 
 extern MainWindow* gMainWindow;

@@ -90,7 +90,7 @@ FORMS += \
     dialogconsole.ui \
     dialogdevicemsg.ui \
     focusanim.ui \
-    hardware/dialogregisterdevice.ui \
+    dialogregisterdevice.ui \
     mainwindow.ui
 
 # Default rules for deployment.
