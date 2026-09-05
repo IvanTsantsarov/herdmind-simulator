@@ -25,5 +25,11 @@
         <file>male.svg</file>
         <file>usb-dongle.svg</file>
         <file>usb-cable.svg</file>
+        <file>cancel.svg</file>
+        <file>register.svg</file>
+        <file>down-arrow.svg</file>
+        <file>delete.svg</file>
+        <file>female_new.svg</file>
+        <file>male_new.svg</file>
     </qresource>
 </RCC>

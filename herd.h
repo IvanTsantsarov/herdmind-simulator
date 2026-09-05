@@ -79,7 +79,7 @@ public:
 
     bool loadReal();
 
-    void update(float tickSeconds,
+    void updateSimulation(float tickSeconds,
                 Meadow *meadow,
                 QPointF *attractor,
                 bool isCorrectCollision,
@@ -93,6 +93,8 @@ public:
                 float maxTransmitDistance,
                 float maxTransmitAngle
                 );
+
+    void updateReal();
 
     inline Animal* animal(int index){ return mAnimals[index]; }
     Animal* animal(const QString& name);

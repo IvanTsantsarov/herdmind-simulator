@@ -94,14 +94,16 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    QSettings env(ENVIRONMENT_INI);
 
+    QSettings env(ENVIRONMENT_INI);
     DialogInitial dlgInit(env);
     dlgInit.exec();
 
     if( !dlgInit.isOk() )  {
         return 0;
     }
+
+
     QString settingsName = dlgInit.isLocal() ? SETTINGS_NAME : SETTINGS_NAME_EXTERNAL;
 
     Q_ASSERT( QFile::exists(settingsName) );

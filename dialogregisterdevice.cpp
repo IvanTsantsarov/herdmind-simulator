@@ -1,13 +1,16 @@
 #include "dialogregisterdevice.h"
 #include "ui_dialogregisterdevice.h"
 
+
 #include "hardware/loradev.h"
 //#include "hardware/loradev_def.h"
 //#include "hardware/gateway/gateway.h"
 //#include "hardware/hardware/tools.h"
 #include "simtools.h"
 #include "herd.h"
+#include "animal.h"
 #include <QToolTip>
+#include <QMessageBox>
 
 #define COL_ERR QColor(255, 50, 50)
 #define COL_DONE QColor(50, 255, 50)
@@ -26,21 +29,10 @@ void DialogRegisterDevice::updateExisting()
 
 void DialogRegisterDevice::clear()
 {
-    ui->editASKey->clear();
-    ui->editNSKey->clear();
     ui->editName->clear();
-    setStatus("", mStatusBackColor);
-
+    // setStatus("", mStatusBackColor);
 }
 
-void DialogRegisterDevice::setStatus(const QString &txt, const QColor& col)
-{
-    ui->editStatus->setText(txt);
-
-    QPalette palette = ui->editStatus->palette();
-    palette.setColor(QPalette::Base,col);
-    ui->editStatus->setPalette(palette);
-}
 
 DialogRegisterDevice::DialogRegisterDevice(Herd* herd, QWidget *parent)
     : QDialog(parent)
@@ -49,10 +41,12 @@ DialogRegisterDevice::DialogRegisterDevice(Herd* herd, QWidget *parent)
     ui->setupUi(this);
     mHerd = herd;
 
-    QPalette palette = ui->editStatus->palette();
-    mStatusBackColor = palette.color(QPalette::Base);
-
     mNames = mHerd->names();
+
+    mMale = QIcon("://male.svg");
+    mFemale = QIcon("://female.svg");
+    mMaleNew = QIcon("://male_new.svg");
+    mFemaleNew = QIcon("://female_new.svg");
 
     for( const QString& name: mNames) {
         ui->comboHerd->addItem(name);
@@ -71,6 +65,11 @@ bool DialogRegisterDevice::isNew()
     return ui->radioAnimalNew->isChecked();
 }
 
+bool DialogRegisterDevice::isMale()
+{
+    return ui->radioMale->isChecked();
+}
+
 LoraDev::Profile DialogRegisterDevice::profile()
 {
     if( ui->radioTypeCollar->isChecked() ) {
@@ -83,29 +82,6 @@ LoraDev::Profile DialogRegisterDevice::profile()
 
     return LoraDev::Profile::None;
 }
-
-void DialogRegisterDevice::on_checkVirtual_toggled(bool checked)
-{
-    ui->btnDeviceRead->setEnabled(!checked);
-    ui->groupBoxType->setEnabled(checked);
-
-    ui->editEUI->setEnabled(checked);
-    ui->editASKey->setEnabled(checked);
-    ui->editNSKey->setEnabled(checked);
-
-    ui->btnClearEUI->setEnabled(checked);
-    ui->btnClearAKey->setEnabled(checked);
-    ui->btnClearSKey->setEnabled(checked);
-
-    ui->btnGenEUI->setEnabled(checked);
-    ui->btnGenAKey->setEnabled(checked);
-    ui->btnGenNKey->setEnabled(checked);
-
-    //ui->btnCopyEUI->setEnabled(checked);
-    //ui->btnCopyASKey->setEnabled(checked);
-    //ui->btnCopyNSKey->setEnabled(checked);
-}
-
 
 void DialogRegisterDevice::on_btnClose_clicked()
 {
@@ -120,36 +96,11 @@ void DialogRegisterDevice::on_btnGenEUI_clicked()
 }
 
 
-void DialogRegisterDevice::on_btnGenAKey_clicked()
-{
-    QByteArray ba = SimTools::genAesKey();
-    ui->editASKey->setText(ba.toUpper());
-}
-
-
-void DialogRegisterDevice::on_btnGenNKey_clicked()
-{
-    QByteArray ba = SimTools::genAesKey();
-    ui->editNSKey->setText(ba.toUpper());
-
-}
 
 
 void DialogRegisterDevice::on_btnClearEUI_clicked()
 {
     ui->editEUI->clear();
-}
-
-
-void DialogRegisterDevice::on_btnClearAKey_clicked()
-{
-    ui->editASKey->clear();
-}
-
-
-void DialogRegisterDevice::on_btnClearSKey_clicked()
-{
-    ui->editNSKey->clear();
 }
 
 
@@ -159,21 +110,6 @@ void DialogRegisterDevice::on_btnCopyEUI_clicked()
     QToolTip::showText( QCursor::pos(), "EUI copied!");
 }
 
-
-void DialogRegisterDevice::on_btnCopyASKey_clicked()
-{
-    SimTools::clipboardCopy(ui->editASKey->text());
-    QToolTip::showText( QCursor::pos(), "ASKey copied!");
-}
-
-
-void DialogRegisterDevice::on_btnCopyNSKey_clicked()
-{
-    SimTools::clipboardCopy(ui->editNSKey->text());
-    QToolTip::showText( QCursor::pos(), "NSKey copied!");
-}
-
-
 void DialogRegisterDevice::on_radioAnimalNew_toggled(bool checked)
 {
     ui->editName->setVisible(checked);
@@ -181,12 +117,6 @@ void DialogRegisterDevice::on_radioAnimalNew_toggled(bool checked)
     ui->radioMale->setVisible(checked);
 
     ui->comboHerd->setVisible(!checked);
-}
-
-
-void DialogRegisterDevice::on_btnClear_clicked()
-{
-    clear();
 }
 
 
@@ -205,46 +135,134 @@ bool DialogRegisterDevice::isRelay()
     return ui->radioTypeRelay->isChecked();
 }
 
-// TODO:
-void DialogRegisterDevice::on_btnRegister_clicked()
-{
-    Animal* animal = nullptr;
-    if( isNew() ) {
-        if( mNames.contains(name()) ){
-            setStatus( QString("%1 already exists!").arg(name()), COL_ERR );
-            return;
-        }
-
-
-        animal = mHerd->newAnimal(name(),
-            ui->radioMale->isChecked(),
-            isCollar() ? ui->editEUI->text() : "",
-            isBolus() ? ui->editEUI->text() : "" );
-    }else {
-
-        animal = mHerd->animal(name());
-
-        if( !animal ) {
-            setStatus( QString("Animal %1 not found!").arg(name()), COL_ERR);
-            return;
-        }
-
-        if( isCollar() ) {
-
-        }else
-        if( isBolus() ) {
-
-        }else
-        if( isRelay() ) {
-
-        };
-
-    }
-
-    setStatus("Registering...", mStatusBackColor);
-}
 
 QString DialogRegisterDevice::name()
 {
     return ui->editName->text();
 }
+
+QString DialogRegisterDevice::eui()
+{
+    return ui->editEUI->text();
+}
+
+void DialogRegisterDevice::on_btnAdd_clicked()
+{
+    if( name().isEmpty()) {
+        ui->editName->setFocus();
+        return;
+    }
+
+    if( eui().isEmpty()) {
+        ui->editEUI->setFocus();
+        return;
+    }
+
+    Record r;
+    r.mIsNew = isNew();
+    r.mName = name();
+    r.mEui = eui();
+    r.mProfile = profile();
+    r.mIsMale = isMale();
+    QString row = QString("%1 %2 %3")
+        .arg(r.mIsNew? "*": "")
+        .arg(r.mName)
+        .arg(r.mEui);
+
+
+    QIcon icon;
+    if( isMale() ) {
+        icon = isNew() ? mMaleNew : mMale;
+    }else {
+        icon = isNew() ? mFemaleNew : mFemale;
+    }
+
+    QListWidgetItem* item = new QListWidgetItem( icon, row, ui->listRegister );
+    r.item = item;
+
+    mRecords.append(r);
+
+    ui->btnRemove->setEnabled(true);
+    ui->listRegister->setCurrentRow(mRecords.count() - 1);
+}
+
+
+void DialogRegisterDevice::on_btnRemove_clicked()
+{
+    int current = ui->listRegister->currentRow();
+    if( current < 0) {
+        return;
+    }
+    QString txt = ui->listRegister->currentItem()->text();
+    if( QMessageBox::Yes != QMessageBox::question(this, "Remove device?", QString("Are you sure you want to remove:%1").arg(txt)) ) {
+        return;
+    }
+
+    delete mRecords[current].item;
+    mRecords.removeAt(current);
+
+    current--;
+    if( current < 0 ) {
+        current = 0;
+    }
+
+    if( ui->listRegister->count() ) {
+        ui->listRegister->setCurrentRow(current);
+    }else {
+        ui->btnRemove->setEnabled(false);
+    }
+}
+
+
+// TODO:
+void DialogRegisterDevice::on_btnRegister_clicked()
+{
+    for( const Record& r: mRecords) {
+        Animal* animal = nullptr;
+        if( isNew() ) {
+            if( mNames.contains(r.mName) ){
+                qCritical() << QString("%1 already exists!").arg(r.mName);
+                return;
+            }
+
+            animal = mHerd->newAnimal(r.mName,
+                                      ui->radioMale->isChecked(),
+                                      isCollar() ? r.mEui : "",
+                                      isBolus() ? r.mEui : "" );
+        }else {
+
+            animal = mHerd->animal(r.mName);
+            if( !animal) {
+                qCritical() << QString("%1 already exists!").arg(name());
+                return;
+            }
+
+            if( isCollar() ) {
+                animal->putCollar(r.mEui.toUtf8().toBase64());
+            }else
+            if( isBolus() ) {
+                animal->putBolus(r.mEui.toUtf8().toBase64());
+            }else
+            if( isRelay() ) {
+
+            };
+        }
+    }
+
+    mRecords.clear();
+    ui->listRegister->clear();
+
+    mIsChange = true;
+}
+
+void DialogRegisterDevice::on_btnCancel_clicked()
+{
+    if( mRecords.count()) {
+        if( QMessageBox::Yes != QMessageBox::question(this, "Close registration?", QString("Are you sure you want to cancel all devices (%1) from registration?").arg(mRecords.count())) ) {
+            return;
+        }
+    }
+
+    close();
+}
+

@@ -63,6 +63,8 @@ public:
 
     inline bool isSimulation(){ return mIsSimulation; }
 
+    void initSimulation();
+
     inline Herd* herd(){ return mHerd; }
     inline Meadow* meadow(){ return mMeadow; }
     inline DevManager* devManager(){ return mDevManager; }

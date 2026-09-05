@@ -43,8 +43,10 @@ SOURCES += \
     hardware/loradev.cpp \
     hardware/tools.cpp \
     herd.cpp \
+    herd_simulation.cpp \
     main.cpp \
     mainwindow.cpp \
+    mainwindow_simulation.cpp \
     meadow.cpp \
     mqtt.cpp \
     network.cpp \

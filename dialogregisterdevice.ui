@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>658</width>
-    <height>439</height>
+    <height>562</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,122 +21,70 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="4" column="4">
-        <widget class="QPushButton" name="btnClearEUI">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+       <item row="3" column="2">
+        <widget class="QRadioButton" name="radioFemale">
          <property name="toolTip">
-          <string>Clear Lora Unique ID to be generated automaticaly</string>
+          <string>Female</string>
          </property>
          <property name="text">
           <string/>
          </property>
          <property name="icon">
           <iconset resource="res/res.qrc">
-           <normaloff>:/clear.svg</normaloff>:/clear.svg</iconset>
+           <normaloff>:/female.svg</normaloff>:/female.svg</iconset>
          </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
-        <widget class="QPushButton" name="btnCopyNSKey">
-         <property name="enabled">
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checked">
           <bool>true</bool>
          </property>
-         <property name="toolTip">
-          <string>Copy NSKey into the Clipboard</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-         </property>
         </widget>
        </item>
-       <item row="5" column="4">
-        <widget class="QPushButton" name="btnClearAKey">
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="editEUI">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="toolTip">
-          <string>Clear Lora AS Key to be generated automaticaly</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/clear.svg</normaloff>:/clear.svg</iconset>
+          <string>Unique Lora ID. If empty - will be generated</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
-        <widget class="QPushButton" name="btnCopyEUI">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="toolTip">
-          <string>Copy EUI into the Clipboard</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="editName">
+         <property name="placeholderText">
+          <string>&lt;Enter new of the new animal&gt;</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
-        <widget class="QPushButton" name="btnGenEUI">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Generate Lora Unique ID. If empty, it will be generated automaticaly</string>
-         </property>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="comboUSB"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_2">
          <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
+          <string>EUI</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="3">
-        <widget class="QPushButton" name="btnCopyASKey">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="toolTip">
-          <string>Copy ASKey into the Clipboard</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-         </property>
-        </widget>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="comboHerd"/>
        </item>
-       <item row="5" column="2">
-        <widget class="QPushButton" name="btnGenAKey">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="btnDeviceRead">
          <property name="toolTip">
-          <string>Generate</string>
+          <string>Read from USB</string>
          </property>
          <property name="text">
           <string/>
          </property>
          <property name="icon">
           <iconset resource="res/res.qrc">
-           <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
+           <normaloff>:/usb-cable.svg</normaloff>:/usb-cable.svg</iconset>
          </property>
         </widget>
        </item>
@@ -160,32 +108,68 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="editEUI">
+       <item row="4" column="3">
+        <widget class="QPushButton" name="btnCopyEUI">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>Copy EUI into the Clipboard</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="res/res.qrc">
+           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <widget class="QPushButton" name="btnClearEUI">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="toolTip">
-          <string>Unique Lora ID. If empty - will be generated</string>
+          <string>Clear Lora Unique ID to be generated automaticaly</string>
          </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>aSKey</string>
+          <string/>
          </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>EUI</string>
+         <property name="icon">
+          <iconset resource="res/res.qrc">
+           <normaloff>:/clear.svg</normaloff>:/clear.svg</iconset>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QGroupBox" name="groupBoxNew">
+           <property name="title">
+            <string>Animal</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QRadioButton" name="radioAnimalNew">
+              <property name="text">
+               <string>New</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioAnimalExisting">
+              <property name="text">
+               <string>Existing</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
          <item>
           <widget class="QGroupBox" name="groupBoxType">
            <property name="title">
@@ -219,68 +203,15 @@
            </layout>
           </widget>
          </item>
-         <item>
-          <widget class="QGroupBox" name="groupBoxNew">
-           <property name="title">
-            <string>Animal</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <widget class="QRadioButton" name="radioAnimalExisting">
-              <property name="text">
-               <string>Existing</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioAnimalNew">
-              <property name="text">
-               <string>New</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
         </layout>
        </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="checkVirtual">
-         <property name="text">
-          <string>Virtual</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="editName"/>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>nSKey</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLineEdit" name="editNSKey">
+       <item row="4" column="2">
+        <widget class="QPushButton" name="btnGenEUI">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="toolTip">
-          <string>nS Lora key. If empty - will be generated</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QPushButton" name="btnGenNKey">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Generate</string>
+          <string>Generate Lora Unique ID. If empty, it will be generated automaticaly</string>
          </property>
          <property name="text">
           <string/>
@@ -291,77 +222,58 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="btnDeviceRead">
-         <property name="toolTip">
-          <string>Read from USB</string>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="topMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/usb-cable.svg</normaloff>:/usb-cable.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="editASKey">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>aS Lora key. If empty - will be generated</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="comboUSB"/>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="comboHerd"/>
-       </item>
-       <item row="3" column="2">
-        <widget class="QRadioButton" name="radioFemale">
-         <property name="toolTip">
-          <string>Female</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="res/res.qrc">
-           <normaloff>:/female.svg</normaloff>:/female.svg</iconset>
-         </property>
-         <property name="iconSize">
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>24</width>
-           <height>24</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
+        </spacer>
        </item>
-       <item row="6" column="4">
-        <widget class="QPushButton" name="btnClearSKey">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+       <item>
+        <widget class="QPushButton" name="btnAdd">
          <property name="toolTip">
-          <string>Clear Lora NS Key to be generated automaticaly</string>
+          <string>Register to Chirpstack</string>
          </property>
          <property name="text">
-          <string/>
+          <string>Add</string>
          </property>
          <property name="icon">
           <iconset resource="res/res.qrc">
-           <normaloff>:/clear.svg</normaloff>:/clear.svg</iconset>
+           <normaloff>:/down-arrow.svg</normaloff>:/down-arrow.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnRemove">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Remove</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res/res.qrc">
+           <normaloff>:/delete.svg</normaloff>:/delete.svg</iconset>
          </property>
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QListWidget" name="listRegister"/>
      </item>
      <item>
       <spacer name="verticalSpacer_2">
@@ -379,42 +291,40 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QPushButton" name="btnRegister">
          <property name="toolTip">
-          <string>Register to Chirpstack</string>
+          <string>Register all devices to Chirpstack</string>
          </property>
          <property name="text">
           <string>Register</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="editStatus">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignmentFlag::AlignCenter</set>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="placeholderText">
-          <string>&lt;Not registered&gt;</string>
+         <property name="icon">
+          <iconset resource="res/res.qrc">
+           <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btnClear">
+        <widget class="QPushButton" name="btnCancel">
          <property name="text">
-          <string>Clear</string>
+          <string>Cancel</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnClose">
-         <property name="text">
-          <string>Close</string>
+         <property name="icon">
+          <iconset resource="res/res.qrc">
+           <normaloff>:/cross.svg</normaloff>:/cross.svg</iconset>
          </property>
         </widget>
        </item>
@@ -425,9 +335,13 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>checkVirtual</tabstop>
   <tabstop>comboUSB</tabstop>
   <tabstop>btnDeviceRead</tabstop>
+  <tabstop>radioAnimalNew</tabstop>
+  <tabstop>radioAnimalExisting</tabstop>
+  <tabstop>radioTypeCollar</tabstop>
+  <tabstop>radioTypeBolus</tabstop>
+  <tabstop>radioTypeRelay</tabstop>
   <tabstop>comboHerd</tabstop>
   <tabstop>editName</tabstop>
   <tabstop>radioFemale</tabstop>
@@ -436,17 +350,8 @@
   <tabstop>btnGenEUI</tabstop>
   <tabstop>btnCopyEUI</tabstop>
   <tabstop>btnClearEUI</tabstop>
-  <tabstop>editASKey</tabstop>
-  <tabstop>btnGenAKey</tabstop>
-  <tabstop>btnCopyASKey</tabstop>
-  <tabstop>btnClearAKey</tabstop>
-  <tabstop>editNSKey</tabstop>
-  <tabstop>btnGenNKey</tabstop>
-  <tabstop>btnCopyNSKey</tabstop>
-  <tabstop>btnClearSKey</tabstop>
   <tabstop>btnRegister</tabstop>
-  <tabstop>editStatus</tabstop>
-  <tabstop>btnClose</tabstop>
+  <tabstop>btnCancel</tabstop>
  </tabstops>
  <resources>
   <include location="res/res.qrc"/>

@@ -343,3 +343,17 @@ QString Scene::loadFence(Meadow *meadow, const QString &path)
 
     return "";
 }
+
+
+QColor mStatusBackColor;
+QPalette palette = ui->editStatus->palette();
+mStatusBackColor = palette.color(QPalette::Base);
+
+void DialogRegisterDevice::setStatus(const QString &txt, const QColor& col)
+{
+    ui->editStatus->setText(txt);
+
+    QPalette palette = ui->editStatus->palette();
+    palette.setColor(QPalette::Base,col);
+    ui->editStatus->setPalette(palette);
+}
