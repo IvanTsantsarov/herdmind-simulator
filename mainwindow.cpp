@@ -27,14 +27,17 @@
 
 MainWindow* gMainWindow = nullptr;
 
-MainWindow::MainWindow(QSettings &env, const QSettings &settings, QWidget *parent)
-    : QMainWindow(parent), mEnv(env), mSettings(settings)
+MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QWidget *parent)
+    : QMainWindow(parent), mIsSimulation(isSim), mEnv(env), mSettings(settings)
     , ui(new Ui::MainWindow)
 {
     mConsole = new DialogConsole(settings, this);
     gMainWindow = this;
 
     ui->setupUi(this);
+
+    ui->groupSimulation->setVisible(mIsSimulation);
+    ui->btnAdd->setVisible(mIsSimulation);
 
     // create scene
     mScene = new Scene(this);
@@ -224,12 +227,12 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     ui->checkShepard->setChecked(false);
 
     // Generate herd
-    mHerd = new Herd();
+    mHerd = new Herd(isSimulation());
 
     if( isLoad ) {
         // Load from stored file
         // generate only random position and the medow
-        if( ! mHerd->load(dir + ANIMALS_LIST_FILE,
+        if( ! mHerd->load(dir + (isSimulation() ? ANIMALS_LIST_FILE_SIM : ANIMALS_LIST_FILE),
                     ui->doubleSpinArea->value(),
                     ui->doubleSpinAnimalSize->value(),
                     ui->spinAnimalGrazingCapacity->value() ) ) {
@@ -252,8 +255,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
 
     mNetwork = new Network( mSettings, ui->spinGateways->value(),  ui->doubleSpinArea->value());
 
-    if( !mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() ) ) {
-        errorMsgBox("Error sync devices! See console.");
+    if( !syncDevices()) {
         return false;
     }
 
@@ -719,6 +721,16 @@ void MainWindow::updateFenceButtons()
     }
 }
 
+bool MainWindow::syncDevices()
+{
+    if( !mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() ) ) {
+        errorMsgBox("MainWindow: Error sync devices! See console.");
+        return false;
+    }
+
+    return true;
+}
+
 void MainWindow::on_btnPause_toggled(bool checked)
 {
     ui->btnPause->setToolTip( checked ? "Unpause simulation" : "Pause simulation");
@@ -789,11 +801,6 @@ void MainWindow::on_btnClearCount_clicked()
 // Add device (animal)
 void MainWindow::on_btnAdd_clicked()
 {
-    QStringList names(mHerd->animalsCount());
-    for( auto i = 0; i < mHerd->animalsCount(); i++) {
-        names.append(mHerd->animal(i)->name());
-    }
-
-    DialogRegisterDevice dlg(names, this);
+    DialogRegisterDevice dlg(mHerd, this);
     dlg.exec();
 }

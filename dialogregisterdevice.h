@@ -1,7 +1,12 @@
 #ifndef DIALOGREGISTERDEVICE_H
 #define DIALOGREGISTERDEVICE_H
 
+
+
 #include <QDialog>
+//#include <QColor>
+
+#include "hardware/loradev.h"
 
 class Herd;
 
@@ -13,19 +18,27 @@ class DialogRegisterDevice : public QDialog
 {
     Q_OBJECT
 
-    QStringList mHerdNames;
+    Herd* mHerd = nullptr;
+    QStringList mNames;
+    QColor mStatusBackColor;
+
     void updateExisting();
+    void clear();
+    void setStatus(const QString& txt, const QColor &col);
+    bool mIsChange = false;
 
-public:
-    explicit DialogRegisterDevice(QStringList animals, QWidget *parent = nullptr);
-    ~DialogRegisterDevice();
-
-    bool isVirtual();
     bool isNew();
     QString name();
+    LoraDev::Profile profile();
+    bool isCollar();
+    bool isBolus();
+    bool isRelay();
 
+public:
+    explicit DialogRegisterDevice(Herd *herd, QWidget *parent = nullptr);
+    ~DialogRegisterDevice();
 
-
+    bool devicesChanged(){ return mIsChange; }
 
 private slots:
     void on_checkVirtual_toggled(bool checked);
@@ -52,8 +65,14 @@ private slots:
 
     void on_radioAnimalNew_toggled(bool checked);
 
+    void on_btnClear_clicked();
+
+    void on_btnRegister_clicked();
+
 private:
     Ui::DialogRegisterDevice *ui;
 };
+
+
 
 #endif // DIALOGREGISTERDEVICE_H

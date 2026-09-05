@@ -32,6 +32,7 @@ SOURCES += \
     devmanager.cpp \
     dialogconsole.cpp \
     dialogdevicemsg.cpp \
+    dialoginitial.cpp \
     focusanim.cpp \
     grpc.cpp \
     hardware/bolus/accel.cpp \
@@ -61,6 +62,7 @@ HEADERS += \
     devmanager.h \
     dialogconsole.h \
     dialogdevicemsg.h \
+    dialoginitial.h \
     focusanim.h \
     grpc.h \
     hardware/bolus/accel.h \
@@ -89,6 +91,7 @@ HEADERS += \
 FORMS += \
     dialogconsole.ui \
     dialogdevicemsg.ui \
+    dialoginitial.ui \
     focusanim.ui \
     dialogregisterdevice.ui \
     mainwindow.ui

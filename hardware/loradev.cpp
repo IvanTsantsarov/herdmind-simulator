@@ -493,3 +493,16 @@ QString LoraDev::lastSeenInfo()
         .arg(QString(ls.minutes < 10 ? "0%1" : "%1").arg(ls.minutes))
         .arg(QString(ls.seconds < 10 ? "0%1" : "%1").arg(ls.seconds));
 }
+
+QString LoraDev::profileString()
+{
+    switch(mProfile) {
+    case LoraDev::Profile::None: return "none";
+    case LoraDev::Profile::Bolus: return "bolus";
+    case LoraDev::Profile::Collar: return "colar";
+    case LoraDev::Profile::Relay: return "relay";
+    case LoraDev::Profile::Gateway: return "gateway";
+    }
+
+    return "unknown";
+}

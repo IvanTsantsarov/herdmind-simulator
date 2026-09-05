@@ -95,6 +95,7 @@ public:
     bool sendMessageRest(const QString& eui, const QByteArray& msg);
     bool sendMessageMqtt(const QString& eui, const QByteArray& msg);
     bool setupFence(const QGeoCoordinate &center, const QVector<QGeoCoordinate>& coords);
+    bool addDevice(const QString& str, const QString& eui);
 
     LoraDev* findByAddress(const QByteArray &address );
 

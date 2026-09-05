@@ -22,7 +22,9 @@ public:
     enum struct Profile {
         None = 0,
         Bolus = 1,
-        Collar = 2
+        Collar = 2,
+        Relay = 3,
+        Gateway = 4
     };
 private:
 
@@ -84,6 +86,7 @@ public:
     inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
+    QString profileString();
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
     inline bool isCollar(){ return Profile::Collar == mProfile; }
@@ -146,6 +149,8 @@ private slots:
 
 
 };
+
+
 
 #else
 class LoraDev

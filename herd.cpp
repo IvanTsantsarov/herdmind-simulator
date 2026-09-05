@@ -41,8 +41,8 @@ void Herd::clear()
     mPairsBC.clear();
 }
 
-Herd::Herd(QObject *parent)
-    : QObject{parent}
+Herd::Herd(bool isSim, QObject *parent)
+    : QObject{parent}, mIsSimulation(isSim)
 {
     // mIsEnabledGrazing = false; // trash
     // mIsEnabledHerding = false; // trash
@@ -60,6 +60,8 @@ Herd::~Herd()
 
 bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, float grazingCapacity )
 {
+    mIsSimulation = true;
+
     qDebug() << "Loading herd from" << jsonPath;
 
     float areaRadius = beforeGeneration( areaDimeter, animalSize);
@@ -79,7 +81,6 @@ bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, floa
         qDebug() << jsonListStr;
         return false;
     }
-
 
     mAnimals.reserve(jarr.size());
     for(const auto& jsonElement: jarr) {
@@ -105,7 +106,6 @@ bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, floa
 
     return true;
 }
-
 
 float Herd::beforeGeneration( int areaDimeter, float animalSize )
 {
@@ -192,6 +192,8 @@ bool Herd::generate(int count,
         animal->putCollar();
         mCollars.append(animal);
     }
+
+    mIsSimulation = true;
 
     return true;
 }
@@ -364,6 +366,18 @@ void Herd::update(  float tickSeconds,
 
 }
 
+Animal *Herd::animal(const QString &name)
+{
+    for( auto i = 0; i < mAnimals.count(); i ++) {
+        Animal* a = mAnimals[i];
+        if( a->name() == name) {
+            return a;
+        }
+    }
+
+    return nullptr;
+}
+
 
 QPointF Herd::shepherdPos()
 {
@@ -496,6 +510,16 @@ bool Herd::storeAnimals(const QString& dir)
     return true;
 }
 
+QStringList Herd::names()
+{
+    QStringList names(animalsCount());
+    for( auto i = 0; i < animalsCount(); i++) {
+        names.append(animal(i)->name());
+    }
+
+    return names;
+}
+
 bool Herd::storeDevices(const QString& dir)
 {
     qDebug() << "Storing herd lists in:" << dir;
@@ -509,4 +533,24 @@ bool Herd::storeDevices(const QString& dir)
     qInfo() << "Devices lists stored in" << dir;
 
     return true;
+}
+
+// TODO:
+Animal* Herd::newAnimal(const QString& name, bool isMale, const QString& collarEUI, const QString& bolusEUI)
+{
+    int x = 0;
+    int y = 0;
+    float grazingCapacity = ANIMAL_INITIAL_GRAZING_CAPACITY;
+    Animal* animal = new Animal(this, isMale, name, x, y, grazingCapacity);
+    mAnimals.append(animal);
+
+    if( !collarEUI.isEmpty() ) {
+        animal->putCollar(collarEUI.toUtf8().toHex());
+    }
+
+    if( !bolusEUI.isEmpty() ) {
+        animal->putBolus(bolusEUI.toUtf8().toHex());
+    }
+
+    return animal;
 }

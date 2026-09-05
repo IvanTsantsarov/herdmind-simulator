@@ -12,6 +12,8 @@
 #include "defines.h"
 #include "defines_settings.h"
 
+#include "dialoginitial.h"
+
 #define ENVIRONMENT_INI "environment.ini"
 
 SimTimer gSimTimerObject;
@@ -92,30 +94,15 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    QString settingsName;
-
     QSettings env(ENVIRONMENT_INI);
-    bool isRemoteSession = env.value("Main/Remote").toBool();
 
-    switch( QMessageBox::question(nullptr, "Herdming Simulator",
-                                  "Connect to external Chirpstack?",
-                                  QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
-                                  isRemoteSession ? QMessageBox::Yes : QMessageBox::No ) )
-    {
-    case QMessageBox::Yes:
-        settingsName = SETTINGS_NAME_EXTERNAL;
-        isRemoteSession = true;
-        break;
-    case QMessageBox::No:
-        settingsName = SETTINGS_NAME;
-        isRemoteSession = false;
-        break;
-    default:
-        return 3;
+    DialogInitial dlgInit(env);
+    dlgInit.exec();
+
+    if( !dlgInit.isOk() )  {
+        return 0;
     }
-
-    // store choice
-    env.setValue("Main/Remote", isRemoteSession);
+    QString settingsName = dlgInit.isLocal() ? SETTINGS_NAME : SETTINGS_NAME_EXTERNAL;
 
     Q_ASSERT( QFile::exists(settingsName) );
 
@@ -124,7 +111,7 @@ int main(int argc, char *argv[])
 
     gSimTools = new SimTools(settings);
 
-    MainWindow w(env,settings);
+    MainWindow w(dlgInit.isSimulation(),env,settings);
     w.show();
     return a.exec();
 }

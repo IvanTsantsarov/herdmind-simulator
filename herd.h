@@ -13,6 +13,7 @@ class LoraDev;
 
 class Herd : public QObject
 {
+    bool mIsSimulation = true;
 public:
 
     class AnimalPair {
@@ -59,13 +60,11 @@ private:
     bool processCollision(float collidingDistance);
     float beforeGeneration(int areaDimeter, float animalSize);
 public:
-    explicit Herd(QObject *parent = nullptr);
+    explicit Herd(bool isSim, QObject *parent = nullptr);
     ~Herd();
 
     inline int malesCount(){ return mMalesCount;}
     inline int femalesCount(){ return mAnimals.count() - mMalesCount;}
-
-    bool loadFromFile(int areaDimeter, float animalSize);
 
     bool generate(int count,
                   int areaDimeter,
@@ -78,6 +77,7 @@ public:
                 float animalSize,
                 float grazingCapacity );
 
+    bool loadReal();
 
     void update(float tickSeconds,
                 Meadow *meadow,
@@ -95,6 +95,7 @@ public:
                 );
 
     inline Animal* animal(int index){ return mAnimals[index]; }
+    Animal* animal(const QString& name);
     inline Meadow* meadow(){ return mMeadow; }
 
 
@@ -112,6 +113,9 @@ public:
     bool storeDevices(const QString &dir = "./");
     bool storeAnimals(const QString &dir = "./");
 
+    QStringList names();
+
+    Animal *newAnimal(const QString &name, bool isMale, const QString &CollarEUI, const QString &BolusEUI);
 signals:
 };
 

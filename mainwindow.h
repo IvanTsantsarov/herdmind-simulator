@@ -28,6 +28,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    bool mIsSimulation = false;
+
     SimTools* mTools = nullptr;
     Scene* mScene = nullptr;
     Herd* mHerd = nullptr;
@@ -53,9 +55,13 @@ class MainWindow : public QMainWindow
 
     void updateFenceButtons();
 
+    bool syncDevices();
+
 public:
-    MainWindow(QSettings &env, const QSettings &settings, QWidget *parent = nullptr);
+    MainWindow(bool isSim, QSettings &env, const QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
+
+    inline bool isSimulation(){ return mIsSimulation; }
 
     inline Herd* herd(){ return mHerd; }
     inline Meadow* meadow(){ return mMeadow; }

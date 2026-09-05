@@ -48,9 +48,14 @@
 #define FARM_INITIAL_LOCATION_LAT 41.613306
 #define FARM_INITIAL_LOCATION_LONG 23.912167
 
-
+// Real saves
 #define DEVICES_LIST_FILE "devices.json"
 #define ANIMALS_LIST_FILE "animals.json"
+
+// Simulated saves
+#define DEVICES_LIST_FILE_SIM "devices_sim.json"
+#define ANIMALS_LIST_FILE_SIM "animals_sim.json"
+
 
 #define MAX_COLLAR_GATEWAY_DISTANCE 100
 

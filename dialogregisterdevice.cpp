@@ -6,8 +6,11 @@
 //#include "hardware/gateway/gateway.h"
 //#include "hardware/hardware/tools.h"
 #include "simtools.h"
+#include "herd.h"
 #include <QToolTip>
 
+#define COL_ERR QColor(255, 50, 50)
+#define COL_DONE QColor(50, 255, 50)
 
 void DialogRegisterDevice::updateExisting()
 {
@@ -21,15 +24,37 @@ void DialogRegisterDevice::updateExisting()
     }
 }
 
-DialogRegisterDevice::DialogRegisterDevice(QStringList animals, QWidget *parent)
+void DialogRegisterDevice::clear()
+{
+    ui->editASKey->clear();
+    ui->editNSKey->clear();
+    ui->editName->clear();
+    setStatus("", mStatusBackColor);
+
+}
+
+void DialogRegisterDevice::setStatus(const QString &txt, const QColor& col)
+{
+    ui->editStatus->setText(txt);
+
+    QPalette palette = ui->editStatus->palette();
+    palette.setColor(QPalette::Base,col);
+    ui->editStatus->setPalette(palette);
+}
+
+DialogRegisterDevice::DialogRegisterDevice(Herd* herd, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::DialogRegisterDevice)
 {
     ui->setupUi(this);
+    mHerd = herd;
 
-    mHerdNames = animals;
+    QPalette palette = ui->editStatus->palette();
+    mStatusBackColor = palette.color(QPalette::Base);
 
-    for( const QString& name: animals) {
+    mNames = mHerd->names();
+
+    for( const QString& name: mNames) {
         ui->comboHerd->addItem(name);
     }
 
@@ -41,14 +66,22 @@ DialogRegisterDevice::~DialogRegisterDevice()
     delete ui;
 }
 
-bool DialogRegisterDevice::isVirtual()
-{
-    return ui->checkVirtual->isChecked();
-}
-
 bool DialogRegisterDevice::isNew()
 {
     return ui->radioAnimalNew->isChecked();
+}
+
+LoraDev::Profile DialogRegisterDevice::profile()
+{
+    if( ui->radioTypeCollar->isChecked() ) {
+        return LoraDev::Profile::Collar;
+    }
+
+    if( ui->radioTypeBolus->isChecked() ) {
+        return LoraDev::Profile::Bolus;
+    }
+
+    return LoraDev::Profile::None;
 }
 
 void DialogRegisterDevice::on_checkVirtual_toggled(bool checked)
@@ -150,3 +183,68 @@ void DialogRegisterDevice::on_radioAnimalNew_toggled(bool checked)
     ui->comboHerd->setVisible(!checked);
 }
 
+
+void DialogRegisterDevice::on_btnClear_clicked()
+{
+    clear();
+}
+
+
+bool DialogRegisterDevice::isCollar()
+{
+    return ui->radioTypeCollar->isChecked();
+}
+
+bool DialogRegisterDevice::isBolus()
+{
+    return ui->radioTypeBolus->isChecked();
+}
+
+bool DialogRegisterDevice::isRelay()
+{
+    return ui->radioTypeRelay->isChecked();
+}
+
+// TODO:
+void DialogRegisterDevice::on_btnRegister_clicked()
+{
+    Animal* animal = nullptr;
+    if( isNew() ) {
+        if( mNames.contains(name()) ){
+            setStatus( QString("%1 already exists!").arg(name()), COL_ERR );
+            return;
+        }
+
+
+        animal = mHerd->newAnimal(name(),
+            ui->radioMale->isChecked(),
+            isCollar() ? ui->editEUI->text() : "",
+            isBolus() ? ui->editEUI->text() : "" );
+    }else {
+
+        animal = mHerd->animal(name());
+
+        if( !animal ) {
+            setStatus( QString("Animal %1 not found!").arg(name()), COL_ERR);
+            return;
+        }
+
+        if( isCollar() ) {
+
+        }else
+        if( isBolus() ) {
+
+        }else
+        if( isRelay() ) {
+
+        };
+
+    }
+
+    setStatus("Registering...", mStatusBackColor);
+}
+
+QString DialogRegisterDevice::name()
+{
+    return ui->editName->text();
+}
