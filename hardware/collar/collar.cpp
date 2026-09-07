@@ -9,23 +9,25 @@
 //////////////////////////////////////////////////////////////
 /// Simulation
 //////////////////////////////////////////////////////////////
-
-Collar::GeoPoint Collar::readGPS()
-{
-    QGeoCoordinate geoCoor = mAnimal->geoPos();
-    return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
-}
-
-
 Collar::Collar( Animal* animal,
-                const QByteArray &devEUI,
-                const QByteArray& appKey)
+               const QByteArray &devEUI,
+               const QByteArray& appKey)
     : LoraDev(QString("%1 collar").arg(animal->name()), LoraDev::Profile::Collar,
-            COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
+              COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
               devEUI, appKey), mAnimal(animal)
 {
 }
+#endif
 
+Collar::GeoPoint Collar::readGPS()
+{
+#ifdef SIMULATION
+    QGeoCoordinate geoCoor = mAnimal->geoPos();
+    return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
+#else
+    return GeoPoint();
+#endif
+}
 
 void Collar::onUpdate()
 {
@@ -67,7 +69,9 @@ void Collar::onSend()
     package.encodeLon( coord.mLon );
     package.mBattery = 100;
 
+#ifdef SIMULATION
     sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
+#endif
 }
 
 void Collar::onReceive(uint8_t *data, uint32_t size)
@@ -113,7 +117,7 @@ void Collar::onSetupFence(uint8_t count, const GeoPoint& center, const uint8_t *
             Protocol::decodeCoordOffset(offsetLat, center.mLat ),
             Protocol::decodeCoordOffset(offsetLon, center.mLon ) );
 
-        qInfo() << QString::number(geoPt.mLat, 'f', 6) << QString::number(geoPt.mLon, 'f', 6); // trash
+        // qInfo() << QString::number(geoPt.mLat, 'f', 6) << QString::number(geoPt.mLon, 'f', 6); // trash
         mFenceGeoPoints[ptIndex] = geoPt;
         mFencePoints[ptIndex] = Point::fromGeoPoint(center, geoPt);
     }
@@ -134,18 +138,12 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
     uint8_t buffer[1 + sizeof(uint32_t)];
     buffer[0] = static_cast<uint8_t>(event);
     Protocol::writeUint32(value, buffer, 1);
+#ifdef SIMULATION
     sendPackage(buffer, sizeof(buffer));
-}
-
-
 #else
-//////////////////////////////////////////////////////////////
-/// Real conditions
-//////////////////////////////////////////////////////////////
 
-
-#endif // SIMULATION
-
+#endif
+}
 
 void Collar::testFence()
 {

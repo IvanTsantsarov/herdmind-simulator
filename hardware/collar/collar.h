@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "../defines.h"
+#include "../protocol.h"
 
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 100
@@ -16,20 +17,17 @@
 
 #define MIN_DOUBLE_VALUE 1e-9
 
-struct CollarData;
+#define M_PI 3.14159265358979323846
+#define deg2rad(__deg__) (__deg__ * M_PI / 180.0)
+#define rad2deg(__rad__) (__rad__ * 180.0 / M_PI)
+
 
 #ifdef SIMULATION
 #include <QPointF>
 #include <QLine>
 #include "../loradev.h"
-#include "../protocol.h"
-
-#define M_PI 3.14159265358979323846
-#define deg2rad(__deg__) (__deg__ * M_PI / 180.0)
-#define rad2deg(__rad__) (__rad__ * 180.0 / M_PI)
 
 class Collar : public LoraDev
-
 #else
 class Collar
 #endif
@@ -218,21 +216,13 @@ class Collar
     int mTrajectoryPointsCount = 0;
     GeoPoint mTrajectoryPoints[COLLAR_MAX_GPS_POINTS];
 
-public:
-
-
-private:
     void testFence();
 #ifdef SIMULATION
     Animal* mAnimal;
 #else
-    Collar();
+
 #endif
     Protocol::Collar mPackage;
-
-    void onUpdate();
-    void onSend();
-    void onReceive(uint8_t* data, uint32_t size);
 
     void onSetupFence(uint8_t count,
                       const GeoPoint &center,
@@ -240,6 +230,9 @@ private:
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 public:
+    void onUpdate();
+    void onSend();
+    void onReceive(uint8_t* data, uint32_t size);
 
 #ifdef SIMULATION
     Collar(Animal* animal,
@@ -266,7 +259,8 @@ public:
 
         return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
     }
-
+#else
+    // Collar(){};
 #endif
 
     inline bool isFence(){ return mFencePointsCount > 0; }
@@ -276,11 +270,5 @@ public:
     inline bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
 
 };
-
-struct CollarData {
-    Protocol::Collar mCollar;
-    QList<Protocol::Bolus> mBoluses;
-};
-
 
 #endif // COLLAR_H
