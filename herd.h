@@ -118,6 +118,8 @@ public:
     QStringList names();
 
     Animal *newAnimal(const QString &name, bool isMale, const QString &CollarEUI, const QString &BolusEUI);
+
+    QList<Animal*> animalsWithCollars();
 signals:
 };
 

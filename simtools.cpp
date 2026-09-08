@@ -11,6 +11,7 @@
 #include <fstream>
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QPushButton>
 
 #include "simtools.h"
 #include "defines_settings.h"
@@ -271,6 +272,19 @@ void SimTools::clipboardCopy(const QString &txt)
     QClipboard *clipboard = QGuiApplication::clipboard();
     // QString originalText = clipboard->text();
     clipboard->setText(txt);
+}
+
+void SimTools::setBtnImage(QPushButton *btn, const QImage &img)
+{
+    int btnMaxSize = std::max(btn->width(), btn->height());
+    QSize btnSize(btnMaxSize, btnMaxSize);
+    QPalette p = btn->palette();
+    p.setBrush(btn->backgroundRole(), QBrush(img.scaled(btnSize)));
+    btn->setPalette(p);
+    btn->setFlat(true);
+    btn->setAutoFillBackground(true);
+    btn->update();
+    btn->setText("");
 }
 
 SimTools::SimTools(const QSettings &settings)

@@ -407,3 +407,15 @@ Animal* Herd::newAnimal(const QString& name, bool isMale, const QString& collarE
 
     return animal;
 }
+
+QList<Animal *> Herd::animalsWithCollars()
+{
+    QList<Animal*> ls;
+    for( Animal* a: mAnimals) {
+        if( a->hasCollar() ) {
+            ls.append(a);
+        }
+    }
+
+    return ls;
+}

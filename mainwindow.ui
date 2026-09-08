@@ -432,8 +432,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>262</width>
-              <height>786</height>
+              <width>234</width>
+              <height>825</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -1462,7 +1462,7 @@
      <x>0</x>
      <y>0</y>
      <width>535</width>
-     <height>22</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuView">
@@ -1471,6 +1471,7 @@
     </property>
     <addaction name="actionConsole"/>
     <addaction name="actionDeviceMsg"/>
+    <addaction name="actionDlgCollar"/>
     <addaction name="actionScene_UI"/>
     <addaction name="separator"/>
     <addaction name="actionReset"/>
@@ -1536,6 +1537,14 @@
   <action name="actionReset">
    <property name="text">
     <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionDlgCollar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Collar View</string>
    </property>
   </action>
  </widget>

@@ -22,6 +22,8 @@
 #include "simtimer.h"
 #include "hardware/defines.h"
 #include "dialogregisterdevice.h"
+#include "hardware/dialogcollarsim.h"
+
 #define TABLE_COLS_COUNT 3
 #define REMINDER_DELAY 3000
 
@@ -106,13 +108,7 @@ MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QW
 
     mDevMsg = new DialogDeviceMsg(mDevManager, this);
 
-    if( settings.value("GUI/isConsole").toBool() ) {
-        ui->actionConsole->setChecked(true);
-    }
-
-    if( settings.value("GUI/isDeviceMsg").toBool() ) {
-        ui->actionDeviceMsg->setChecked(true);
-    }
+    mDlgCollar = new DialogCollarSim(this);
 
     QRect screenrect = qApp->primaryScreen()->geometry();
     mConsole->move(screenrect.left(), screenrect.bottom()/2);
@@ -126,6 +122,11 @@ MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QW
     is = mEnv.value("UI/DevMsg").toBool();
     mDevMsg->setVisible( is );
     ui->actionDeviceMsg->setChecked(is);
+
+    is = mEnv.value("UI/CollarSim").toBool();
+    mDlgCollar->setVisible( is );
+    ui->actionDlgCollar->setChecked(is);
+
 
     is = mEnv.value("UI/GroupFold").toBool();
     ui->btnShowInfo->setChecked(is);
@@ -158,6 +159,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     Q_UNUSED(e);
     mEnv.setValue("UI/Console", mConsole->isVisible() );
     mEnv.setValue("UI/DevMsg", mDevMsg->isVisible() );
+    mEnv.setValue("UI/CollarSim", mDlgCollar->isVisible() );
     mEnv.setValue("UI/GroupFold", ui->btnShowInfo->isChecked());
     mEnv.setValue("UI/isGrowing", ui->checkGrowingMeadow->isChecked());
     mEnv.setValue("UI/DebugInfo", mConsole->isDebugInfo());
@@ -322,6 +324,9 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     if( !isLoad ) {
         mHerd->storeAnimals();
     }
+
+
+    mDlgCollar->init(mHerd->animalsWithCollars());
 
     return true;
 }
@@ -781,3 +786,9 @@ void MainWindow::on_btnAdd_clicked()
     syncDevices();
     mHerd->storeAnimals();
 }
+
+void MainWindow::on_actionDlgCollar_triggered()
+{
+    mDlgCollar->setVisible(true);
+}
+

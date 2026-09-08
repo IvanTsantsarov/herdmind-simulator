@@ -357,3 +357,19 @@ void DialogRegisterDevice::setStatus(const QString &txt, const QColor& col)
     palette.setColor(QPalette::Base,col);
     ui->editStatus->setPalette(palette);
 }
+
+
+
+/*
+if( settings.value("GUI/isConsole").toBool() ) {
+    ui->actionConsole->setChecked(true);
+}
+
+if( settings.value("GUI/isDeviceMsg").toBool() ) {
+    ui->actionDeviceMsg->setChecked(true);
+}
+
+if( settings.value("GUI/isDlgCollar").toBool() ) {
+    ui->actionDlgCollar->setChecked(true);
+}
+*/

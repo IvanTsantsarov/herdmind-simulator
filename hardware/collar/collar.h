@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdint>
 
+#include "screen.h"
 #include "../defines.h"
 #include "../protocol.h"
 
@@ -32,6 +33,7 @@ class Collar : public LoraDev
 class Collar
 #endif
 {
+    Screen mScreen;
     uint16_t mSequence = 0;
 
     struct GeoPoint {
@@ -259,6 +261,7 @@ public:
 
         return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
     }
+
 #else
     // Collar(){};
 #endif
@@ -268,6 +271,7 @@ public:
     inline bool isGoingAwayFromFence(){ return mFenceIsGoingAway; }
     inline double fanceDistance(){ return mFenceDistance; }
     inline bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
+    inline Screen& screen(){ return mScreen; }
 
 };
 

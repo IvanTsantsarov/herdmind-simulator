@@ -1,8 +1,8 @@
 #include "collar.h"
-#include "../tools.h"
 
 #ifdef SIMULATION
-#include "../../animal.h"
+    #include "../../animal.h"
+    #include "../tools.h"
 #endif
 
 #ifdef SIMULATION

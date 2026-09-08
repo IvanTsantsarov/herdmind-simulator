@@ -60,6 +60,7 @@ DialogRegisterDevice::~DialogRegisterDevice()
     delete ui;
 }
 
+
 bool DialogRegisterDevice::isNew()
 {
     return ui->radioAnimalNew->isChecked();

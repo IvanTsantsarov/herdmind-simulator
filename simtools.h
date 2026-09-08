@@ -9,6 +9,8 @@
 
 #define AES_BYTES_LEN 16
 
+class QPushButton;
+
 class SimTools
 {
 public:
@@ -114,6 +116,8 @@ public:
     }
 
     static void clipboardCopy(const QString& txt);
+
+    static void setBtnImage(QPushButton* btn, const QImage &img);
 
 };
 

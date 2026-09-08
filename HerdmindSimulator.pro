@@ -38,7 +38,7 @@ SOURCES += \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/collar/collar.cpp \
-    hardware/collar/dialogcollarsim.cpp \
+    hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
     dialogregisterdevice.cpp \
@@ -74,7 +74,7 @@ HEADERS += \
     hardware/bolus/includes.h \
     hardware/collar/collar.h \
     defines.h \
-    hardware/collar/dialogcollarsim.h \
+    hardware/dialogcollarsim.h \
     hardware/collar/screen.h \
     hardware/defines.h \
     hardware/gateway/gateway.h \
@@ -100,7 +100,7 @@ FORMS += \
     dialoginitial.ui \
     focusanim.ui \
     dialogregisterdevice.ui \
-    hardware/collar/dialogcollarsim.ui \
+    hardware/dialogcollarsim.ui \
     mainwindow.ui
 
 # Default rules for deployment.

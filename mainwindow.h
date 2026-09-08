@@ -23,6 +23,7 @@ class ApiRest;
 class DevManager;
 class DialogConsole;
 class DialogDeviceMsg;
+class DialogCollarSim;
 
 class MainWindow : public QMainWindow
 {
@@ -43,6 +44,7 @@ class MainWindow : public QMainWindow
 
     DialogConsole* mConsole = nullptr;
     DialogDeviceMsg* mDevMsg = nullptr;
+    DialogCollarSim* mDlgCollar = nullptr;
 
     QSettings& mEnv;
     const QSettings &mSettings;
@@ -116,6 +118,7 @@ private slots:
     void on_checkFence_toggled(bool is);
     void on_btnAdd_clicked();
     void on_btnClearCount_clicked();
+    void on_actionDlgCollar_triggered();
 };
 
 extern MainWindow* gMainWindow;
