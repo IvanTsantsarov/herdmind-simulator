@@ -409,16 +409,6 @@ void MainWindow::onUpdate()
 }
 
 
-void MainWindow::on_btnGenerate_clicked()
-{
-    if( gSimTools->fileExists(ANIMALS_LIST_FILE) ) {
-        if( QMessageBox::Yes != QMessageBox::question(this, "Generate new herd?", "This will erase existing saved animals list! Proceed with generating?") ) {
-            return;
-        }
-    }
-
-    create(false);
-}
 
 
 void MainWindow::onRowClicked(int row, int column)
@@ -464,12 +454,6 @@ void MainWindow::resizeEvent(QResizeEvent *)
     }
 }
 
-void MainWindow::onConnectReminger()
-{
-    if( !mHerd ) {
-        mFocusAnim->start(gSimTools->fileExists(ANIMALS_LIST_FILE) ? ui->btnLoad : ui->btnGenerate);
-    }
-}
 
 
 void MainWindow::setStatus(const QString &txt)
@@ -762,7 +746,7 @@ void MainWindow::on_checkFence_toggled(bool is)
     mDevManager->setupFence(mMeadow->geoCenter(), fenceGeoPoints);
 }
 
-
+/*
 void MainWindow::on_btnClearCount_clicked()
 {
     if( gSimTools->fileExists(ANIMALS_LIST_FILE) ) {
@@ -775,7 +759,7 @@ void MainWindow::on_btnClearCount_clicked()
 
     create(false);
 }
-
+*/
 
 // Add device (animal)
 void MainWindow::on_btnAdd_clicked()

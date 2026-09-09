@@ -64,6 +64,10 @@ DialogCollarSim::~DialogCollarSim()
 
 void DialogCollarSim::grabScreen()
 {
+    if( !mAnimal) {
+        return;
+    }
+
     ScreenLib& lib = mAnimal->collar()->screen().lib();
     uint8_t* src = lib.mBuffer;
 

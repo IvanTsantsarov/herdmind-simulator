@@ -1,6 +1,9 @@
+#include <QMessageBox>
 #include "defines.h"
 #include "ui_mainwindow.h"
 #include "mainwindow.h"
+#include "simtools.h"
+#include "focusanim.h"
 
 void MainWindow::initSimulation()
 {
@@ -42,4 +45,24 @@ void MainWindow::initSimulation()
     ui->spinPastureGenWaveMin->setValue(PASTURE_GEN_WAVE_MIN);
     ui->spinPastureGenWaveMax->setValue(PASTURE_GEN_WAVE_MAX);
 
+}
+
+
+void MainWindow::on_btnGenerate_clicked()
+{
+    if( gSimTools->fileExists(ANIMALS_LIST_FILE_SIM) ) {
+        if( QMessageBox::Yes != QMessageBox::question(this, "Generate new herd?", "This will erase existing saved animals list! Proceed with generating?") ) {
+            return;
+        }
+    }
+
+    create(false);
+}
+
+
+void MainWindow::onConnectReminger()
+{
+    if( !mHerd ) {
+        mFocusAnim->start(gSimTools->fileExists(ANIMALS_LIST_FILE) ? ui->btnLoad : ui->btnGenerate);
+    }
 }
