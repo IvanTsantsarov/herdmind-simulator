@@ -7,7 +7,8 @@
 #include "dialogcollarsim.h"
 
 
-uint8_t ScreenSim::mFont[mFontCX * mFontCY][mFontCY][mFontCX];
+uint8_t ScreenSim::mFont[mFontCountX * mFontCountY][mFontCY][mFontCX];
+DialogCollarSim* ScreenSim::mDlg = nullptr;
 
 Tools::Tools() {}
 
@@ -34,7 +35,9 @@ void delay(int millis) {
 /// ScreenSim
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ScreenSim::ScreenSim(int r0, int sda, int scl, int rst) {
+ScreenSim::ScreenSim(int r0, int sda, int scl, int rst, const Animal *a)
+    : mAnimal(a)
+{
     (void) r0; (void) sda;(void) scl; (void) rst;
 }
 
@@ -44,18 +47,25 @@ void ScreenSim::setFont(int fontId) {
     QString fontFile;
     switch(fontId) {
     case u8g2_font_spleen8x16_mf: fontFile = "://font8x16.png"; break;
+    default:
+        qCritical() << "Unknown font" << fontId;
+        assert(0);
     }
 
     QImage img( fontFile );
-    int colx = 0;
-    int rowy = 0;
+    if( img.isNull() ) {
+        qCritical() << "Error opening font:" << fontFile;
+    }
 
+    int rowy = 0;
     for( auto iy = 0; iy < mFontCountY; iy ++ ) {
+        int colx = 0;
         for( auto ix = 0; ix < mFontCountX; ix ++ ) {
             for (auto py = 0; py < mFontCY; py ++) {
                 for (auto px = 0; px < mFontCX; px ++) {
                     QRgb rgb = img.pixel(colx + px, rowy + py);
-                    mFont[iy*mFontCountX + ix][py][px] = (qRed(rgb) + qGreen(rgb) + qBlue(rgb)) / 3;
+                    uint8_t c = qGray(rgb) > 120  ?  255 : 0;
+                    mFont[iy*mFontCountX + ix][py][px] = c;
                 }
             }
             colx += (mFontCX + mFontBorderX);
@@ -75,16 +85,16 @@ void ScreenSim::drawHLine(int x, int y, int w)
 void ScreenSim::drawVLine(int x, int y, int h)
 {
     for(auto i = 0; i < h; i ++) {
-        drawPixel(x, y + h);
+        drawPixel(x, y + i);
     }
 }
 
 void ScreenSim::drawFrame(int x, int y, int cx, int cy)
 {
     drawHLine(x, y, cx);
-    drawHLine(x, y+cy, cx);
-    drawVLine(x, y, cy);
-    drawVLine(x+cx, y, cy);
+    drawHLine(x, y+cy-1, cx);
+    drawVLine(x, y, cy-1);
+    drawVLine(x+cx-1, y, cy);
 }
 
 
@@ -94,12 +104,13 @@ void ScreenSim::drawStr(int x, int y, const char *str){
         uint16_t index = *ptr;
         for( auto cy = 0; cy < mFontCY; cy ++ ){
             for( auto cx = 0; cx < mFontCX; cx ++ ) {
-                if( mFont[index][cy][cx] )
-                    drawPixel( x + cx, y + cy );
+                if( mFont[index][cy][cx] ) {
+                    drawPixel( x + cx, y + cy - mFontCY );
+                }
             }
         }
-
         ptr ++;
+        x += FONT_CX + 1;
     }
 }
 

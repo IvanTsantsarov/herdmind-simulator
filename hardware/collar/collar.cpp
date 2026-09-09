@@ -14,9 +14,12 @@ Collar::Collar( Animal* animal,
                const QByteArray& appKey)
     : LoraDev(QString("%1 collar").arg(animal->name()), LoraDev::Profile::Collar,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-              devEUI, appKey), mAnimal(animal)
+              devEUI, appKey), mAnimal(animal), mScreen(this)
 {
 }
+
+
+
 #endif
 
 Collar::GeoPoint Collar::readGPS()
@@ -29,8 +32,26 @@ Collar::GeoPoint Collar::readGPS()
 #endif
 }
 
+void Collar::onSetup()
+{
+    mStage = Stage::Setup;
+    mScreen.setup();
+
+    mStage = Stage::Init;
+}
+
 void Collar::onUpdate()
 {
+    if( Stage::Init == mStage) {
+        mScreen.init();
+
+        mStage = Stage::Operate;
+    }
+
+    if( Stage::Operate != mStage ) {
+        return;
+    }
+
     GeoPoint geoPt = readGPS();
 
     // increment trajectory buffer counter

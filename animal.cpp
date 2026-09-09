@@ -44,7 +44,7 @@ Animal::~Animal()
     }
 }
 
-QGeoCoordinate Animal::geoPos()
+QGeoCoordinate Animal::geoPos() const
 {
     return mHerd->meadow()->getGeoLocation(mPosition.toPointF());
 }

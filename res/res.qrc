@@ -31,5 +31,7 @@
         <file>delete.svg</file>
         <file>female_new.svg</file>
         <file>male_new.svg</file>
+        <file>font8x16.png</file>
+        <file>pixel_art.svg</file>
     </qresource>
 </RCC>

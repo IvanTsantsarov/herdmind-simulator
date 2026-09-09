@@ -33,11 +33,17 @@ public:
 #define SCREEN_COL_LIGHT QColor(0, 240, 255)
 #define SCREEN_COL_DARK QColor(10, 10, 10)
 
+#define SCREEN_CX 128
+#define SCREEN_CY 64
+#define FONT_CY 16
+#define FONT_CX 8
+#define FONT_CY 16
+
 class ScreenSim {
 public:
-    static const uint16_t mW = 128;
-    static const uint16_t mH = 64;
-    static const uint16_t mBytesCount = mW * mH;
+    static const uint16_t mCX = 128;
+    static const uint16_t mCY = 64;
+    static const uint16_t mBytesCount = mCX * mCY;
     uint8_t mBuffer[mBytesCount];
 
 private:
@@ -50,15 +56,16 @@ private:
     static const uint16_t mFontBorderX = 1; // width distance in pixels between chars
     static const uint16_t mFontBorderY = 1; // hight distance in pixels between chars
 
-    static uint8_t mFont[mFontCX * mFontCY][mFontCY][mFontCX];
+    static uint8_t mFont[mFontCountX * mFontCountY][mFontCY][mFontCX];
 
-    DialogCollarSim* mDlg = nullptr;
-    Animal * mAnimal = nullptr;
+    static DialogCollarSim* mDlg;
+
+    const Animal* mAnimal;
 
 public:
-    ScreenSim(int r0, int sda, int scl, int rst);
+    ScreenSim(int r0, int sda, int scl, int rst, const Animal* a);
 
-    void simulationInit( DialogCollarSim* dlgDevice, Animal* a);
+    static void setCollarSim( DialogCollarSim* dlg){ mDlg = dlg; }
 
     void begin(){}
     void clearBuffer() {
@@ -70,19 +77,27 @@ public:
     inline void setDrawColor(uint8_t color_index) { mPixelColor = color_index; }
 
     inline void drawPixel(int x, int y) {
-        assert(x >= 0 && x < mW);
-        assert(y >= 0 && y < mH);
+
+        if(x < 0 || x >= mCX) {
+            return;
+        }
+
+        if(y < 0 || y >= mCY) {
+            return;
+        }
+
+        int index = y * mCX + x;
         switch( mPixelColor ) {
-        case 0: mBuffer[ y * mW + x ] = 0; break;
-        case 1: mBuffer[ y * mW + x ] = 1; break;
-        case 2: mBuffer[ y * mW + x ] = !mBuffer[ y * mW + x ]; break;
+        case 0: mBuffer[ index ] = 0; break;
+        case 1: mBuffer[ index ] = 1; break;
+        case 2: mBuffer[ index ] = !mBuffer[ index ]; break;
         }
     }
 
     inline uint8_t pixel(int x, int y) {
-        assert(x >= 0 && x < mW);
-        assert(y >= 0 && y < mH);
-        return mBuffer[ y * mW + x ];
+        assert(x >= 0 && x < mCX);
+        assert(y >= 0 && y < mCY);
+        return mBuffer[ y * mCX + x ];
     }
 
     void drawHLine(int x, int y, int w);

@@ -33,6 +33,21 @@ class Collar : public LoraDev
 class Collar
 #endif
 {
+    enum struct Stage {
+        None = 0,
+        Setup = 1,
+        Init = 2,
+        Operate = 3
+    };
+
+    Stage mStage = Stage::None;
+
+#ifdef SIMULATION
+    const Animal* mAnimal;
+#else
+
+#endif
+
     Screen mScreen;
     uint16_t mSequence = 0;
 
@@ -219,11 +234,6 @@ class Collar
     GeoPoint mTrajectoryPoints[COLLAR_MAX_GPS_POINTS];
 
     void testFence();
-#ifdef SIMULATION
-    Animal* mAnimal;
-#else
-
-#endif
     Protocol::Collar mPackage;
 
     void onSetupFence(uint8_t count,
@@ -232,9 +242,11 @@ class Collar
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 public:
+    void onSetup();
     void onUpdate();
     void onSend();
     void onReceive(uint8_t* data, uint32_t size);
+
 
 #ifdef SIMULATION
     Collar(Animal* animal,
@@ -261,6 +273,9 @@ public:
 
         return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
     }
+
+
+    inline const Animal* animal() const { return mAnimal; }
 
 #else
     // Collar(){};

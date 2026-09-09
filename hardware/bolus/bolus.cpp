@@ -60,6 +60,11 @@ void Bolus::init()
     mAccel = new Accel();
 }
 
+void Bolus::onSetup()
+{
+
+}
+
 Bolus::~Bolus()
 {
     delete mAccel;

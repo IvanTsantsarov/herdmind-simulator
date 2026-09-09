@@ -117,7 +117,10 @@ public:
 
     static void clipboardCopy(const QString& txt);
 
-    static void setBtnImage(QPushButton* btn, const QImage &img);
+    static void setWidgetImage(QWidget *w, const QImage &img);
+    static void setBtnImage(QPushButton *btn, const QImage &img);
+
+    static void setWidgetBackColor(QWidget *w, const QColor &col);
 
 };
 

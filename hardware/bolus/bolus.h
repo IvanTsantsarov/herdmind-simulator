@@ -49,6 +49,7 @@ public:
           const QByteArray &devEUI = QByteArray(),
           const QByteArray& appKey = QByteArray());
 
+    void onSetup();
     void onUpdate();
     void onSend();
     void onReceive(uint8_t* data, uint32_t size){};

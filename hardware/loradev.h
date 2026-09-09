@@ -122,6 +122,7 @@ public:
 
     bool isSending() { return mSendingMsec > 0; }
 
+    virtual void onSetup() = 0; // On regular sensors update
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
     virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving

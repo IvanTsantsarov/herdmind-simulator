@@ -77,6 +77,7 @@ public:
     void onError(const QString &err);
     void onConsoleClose();
     void onDeviceMsgClose();
+    void onDlgCollarClose();
     void setStatus(const QString& txt);
     void onDeviceMessage(const QString& devEUI, const QJsonObject &jobjResponse);
     void onDevicesReady(bool isStore);

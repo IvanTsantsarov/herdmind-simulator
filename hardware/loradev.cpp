@@ -104,6 +104,8 @@ void LoraDev::onTimerStart()
 {
     connect( &mTimerUpdate, &QTimer::timeout, this, &LoraDev::onTimerUpdate );
     mTimerUpdate.start(mUpdateInterval);
+
+    onSetup();
 }
 
 void LoraDev::onTimerUpdate()

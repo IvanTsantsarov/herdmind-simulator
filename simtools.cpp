@@ -274,17 +274,39 @@ void SimTools::clipboardCopy(const QString &txt)
     clipboard->setText(txt);
 }
 
+void SimTools::setWidgetImage(QWidget *w, const QImage &img)
+{
+    QSize sz = img.size();
+    w->setMaximumSize(sz);
+    w->setMinimumSize(sz);
+    QPalette p = w->palette();
+
+    double dpr = w->window() ? w->window()->devicePixelRatioF() : 1.0;
+
+    QImage crispImg = img;
+    crispImg.setDevicePixelRatio(dpr);
+
+    p.setBrush(w->backgroundRole(), QBrush(crispImg) );
+    w->setPalette(p);
+
+    w->setAutoFillBackground(true);
+    w->update();
+}
+
 void SimTools::setBtnImage(QPushButton *btn, const QImage &img)
 {
-    int btnMaxSize = std::max(btn->width(), btn->height());
-    QSize btnSize(btnMaxSize, btnMaxSize);
-    QPalette p = btn->palette();
-    p.setBrush(btn->backgroundRole(), QBrush(img.scaled(btnSize)));
-    btn->setPalette(p);
+    setWidgetImage(btn, img);
     btn->setFlat(true);
-    btn->setAutoFillBackground(true);
-    btn->update();
     btn->setText("");
+}
+
+void SimTools::setWidgetBackColor(QWidget *w, const QColor &col)
+{
+    QPalette p = w->palette();
+    p.setBrush(w->backgroundRole(), QBrush(col) );
+    w->setPalette(p);
+    w->setAutoFillBackground(true);
+    w->update();
 }
 
 SimTools::SimTools(const QSettings &settings)

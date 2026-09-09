@@ -123,10 +123,10 @@ public:
     Animal(Herd* herd, bool isMale, const QString& name, float x, float y, float grazingCapacity );
     ~Animal();
 
-    inline const QString& name(){return mName; }
+    inline const QString& name() const {return mName; }
     inline QVector2D& p(){ return mPosition; }
     inline QVector2D& pos(){ return mPosition; }
-    QGeoCoordinate geoPos();
+    QGeoCoordinate geoPos() const;
     inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
     inline QVector2D& v(){ return mVelocity; }
     inline bool isMale(){ return mIsMale; }
@@ -138,7 +138,7 @@ public:
                float repellingDistance, float friction);
 
     inline Bolus* bolus(){ return mBolus; }
-    inline Collar* collar(){ return mCollar; }
+    inline Collar* collar() const { return mCollar; }
 
     void setPos(float x, float y){ mPosition.setX(x), mPosition.setY(y); }
     void run(bool is = true);

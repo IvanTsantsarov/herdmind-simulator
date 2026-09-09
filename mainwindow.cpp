@@ -108,7 +108,8 @@ MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QW
 
     mDevMsg = new DialogDeviceMsg(mDevManager, this);
 
-    mDlgCollar = new DialogCollarSim(this);
+    mDlgCollar = new DialogCollarSim(env, this);
+    ScreenSim::setCollarSim(mDlgCollar);
 
     QRect screenrect = qApp->primaryScreen()->geometry();
     mConsole->move(screenrect.left(), screenrect.bottom()/2);
@@ -273,7 +274,9 @@ bool MainWindow::create(bool isLoad, const QString& dir)
         QTableWidgetItem *item = new QTableWidgetItem();
 
         // Set bold text and background color
-        if( a->hasCollar() ) { item->setFont(boldFont); }
+        if( a->hasCollar() ) {
+            item->setFont(boldFont);
+        }
         ui->table->setItem(row, 0, item);
 
         item = new QTableWidgetItem(QString(""));
@@ -324,7 +327,6 @@ bool MainWindow::create(bool isLoad, const QString& dir)
     if( !isLoad ) {
         mHerd->storeAnimals();
     }
-
 
     mDlgCollar->init(mHerd->animalsWithCollars());
 
@@ -539,6 +541,11 @@ void MainWindow::onConsoleClose()
 void MainWindow::onDeviceMsgClose()
 {
     ui->actionDeviceMsg->setChecked(false);
+}
+
+void MainWindow::onDlgCollarClose()
+{
+    ui->actionDlgCollar->setChecked(false);
 }
 
 void MainWindow::on_btnLoad_clicked()

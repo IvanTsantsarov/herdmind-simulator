@@ -2,6 +2,7 @@
 #define DIALOGCOLLARSIM_H
 
 #include <QDialog>
+#include <QSettings>
 
 class Animal;
 
@@ -9,22 +10,44 @@ namespace Ui {
 class DialogCollarSim;
 }
 
+class ScreenWidget : public QWidget {
+     QImage mImage;
+protected:
+     void paintEvent(QPaintEvent *event) override;
+public:
+     explicit ScreenWidget(QWidget *parent = nullptr) : QWidget(parent) { }
+     void configImage(int cx, int cy, QColor c) {
+        mImage = QImage(cx, cy, QImage::Format_RGB888);
+        mImage.fill(c);
+     }
+     inline QImage& image(){ return mImage; }
+};
+
 class DialogCollarSim : public QDialog
 {
     Q_OBJECT
 
     QList<Animal*> mAnimals;
     Animal* mAnimal = nullptr;
-    QImage mScreenImage;
+    QSettings& mEnv;
+    QIcon mIconMale, mIconFemale, mIconSoundOff, mIconSoundOn;
+
+    void setLightsColor(const QColor& col);
+
+    void closeEvent(QCloseEvent *e);
+
+    void grabScreen();
 
 public:
-    explicit DialogCollarSim(QWidget *parent = nullptr);
+    explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
     void init(QList<Animal*> animals);
     ~DialogCollarSim();
-    void sendScreen(Animal* from);
+    void sendScreen(const Animal *from);
 
 private slots:
     void on_comboAnimals_currentIndexChanged(int index);
+
+    void on_btnGenArray_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

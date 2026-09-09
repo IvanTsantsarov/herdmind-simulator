@@ -1,6 +1,4 @@
-#ifndef SCREEN_H
-#define SCREEN_H
-
+#pragma once
 
 #ifdef SIMULATION
     #include "../tools.h"
@@ -11,6 +9,7 @@
     #define ScreenLib U8G2_SSD1306_128X64_NONAME_F_SW_I2C
 #endif
 
+class Collar;
 
 // Heltec V4 Onboard OLED PIN definitions
 #define OLED_SDA   17
@@ -20,13 +19,14 @@
 class Screen
 {
     ScreenLib mLib;
+    const Collar* mCollar;
 public:
-    Screen();
+    Screen(const Collar *c);
     void setup();
-    void test();
-#ifdef SIMULATION
+    void init();
+    void drawArray(int x, int y, int cx, int cy, uint8_t* pixels);
+
+
     ScreenLib& lib(){ return mLib;}
-#endif
 };
 
-#endif // SCREEN_H
