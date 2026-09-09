@@ -7,7 +7,9 @@
 #include "dialogcollarsim.h"
 
 
-uint8_t ScreenSim::mFont[mFontCountX * mFontCountY][mFontCY][mFontCX];
+uint8_t ScreenSim::mFont[FONT_ROWS * FONT_COLS][FONT_CY][FONT_CX];
+int ScreenSim::mLastFont = 0;
+
 DialogCollarSim* ScreenSim::mDlg = nullptr;
 
 Tools::Tools() {}
@@ -42,11 +44,22 @@ ScreenSim::ScreenSim(int r0, int sda, int scl, int rst, const Animal *a)
 }
 
 void ScreenSim::setFont(int fontId) {
-    (void) fontId;
+
+    if( fontId == mLastFont ) {
+        return;
+    }
+
+    mLastFont = fontId;
 
     QString fontFile;
     switch(fontId) {
-    case u8g2_font_spleen8x16_mf: fontFile = "://font8x16.png"; break;
+    case u8g2_font_spleen8x16_mf:
+        fontFile = "://font8x16.png";
+        break;
+    case u8g2_font_spleen6x12_mf:
+        fontFile = "://font6x12.png"; break;
+        break;
+
     default:
         qCritical() << "Unknown font" << fontId;
         assert(0);
@@ -58,19 +71,19 @@ void ScreenSim::setFont(int fontId) {
     }
 
     int rowy = 0;
-    for( auto iy = 0; iy < mFontCountY; iy ++ ) {
+    for( auto iy = 0; iy < FONT_ROWS; iy ++ ) {
         int colx = 0;
-        for( auto ix = 0; ix < mFontCountX; ix ++ ) {
-            for (auto py = 0; py < mFontCY; py ++) {
-                for (auto px = 0; px < mFontCX; px ++) {
+        for( auto ix = 0; ix < FONT_COLS; ix ++ ) {
+            for (auto py = 0; py < FONT_CY; py ++) {
+                for (auto px = 0; px < FONT_CX; px ++) {
                     QRgb rgb = img.pixel(colx + px, rowy + py);
                     uint8_t c = qGray(rgb) > 120  ?  255 : 0;
-                    mFont[iy*mFontCountX + ix][py][px] = c;
+                    mFont[iy*FONT_COLS + ix][py][px] = c;
                 }
             }
-            colx += (mFontCX + mFontBorderX);
+            colx += (FONT_CX + FONT_BX);
         }
-        rowy += (mFontCY + mFontBorderY);
+        rowy += (FONT_CY + FONT_BY);
     }
 }
 
@@ -100,12 +113,28 @@ void ScreenSim::drawFrame(int x, int y, int cx, int cy)
 
 void ScreenSim::drawStr(int x, int y, const char *str){
     const char* ptr = str;
+    bool isUtf8Byte = false;
     while(*ptr) {
-        uint16_t index = *ptr;
-        for( auto cy = 0; cy < mFontCY; cy ++ ){
-            for( auto cx = 0; cx < mFontCX; cx ++ ) {
+        uint16_t index;
+
+        if( mIsUtf8 )
+        {
+            isUtf8Byte = !isUtf8Byte;
+            if( isUtf8Byte ) {
+                ptr ++;
+                continue;
+            }
+            index = *ptr - CYR_OFFSET;
+        }else
+        {
+            index = *ptr - ASCII_OFFSET;
+        }
+
+
+        for( auto cy = 0; cy < FONT_CY; cy ++ ){
+            for( auto cx = 0; cx < FONT_CX; cx ++ ) {
                 if( mFont[index][cy][cx] ) {
-                    drawPixel( x + cx, y + cy - mFontCY );
+                    drawPixel( x + cx, y + cy - FONT_CY );
                 }
             }
         }

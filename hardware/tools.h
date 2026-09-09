@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <QString>
 
+#include "defines.h"
+
 class DialogCollarSim;
 class Animal;
 
@@ -27,40 +29,30 @@ public:
 #define U8G2_R0 0
 
 // Font
-#define u8g2_font_spleen8x16_mf 0
-
+#define u8g2_font_spleen8x16_mf 1
+#define u8g2_font_spleen6x12_mf 2
 
 #define SCREEN_COL_LIGHT QColor(0, 240, 255)
 #define SCREEN_COL_DARK QColor(10, 10, 10)
 
-#define SCREEN_CX 128
-#define SCREEN_CY 64
-#define FONT_CY 16
-#define FONT_CX 8
-#define FONT_CY 16
 
 class ScreenSim {
 public:
-    static const uint16_t mCX = 128;
-    static const uint16_t mCY = 64;
-    static const uint16_t mBytesCount = mCX * mCY;
+    static const uint16_t mBytesCount = SCREEN_CX * SCREEN_CY;
     uint8_t mBuffer[mBytesCount];
 
 private:
     uint8_t mPixelColor = 0x1; // 0 - clear, 1 - pixel, 2 - invert
 
-    static const uint16_t mFontCX = 8;      // character width in pixels
-    static const uint16_t mFontCY = 16;     // character height in pixels
-    static const uint16_t mFontCountX = 16; // font columns count
-    static const uint16_t mFontCountY = 16; // font rows count
-    static const uint16_t mFontBorderX = 1; // width distance in pixels between chars
-    static const uint16_t mFontBorderY = 1; // hight distance in pixels between chars
 
-    static uint8_t mFont[mFontCountX * mFontCountY][mFontCY][mFontCX];
+    static uint8_t mFont[FONT_ROWS * FONT_COLS][FONT_CY][FONT_CX];
+    static int mLastFont;
 
     static DialogCollarSim* mDlg;
 
     const Animal* mAnimal;
+
+    bool mIsUtf8 = false;
 
 public:
     ScreenSim(int r0, int sda, int scl, int rst, const Animal* a);
@@ -78,15 +70,15 @@ public:
 
     inline void drawPixel(int x, int y) {
 
-        if(x < 0 || x >= mCX) {
+        if(x < 0 || x >= SCREEN_CX) {
             return;
         }
 
-        if(y < 0 || y >= mCY) {
+        if(y < 0 || y >= SCREEN_CY) {
             return;
         }
 
-        int index = y * mCX + x;
+        int index = y * SCREEN_CX + x;
         switch( mPixelColor ) {
         case 0: mBuffer[ index ] = 0; break;
         case 1: mBuffer[ index ] = 1; break;
@@ -95,15 +87,17 @@ public:
     }
 
     inline uint8_t pixel(int x, int y) {
-        assert(x >= 0 && x < mCX);
-        assert(y >= 0 && y < mCY);
-        return mBuffer[ y * mCX + x ];
+        assert(x >= 0 && x < SCREEN_CX);
+        assert(y >= 0 && y < SCREEN_CY);
+        return mBuffer[ y * SCREEN_CX + x ];
     }
 
     void drawHLine(int x, int y, int w);
     void drawVLine(int x, int y, int h);
 
-    void setFont(int fontId);
+    void enableUTF8Print(){ mIsUtf8 = true;}
+
+    static void setFont(int fontId);
     void drawStr(int x, int y, const char* str);
     void drawFrame(int x, int y, int cx, int cy);
     void sendBuffer();

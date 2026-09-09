@@ -16,6 +16,8 @@ Collar::Collar( Animal* animal,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
               devEUI, appKey), mAnimal(animal), mScreen(this)
 {
+    // TODO: this should not happened here, but must be send from chirpstack
+    mAnimalName = SimTools::translateCyrilic( animal->name() );
 }
 
 

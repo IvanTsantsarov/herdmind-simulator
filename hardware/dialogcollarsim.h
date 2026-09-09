@@ -19,6 +19,7 @@ public:
      void configImage(int cx, int cy, QColor c) {
         mImage = QImage(cx, cy, QImage::Format_RGB888);
         mImage.fill(c);
+        update();
      }
      inline QImage& image(){ return mImage; }
 };

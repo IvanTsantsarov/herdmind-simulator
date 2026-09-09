@@ -41,7 +41,7 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
 
     ui->btnBuzzer->setIcon(mIconSoundOff);
 
-    ui->widgetScreen->configImage(ScreenSim::mCX, ScreenSim::mCY, SCREEN_COL_DARK);
+    ui->widgetScreen->configImage(SCREEN_CX, SCREEN_CY, SCREEN_COL_DARK);
 
     setLightsColor(QColor(0, 0, 0));
 }
@@ -66,14 +66,12 @@ void DialogCollarSim::grabScreen()
 {
     ScreenLib& lib = mAnimal->collar()->screen().lib();
     uint8_t* src = lib.mBuffer;
-    int cx = ScreenSim::mCX;
-    int cy = ScreenSim::mCY;
 
     QImage& img = ui->widgetScreen->image();
 
-    for( auto y = 0; y < cy; y++) {
-        for( auto x = 0; x < cx; x++) {
-            img.setPixelColor(x, y, src[y*cx + x] ? SCREEN_COL_LIGHT : SCREEN_COL_DARK);
+    for( auto y = 0; y < SCREEN_CY; y++) {
+        for( auto x = 0; x < SCREEN_CX; x++) {
+            img.setPixelColor(x, y, src[y*SCREEN_CX + x] ? SCREEN_COL_LIGHT : SCREEN_COL_DARK);
         }
     }
 
@@ -107,7 +105,7 @@ void DialogCollarSim::on_comboAnimals_currentIndexChanged(int index)
 
 void DialogCollarSim::on_btnGenArray_clicked()
 {
-    QString strSize = QString("%1x%2").arg(ScreenSim::mCX).arg(ScreenSim::mCY);
+    QString strSize = QString("%1x%2").arg(SCREEN_CX).arg(SCREEN_CY);
     QString title = QString("Choose image %1 max => C++ array"),arg(strSize);
 
     QString dirStr = mEnv.value("Collar/ArrayDir").toString();
@@ -131,7 +129,7 @@ void DialogCollarSim::on_btnGenArray_clicked()
 
     QString imgSizeStr = QString("%1x%2").arg(img.width()).arg(img.height());
 
-    if( img.width() > ScreenSim::mCX || img.height() > ScreenSim::mCY) {
+    if( img.width() > SCREEN_CX || img.height() > SCREEN_CY) {
         gMainWindow->errorMsgBox( QString("Image is bigger then %1 (%2)").arg(strSize).arg(imgSizeStr) );
         return;
     }
@@ -171,5 +169,5 @@ void ScreenWidget::paintEvent(QPaintEvent *event)
     QImage scaledImg = mImage.scaled(rect().size(), Qt::IgnoreAspectRatio, Qt::FastTransformation);
 
     // Draw the image filling the entire widget canvas rect
-    painter.drawImage(0, 0  , scaledImg);
+    painter.drawImage(0, 0, scaledImg);
 }

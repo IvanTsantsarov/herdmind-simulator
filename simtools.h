@@ -122,6 +122,8 @@ public:
 
     static void setWidgetBackColor(QWidget *w, const QColor &col);
 
+    static QString translateCyrilic(const QString& str);
+
 };
 
 extern SimTools* gSimTools;

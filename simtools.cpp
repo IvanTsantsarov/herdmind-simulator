@@ -309,6 +309,41 @@ void SimTools::setWidgetBackColor(QWidget *w, const QColor &col)
     w->update();
 }
 
+QString SimTools::translateCyrilic(const QString &str) {
+    // Static map initialized once for performance
+    static const QHash<char16_t, QString> cyrToLat = {
+        {u'А', "A"},  {u'Б', "B"},  {u'В', "V"},  {u'Г', "G"},  {u'Д', "D"},
+        {u'Е', "E"},  {u'Ё', "Yo"}, {u'Ж', "Zh"}, {u'З', "Z"},  {u'И', "I"},
+        {u'Й', "Y"},  {u'К', "K"},  {u'Л', "L"},  {u'М', "M"},  {u'Н', "N"},
+        {u'О', "O"},  {u'П', "P"},  {u'Р', "R"},  {u'С', "S"},  {u'Т', "T"},
+        {u'У', "U"},  {u'Ф', "F"},  {u'Х', "H"}, {u'Ц', "Ts"}, {u'Ч', "Ch"},
+        {u'Ш', "Sh"}, {u'Щ', "Sht"},{u'Ъ', "A"},   {u'Ы', "Y"},  {u'Ь', ""},
+        {u'Э', "E"},  {u'Ю', "Yu"}, {u'Я', "Ya"},
+
+        {u'а', "a"},  {u'б', "b"},  {u'в', "v"},  {u'г', "g"},  {u'д', "d"},
+        {u'е', "e"},  {u'ё', "yo"}, {u'ж', "zh"}, {u'з', "z"},  {u'и', "i"},
+        {u'й', "y"},  {u'к', "k"},  {u'л', "l"},  {u'м', "m"},  {u'н', "n"},
+        {u'о', "o"},  {u'п', "p"},  {u'р', "r"},  {u'с', "s"},  {u'т', "t"},
+        {u'у', "u"},  {u'ф', "f"},  {u'х', "h"}, {u'ц', "ts"}, {u'ч', "ch"},
+        {u'ш', "sh"}, {u'щ', "sht"},{u'ъ', "a"},   {u'ы', "y"},  {u'ь', ""},
+        {u'э', "e"},  {u'ю', "yu"}, {u'я', "ya"}
+    };
+
+    QString result;
+    result.reserve(str.length() * 2); // Reserve memory to prevent reallocations
+
+    for (const QChar &ch : str) {
+        auto it = cyrToLat.find(ch.unicode());
+        if (it != cyrToLat.end()) {
+            result.append(*it);
+        } else {
+            result.append(ch); // Keep spaces, punctuation, and existing Latin characters
+        }
+    }
+
+    return result;
+}
+
 SimTools::SimTools(const QSettings &settings)
 {
     mAppId  = SimTools::readBytearraySettingsValue(settings, CHIRPSTACK_SECTION, "appId");

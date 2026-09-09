@@ -41,8 +41,8 @@ void Herd::clear()
     mPairsBC.clear();
 }
 
-Herd::Herd(bool isSim, QObject *parent)
-    : QObject{parent}, mIsSimulation(isSim)
+Herd::Herd(bool isSim, Meadow *m, QObject *parent)
+    : QObject{parent}, mIsSimulation(isSim), mMeadow(m)
 {
     // mIsEnabledGrazing = false; // trash
     // mIsEnabledHerding = false; // trash

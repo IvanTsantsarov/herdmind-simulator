@@ -60,7 +60,7 @@ private:
     bool processCollision(float collidingDistance);
     float beforeGeneration(int areaDimeter, float animalSize);
 public:
-    explicit Herd(bool isSim, QObject *parent = nullptr);
+    explicit Herd(bool isSim, Meadow* m, QObject *parent = nullptr);
     ~Herd();
 
     inline int malesCount(){ return mMalesCount;}
@@ -80,7 +80,6 @@ public:
     bool loadReal();
 
     void updateSimulation(float tickSeconds,
-                Meadow *meadow,
                 QPointF *attractor,
                 bool isCorrectCollision,
                 float attractorPower,

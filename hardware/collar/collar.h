@@ -41,6 +41,8 @@ class Collar
     };
 
     Stage mStage = Stage::None;
+    String mAnimalName;
+
 
 #ifdef SIMULATION
     const Animal* mAnimal;
@@ -242,6 +244,8 @@ class Collar
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 public:
+
+    String& animalName() { return mAnimalName; }
     void onSetup();
     void onUpdate();
     void onSend();

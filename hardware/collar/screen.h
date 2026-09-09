@@ -19,9 +19,9 @@ class Collar;
 class Screen
 {
     ScreenLib mLib;
-    const Collar* mCollar;
+    Collar* mCollar;
 public:
-    Screen(const Collar *c);
+    Screen(Collar *c);
     void setup();
     void init();
     void drawArray(int x, int y, int cx, int cy, uint8_t* pixels);

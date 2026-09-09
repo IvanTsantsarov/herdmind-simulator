@@ -7,7 +7,6 @@
 //#include "defines.h"
 
 void Herd::updateSimulation(  float tickSeconds,
-                            Meadow* meadow,
                             QPointF* attractor,
                             bool isCorrectCollision,
                             float attractorPower,
@@ -21,8 +20,6 @@ void Herd::updateSimulation(  float tickSeconds,
                             float maxTransmitAngle )
 {
     Q_UNUSED(maxSpeed);
-
-    mMeadow = meadow;
 
     float minTransmitAngleCos = cosf(maxTransmitAngle);
 
@@ -44,7 +41,7 @@ void Herd::updateSimulation(  float tickSeconds,
 
             foreach(Animal* animal, mAnimals) {
                 if( !animal->lawn() && !animal->isMoving() && !animal->isResting() ) {
-                    Meadow::Lawn* lawn = meadow->bestAvailable(animal->pt());
+                    Meadow::Lawn* lawn = mMeadow->bestAvailable(animal->pt());
                     if( lawn ) {
                         animal->walkTo(QVector2D(lawn->pos()));
                         animal->attach(lawn);
