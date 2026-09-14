@@ -34,5 +34,6 @@
         <file>font8x16.png</file>
         <file>pixel_art.svg</file>
         <file>font6x12.png</file>
+        <file>check.svg</file>
     </qresource>
 </RCC>

@@ -6,6 +6,9 @@
 #include "apirest.h"
 #include "simtools.h"
 
+#define TENANT_REQUEST true
+#define NON_TENANT_REQUEST false
+
 #define CHECK_EMPTY_SETTINGS_VALUE(__value__, __err_str__) __value__
 
 ApiRest::ApiRest(const QSettings &settings, DevManager *DevManager)
@@ -110,7 +113,7 @@ void ApiRest::addDevice(const QString& name,
                        .arg(name.toUtf8())
                        .arg(profileId);
 
-    QNetworkReply* reply = post(false, "devices", RequestType::AddDevice, data.toUtf8() );
+    QNetworkReply* reply = post(IS_TENANT, "devices", RequestType::AddDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
 }
 
@@ -156,7 +159,7 @@ void ApiRest::sendDeviceMessage(const QString &devEUI, const QByteArray &msg, ui
     .arg(msg.toBase64())
     .arg(fPort);
 
-    QNetworkReply* reply = post(false,
+    QNetworkReply* reply = post(IS_TENANT,
                                 QString("devices/%1/queue").arg(devEUI),
                                 RequestType::SendDeviceMessage, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
@@ -166,12 +169,12 @@ void ApiRest::getDevices(int count)
 {
     QUrlQuery query;
     query.addQueryItem("applicationId", mAppId);
-    get(false, "devices", RequestType::GetDevices, query, count);
+    get(IS_TENANT, "devices", RequestType::GetDevices, query, count);
 }
 
 void ApiRest::getDeviceAddress(const QString &devEUI)
 {
-    QNetworkReply* reply = post(false, QString("devices/%1/get-random-dev-addr").arg(devEUI),
+    QNetworkReply* reply = post(IS_TENANT, QString("devices/%1/get-random-dev-addr").arg(devEUI),
                                 RequestType::GetDeviceAddress );
     reply->setProperty("devEUI", devEUI);
 }
@@ -188,7 +191,7 @@ void ApiRest::getGateways(int count)
     QUrlQuery query;
     query.addQueryItem("tenantId", mTenantId);
 
-    QNetworkReply* reply = get(true, "gateways",
+    QNetworkReply* reply = get(IS_TENANT, "gateways",
                                RequestType::GetGateways,
                                query, count);
     reply->setProperty("tenantId", mTenantId);

@@ -9,7 +9,6 @@
 #include "dialogconsole.h"
 #include "dialogdevicemsg.h"
 #include "mainwindow.h"
-#include "focusanim.h"
 #include "ui_mainwindow.h"
 #include "scene.h"
 #include "sceneview.h"
@@ -22,6 +21,7 @@
 #include "simtimer.h"
 #include "hardware/defines.h"
 #include "dialogregisterdevice.h"
+#include "dialogsettings.h"
 #include "hardware/dialogcollarsim.h"
 
 #define TABLE_COLS_COUNT 3
@@ -29,7 +29,7 @@
 
 MainWindow* gMainWindow = nullptr;
 
-MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QWidget *parent)
+MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget *parent)
     : QMainWindow(parent), mIsSimulation(isSim), mEnv(env), mSettings(settings)
     , ui(new Ui::MainWindow)
 {
@@ -40,6 +40,11 @@ MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QW
 
     ui->groupSimulation->setVisible(mIsSimulation);
     ui->btnAdd->setVisible(!mIsSimulation);
+
+    mDlgSettings = new DialogSettings(settings, this);
+    if( !mDlgSettings->checkValues()) {
+        mDlgSettings->exec();
+    }
 
     // create scene
     mScene = new Scene(this);
@@ -84,14 +89,6 @@ MainWindow::MainWindow(bool isSim, QSettings &env, const QSettings &settings, QW
     showMaximized();
 
     // ui->scrollAreaParams->setWidgetResizable(false); // chatGPT was wrong about this
-
-    // Create focus animation
-    mFocusAnim = new FocusAnim(this);
-
-    // Setup click reminder timer to show focus animation when needed
-    mReminder = new QTimer(this);
-    connect(mReminder, &QTimer::timeout, this, &MainWindow::onConnectReminger );
-    mReminder->start( REMINDER_DELAY );
 
     QString animalListFile = isSimulation() ? ANIMALS_LIST_FILE_SIM : ANIMALS_LIST_FILE;
 
@@ -172,8 +169,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
 bool MainWindow::create(bool isLoad, const QString& dir)
 {
     mIsCreated = false;
-
-    mFocusAnim->stop();
 
     mSceneView->setMeadow(nullptr);
 
@@ -442,16 +437,10 @@ void MainWindow::on_checkParamsG_toggled(bool checked)
 
 void MainWindow::moveEvent(QMoveEvent *)
 {
-    if( mFocusAnim ) {
-        mFocusAnim->stop();
-    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent *)
 {
-    if( mFocusAnim ) {
-        mFocusAnim->stop();
-    }
 }
 
 
@@ -512,7 +501,9 @@ void MainWindow::onError(const QString &err)
         mConsole->setFocus();
     }
 
-    mScene->showPopup("Critical errors! Open the console!");
+    if( mScene ) {
+        mScene->showPopup("Critical errors! Open the console!");
+    }
 }
 
 void MainWindow::onConsoleClose()
@@ -528,6 +519,14 @@ void MainWindow::onDeviceMsgClose()
 void MainWindow::onDlgCollarClose()
 {
     ui->actionDlgCollar->setChecked(false);
+}
+
+void MainWindow::onDlgSettingsChanged()
+{
+    setStatus("Settings changed. Applying...");
+    qInfo() << "";
+    // TODO: reread all UI that uses settings
+    //
 }
 
 void MainWindow::on_btnLoad_clicked()
@@ -779,5 +778,11 @@ void MainWindow::on_btnAdd_clicked()
 void MainWindow::on_actionDlgCollar_triggered()
 {
     mDlgCollar->setVisible(true);
+}
+
+
+void MainWindow::on_actionSettings_triggered()
+{
+    mDlgSettings->exec();
 }
 

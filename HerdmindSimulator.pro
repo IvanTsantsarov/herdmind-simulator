@@ -33,7 +33,7 @@ SOURCES += \
     dialogconsole.cpp \
     dialogdevicemsg.cpp \
     dialoginitial.cpp \
-    focusanim.cpp \
+    dialogsettings.cpp \
     grpc.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
@@ -68,7 +68,7 @@ HEADERS += \
     dialogconsole.h \
     dialogdevicemsg.h \
     dialoginitial.h \
-    focusanim.h \
+    dialogsettings.h \
     grpc.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
@@ -101,7 +101,7 @@ FORMS += \
     dialogconsole.ui \
     dialogdevicemsg.ui \
     dialoginitial.ui \
-    focusanim.ui \
+    dialogsettings.ui \
     dialogregisterdevice.ui \
     hardware/dialogcollarsim.ui \
     mainwindow.ui

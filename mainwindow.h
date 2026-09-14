@@ -24,6 +24,7 @@ class DevManager;
 class DialogConsole;
 class DialogDeviceMsg;
 class DialogCollarSim;
+class DialogSettings;
 
 class MainWindow : public QMainWindow
 {
@@ -38,13 +39,13 @@ class MainWindow : public QMainWindow
     QTimer mUpdateTimer;
     SceneView* mSceneView;
     QTimer* mReminder = nullptr;
-    FocusAnim* mFocusAnim = nullptr;
     Network* mNetwork = nullptr;
     DevManager* mDevManager = nullptr;
 
     DialogConsole* mConsole = nullptr;
     DialogDeviceMsg* mDevMsg = nullptr;
     DialogCollarSim* mDlgCollar = nullptr;
+    DialogSettings* mDlgSettings = nullptr;
 
     QSettings& mEnv;
     const QSettings &mSettings;
@@ -60,7 +61,7 @@ class MainWindow : public QMainWindow
     bool syncDevices();
 
 public:
-    MainWindow(bool isSim, QSettings &env, const QSettings &settings, QWidget *parent = nullptr);
+    MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
 
     inline bool isSimulation(){ return mIsSimulation; }
@@ -78,6 +79,7 @@ public:
     void onConsoleClose();
     void onDeviceMsgClose();
     void onDlgCollarClose();
+    void onDlgSettingsChanged();
     void setStatus(const QString& txt);
     void onDeviceMessage(const QString& devEUI, const QJsonObject &jobjResponse);
     void onDevicesReady(bool isStore);
@@ -99,7 +101,6 @@ private slots:
     void on_checkShepard_toggled(bool checked);
     void on_checkParamsHerding_toggled(bool checked);
     void on_checkParamsG_toggled(bool checked);
-    void onConnectReminger();
     void on_btnLoad_clicked();
     void on_actionConsole_toggled(bool arg1);
     void on_actionDeviceMsg_toggled(bool arg1);
@@ -120,6 +121,7 @@ private slots:
     void on_btnAdd_clicked();
     // void on_btnClearCount_clicked();
     void on_actionDlgCollar_triggered();
+    void on_actionSettings_triggered();
 };
 
 extern MainWindow* gMainWindow;

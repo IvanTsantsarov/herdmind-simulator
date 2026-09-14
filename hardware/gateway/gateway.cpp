@@ -14,7 +14,7 @@
 
 Gateway::Gateway(const QSettings &settings)
 {
-    mId = SimTools::readStringSettingsValue(settings, MQTT_SECTION, "gatewayId");
+    mId = SimTools::readStringSettingsValue(settings, CHIRPSTACK_SECTION, "gatewayId");
 
     // If you later enable MQTT auth:
     // mClient->setUsername("user");

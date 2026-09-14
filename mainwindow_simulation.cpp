@@ -3,7 +3,6 @@
 #include "ui_mainwindow.h"
 #include "mainwindow.h"
 #include "simtools.h"
-#include "focusanim.h"
 
 void MainWindow::initSimulation()
 {
@@ -57,12 +56,4 @@ void MainWindow::on_btnGenerate_clicked()
     }
 
     create(false);
-}
-
-
-void MainWindow::onConnectReminger()
-{
-    if( !mHerd ) {
-        mFocusAnim->start(gSimTools->fileExists(ANIMALS_LIST_FILE) ? ui->btnLoad : ui->btnGenerate);
-    }
 }

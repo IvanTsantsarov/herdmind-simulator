@@ -262,6 +262,18 @@ bool SimTools::fileRestoreResources(const QString &fileName)
         return false;
     }
 
+    f.close();
+
+    QFile dstFile(fileName);
+
+    if( !dstFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner) ) {
+        qCritical() << "Error seting write permission to" << fileName << f.errorString();
+        return false;
+    }
+
+    dstFile.flush();
+    dstFile.close();
+
     qInfo() << "File" << fileName << " restored from resources.";
 
     return true;
