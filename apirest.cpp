@@ -113,7 +113,7 @@ void ApiRest::addDevice(const QString& name,
                        .arg(name.toUtf8())
                        .arg(profileId);
 
-    QNetworkReply* reply = post(IS_TENANT, "devices", RequestType::AddDevice, data.toUtf8() );
+    QNetworkReply* reply = post(TENANT_REQUEST, "devices", RequestType::AddDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
 }
 
@@ -142,7 +142,7 @@ void ApiRest::activateDevice(const QString &devEUI,
                        .arg(appSKey)
                        .arg(nwkSKey);
 
-    QNetworkReply* reply = post(false,
+    QNetworkReply* reply = post(TENANT_REQUEST,
                                 QString("devices/%1/activate").arg(devEUI),
                                 RequestType::ActivateDevice, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
@@ -159,7 +159,7 @@ void ApiRest::sendDeviceMessage(const QString &devEUI, const QByteArray &msg, ui
     .arg(msg.toBase64())
     .arg(fPort);
 
-    QNetworkReply* reply = post(IS_TENANT,
+    QNetworkReply* reply = post(TENANT_REQUEST,
                                 QString("devices/%1/queue").arg(devEUI),
                                 RequestType::SendDeviceMessage, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
@@ -169,19 +169,19 @@ void ApiRest::getDevices(int count)
 {
     QUrlQuery query;
     query.addQueryItem("applicationId", mAppId);
-    get(IS_TENANT, "devices", RequestType::GetDevices, query, count);
+    get(TENANT_REQUEST, "devices", RequestType::GetDevices, query, count);
 }
 
 void ApiRest::getDeviceAddress(const QString &devEUI)
 {
-    QNetworkReply* reply = post(IS_TENANT, QString("devices/%1/get-random-dev-addr").arg(devEUI),
+    QNetworkReply* reply = post(TENANT_REQUEST, QString("devices/%1/get-random-dev-addr").arg(devEUI),
                                 RequestType::GetDeviceAddress );
     reply->setProperty("devEUI", devEUI);
 }
 
 void ApiRest::deleteDevice(const QString &devEUI)
 {
-    QNetworkReply* reply = del( false, QString("devices/%1").arg(devEUI), RequestType::DeleteDevice );
+    QNetworkReply* reply = del( TENANT_REQUEST, QString("devices/%1").arg(devEUI), RequestType::DeleteDevice );
     reply->setProperty("devEUI", devEUI);
 }
 
@@ -191,7 +191,7 @@ void ApiRest::getGateways(int count)
     QUrlQuery query;
     query.addQueryItem("tenantId", mTenantId);
 
-    QNetworkReply* reply = get(IS_TENANT, "gateways",
+    QNetworkReply* reply = get(TENANT_REQUEST, "gateways",
                                RequestType::GetGateways,
                                query, count);
     reply->setProperty("tenantId", mTenantId);
