@@ -10,15 +10,15 @@
 #include "res.h"
 
 #ifndef VEXT
-#define VEXT 36
+    #define VEXT 36
 #endif
 
 Screen::Screen(Collar* c) :
     // Initialize the SSD1315 using the standard SSD1306 Full Frame Buffer constructor over SW I2C
 #ifdef SIMULATION
-    mLib(U8G2_R0, OLED_SCL, OLED_SDA, OLED_RST, c->animal()),
+    mLib(U8G2_R0, OLED_RST, OLED_SCL, OLED_SDA, c->animal()),
 #else
-    mLib(U8G2_R0, OLED_SCL, OLED_SDA, OLED_RST),
+    mLib(U8G2_R0, OLED_RST, OLED_SCL, OLED_SDA),
 #endif
     mCollar(c)
 {
@@ -26,13 +26,15 @@ Screen::Screen(Collar* c) :
 }
 
 void Screen::setup() {
+
+    // VEXT powers the OLED on V4.
     pinMode(VEXT, OUTPUT);
     digitalWrite(VEXT, LOW); // Pull LOW to enable display power rail
     delay(100);
 
     // 2. Assign Heltec V4 physical pins to the hardware Wire instance
-    Wire.setPins(OLED_SDA, OLED_SCL);
-    Wire.begin();
+    //Wire.setPins(OLED_SDA, OLED_SCL);
+    //Wire.begin();
 
     // Initialize the mLib library and turn on the display
     mLib.begin();
@@ -50,15 +52,19 @@ void Screen::init() {
 
     drawArray(2, 2, 44, 44, vector_mono_44x44);
 
-    // Draw static strings (X position, Y position, String)
-//    String v("Herdmind ");
-//    v += COLLAR_VERSION;
-//    mLib.drawStr(2, 2 + 44 + FONT_CY, v.data());
 
 #ifdef SIMULATION
     // TODO: send animal name to the collar
     mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
+#else
+    // Draw static strings (X position, Y position, String)
+    String v("Herdmind collar ");
+    v += COLLAR_VERSION;
+    mLib.drawStr(2, 2 + 44 + FONT_CY, v.c_str());
 #endif
+
+    mLib.drawStr(44 + FONT_CX + 1, FONT_CY, "Hello");
+    mLib.drawStr(44 + FONT_CX + 1, 2*FONT_CY, "Vladi");
 
 
     // Draw a visual frame border around the 128x64 display
