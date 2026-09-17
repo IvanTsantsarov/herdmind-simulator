@@ -245,7 +245,7 @@ class Collar
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 public:
 
-    String& animalName() { return mAnimalName; }
+    String& animalName();
     void onSetup();
     void onUpdate();
     void onSend();
@@ -257,40 +257,25 @@ public:
             const QByteArray &devEUI = QByteArray(),
            const QByteArray& appKey = QByteArray() );
 
-    Protocol::Collar getPackageOut(){ return mPackage; };
+    Protocol::Collar getPackageOut();;
     QList<Protocol::Collar> getBoluses();
-    QLine fenceClosestBorder() {
-        if( !mFenceClosestBorder ) {
-            return QLine();
-        }
+    QLine fenceClosestBorder();
 
-        return QLine(mFenceClosestBorder->begin().mX,
-                     mFenceClosestBorder->begin().mY,
-                     mFenceClosestBorder->end().mX,
-                     mFenceClosestBorder->end().mY);
-    }
-
-    QPointF fenceClosestPoint() {
-        if( !mFenceClosestBorder ) {
-            return QPointF();
-        }
-
-        return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
-    }
+    QPointF fenceClosestPoint();
 
 
-    inline const Animal* animal() const { return mAnimal; }
+    const Animal* animal() const;
 
 #else
-    // Collar(){};
+    Collar();
 #endif
 
-    inline bool isFence(){ return mFencePointsCount > 0; }
-    inline bool isInsideFence(){ return mIsInsideFence; }
-    inline bool isGoingAwayFromFence(){ return mFenceIsGoingAway; }
-    inline double fanceDistance(){ return mFenceDistance; }
-    inline bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
-    inline Screen& screen(){ return mScreen; }
+    bool isFence();
+    bool isInsideFence();
+    bool isGoingAwayFromFence();
+    double fanceDistance();
+    bool hasClosestFenceBorder();
+    Screen& screen();
 
 };
 

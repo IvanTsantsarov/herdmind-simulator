@@ -9,6 +9,10 @@
 #include "collar.h"
 #include "res.h"
 
+#ifndef VEXT
+#define VEXT 36
+#endif
+
 Screen::Screen(Collar* c) :
     // Initialize the SSD1315 using the standard SSD1306 Full Frame Buffer constructor over SW I2C
 #ifdef SIMULATION
@@ -22,6 +26,14 @@ Screen::Screen(Collar* c) :
 }
 
 void Screen::setup() {
+    pinMode(VEXT, OUTPUT);
+    digitalWrite(VEXT, LOW); // Pull LOW to enable display power rail
+    delay(100);
+
+    // 2. Assign Heltec V4 physical pins to the hardware Wire instance
+    Wire.setPins(OLED_SDA, OLED_SCL);
+    Wire.begin();
+
     // Initialize the mLib library and turn on the display
     mLib.begin();
 }

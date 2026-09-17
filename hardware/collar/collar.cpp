@@ -1,11 +1,11 @@
 #include "collar.h"
 
-#ifdef SIMULATION
-    #include "../../animal.h"
-    #include "../tools.h"
-#endif
 
 #ifdef SIMULATION
+
+#include "../../animal.h"
+#include "../tools.h"
+
 //////////////////////////////////////////////////////////////
 /// Simulation
 //////////////////////////////////////////////////////////////
@@ -20,9 +20,54 @@ Collar::Collar( Animal* animal,
     mAnimalName = SimTools::translateCyrilic( animal->name() );
 }
 
+Protocol::Collar Collar::getPackageOut(){ return mPackage; }
 
+QLine Collar::fenceClosestBorder() {
+    if( !mFenceClosestBorder ) {
+        return QLine();
+    }
+
+    return QLine(mFenceClosestBorder->begin().mX,
+                 mFenceClosestBorder->begin().mY,
+                 mFenceClosestBorder->end().mX,
+                 mFenceClosestBorder->end().mY);
+}
+
+QPointF Collar::fenceClosestPoint() {
+    if( !mFenceClosestBorder ) {
+        return QPointF();
+    }
+
+    return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
+}
+
+const Animal *Collar::animal() const { return mAnimal; }
+
+#else
+
+Collar::Collar()
+    : mScreen(this) {
+
+}
 
 #endif
+
+
+bool Collar::isFence(){ return mFencePointsCount > 0; }
+
+bool Collar::isInsideFence(){ return mIsInsideFence; }
+
+bool Collar::isGoingAwayFromFence(){ return mFenceIsGoingAway; }
+
+double Collar::fanceDistance(){ return mFenceDistance; }
+
+bool Collar::hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
+
+Screen &Collar::screen()
+{
+    return mScreen;
+}
+
 
 Collar::GeoPoint Collar::readGPS()
 {
@@ -37,6 +82,11 @@ Collar::GeoPoint Collar::readGPS()
 void Collar::onSetup()
 {
     mStage = Stage::Setup;
+
+    Serial.begin(SERIAL_BAUDRATE);
+    while(!Serial);
+    Serial.println("Setup collar...");
+
     mScreen.setup();
 
     mStage = Stage::Init;
@@ -45,8 +95,8 @@ void Collar::onSetup()
 void Collar::onUpdate()
 {
     if( Stage::Init == mStage) {
+        Serial.println("Initializing collar...");
         mScreen.init();
-
         mStage = Stage::Operate;
     }
 
@@ -167,6 +217,8 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 
 #endif
 }
+
+String &Collar::animalName() { return mAnimalName; }
 
 void Collar::testFence()
 {

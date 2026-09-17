@@ -7,6 +7,84 @@
 #include "dialogcollarsim.h"
 
 
+SoftwareSerial Serial;
+SoftwareSerial Serial1;
+SoftwareSerial Serial2;
+SoftwareSerial Serial3;
+
+SimPin Pins[SIM_PINS_COUNT];
+WireSim Wire;
+
+#define SIM_CHECK_PIN_RANGE(__pin__) Q_ASSERT( (__pin__ > 0) && (__pin__ < SIM_PINS_COUNT) )
+
+void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type)
+{
+    byte pin = interrupt;
+
+    switch(interrupt)
+    {
+    case 0: pin = 2; break;
+    case 1: pin = 3; break;
+    case 2: pin = 21; break;
+    case 3: pin = 20; break;
+    case 4: pin = 19; break;
+    case 5: pin = 18; break;
+    }
+
+    SIM_CHECK_PIN_RANGE(pin);
+
+    Pins[pin].mOnIntrerrupt = func;
+    Pins[pin].mInterruptType = type;
+}
+
+void digitalWrite(byte pin, bool val)
+{
+    SIM_CHECK_PIN_RANGE(pin);
+
+    SimPin& p = Pins[pin];
+    if( val != p.mValue && p.mOnIntrerrupt )
+    {
+        p.mValue = val ? 1.0f : 0;
+        p.mOnIntrerrupt();
+    }else {
+        p.mValue = val ? 1.0f : 0;
+    }
+}
+
+bool digitalRead(byte pin)
+{
+    SIM_CHECK_PIN_RANGE(pin);
+    return Pins[pin].mValue > 0.5f;
+}
+
+int analogRead(byte pin)
+{
+    SIM_CHECK_PIN_RANGE(pin);
+    return Pins[pin].mValue * 1024;
+}
+
+void analogWrite(byte pin, int val)
+{
+    SIM_CHECK_PIN_RANGE(pin);
+
+    SimPin& p = Pins[pin];
+    if( val != p.mValue && p.mOnIntrerrupt )
+    {
+        p.mValue = (FLOAT)val / 1024.0f;
+        p.mOnIntrerrupt();
+    }else
+        p.mValue = (FLOAT)val / 1024.0f;
+}
+
+
+void pinMode(byte pin, quint8 type)
+{
+    SIM_CHECK_PIN_RANGE(pin);
+    Pins[pin].mType = type;
+}
+
+
+
 uint8_t ScreenSim::mFont[FONT_ROWS * FONT_COLS][FONT_CY][FONT_CX];
 int ScreenSim::mLastFont = 0;
 
@@ -223,3 +301,77 @@ void String::replace(char what, char with)
 }
 
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Serial port emulation
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+uint SoftwareSerial::available()
+{
+    return mBuffer.length();
+}
+
+SoftwareSerial::SoftwareSerial()
+{
+    mPinRX =-1;
+    mPinTX =-1;
+}
+
+SoftwareSerial::SoftwareSerial(quint8 rx, quint8 tx)
+{
+    mPinRX = rx;
+    mPinTX = tx;
+}
+
+void SoftwareSerial::begin(uint baudRate)
+{
+
+}
+
+char SoftwareSerial::read()
+{
+    char ch = mBuffer[0];
+    mBuffer = mBuffer.right(mBuffer.length()-1);
+    return ch;
+}
+
+void SoftwareSerial::print(const String& str, bool isError)
+{
+    String ps = str;
+    if( isError)
+    {
+        fprintf(stderr, "%s", ps.data());
+        fflush(stderr);
+    }
+    else
+    {
+        fprintf(stdout, "%s", ps.data());
+        fflush(stdout);
+    }
+
+}
+
+void SoftwareSerial::flush()
+{
+
+}
+
+void SoftwareSerial::println(const String& str, bool isError)
+{
+//    if( gMainWindow)
+//        gMainWindow->printOutput(str.toQString());
+
+    String strNew = str + String("\n");
+    print(strNew, isError);
+}
+
+void SoftwareSerial::send(QByteArray &ba)
+{
+    mBuffer.append(ba);
+}
+
+bool SoftwareSerial::operator !()
+{
+    return false;
+}

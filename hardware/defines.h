@@ -17,7 +17,7 @@
 #define ASCII_OFFSET  32     // offset of alphabet from ascii table
 #define CYR_OFFSET  32      // offset of cyrilic alphabet from ascii table
 
-
+#define SERIAL_BAUDRATE 115200
 
 
 #endif // HARDWARE_DEFINES_H

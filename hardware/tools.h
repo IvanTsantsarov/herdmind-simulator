@@ -10,10 +10,52 @@
 class DialogCollarSim;
 class Animal;
 
+#define SIM_PINS_COUNT 100
+
 typedef unsigned long ulong;
 typedef unsigned int uint;
 typedef unsigned char byte;
 #define FLOAT float
+
+enum INTERRUPT_TYPE
+{
+    UP = 0,
+    DOWN = 1,
+    CHANGE = 2,
+};
+
+
+typedef void (*InterruptCallback)();
+void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type);
+
+#define LOW 0
+#define HIGH 1
+
+#define INPUT 0
+#define OUTPUT 1
+
+void delay(int millis);
+
+bool digitalRead(byte pin );
+void digitalWrite(byte pin, bool val );
+
+int analogRead(byte pin );
+void analogWrite(byte pin, int val );
+
+void pinMode(byte pin, byte type);
+
+struct SimPin
+{
+    FLOAT mValue;
+    byte mType;
+    inline bool isInput(){return mType == INPUT;}
+    inline bool isOutput(){return mType == OUTPUT;}
+
+    INTERRUPT_TYPE mInterruptType;
+    InterruptCallback mOnIntrerrupt = NULL;
+};
+
+extern SimPin Pins[SIM_PINS_COUNT];
 
 class Tools
 {
@@ -105,8 +147,6 @@ public:
 };
 
 
-void delay(int millis);
-
 
 enum StringNumberType
 {
@@ -172,5 +212,44 @@ public:
 
 String operator+(const char str[], const String& strObj);
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Serial
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class SoftwareSerial
+{
+    byte mPinRX, mPinTX;
+
+    QByteArray mBuffer;
+
+public:
+    SoftwareSerial();
+    SoftwareSerial(byte rx, byte tx);
+    void begin(uint baudRate);
+    uint available();
+    char read();
+    void print (const String& str, bool isError = false);
+    void println(const String &str, bool isError = false);
+    void send(QByteArray& ba);
+
+    bool operator !();
+    void flush();
+};
+
+extern SoftwareSerial Serial;
+extern SoftwareSerial Serial1;
+extern SoftwareSerial Serial2;
+extern SoftwareSerial Serial3;
+
+class WireSim {
+public:
+    WireSim(){}
+    void setPins(int a, int b) {}
+    void begin(){};
+
+};
+
+extern WireSim Wire;
 
 #endif // TOOLS_H
