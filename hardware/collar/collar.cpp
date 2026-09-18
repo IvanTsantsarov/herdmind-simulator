@@ -84,7 +84,7 @@ void Collar::onSetup()
     mStage = Stage::Setup;
 
     Serial.begin(SERIAL_BAUDRATE);
-    while(!Serial);
+    delay(100);
     Serial.println("Setup collar...");
 
     mScreen.setup();

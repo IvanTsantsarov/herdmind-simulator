@@ -373,3 +373,12 @@ if( settings.value("GUI/isDlgCollar").toBool() ) {
     ui->actionDlgCollar->setChecked(true);
 }
 */
+
+
+while( !mIsReady &&
+       (mBufferPos < GPS_MAX_BUFFER_SIZE) &&
+       Serial1.available())
+{
+    mBuffer[mBufferPos++] = Serial1.read();
+    mBuffer[mBufferPos] = 0;
+}

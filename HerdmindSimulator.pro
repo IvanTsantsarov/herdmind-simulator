@@ -37,7 +37,9 @@ SOURCES += \
     grpc.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
+    hardware/collar/button.cpp \
     hardware/collar/collar.cpp \
+    hardware/collar/gps.cpp \
     hardware/collar/res.cpp \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
@@ -73,9 +75,11 @@ HEADERS += \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
+    hardware/collar/button.h \
     hardware/collar/collar.h \
     defines.h \
     hardware/collar/defines.h \
+    hardware/collar/gps.h \
     hardware/collar/res.h \
     hardware/dialogcollarsim.h \
     hardware/collar/screen.h \

@@ -63,8 +63,8 @@ void Screen::init() {
     mLib.drawStr(2, 2 + 44 + FONT_CY, v.c_str());
 #endif
 
-    mLib.drawStr(44 + FONT_CX + 1, FONT_CY, "Hello");
-    mLib.drawStr(44 + FONT_CX + 1, 2*FONT_CY, "Vladi");
+    // mLib.drawStr(44 + FONT_CX + 1, FONT_CY, "Hello");
+    // mLib.drawStr(44 + FONT_CX + 1, 2*FONT_CY, "Vladi");
 
 
     // Draw a visual frame border around the 128x64 display

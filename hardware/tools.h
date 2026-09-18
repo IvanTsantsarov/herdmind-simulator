@@ -7,6 +7,16 @@
 
 #include "defines.h"
 
+#define LOW 0
+#define HIGH 1
+
+#define INPUT 0
+#define OUTPUT 1
+
+#define SERIAL_8N1 0
+
+
+
 class DialogCollarSim;
 class Animal;
 
@@ -27,12 +37,6 @@ enum INTERRUPT_TYPE
 
 typedef void (*InterruptCallback)();
 void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type);
-
-#define LOW 0
-#define HIGH 1
-
-#define INPUT 0
-#define OUTPUT 1
 
 void delay(int millis);
 
@@ -226,9 +230,10 @@ class SoftwareSerial
 public:
     SoftwareSerial();
     SoftwareSerial(byte rx, byte tx);
-    void begin(uint baudRate);
+    void begin(uint baudRate, int a1 = 0, int a2 = 0, int a3 = 0);
     uint available();
     char read();
+    void write(char c);
     void print (const String& str, bool isError = false);
     void println(const String &str, bool isError = false);
     void send(QByteArray& ba);
@@ -248,6 +253,56 @@ public:
     void setPins(int a, int b) {}
     void begin(){};
 
+};
+
+
+#define GPS_MAX_BUFFER_SIZE 100
+
+class TinyGPSPlus
+{
+    int mBufferPos = 0;
+    char mBuffer[GPS_MAX_BUFFER_SIZE+1];
+    inline char* buffer(){ return mBuffer; }
+    void clear();
+
+public:
+    class Location {
+        bool mIsUpdated = false;
+        float mLat = 0.0f;
+        float mLon = 0.0f;
+    public:
+        float lat(){ return mLat; }
+        float lng(){ return mLon; }
+        void update(char* buffer);
+        bool isUpdated(){ return mIsUpdated; }
+    };
+
+    class Satellites {
+        int mValue = 3;
+    public:
+        inline int value() { return mValue; }
+    };
+
+    class Altitude {
+        int mMeters = 100.0f;
+    public:
+        inline int meters() { return mMeters; }
+    };
+
+    Location location;
+    Satellites satellites;
+    Altitude altitude;
+
+    void encode(char c) {
+        if( mBufferPos < GPS_MAX_BUFFER_SIZE) {
+            mBuffer[mBufferPos++] = c;
+            mBuffer[mBufferPos] = 0;
+            location.update(mBuffer);
+            if( location.isUpdated() ) {
+                clear();
+            }
+        }
+    }
 };
 
 extern WireSim Wire;

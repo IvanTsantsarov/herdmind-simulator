@@ -7,6 +7,7 @@
 #include "dialogcollarsim.h"
 
 
+
 SoftwareSerial Serial;
 SoftwareSerial Serial1;
 SoftwareSerial Serial2;
@@ -324,8 +325,12 @@ SoftwareSerial::SoftwareSerial(quint8 rx, quint8 tx)
     mPinTX = tx;
 }
 
-void SoftwareSerial::begin(uint baudRate)
+void SoftwareSerial::begin(uint baudRate, int a1, int a2, int a3)
 {
+    (void) baudRate;
+    (void) a1;
+    (void) a2;
+    (void) a3;
 
 }
 
@@ -334,6 +339,11 @@ char SoftwareSerial::read()
     char ch = mBuffer[0];
     mBuffer = mBuffer.right(mBuffer.length()-1);
     return ch;
+}
+
+void SoftwareSerial::write(char c)
+{
+    (void) c;
 }
 
 void SoftwareSerial::print(const String& str, bool isError)
@@ -374,4 +384,16 @@ void SoftwareSerial::send(QByteArray &ba)
 bool SoftwareSerial::operator !()
 {
     return false;
+}
+
+void TinyGPSPlus::Location::update(char *buffer)
+{
+
+    // mIsUpdated = true;
+}
+
+void TinyGPSPlus::clear()
+{
+    mBufferPos = 0;
+    mBuffer[0] = 0;
 }
