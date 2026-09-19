@@ -51,27 +51,23 @@ void Screen::init() {
     mLib.drawFrame(0, 0, SCREEN_CX, SCREEN_CY);
 
     drawArray(2, 2, 44, 44, vector_mono_44x44);
-
-
-#ifdef SIMULATION
-    // TODO: send animal name to the collar
-    mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
-#else
     // Draw static strings (X position, Y position, String)
     String v("Herdmind collar ");
     v += COLLAR_VERSION;
     mLib.drawStr(2, 2 + 44 + FONT_CY, v.c_str());
-#endif
 
-    // mLib.drawStr(44 + FONT_CX + 1, FONT_CY, "Hello");
-    // mLib.drawStr(44 + FONT_CX + 1, 2*FONT_CY, "Vladi");
+    // TODO: send animal name to the collar
+    // mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
 
-
-    // Draw a visual frame border around the 128x64 display
-    // mLib.drawFrame(0, 0, 128, 64);
+    mLib.drawStr(44 + FONT_CX + 6, 32, "Loading..." );
 
     // Push the buffer contents to the physical screen hardware
     mLib.sendBuffer();
+}
+
+void Screen::clear()
+{
+    mLib.clearBuffer();
 }
 
 void Screen::drawArray(int x, int y, int cx, int cy, uint8_t *pixels)
@@ -83,4 +79,19 @@ void Screen::drawArray(int x, int y, int cx, int cy, uint8_t *pixels)
             }
         }
     }
+}
+
+void Screen::drawText(int x, int y, String &str)
+{
+    mLib.drawStr(x, y, str.c_str() );
+}
+
+void Screen::drawTextTable(int col, int row, String &str, int offsetCol, int offsetRow)
+{
+    mLib.drawStr(col * FONT_CX + offsetCol, row * FONT_CY + offsetRow, str.c_str() );
+}
+
+void Screen::flush()
+{
+    mLib.sendBuffer();
 }

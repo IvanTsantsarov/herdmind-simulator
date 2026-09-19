@@ -477,6 +477,11 @@ void MainWindow::errorMsgBox(const QString &msg)
     QMessageBox::critical(this, "Error", msg);
 }
 
+void MainWindow::infoMsgBox(const QString &msg)
+{
+    QMessageBox::information(this, "Info", msg);
+}
+
 bool MainWindow::question(const QString &msg)
 {
     return QMessageBox::Yes == QMessageBox::question(this, "Question?", msg);

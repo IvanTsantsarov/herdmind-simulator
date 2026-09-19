@@ -1,4 +1,5 @@
 #include <cmath>
+#include <QTimer>
 // #include <algorithm>
 #include <QThread>
 #include <QVariant>
@@ -190,7 +191,7 @@ void ScreenSim::drawFrame(int x, int y, int cx, int cy)
 }
 
 
-void ScreenSim::drawStr(int x, int y, const char *str){
+void ScreenSim::drawStr(int x, int y, char *str) {
     const char* ptr = str;
     bool isUtf8Byte = false;
     while(*ptr) {
@@ -386,6 +387,12 @@ bool SoftwareSerial::operator !()
     return false;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// TinyGPS
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define GPS_DELAY_SATELLITES_SIMULATION 10000
+
 void TinyGPSPlus::Location::update(char *buffer)
 {
 
@@ -396,4 +403,24 @@ void TinyGPSPlus::clear()
 {
     mBufferPos = 0;
     mBuffer[0] = 0;
+}
+
+TinyGPSPlus::TinyGPSPlus()
+{
+}
+
+void TinyGPSPlus::setupSimulation()
+{
+    QTimer::singleShot(GPS_DELAY_SATELLITES_SIMULATION, this, &TinyGPSPlus::onReady);
+}
+
+void TinyGPSPlus::onReady()
+{
+    location.mIsValid = true;
+    location.mIsUpdated = true;
+
+    altitude.mMeters = 120;
+    location.mLat = 42.140457;
+    location.mLon = 24.758694;
+    satellites.mValue = 4;
 }

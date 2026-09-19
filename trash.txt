@@ -382,3 +382,18 @@ while( !mIsReady &&
     mBuffer[mBufferPos++] = Serial1.read();
     mBuffer[mBufferPos] = 0;
 }
+
+
+
+#define MAX_BUFFER 20
+char gBuffer[MAX_BUFFER + 2] = {0};
+int gIndex = 0;
+
+// Serial.println(ch);
+gBuffer[gIndex++] = ch;
+gBuffer[gIndex] = 0;
+
+if( gIndex >= MAX_BUFFER) {
+    gIndex = 0;
+    Serial.println(gBuffer);
+}

@@ -26,8 +26,11 @@ public:
     Screen(Collar *c);
     void setup();
     void init();
+    void clear();
     void drawArray(int x, int y, int cx, int cy, uint8_t* pixels);
-
+    void drawText(int x, int y, String &str);
+    void drawTextTable(int col, int row, String &str, int offsetCol = 0, int offsetRow = 0);
+    void flush();
 
     ScreenLib& lib(){ return mLib;}
 };

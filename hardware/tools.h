@@ -6,6 +6,7 @@
 #include <QString>
 
 #include "defines.h"
+#include <QObject>
 
 #define LOW 0
 #define HIGH 1
@@ -144,8 +145,8 @@ public:
     void enableUTF8Print(){ mIsUtf8 = true;}
 
     static void setFont(int fontId);
-    void drawStr(int x, int y, const char* str);
-    void drawFrame(int x, int y, int cx, int cy);
+    void drawStr(int x, int y, char *str);
+    void drawFrame(int x, int y, int cx, int cy) ;
     void sendBuffer();
 
 };
@@ -207,7 +208,8 @@ public:
         return mLocalStr.data();
     }
 
-    const char* c_str() { return data(); }
+
+    char* c_str(){ return data(); }
 
     String substring(uint left, uint right) const;
     int indexOf(char ch) const;
@@ -258,16 +260,24 @@ public:
 
 #define GPS_MAX_BUFFER_SIZE 100
 
-class TinyGPSPlus
+class TinyGPSPlus : public QObject
 {
+    Q_OBJECT
+
     int mBufferPos = 0;
     char mBuffer[GPS_MAX_BUFFER_SIZE+1];
     inline char* buffer(){ return mBuffer; }
     void clear();
 
+
 public:
+    TinyGPSPlus();
+    void setupSimulation();
     class Location {
+        friend class TinyGPSPlus;
+    protected:
         bool mIsUpdated = false;
+        bool mIsValid = false;
         float mLat = 0.0f;
         float mLon = 0.0f;
     public:
@@ -275,15 +285,20 @@ public:
         float lng(){ return mLon; }
         void update(char* buffer);
         bool isUpdated(){ return mIsUpdated; }
+        bool isValid(){ return mIsValid; }
     };
 
     class Satellites {
+        friend class TinyGPSPlus;
+    protected:
         int mValue = 3;
     public:
         inline int value() { return mValue; }
     };
 
     class Altitude {
+        friend class TinyGPSPlus;
+    protected:
         int mMeters = 100.0f;
     public:
         inline int meters() { return mMeters; }
@@ -303,6 +318,9 @@ public:
             }
         }
     }
+
+private slots:
+    void onReady();
 };
 
 extern WireSim Wire;

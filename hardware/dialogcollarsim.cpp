@@ -68,7 +68,7 @@ void DialogCollarSim::grabScreen()
         return;
     }
 
-    ScreenLib& lib = mAnimal->collar()->screen().lib();
+    ScreenLib& lib = mAnimal->collar()->screen()->lib();
     uint8_t* src = lib.mBuffer;
 
     QImage& img = ui->widgetScreen->image();
@@ -142,14 +142,24 @@ void DialogCollarSim::on_btnGenArray_clicked()
 
 
 
-    QString result = QString("uint8_t %1_%2[] = { ")
-                        .arg(fi.baseName())
-                        .arg(imgSizeStr);
+
+    QString varName = QString("uint8_t %1_%2[] = { ")
+                          .arg(fi.baseName())
+                          .arg(imgSizeStr);
+
+    QString result = varName;
 
     for( int y = 0; y < img.height(); y ++) {
         for( int x = 0; x < img.width(); x ++) {
-            int col = qGray( img.pixel(x, y) );
-            result.append(col ? "1," : "0,");
+
+            if( img.hasAlphaChannel() ) {
+                int alpha = qAlpha( img.pixel(x, y) );
+                result.append(alpha ? "1," : "0,");
+            }else {
+                int col = qGray( img.pixel(x, y) );
+                result.append(col ? "1," : "0,");
+            }
+
         }
     }
 
@@ -157,7 +167,9 @@ void DialogCollarSim::on_btnGenArray_clicked()
     result.append(" };");
 
     SimTools::clipboardCopy(result);
-    QToolTip::showText( QCursor::pos(), "EUI copied!");
+
+    gMainWindow->infoMsgBox( QString("C++ array definition of \"%1\" is in the clipboard! You can paste it in the cpp file and mention it as \"external\" in the Header file.").arg(varName) );
+
 }
 
 

@@ -1,4 +1,5 @@
 #include "collar.h"
+#include "res.h"
 
 
 #ifdef SIMULATION
@@ -14,8 +15,11 @@ Collar::Collar( Animal* animal,
                const QByteArray& appKey)
     : LoraDev(QString("%1 collar").arg(animal->name()), LoraDev::Profile::Collar,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-              devEUI, appKey), mAnimal(animal), mScreen(this)
+              devEUI, appKey), mAnimal(animal)
 {
+    mScreen = new Screen(this);
+    mGPS = new GPS;
+
     // TODO: this should not happened here, but must be send from chirpstack
     mAnimalName = SimTools::translateCyrilic( animal->name() );
 }
@@ -46,8 +50,9 @@ const Animal *Collar::animal() const { return mAnimal; }
 #else
 
 Collar::Collar()
-    : mScreen(this) {
-
+{
+    mScreen = new Screen(this);
+    mGPS = new GPS;
 }
 
 #endif
@@ -63,19 +68,19 @@ double Collar::fanceDistance(){ return mFenceDistance; }
 
 bool Collar::hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
 
-Screen &Collar::screen()
+Screen* Collar::screen()
 {
     return mScreen;
 }
 
 
-Collar::GeoPoint Collar::readGPS()
+GeoPoint Collar::readGPS()
 {
 #ifdef SIMULATION
     QGeoCoordinate geoCoor = mAnimal->geoPos();
     return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
 #else
-    return GeoPoint();
+    return mGPS->pos();
 #endif
 }
 
@@ -87,21 +92,54 @@ void Collar::onSetup()
     delay(100);
     Serial.println("Setup collar...");
 
-    mScreen.setup();
+    mScreen->setup();
+
+    mGPS->setup();
 
     mStage = Stage::Init;
+
 }
 
 void Collar::onUpdate()
 {
     if( Stage::Init == mStage) {
         Serial.println("Initializing collar...");
-        mScreen.init();
+        mScreen->init();
         mStage = Stage::Operate;
     }
 
     if( Stage::Operate != mStage ) {
         return;
+    }
+
+    mGPS->onUpdate();
+
+    if( mGPS->isConnection() ) {
+
+        if( mGPS->isReady() )  {
+
+/*
+            Serial.print("Pos: ");
+            Serial.print(mGPS->pos().mLat, 6);
+            Serial.print(", ");
+            Serial.print(mGPS->pos().mLon, 6);
+            Serial.print(", ");
+            Serial.println(mGPS->pos().mAlt, 3);
+            Serial.print("SAT: ");
+            Serial.println(mGPS->satelites());
+*/
+            if( !mIsLoadingCleared ) {
+                mIsLoadingCleared = true;
+                mScreen->clear();
+            }
+
+            String lat (mGPS->pos().mLat, 10);
+            String lon (mGPS->pos().mLon, 10);
+            mScreen->drawArray( 2, 2, 32, 32, satellite_32x32);
+            mScreen->drawTextTable( 1, 1, lat, 32 );
+            mScreen->drawTextTable( 1, 2, lon, 32 );
+            mScreen->flush();
+        }
     }
 
     GeoPoint geoPt = readGPS();

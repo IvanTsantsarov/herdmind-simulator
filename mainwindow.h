@@ -85,6 +85,7 @@ public:
     void onDevicesReady(bool isStore);
     inline DialogConsole* console(){ return mConsole; }
     void errorMsgBox(const QString& msg);
+    void infoMsgBox(const QString& msg);
     bool question(const QString& msg);
     void onSceneItemSelected();
 
