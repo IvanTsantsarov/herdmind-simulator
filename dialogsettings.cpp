@@ -14,7 +14,7 @@ const QRegularExpression DialogSettings::mRegexId =
     QRegularExpression(R"(^[0-9a-fA-F]{16})");
 
 const QRegularExpression DialogSettings::mRegexKey =
-    QRegularExpression(R"(^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$)");
+    QRegularExpression(R"(^eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\z)");
 
 
 
@@ -116,27 +116,29 @@ bool DialogSettings::checkValues()
         return false;
     }
 
-    match = mRegexKey.match(ui->editApiKey->text());
+    QString apiKey = ui->editApiKey->text();
+    match = mRegexKey.match(apiKey);
     if( !match.hasMatch() ) {
         error( "Wrong API Key format", ui->editApiKey );
         return false;
     }
 
-    match = mRegexKey.match(ui->editTenantKey->text());
+    QString tenantKey = ui->editTenantKey->text();
+    match = mRegexKey.match(tenantKey);
     if( !match.hasMatch() ) {
         error( "Wrong Tenant Key format", ui->editTenantKey );
         return false;
     }
 
-    ChirpStackTokenValidator::ValidationResult validatorApiKey = ChirpStackTokenValidator::validateOffline(ui->editApiKey->text());
+    ChirpStackTokenValidator::ValidationResult validatorApiKey = ChirpStackTokenValidator::validateOffline(apiKey);
     if (!validatorApiKey.isValid) {
-        error( "Wrong API Key format", ui->editApiKey );
+        error( "Wrong API Key format:" + validatorApiKey.message, ui->editApiKey );
         return false;
     }
 
-    ChirpStackTokenValidator::ValidationResult validatorTenantKey = ChirpStackTokenValidator::validateOffline(ui->editTenantKey->text());
+    ChirpStackTokenValidator::ValidationResult validatorTenantKey = ChirpStackTokenValidator::validateOffline(tenantKey);
     if (!validatorTenantKey.isValid) {
-        error( "Wrong API Key format", ui->editTenantKey );
+        error( "Wrong Tenant Key format:" + validatorTenantKey.message, ui->editTenantKey );
         return false;
     }
 
