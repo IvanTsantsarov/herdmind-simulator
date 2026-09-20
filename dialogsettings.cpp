@@ -2,6 +2,7 @@
 #include <QToolTip>
 #include "mainwindow.h"
 #include "dialogsettings.h"
+#include "chirpstack.h"
 #include "ui_dialogsettings.h"
 
 #define ERROR_COLOR QColor(255, 200, 200)
@@ -13,7 +14,7 @@ const QRegularExpression DialogSettings::mRegexId =
     QRegularExpression(R"(^[0-9a-fA-F]{16})");
 
 const QRegularExpression DialogSettings::mRegexKey =
-    QRegularExpression(R"(^[0-9a-fA-F\\.\\-])");
+    QRegularExpression(R"(^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$)");
 
 
 
@@ -124,6 +125,18 @@ bool DialogSettings::checkValues()
     match = mRegexKey.match(ui->editTenantKey->text());
     if( !match.hasMatch() ) {
         error( "Wrong Tenant Key format", ui->editTenantKey );
+        return false;
+    }
+
+    ChirpStackTokenValidator::ValidationResult validatorApiKey = ChirpStackTokenValidator::validateOffline(ui->editApiKey->text());
+    if (!validatorApiKey.isValid) {
+        error( "Wrong API Key format", ui->editApiKey );
+        return false;
+    }
+
+    ChirpStackTokenValidator::ValidationResult validatorTenantKey = ChirpStackTokenValidator::validateOffline(ui->editTenantKey->text());
+    if (!validatorTenantKey.isValid) {
+        error( "Wrong API Key format", ui->editTenantKey );
         return false;
     }
 

@@ -43,4 +43,7 @@ private:
     Ui::DialogSettings *ui;
 };
 
+
+
+
 #endif // DIALOGSETTINGS_H

@@ -47,6 +47,11 @@ QPointF Collar::fenceClosestPoint() {
 
 const Animal *Collar::animal() const { return mAnimal; }
 
+Collar::~Collar()
+{
+    delete mScreen;
+}
+
 #else
 
 Collar::Collar()

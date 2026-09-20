@@ -140,9 +140,6 @@ void DialogCollarSim::on_btnGenArray_clicked()
 
     QFileInfo fi(imgPath);
 
-
-
-
     QString varName = QString("uint8_t %1_%2[] = { ")
                           .arg(fi.baseName())
                           .arg(imgSizeStr);

@@ -66,6 +66,7 @@ HEADERS += \
     animal.h \
     apimqtt.h \
     apirest.h \
+    chirpstack.h \
     defines_settings.h \
     devmanager.h \
     dialogconsole.h \

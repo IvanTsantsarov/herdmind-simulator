@@ -112,6 +112,8 @@ public:
     Collar();
 #endif
 
+    ~Collar();
+
     bool isFence();
     bool isInsideFence();
     bool isGoingAwayFromFence();

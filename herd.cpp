@@ -39,6 +39,10 @@ void Herd::clear()
     mAnimals.clear();
     mCollars.clear();
     mPairsBC.clear();
+    if( mShepherd ) {
+        delete mShepherd;
+        mShepherd = nullptr;
+    }
 }
 
 Herd::Herd(bool isSim, Meadow *m, QObject *parent)

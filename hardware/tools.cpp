@@ -121,6 +121,7 @@ ScreenSim::ScreenSim(int r0, int sda, int scl, int rst, const Animal *a)
     : mAnimal(a)
 {
     (void) r0; (void) sda;(void) scl; (void) rst;
+    clearBuffer();
 }
 
 void ScreenSim::setFont(int fontId) {

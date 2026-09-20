@@ -231,12 +231,14 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
 
 Bolus* Animal::putBolus(const QByteArray &devEUI, const QByteArray &appKey)
 {
+    if( mBolus ) delete mBolus;
     mBolus = new Bolus(this, devEUI, appKey);
     return mBolus;
 }
 
 Collar* Animal::putCollar(const QByteArray &devEUI, const QByteArray &appKey)
 {
+    if( mCollar ) delete mCollar;
     mCollar = new Collar(this, devEUI, appKey);
     return mCollar;
 }
