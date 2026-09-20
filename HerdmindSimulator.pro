@@ -123,9 +123,21 @@ DISTFILES += \
     collar_chirpstack.js \
     deploy.sh \
     deploy_cmake/CMakeLists.txt \
+    res/battery_0.pixil \
+    res/battery_0.png \
+    res/battery_100.pixil \
+    res/battery_100.png \
+    res/battery_20.png \
+    res/battery_40.png \
+    res/battery_60.png \
+    res/battery_80.png \
     res/environment.ini \
+    res/lora.png \
+    res/satellite.pixil \
     res/settings.ini \
     res/settings_external.ini \
+    res/tower.pixil \
+    res/tower.png \
     trash.txt
 
 RESOURCES += \

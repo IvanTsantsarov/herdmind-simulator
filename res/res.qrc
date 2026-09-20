@@ -35,5 +35,7 @@
         <file>pixel_art.svg</file>
         <file>font6x12.png</file>
         <file>check.svg</file>
+        <file>tower.png</file>
+        <file>satellite.png</file>
     </qresource>
 </RCC>

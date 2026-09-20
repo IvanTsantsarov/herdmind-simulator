@@ -20,6 +20,9 @@ public:
     inline bool isConnection() { return mIsConnection; };
     inline int satelites() { return mSatelites; }
 
+    void powerOn();
+    void powerOff();
+
 
 };
 

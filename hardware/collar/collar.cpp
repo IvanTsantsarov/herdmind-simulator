@@ -47,11 +47,6 @@ QPointF Collar::fenceClosestPoint() {
 
 const Animal *Collar::animal() const { return mAnimal; }
 
-Collar::~Collar()
-{
-    delete mScreen;
-}
-
 #else
 
 Collar::Collar()
@@ -61,6 +56,11 @@ Collar::Collar()
 }
 
 #endif
+
+Collar::~Collar()
+{
+    delete mScreen;
+}
 
 
 bool Collar::isFence(){ return mFencePointsCount > 0; }
@@ -138,11 +138,30 @@ void Collar::onUpdate()
                 mScreen->clear();
             }
 
+            String animalName("<Animal name>");
+            mScreen->drawTextTableCenterH( 1, animalName, 6 );
+
+            // Draw satellite icon
+            mScreen->drawArray( 2, 28, 24, 24, satellite_24x24);
+
+            // Draw GPS position
             String lat (mGPS->pos().mLat, 10);
             String lon (mGPS->pos().mLon, 10);
-            mScreen->drawArray( 2, 2, 32, 32, satellite_32x32);
-            mScreen->drawTextTable( 1, 1, lat, 32 );
-            mScreen->drawTextTable( 1, 2, lon, 32 );
+            mScreen->drawTextTable( 1, 3, lat, 24, 6 );
+            mScreen->drawTextTable( 1, 4, lon, 24, 6 );
+
+            // Draw tower (Lorawan) icon
+            mScreen->drawArray( 2, 52, 12, 12, lora_12x12);
+            String tower("35%");
+            mScreen->drawTextTable( 3, 5, tower, 0, 6 );
+
+            // Draw battery icon
+            mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 5, 24, 12, battery_60_24x12);
+
+            // Draw battery level
+            String battery("60%");
+            mScreen->drawTextTable( 13, 5, battery, 0, 5 );
+
             mScreen->flush();
         }
     }
