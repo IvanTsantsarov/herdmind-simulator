@@ -26,6 +26,7 @@
 class GPS;
 class Screen;
 class Button;
+class Led;
 
 #ifdef SIMULATION
 #include <QPointF>
@@ -61,7 +62,9 @@ class Collar
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
     Button* mBtnMain = nullptr;
+    Led* mLed = nullptr;
     uint16_t mSequence = 0;
+    uint32_t mAwakeningMillisScreen = 0;
 
     GeoPoint readGPS();
     GeoPoint mLastGeoPos;
@@ -98,6 +101,8 @@ class Collar
 
     void onMainBtn();
     void updateTrajectory(GeoPoint& geoPt);
+    void createObjects();
+    void updateGPS();
 public:
 
     String& animalName();

@@ -8,6 +8,7 @@
 #include "dialogcollarsim.h"
 
 
+Tools gTools;
 
 SoftwareSerial Serial;
 SoftwareSerial Serial1;
@@ -17,8 +18,8 @@ SoftwareSerial Serial3;
 SimPin Pins[SIM_PINS_COUNT];
 WireSim Wire;
 
-#define SIM_CHECK_PIN_RANGE(__pin__) Q_ASSERT( (__pin__ >= 0) && (__pin__ < SIM_PINS_COUNT) )
 
+#define SIM_CHECK_PIN_RANGE(__pin__) Q_ASSERT( (__pin__ >= 0) && (__pin__ < SIM_PINS_COUNT) )
 
 
 void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type)
@@ -116,9 +117,12 @@ float Tools::rnd(float minv, float maxv)
 }
 
 
-void delay(int millis) {
-    QThread::msleep(millis);
+void delay(int msec) {
+    QThread::msleep(msec);
 }
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// ScreenSim
@@ -444,4 +448,5 @@ void TinyGPSPlus::onReady()
     location.mLon = 24.758694;
     satellites.mValue = 4;
 }
+
 

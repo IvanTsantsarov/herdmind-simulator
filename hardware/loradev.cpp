@@ -181,7 +181,6 @@ QByteArray LoraDev::calculateMIC(const QByteArray& msg, quint32 fCnt,
 
     memcpy(B0.data() + 6, mDevAddrRev.constData(), 4);
 
-
     B0[10] = fCnt & 0xFF;
     B0[11] = (fCnt >> 8) & 0xFF;
     B0[12] = (fCnt >> 16) & 0xFF;

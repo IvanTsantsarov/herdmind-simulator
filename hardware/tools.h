@@ -3,9 +3,11 @@
 #include <cassert>
 #include <cstdint>
 #include <QString>
+#include <QElapsedTimer>
+
+#include <QObject>
 
 #include "defines.h"
-#include <QObject>
 
 #define LOW 0
 #define HIGH 1
@@ -67,13 +69,19 @@ extern SimPin Pins[SIM_PINS_COUNT];
 
 class Tools
 {
-
+    QElapsedTimer mProgramTimer;
 public:
 
     Tools();
+    void setup();
+    inline uint32_t millis(){ return mProgramTimer.elapsed(); }
     static int16_t f2i16(float v, float scale);
     static float rnd(float minv, float maxv);
 };
+
+extern Tools gTools;
+
+inline uint32_t millis() { return gTools.millis(); }
 
 
 #define U8G2_R0 0
