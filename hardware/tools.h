@@ -1,5 +1,4 @@
-#ifndef TOOLS_H
-#define TOOLS_H
+#pragma once
 
 #include <cassert>
 #include <cstdint>
@@ -16,7 +15,7 @@
 
 #define SERIAL_8N1 0
 
-
+#define INPUT_PULLUP 0
 
 class DialogCollarSim;
 class Animal;
@@ -33,7 +32,10 @@ enum INTERRUPT_TYPE
     UP = 0,
     DOWN = 1,
     CHANGE = 2,
+    FALLING = 3
 };
+
+
 
 
 typedef void (*InterruptCallback)();
@@ -48,6 +50,7 @@ int analogRead(byte pin );
 void analogWrite(byte pin, int val );
 
 void pinMode(byte pin, byte type);
+int digitalPinToInterrupt(int pin);
 
 struct SimPin
 {
@@ -81,6 +84,7 @@ public:
 
 #define SCREEN_COL_LIGHT QColor(0, 240, 255)
 #define SCREEN_COL_DARK QColor(10, 10, 10)
+#define SCREEN_COL_SLEEPING QColor(0, 40, 50)
 
 
 class ScreenSim {
@@ -100,9 +104,12 @@ private:
     const Animal* mAnimal;
 
     bool mIsUtf8 = false;
+    bool mIsPowerSave = false;
 
 public:
     ScreenSim(int r0, int sda, int scl, int rst, const Animal* a);
+
+    inline void setPowerSave(bool is){ mIsPowerSave = is; }
 
     static void setCollarSim( DialogCollarSim* dlg){ mDlg = dlg; }
 
@@ -228,6 +235,7 @@ class SoftwareSerial
     byte mPinRX, mPinTX;
 
     QByteArray mBuffer;
+    bool mIsOn = false;
 
 public:
     SoftwareSerial();
@@ -239,6 +247,7 @@ public:
     void print (const String& str, bool isError = false);
     void println(const String &str, bool isError = false);
     void send(QByteArray& ba);
+    void end();
 
     bool operator !();
     void flush();
@@ -325,4 +334,3 @@ private slots:
 
 extern WireSim Wire;
 
-#endif // TOOLS_H

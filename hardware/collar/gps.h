@@ -9,6 +9,7 @@ class GPS
     GeoPoint mPos;
     int mSatelites = 0;
     bool mIsConnection = false;
+    bool mIsPowered = true;
 
 public:
     GPS();
@@ -20,9 +21,8 @@ public:
     inline bool isConnection() { return mIsConnection; };
     inline int satelites() { return mSatelites; }
 
-    void powerOn();
     void powerOff();
-
+    void powerOn();
 
 };
 

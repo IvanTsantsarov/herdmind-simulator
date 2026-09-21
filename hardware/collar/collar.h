@@ -4,11 +4,16 @@
 #include <cmath>
 #include <cstdint>
 
-#include "screen.h"
 #include "geometry.h"
-#include "gps.h"
+
 #include "../defines.h"
 #include "../protocol.h"
+
+#ifdef SIMULATION
+    #include "../tools.h"
+#else
+    #include <Arduino.h>
+#endif
 
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 100
@@ -18,6 +23,9 @@
 
 #define COLLAR_MAX_GPS_POINTS 500
 
+class GPS;
+class Screen;
+class Button;
 
 #ifdef SIMULATION
 #include <QPointF>
@@ -29,11 +37,14 @@ class Collar : public LoraDev
 class Collar
 #endif
 {
+    friend void gMainButtonInterrupt();
+
     enum struct Stage {
         None = 0,
         Setup = 1,
         Init = 2,
-        Operate = 3
+        Operate = 3,
+        Sleep
     };
 
     Stage mStage = Stage::None;
@@ -41,6 +52,7 @@ class Collar
 
 
 #ifdef SIMULATION
+    friend class DialogCollarSim;
     const Animal* mAnimal;
 #else
 
@@ -48,8 +60,8 @@ class Collar
 
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
+    Button* mBtnMain = nullptr;
     uint16_t mSequence = 0;
-
 
     GeoPoint readGPS();
     GeoPoint mLastGeoPos;
@@ -84,7 +96,8 @@ class Collar
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 
-    bool mIsLoadingCleared = false;
+    void onMainBtn();
+    void updateTrajectory(GeoPoint& geoPt);
 public:
 
     String& animalName();
@@ -92,6 +105,7 @@ public:
     void onUpdate();
     void onSend();
     void onReceive(uint8_t* data, uint32_t size);
+    inline Button* btnMain(){ return mBtnMain; }
 
 
 #ifdef SIMULATION
@@ -121,6 +135,11 @@ public:
     bool hasClosestFenceBorder();
     Screen *screen();
 
+    void sleep();
 };
+
+#ifndef SIMULATION
+    extern Collar* gCollar;
+#endif
 
 #endif // COLLAR_H

@@ -1,5 +1,14 @@
 #include "collar.h"
 #include "res.h"
+#include "screen.h"
+#include "gps.h"
+#include "button.h"
+
+#define PIN_BTN_MAIN 0
+
+#ifndef SIMULATION
+    Collar* gCollar = nullptr;
+#endif
 
 
 #ifdef SIMULATION
@@ -19,6 +28,7 @@ Collar::Collar( Animal* animal,
 {
     mScreen = new Screen(this);
     mGPS = new GPS;
+    mBtnMain = new Button(PIN_BTN_MAIN);
 
     // TODO: this should not happened here, but must be send from chirpstack
     mAnimalName = SimTools::translateCyrilic( animal->name() );
@@ -48,11 +58,18 @@ QPointF Collar::fenceClosestPoint() {
 const Animal *Collar::animal() const { return mAnimal; }
 
 #else
+////////// REAL COLLAR
 
 Collar::Collar()
 {
+    // Only one instance of the class is permitted
+    assert(nullptr == gCollar);
+    gCollar = this;
+
+    gCollar = this;
     mScreen = new Screen(this);
     mGPS = new GPS;
+    mBtnMain = new Button(PIN_BTN_MAIN);
 }
 
 #endif
@@ -78,6 +95,22 @@ Screen* Collar::screen()
     return mScreen;
 }
 
+void Collar::sleep()
+{
+#ifdef SIMULATION
+    mStage = Stage::Sleep;
+    mScreen->sleep();
+    mScreen->flush();
+#else
+    esp_sleep_enable_ext1_wakeup(
+        1ULL << PIN_BTN_MAIN,
+        ESP_EXT1_WAKEUP_ANY_LOW
+        );
+
+    esp_deep_sleep_start();
+#endif
+}
+
 
 GeoPoint Collar::readGPS()
 {
@@ -87,6 +120,28 @@ GeoPoint Collar::readGPS()
 #else
     return mGPS->pos();
 #endif
+}
+
+#ifndef SIMULATION
+void gMainButtonInterrupt() {
+    if( !gCollar ) {
+        return;
+    }
+    gCollar->onMainBtn();
+}
+#endif
+
+void Collar::onMainBtn() {
+
+    mBtnMain->update();
+    if( Stage::Sleep == mStage ) {
+        mScreen->wakeup();
+        mStage = Stage::Operate;
+    }else {
+        sleep();
+    }
+
+
 }
 
 void Collar::onSetup()
@@ -101,73 +156,20 @@ void Collar::onSetup()
 
     mGPS->setup();
 
-    mStage = Stage::Init;
+    mBtnMain->setup();
 
+#ifndef SIMULATION
+    attachInterrupt(
+        digitalPinToInterrupt(mBtnMain->pin()),
+        gMainButtonInterrupt,
+        FALLING
+        );
+#endif
+    mStage = Stage::Init;
 }
 
-void Collar::onUpdate()
+void Collar::updateTrajectory(GeoPoint& geoPt)
 {
-    if( Stage::Init == mStage) {
-        Serial.println("Initializing collar...");
-        mScreen->init();
-        mStage = Stage::Operate;
-    }
-
-    if( Stage::Operate != mStage ) {
-        return;
-    }
-
-    mGPS->onUpdate();
-
-    if( mGPS->isConnection() ) {
-
-        if( mGPS->isReady() )  {
-
-/*
-            Serial.print("Pos: ");
-            Serial.print(mGPS->pos().mLat, 6);
-            Serial.print(", ");
-            Serial.print(mGPS->pos().mLon, 6);
-            Serial.print(", ");
-            Serial.println(mGPS->pos().mAlt, 3);
-            Serial.print("SAT: ");
-            Serial.println(mGPS->satelites());
-*/
-            if( !mIsLoadingCleared ) {
-                mIsLoadingCleared = true;
-                mScreen->clear();
-            }
-
-            String animalName("<Animal name>");
-            mScreen->drawTextTableCenterH( 1, animalName, 6 );
-
-            // Draw satellite icon
-            mScreen->drawArray( 2, 28, 24, 24, satellite_24x24);
-
-            // Draw GPS position
-            String lat (mGPS->pos().mLat, 10);
-            String lon (mGPS->pos().mLon, 10);
-            mScreen->drawTextTable( 1, 3, lat, 24, 6 );
-            mScreen->drawTextTable( 1, 4, lon, 24, 6 );
-
-            // Draw tower (Lorawan) icon
-            mScreen->drawArray( 2, 52, 12, 12, lora_12x12);
-            String tower("35%");
-            mScreen->drawTextTable( 3, 5, tower, 0, 6 );
-
-            // Draw battery icon
-            mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 5, 24, 12, battery_60_24x12);
-
-            // Draw battery level
-            String battery("60%");
-            mScreen->drawTextTable( 13, 5, battery, 0, 5 );
-
-            mScreen->flush();
-        }
-    }
-
-    GeoPoint geoPt = readGPS();
-
     // increment trajectory buffer counter
     mTrajectoryPointsCount ++;
 
@@ -192,6 +194,88 @@ void Collar::onUpdate()
         return;
     }
 
+}
+
+void Collar::onUpdate()
+{
+    if( Stage::Sleep == mStage) {
+        return;
+    }
+
+    if( Stage::Init == mStage) {
+        Serial.println("Initializing collar...");
+        mScreen->init();
+        mStage = Stage::Operate;
+    }
+
+    if( Stage::Operate != mStage ) {
+        return;
+    }
+
+    mGPS->onUpdate();
+
+    if( mGPS->isConnection() ) {
+
+        if( mGPS->isReady() )  {
+            GeoPoint pos = readGPS();
+
+            Serial.print("Pos: ");
+            Serial.print(pos.mLat, 6);
+            Serial.print(", ");
+            Serial.print(pos.mLon, 6);
+            Serial.print(", ");
+            Serial.println(pos.mAlt, 3);
+            Serial.print("SAT: ");
+            Serial.println(mGPS->satelites());
+
+            mScreen->clear();
+
+#ifdef SIMULATION
+        String animalName = SimTools::translateCyrilic( mAnimal->name() );
+        bool isMale = mAnimal->isMale();
+#else
+        // TODO: set here name and gender
+        String animalName("<Animal name>");
+        bool isMale = false;
+#endif
+            Screen::CenterH c = mScreen->drawTextTableCenterH( 1, animalName, 6 );
+            mScreen->drawArray( c.x2 + 2*FONT_CX, 4, 12, 12, isMale ? male_12x12 : female_12x12);
+
+            // Draw satellite icon
+            mScreen->drawArray( 2, 24, 24, 24, satellite_24x24);
+
+            // Draw GPS position
+            String lat (pos.mLat, 10);
+            String lon (pos.mLon, 10);
+            mScreen->drawTextTable( 1, 3, lat, 24, 2 );
+            mScreen->drawTextTable( 1, 4, lon, 24, 2 );
+
+            // Draw Lorawan icon
+            mScreen->drawArray( 2, 48, 12, 12, lora_12x12);
+            String tower("35%");
+            mScreen->drawTextTable( 3, 5, tower, 0, 2 );
+
+            // Draw battery icon
+            mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 1, 24, 12, battery_60_24x12);
+
+            // Draw battery level
+            String battery("60%");
+            mScreen->drawTextTable( 13, 5, battery, 0, 2 );
+
+            mScreen->flush();
+
+            // update trajectory
+            updateTrajectory(pos);
+        }else {
+            Serial.println("GPS not ready!");
+        }
+    }else {
+        Serial.println("GPS not connection!");
+    }
+
+#ifndef SIMULATION
+    delay(100);
+#endif
 }
 
 void Collar::onSend()

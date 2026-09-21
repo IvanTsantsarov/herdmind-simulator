@@ -12,5 +12,7 @@ extern uint8_t battery_40_24x12[];
 extern uint8_t battery_60_24x12[];
 extern uint8_t battery_80_24x12[];
 extern uint8_t battery_100_24x12[];
+extern uint8_t male_12x12[];
+extern uint8_t female_12x12[];
 
 #endif // RES_H

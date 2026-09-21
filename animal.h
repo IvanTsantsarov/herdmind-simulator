@@ -129,7 +129,7 @@ public:
     QGeoCoordinate geoPos() const;
     inline QPointF pt(){ return QPointF(mPosition.x(), mPosition.y()); }
     inline QVector2D& v(){ return mVelocity; }
-    inline bool isMale(){ return mIsMale; }
+    inline bool isMale() const { return mIsMale; }
 
     float distanceSq(Animal* other);
     void updateRunning(const QVector2D &p,

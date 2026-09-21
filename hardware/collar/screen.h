@@ -22,7 +22,13 @@ class Screen
 {
     ScreenLib mLib;
     Collar* mCollar;
+    bool mIsSleeping = false;
 public:
+    struct CenterH {
+        int x1, x2;
+        inline int width() { return x2 - x1;}
+    };
+
     Screen(Collar *c);
     void setup();
     void init();
@@ -30,8 +36,12 @@ public:
     void drawArray(int x, int y, int cx, int cy, uint8_t* pixels);
     void drawText(int x, int y, String &str);
     void drawTextTable(int col, int row, String &str, int offsetCol = 0, int offsetRow = 0);
-    void drawTextTableCenterH(int row, String &str, int offsetY = 0);
+    CenterH drawTextTableCenterH(int row, String &str, int offsetY = 0);
     void flush();
+
+    void sleep();
+    void wakeup();
+    inline bool isSleeping(){ return mIsSleeping; }
 
     ScreenLib& lib(){ return mLib;}
 };

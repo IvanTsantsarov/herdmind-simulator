@@ -2,7 +2,9 @@
 #include <QFileDialog>
 #include <QPainter>
 
+#include "hardware/collar/button.h"
 #include "tools.h"
+#include "collar/screen.h"
 #include "../animal.h"
 #include "../mainwindow.h"
 #include "dialogcollarsim.h"
@@ -73,9 +75,11 @@ void DialogCollarSim::grabScreen()
 
     QImage& img = ui->widgetScreen->image();
 
+    QColor col = mAnimal->collar()->screen()->isSleeping() ? SCREEN_COL_SLEEPING :  SCREEN_COL_LIGHT;
+
     for( auto y = 0; y < SCREEN_CY; y++) {
         for( auto x = 0; x < SCREEN_CX; x++) {
-            img.setPixelColor(x, y, src[y*SCREEN_CX + x] ? SCREEN_COL_LIGHT : SCREEN_COL_DARK);
+            img.setPixelColor(x, y, src[y*SCREEN_CX + x] ? col : SCREEN_COL_DARK);
         }
     }
 
@@ -184,3 +188,13 @@ void ScreenWidget::paintEvent(QPaintEvent *event)
     // Draw the image filling the entire widget canvas rect
     painter.drawImage(0, 0, scaledImg);
 }
+
+void DialogCollarSim::on_btnMain_pressed()
+{
+    if( !mAnimal) {
+        return;
+    }
+
+    mAnimal->collar()->onMainBtn();
+}
+

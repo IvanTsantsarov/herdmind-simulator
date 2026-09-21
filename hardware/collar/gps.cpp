@@ -12,6 +12,7 @@ TinyGPSPlus gGPS;
 #define VGNSS_CTRL 34
 #define GPS_RX     39
 #define GPS_TX     38
+#define GNSS_RST   42
 
 
 GPS::GPS() {}
@@ -57,3 +58,18 @@ void GPS::onUpdate()
         mSatelites = gGPS.satellites.value();
     }
 }
+
+
+void GPS::powerOff()
+{
+    Serial1.end();
+    digitalWrite(VGNSS_CTRL, HIGH);
+    mIsPowered = false;
+}
+
+void GPS::powerOn()
+{
+
+    mIsPowered = true;
+}
+

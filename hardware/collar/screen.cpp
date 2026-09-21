@@ -91,15 +91,35 @@ void Screen::drawTextTable(int col, int row, String &str, int offsetCol, int off
     mLib.drawStr(col * FONT_CX + offsetCol, row * FONT_CY + offsetRow, str.c_str() );
 }
 
-void Screen::drawTextTableCenterH(int row, String &str, int offsetY)
+Screen::CenterH Screen::drawTextTableCenterH(int row, String &str, int offsetY)
 {
+    CenterH c;
     int width = str.length() * FONT_CX;
-    int posx = (SCREEN_CX - width) / 2;
-    mLib.drawStr(posx, row * FONT_CY + offsetY, str.c_str() );
+    c.x1 = (SCREEN_CX - width) / 2;
+    mLib.drawStr(c.x1, row * FONT_CY + offsetY, str.c_str() );
+    c.x2 = c.x1 + width;
+    return c;
 }
 
 
 void Screen::flush()
 {
+#ifndef SIMULATION
+    if( mIsSleeping ) {
+        return;
+    }
+#endif
     mLib.sendBuffer();
+}
+
+void Screen::sleep()
+{
+    mLib.setPowerSave(1);
+    mIsSleeping = true;
+}
+
+void Screen::wakeup()
+{
+    mLib.setPowerSave(0);
+    mIsSleeping = false;
 }

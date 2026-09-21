@@ -50,6 +50,8 @@ private slots:
 
     void on_btnGenArray_clicked();
 
+    void on_btnMain_pressed();
+
 private:
     Ui::DialogCollarSim *ui;
 };

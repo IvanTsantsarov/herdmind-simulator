@@ -17,7 +17,9 @@ SoftwareSerial Serial3;
 SimPin Pins[SIM_PINS_COUNT];
 WireSim Wire;
 
-#define SIM_CHECK_PIN_RANGE(__pin__) Q_ASSERT( (__pin__ > 0) && (__pin__ < SIM_PINS_COUNT) )
+#define SIM_CHECK_PIN_RANGE(__pin__) Q_ASSERT( (__pin__ >= 0) && (__pin__ < SIM_PINS_COUNT) )
+
+
 
 void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type)
 {
@@ -37,6 +39,11 @@ void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type
 
     Pins[pin].mOnIntrerrupt = func;
     Pins[pin].mInterruptType = type;
+}
+
+int digitalPinToInterrupt(int pin)
+{
+    return pin;
 }
 
 void digitalWrite(byte pin, bool val)
@@ -309,6 +316,7 @@ void String::replace(char what, char with)
 /// Serial port emulation
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define SERIAL_RETURN_IF_OFF(__operation__)     if( !mIsOn ) { qWarning() << "Serial" << __operation__ <<", but it's off."; return; }
 
 uint SoftwareSerial::available()
 {
@@ -333,6 +341,7 @@ void SoftwareSerial::begin(uint baudRate, int a1, int a2, int a3)
     (void) a1;
     (void) a2;
     (void) a3;
+    mIsOn = true;
 
 }
 
@@ -350,6 +359,8 @@ void SoftwareSerial::write(char c)
 
 void SoftwareSerial::print(const String& str, bool isError)
 {
+    SERIAL_RETURN_IF_OFF("print");
+
     String ps = str;
     if( isError)
     {
@@ -380,8 +391,16 @@ void SoftwareSerial::println(const String& str, bool isError)
 
 void SoftwareSerial::send(QByteArray &ba)
 {
+    SERIAL_RETURN_IF_OFF("send");
     mBuffer.append(ba);
 }
+
+void SoftwareSerial::end()
+{
+    mIsOn = false;
+}
+
+
 
 bool SoftwareSerial::operator !()
 {
@@ -392,7 +411,7 @@ bool SoftwareSerial::operator !()
 /// TinyGPS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define GPS_DELAY_SATELLITES_SIMULATION 10000
+#define GPS_DELAY_SATELLITES_SIMULATION 2000
 
 void TinyGPSPlus::Location::update(char *buffer)
 {
@@ -425,3 +444,4 @@ void TinyGPSPlus::onReady()
     location.mLon = 24.758694;
     satellites.mValue = 4;
 }
+
