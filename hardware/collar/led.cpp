@@ -11,7 +11,8 @@ void Led::on(uint32_t duration, uint32_t durationAfter)
     mIsOn = true;
     mDuration = duration;
     mMSec = millis();
-    mDurationAfter = durationAfter;
+    mDurationAfter = duration + durationAfter;
+    mIsPhase2 = false;
     digitalWrite(mPin, HIGH);   // Turn the LED on
 }
 
@@ -28,7 +29,7 @@ bool Led::update()
         return true;
     }
 
-    uint32_t passed = mMSec - millis();
+    uint32_t passed = millis() - mMSec;
     if( passed < mDuration ) {
         return false;
     }

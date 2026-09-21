@@ -54,7 +54,7 @@ class Collar
 
 #ifdef SIMULATION
     friend class DialogCollarSim;
-    const Animal* mAnimal;
+    Animal* mAnimal;
 #else
 
 #endif
@@ -139,6 +139,7 @@ public:
     double fanceDistance();
     bool hasClosestFenceBorder();
     Screen *screen();
+    Led* led();
 
     void sleep();
 };

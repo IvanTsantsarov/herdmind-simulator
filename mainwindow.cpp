@@ -106,7 +106,7 @@ MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget 
     mDevMsg = new DialogDeviceMsg(mDevManager, this);
 
     mDlgCollar = new DialogCollarSim(env, this);
-    ScreenSim::setCollarSim(mDlgCollar);
+    gTools.setup(mDlgCollar);
 
     QRect screenrect = qApp->primaryScreen()->geometry();
     mConsole->move(screenrect.left(), screenrect.bottom()/2);

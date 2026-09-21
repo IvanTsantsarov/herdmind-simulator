@@ -39,11 +39,15 @@ class DialogCollarSim : public QDialog
 
     void grabScreen();
 
+    bool mIsLedOn = false;
+
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
     void init(QList<Animal*> animals);
     ~DialogCollarSim();
     void sendScreen(const Animal *from);
+
+    void update(Animal *animal);
 
 private slots:
     void on_comboAnimals_currentIndexChanged(int index);

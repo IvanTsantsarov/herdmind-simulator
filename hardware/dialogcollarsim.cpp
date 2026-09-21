@@ -5,6 +5,7 @@
 #include "hardware/collar/button.h"
 #include "tools.h"
 #include "collar/screen.h"
+#include "collar/led.h"
 #include "../animal.h"
 #include "../mainwindow.h"
 #include "dialogcollarsim.h"
@@ -97,6 +98,19 @@ void DialogCollarSim::sendScreen(const Animal *from)
     }
 
     grabScreen();
+}
+
+void DialogCollarSim::update(Animal *animal)
+{
+    if( !mAnimal || animal != mAnimal ) {
+        return;
+    }
+
+    const bool isOn = mAnimal->collar()->led()->isOn();
+    if( isOn != mIsLedOn ) {
+        mIsLedOn = isOn;
+        SimTools::setWidgetBackColor( ui->btnLedMain, isOn ? Qt::white : Qt::black);
+    }
 }
 
 void DialogCollarSim::on_comboAnimals_currentIndexChanged(int index)

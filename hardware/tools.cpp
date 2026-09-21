@@ -98,9 +98,17 @@ void pinMode(byte pin, quint8 type)
 uint8_t ScreenSim::mFont[FONT_ROWS * FONT_COLS][FONT_CY][FONT_CX];
 int ScreenSim::mLastFont = 0;
 
-DialogCollarSim* ScreenSim::mDlg = nullptr;
-
 Tools::Tools() {}
+
+void Tools::setup(DialogCollarSim *dlg)
+{
+    mCollarDlg = dlg;
+}
+
+void Tools::update(Animal *animal)
+{
+    mCollarDlg->update(animal);
+}
 
 
 int16_t Tools::f2i16(float v, float scale) {
@@ -235,15 +243,11 @@ void ScreenSim::drawStr(int x, int y, char *str) {
     }
 }
 
-
 void ScreenSim::sendBuffer()
 {
-    assert(mDlg);
     assert(mAnimal);
-    mDlg->sendScreen(mAnimal);
+    gTools.collarDlg()->sendScreen(mAnimal);
 }
-
-
 
 
 

@@ -70,10 +70,15 @@ extern SimPin Pins[SIM_PINS_COUNT];
 class Tools
 {
     QElapsedTimer mProgramTimer;
+    DialogCollarSim* mCollarDlg = nullptr;
 public:
 
     Tools();
-    void setup();
+    void setup(DialogCollarSim* dlg );
+
+    inline DialogCollarSim* collarDlg(){ return mCollarDlg; }
+    void update(Animal *animal);
+
     inline uint32_t millis(){ return mProgramTimer.elapsed(); }
     static int16_t f2i16(float v, float scale);
     static float rnd(float minv, float maxv);
@@ -107,8 +112,6 @@ private:
     static uint8_t mFont[FONT_ROWS * FONT_COLS][FONT_CY][FONT_CX];
     static int mLastFont;
 
-    static DialogCollarSim* mDlg;
-
     const Animal* mAnimal;
 
     bool mIsUtf8 = false;
@@ -118,8 +121,6 @@ public:
     ScreenSim(int r0, int sda, int scl, int rst, const Animal* a);
 
     inline void setPowerSave(bool is){ mIsPowerSave = is; }
-
-    static void setCollarSim( DialogCollarSim* dlg){ mDlg = dlg; }
 
     void begin(){}
     void clearBuffer() {

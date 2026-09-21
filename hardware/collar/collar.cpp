@@ -103,6 +103,11 @@ Screen* Collar::screen()
     return mScreen;
 }
 
+Led *Collar::led()
+{
+    return mLed;
+}
+
 void Collar::sleep()
 {
 #ifdef SIMULATION
@@ -290,19 +295,23 @@ void Collar::onUpdate()
         if( mGPS->isReady() )
         {
             updateGPS();
-            if( mLed->update() ) mLed->on(600, 600);
+            if( mLed->update() ) mLed->on(1600, 1600);
 
         }else {
             Serial.println("GPS not ready!");
-            if( mLed->update() ) mLed->on(300, 500);
+            if( mLed->update() ) mLed->on(300, 1000);
         }
     }else {
         Serial.println("GPS not connection!");
         if( mLed->update() ) mLed->on(100, 500);
     }
 
+
+
 #ifndef SIMULATION
     delay(100);
+#else
+    gTools.update(mAnimal);
 #endif
 }
 
