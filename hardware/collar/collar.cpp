@@ -264,7 +264,7 @@ void Collar::onUpdate()
         if( mGPS->isReady() )
         {
             if( !mIsSignal ) {
-                Serial.println( String("GPS signal arrived in") + millis() + " msec" );
+                DBG( String("GPS signal arrived in") + millis() + " msec" );
                 mIsSignal = true;
             }
 

@@ -43,6 +43,7 @@ SOURCES += \
     hardware/collar/geometry.cpp \
     hardware/collar/gps.cpp \
     hardware/collar/led.cpp \
+    hardware/collar/memory.cpp \
     hardware/collar/res.cpp \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
@@ -86,6 +87,7 @@ HEADERS += \
     hardware/collar/geometry.h \
     hardware/collar/gps.h \
     hardware/collar/led.h \
+    hardware/collar/memory.h \
     hardware/collar/res.h \
     hardware/dialogcollarsim.h \
     hardware/collar/screen.h \
