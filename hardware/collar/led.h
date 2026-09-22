@@ -23,6 +23,7 @@ public:
     void setup(int pinNum);
     bool update();
     void on(uint32_t duration = 0, uint32_t durationAfter = 0);
+    void updateOn(uint32_t duration = 0, uint32_t durationAfter = 0);
     void off();
     inline bool isOn(){ return mIsOn; }
 };

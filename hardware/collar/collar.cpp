@@ -1,4 +1,5 @@
 #include "collar.h"
+#include "defines.h"
 #include "res.h"
 #include "screen.h"
 #include "gps.h"
@@ -9,22 +10,6 @@
 
 #define PIN_BTN_MAIN 0
 #define PIN_LED_MAIN 35
-
-#ifndef SIMULATION
-    Collar* gCollar = nullptr;
-#endif
-
-
-void Collar::createObjects()
-{
-    mScreen = new Screen(this);
-    mGPS = new GPS;
-    mBtnMain = new Button(PIN_BTN_MAIN);
-    mLed = new Led;
-}
-
-
-
 
 #ifdef SIMULATION
 
@@ -73,6 +58,8 @@ const Animal *Collar::animal() const { return mAnimal; }
 #else
 ////////// REAL COLLAR
 
+Collar* gCollar = nullptr;
+
 Collar::Collar()
 {
     // Only one instance of the class is permitted
@@ -82,75 +69,47 @@ Collar::Collar()
 }
 #endif
 
+void Collar::createObjects()
+{
+    mScreen = new Screen(this);
+    mGPS = new GPS;
+    mBtnMain = new Button(PIN_BTN_MAIN);
+    mLed = new Led;
+}
+
+
 Collar::~Collar()
 {
     delete mScreen;
-}
-
-
-bool Collar::isFence(){ return mFencePointsCount > 0; }
-
-bool Collar::isInsideFence(){ return mIsInsideFence; }
-
-bool Collar::isGoingAwayFromFence(){ return mFenceIsGoingAway; }
-
-double Collar::fanceDistance(){ return mFenceDistance; }
-
-bool Collar::hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
-
-Screen* Collar::screen()
-{
-    return mScreen;
-}
-
-Led *Collar::led()
-{
-    return mLed;
-}
-
-void Collar::sleep()
-{
-#ifdef SIMULATION
-    mStage = Stage::Sleep;
-#else
-    esp_sleep_enable_ext1_wakeup(
-        1ULL << PIN_BTN_MAIN,
-        ESP_EXT1_WAKEUP_ANY_LOW
-        );
-
-    esp_deep_sleep_start();
-#endif
-}
-
-
-GeoPoint Collar::readGPS()
-{
-#ifdef SIMULATION
-    QGeoCoordinate geoCoor = mAnimal->geoPos();
-    return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
-#else
-    return mGPS->pos();
-#endif
+    delete mGPS;
+    delete mBtnMain;
+    delete mLed;
 }
 
 #ifndef SIMULATION
+bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
-    if( !gCollar ) {
-        return;
-    }
-    gCollar->onMainBtn();
+    gMainButtonDown = true;
 }
 #endif
+
 
 void Collar::onMainBtn() {
     mBtnMain->update();
     if( mScreen->isSleeping() ) {
+        if( !mIsSignal) {
+            updateScreenLoading(false);
+        }else {
+            updateScreenNormal(false);
+        }
         mScreen->wakeup();
+        mScreen->flush();
     }
     mAwakeningMillisScreen = millis();
 
-    Serial.println("Main button press!");
+    DBG("Main button press!");
 }
+
 
 void Collar::onSetup()
 {
@@ -179,47 +138,46 @@ void Collar::onSetup()
 
 }
 
-void Collar::updateTrajectory(GeoPoint& geoPt)
+void Collar::sleep()
 {
-    // increment trajectory buffer counter
-    mTrajectoryPointsCount ++;
+#ifdef SIMULATION
+    mStage = Stage::Sleep;
+#else
+    esp_sleep_enable_ext1_wakeup(
+        1ULL << PIN_BTN_MAIN,
+        ESP_EXT1_WAKEUP_ANY_LOW
+        );
 
-    // if trajectory point counter exceeds maximum count
-    // shift left the whole array with one element
-    if( mTrajectoryPointsCount >= COLLAR_MAX_GPS_POINTS) {
-        for( auto i = 1; i < COLLAR_MAX_GPS_POINTS; i++) {
-            mTrajectoryPoints[i-1] = mTrajectoryPoints[i];
-        }
-        mTrajectoryPointsCount = COLLAR_MAX_GPS_POINTS;
-    }
+    esp_deep_sleep_start();
+#endif
+}
 
-    mLastGeoPos = geoPt;
-    mLastPoint = Point::fromGeoPoint(mGeoCenter, mLastGeoPos);
-    if( isFence()) {
-        testFence();
-    }
+void Collar::updateScreenLoading(bool isFlush)
+{
+    // Clear the internal buffer
+    mScreen->clear();
 
-    // add current geo location to the end of the tragectory points buffer
-    mTrajectoryPoints[mTrajectoryPointsCount-1] = geoPt;
-    if( mTrajectoryPointsCount < 2 ) {
-        return;
+    mScreen->drawArray(2, 2, 44, 44, vector_mono_44x44);
+    // Draw static strings (X position, Y position, String)
+    String v("Herdmind ");
+    v += COLLAR_VERSION;
+    mScreen->drawText(2, 2 + 44 + FONT_CY, v);
+
+    // TODO: send animal name to the collar
+    // mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
+
+    mScreen->drawText(44 + FONT_CX + 6, 32, "Loading..." );
+
+    // Push the buffer contents to the physical screen hardware
+    if( isFlush){
+        mScreen->flush();
     }
 
 }
 
-void Collar::updateGPS()
+
+void Collar::updateScreenNormal(bool isFlush)
 {
-    GeoPoint pos = readGPS();
-
-    Serial.print("Pos: ");
-    Serial.print(pos.mLat, 6);
-    Serial.print(", ");
-    Serial.print(pos.mLon, 6);
-    Serial.print(", ");
-    Serial.println(pos.mAlt, 3);
-    Serial.print("SAT: ");
-    Serial.println(mGPS->satelites());
-
     mScreen->clear();
 
 #ifdef SIMULATION
@@ -235,6 +193,9 @@ void Collar::updateGPS()
 
     // Draw satellite icon
     mScreen->drawArray( 2, 24, 24, 24, satellite_24x24);
+
+    GeoPoint pos = readGPS();
+    printGPS();
 
     // Draw GPS position
     String lat (pos.mLat, 10);
@@ -254,15 +215,22 @@ void Collar::updateGPS()
     String battery("60%");
     mScreen->drawTextTable( 13, 5, battery, 0, 2 );
 
-    mScreen->flush();
-
-    // update trajectory
-    updateTrajectory(pos);
+    if( isFlush ) {
+        mScreen->flush();
+    }
 }
 
 
 void Collar::onUpdate()
 {
+#ifndef SIMULATION
+    // after waking up
+    if( gMainButtonDown ) {
+        onMainBtn();
+        gMainButtonDown = false;
+    }
+#endif
+
     uint32_t msec = millis();
 
     if( Stage::Sleep == mStage) {
@@ -271,7 +239,7 @@ void Collar::onUpdate()
 
     if( Stage::Init == mStage) {
         Serial.println("Initializing collar...");
-        mScreen->init();
+        updateScreenLoading();
         mStage = Stage::Operate;
         mAwakeningMillisScreen = msec;
     }
@@ -280,6 +248,7 @@ void Collar::onUpdate()
         return;
     }
 
+    // Check screen if it's time to sleep
     uint32_t msecAwakenScreen = msec - mAwakeningMillisScreen;
     if( msecAwakenScreen > SCREEN_AWAKE_MSEC_MAX ) {
         mScreen->sleep();
@@ -294,16 +263,21 @@ void Collar::onUpdate()
     {
         if( mGPS->isReady() )
         {
-            updateGPS();
-            if( mLed->update() ) mLed->on(1600, 1600);
+            if( !mIsSignal ) {
+                Serial.println( String("GPS signal arrived in") + millis() + " msec" );
+                mIsSignal = true;
+            }
 
+            updateScreenNormal();
+            updateTrajectory(mGPS->pos());
+            mLed->updateOn(1600, 1600);
         }else {
-            Serial.println("GPS not ready!");
-            if( mLed->update() ) mLed->on(300, 1000);
+            Serial.print("-");
+            mLed->updateOn(300, 1000);
         }
     }else {
-        Serial.println("GPS not connection!");
-        if( mLed->update() ) mLed->on(100, 500);
+        Serial.print(".");
+        mLed->updateOn(100, 500);
     }
 
 
@@ -356,39 +330,6 @@ void Collar::onReceive(uint8_t *data, uint32_t size)
     }
 }
 
-void Collar::onSetupFence(uint8_t count, const GeoPoint& center, const uint8_t *offsetsPtr)
-{
-    mFencePointsCount = count;
-    if( !mFencePointsCount) {
-        sendEvent(Protocol::Collar::Event::FenceOff, 0);
-        return;
-    }
-
-    mGeoCenter = center;
-    int coordsIndex = 0;
-    for( uint8_t ptIndex = 0; ptIndex < count; ptIndex ++, coordsIndex += 4 ) {
-        int16_t offsetLat = Protocol::readInt16(offsetsPtr, coordsIndex);
-        int16_t offsetLon = Protocol::readInt16(offsetsPtr, coordsIndex + 2);
-        GeoPoint geoPt(
-            Protocol::decodeCoordOffset(offsetLat, center.mLat ),
-            Protocol::decodeCoordOffset(offsetLon, center.mLon ) );
-
-        // qInfo() << QString::number(geoPt.mLat, 'f', 6) << QString::number(geoPt.mLon, 'f', 6); // trash
-        mFenceGeoPoints[ptIndex] = geoPt;
-        mFencePoints[ptIndex] = Point::fromGeoPoint(center, geoPt);
-    }
-
-    for( auto bIndex = 0; bIndex < mFencePointsCount; bIndex ++ ) {
-        int nextIndex = bIndex + 1;
-        if( nextIndex >= mFencePointsCount) {
-            nextIndex = 0;
-        }
-        mFenceBorders[bIndex] = Border(mFencePoints[bIndex], mFencePoints[nextIndex]);
-    }
-
-    sendEvent(Protocol::Collar::Event::FenceOn, mFencePointsCount);
-}
-
 void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 {
     uint8_t buffer[1 + sizeof(uint32_t)];
@@ -403,93 +344,3 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 
 String &Collar::animalName() { return mAnimalName; }
 
-void Collar::testFence()
-{
-    mIsInsideFence = false;
-
-    Point p = mLastPoint;
-
-    // Find closest border and poind
-    double closestDistSq = MAXFLOAT;
-    int closestBorderIndex = -1;
-    Point closestProj;
-
-    // Test for inside/outside of the fence
-    for( auto i = 0; i < mFencePointsCount; i ++) {
-        Border& border = mFenceBorders[i];
-
-        if( border.isOn(mLastPoint)) {
-            closestDistSq = 0.0;
-            mIsInsideFence = true;
-            closestBorderIndex = i;
-            closestProj = mLastPoint;
-            break;
-        }
-
-        const Point& a = border.begin();
-        const Point& b = border.end();
-
-        bool intersects =
-            ((a.mY > p.mY) != (b.mY > p.mY)) &&
-            (p.mX < (b.mX - a.mX) * (p.mY - a.mY) /
-                            (b.mY - a.mY) + a.mX);
-
-        if (intersects) {
-            mIsInsideFence = !mIsInsideFence;
-        }
-
-        // find closest side by the projection point
-        Point proj = border.proj(p);
-        double distSq = p.distSq(proj);
-        if( distSq < closestDistSq && border.isInside(proj)) {
-            closestProj = proj;
-            closestDistSq = distSq;
-            closestBorderIndex = i;
-        }
-    }
-
-    // if no closest border found
-    // reset search for closest end point
-    // else try to find closest end point
-    if( closestBorderIndex < 0 ) {
-        closestDistSq = MAXFLOAT;
-    }
-
-    // Fist closest border end point then projection point
-    int closestPointIndex = -1;
-    for( auto i = 0; i < mFencePointsCount; i ++) {
-        Point& bp = mFencePoints[i];
-        double distSq = bp.distSq(p);
-        if( distSq < closestDistSq ) {
-            closestDistSq = distSq;
-            closestPointIndex = i;
-        }
-    }
-
-    // If closer end point of the border found,
-    // then find which border is better visible
-    // from the current animal point
-    if( closestPointIndex >= 0 ) {
-        int borderRightIndex = closestPointIndex;
-        int borderLeftIndex = closestPointIndex - 1;
-        if( borderLeftIndex < 0 ) {
-            borderLeftIndex = mFencePointsCount - 1;
-        }
-
-        Border& borderRight = mFenceBorders[borderRightIndex];
-        Border& borderLeft = mFenceBorders[borderLeftIndex];
-
-        closestBorderIndex = borderLeft.isBetterVisible(borderRight, p) ?
-                                 borderLeftIndex : borderRightIndex;
-    }
-
-    if(closestBorderIndex >= 0) {
-        mFenceIsGoingAway = closestDistSq > mFenceClosestDistSq;
-        mFenceClosestDistSq = closestDistSq;
-        mFenceClosestBorder = &mFenceBorders[closestBorderIndex];
-        mFenceClosestPoint = closestProj;
-        mFenceDistance = std::sqrt(mFenceClosestDistSq);
-    }else {
-        assert(0);
-    }
-}

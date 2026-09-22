@@ -66,7 +66,9 @@ class Collar
     uint16_t mSequence = 0;
     uint32_t mAwakeningMillisScreen = 0;
 
+    bool mIsSignal = false;
     GeoPoint readGPS();
+    void printGPS();
     GeoPoint mLastGeoPos;
     Point mLastPoint;
 
@@ -100,10 +102,27 @@ class Collar
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 
     void onMainBtn();
-    void updateTrajectory(GeoPoint& geoPt);
+    void updateTrajectory(const GeoPoint &geoPt);
     void createObjects();
-    void updateGPS();
+    void updateScreenLoading(bool isFlush = true);
+    void updateScreenNormal(bool isFlush = true);
 public:
+
+
+#ifdef SIMULATION
+    Collar(Animal* animal,
+            const QByteArray &devEUI = QByteArray(),
+           const QByteArray& appKey = QByteArray() );
+    Protocol::Collar getPackageOut();
+    QList<Protocol::Collar> getBoluses();
+    QLine fenceClosestBorder();
+    QPointF fenceClosestPoint();
+    const Animal* animal() const;
+#else
+    Collar();
+#endif
+
+    ~Collar();
 
     String& animalName();
     void onSetup();
@@ -112,34 +131,13 @@ public:
     void onReceive(uint8_t* data, uint32_t size);
     inline Button* btnMain(){ return mBtnMain; }
 
-
-#ifdef SIMULATION
-    Collar(Animal* animal,
-            const QByteArray &devEUI = QByteArray(),
-           const QByteArray& appKey = QByteArray() );
-
-    Protocol::Collar getPackageOut();;
-    QList<Protocol::Collar> getBoluses();
-    QLine fenceClosestBorder();
-
-    QPointF fenceClosestPoint();
-
-
-    const Animal* animal() const;
-
-#else
-    Collar();
-#endif
-
-    ~Collar();
-
-    bool isFence();
-    bool isInsideFence();
-    bool isGoingAwayFromFence();
-    double fanceDistance();
-    bool hasClosestFenceBorder();
-    Screen *screen();
-    Led* led();
+    bool isFence(){ return mFencePointsCount > 0; }
+    bool isInsideFence(){ return mIsInsideFence; }
+    bool isGoingAwayFromFence(){ return mFenceIsGoingAway; }
+    double fanceDistance(){ return mFenceDistance; }
+    bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
+    Screen *screen() { return mScreen; }
+    Led* led() { return mLed; }
 
     void sleep();
 };

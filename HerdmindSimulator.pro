@@ -39,6 +39,7 @@ SOURCES += \
     hardware/bolus/bolus.cpp \
     hardware/collar/button.cpp \
     hardware/collar/collar.cpp \
+    hardware/collar/collar_gps.cpp \
     hardware/collar/geometry.cpp \
     hardware/collar/gps.cpp \
     hardware/collar/led.cpp \

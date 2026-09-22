@@ -46,7 +46,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
 
     ui->widgetScreen->configImage(SCREEN_CX, SCREEN_CY, SCREEN_COL_DARK);
 
-    setLightsColor(QColor(0, 0, 0));
+    setLightsColor(Qt::black);
+    SimTools::setWidgetBackColor( ui->btnLedMain, Qt::black);
 }
 
 void DialogCollarSim::init(QList<Animal *> animals)

@@ -768,6 +768,10 @@ void MainWindow::on_btnClearCount_clicked()
 // Add device (animal)
 void MainWindow::on_btnAdd_clicked()
 {
+    if( nullptr == mHerd ) {
+        // TODO:
+        // create new Herd
+    }
     DialogRegisterDevice dlg(mHerd, this);
     dlg.exec();
 

@@ -38,32 +38,11 @@ void Screen::setup() {
 
     // Initialize the mLib library and turn on the display
     mLib.begin();
-}
-
-void Screen::init() {
-
-    // Clear the internal buffer
-    mLib.clearBuffer();
 
     // Set a clean, readable text font (mLib has hundreds of choices)
     mLib.setFont(u8g2_font_spleen6x12_mf);
-
-    mLib.drawFrame(0, 0, SCREEN_CX, SCREEN_CY);
-
-    drawArray(2, 2, 44, 44, vector_mono_44x44);
-    // Draw static strings (X position, Y position, String)
-    String v("Herdmind collar ");
-    v += COLLAR_VERSION;
-    mLib.drawStr(2, 2 + 44 + FONT_CY, v.c_str());
-
-    // TODO: send animal name to the collar
-    // mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
-
-    mLib.drawStr(44 + FONT_CX + 6, 32, "Loading..." );
-
-    // Push the buffer contents to the physical screen hardware
-    mLib.sendBuffer();
 }
+
 
 void Screen::clear()
 {
@@ -86,6 +65,12 @@ void Screen::drawText(int x, int y, String &str)
     mLib.drawStr(x, y, str.c_str() );
 }
 
+void Screen::drawText(int x, int y, char* str)
+{
+    mLib.drawStr(x, y, str );
+}
+
+
 void Screen::drawTextTable(int col, int row, String &str, int offsetCol, int offsetRow)
 {
     mLib.drawStr(col * FONT_CX + offsetCol, row * FONT_CY + offsetRow, str.c_str() );
@@ -104,11 +89,6 @@ Screen::CenterH Screen::drawTextTableCenterH(int row, String &str, int offsetY)
 
 void Screen::flush()
 {
-#ifndef SIMULATION
-    if( mIsSleeping ) {
-        return;
-    }
-#endif
     mLib.sendBuffer();
 }
 

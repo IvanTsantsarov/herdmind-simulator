@@ -16,6 +16,11 @@ void Led::on(uint32_t duration, uint32_t durationAfter)
     digitalWrite(mPin, HIGH);   // Turn the LED on
 }
 
+void Led::updateOn(uint32_t duration, uint32_t durationAfter)
+{
+    if( update() ) on(duration, durationAfter);
+}
+
 void Led::off()
 {
     mIsOn = false;
