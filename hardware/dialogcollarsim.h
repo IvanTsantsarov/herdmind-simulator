@@ -41,6 +41,8 @@ class DialogCollarSim : public QDialog
 
     bool mIsLedOn = false;
 
+    void sendToSerial();
+
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
     void init(QList<Animal*> animals);
@@ -55,6 +57,13 @@ private slots:
     void on_btnGenArray_clicked();
 
     void on_btnMain_pressed();
+
+
+    void on_editSerialCmd_returnPressed();
+
+    void on_editSerialCmd_textChanged(const QString &arg1);
+
+    void on_btnSend_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

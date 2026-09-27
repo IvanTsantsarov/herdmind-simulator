@@ -27,6 +27,7 @@ class GPS;
 class Screen;
 class Button;
 class Led;
+class SerialCmd;
 
 #ifdef SIMULATION
 #include <QPointF>
@@ -59,10 +60,12 @@ class Collar
 
 #endif
 
+
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
     Button* mBtnMain = nullptr;
     Led* mLed = nullptr;
+    SerialCmd* mSerialCmd = nullptr;
     uint16_t mSequence = 0;
     uint32_t mAwakeningMillisScreen = 0;
 
@@ -103,7 +106,7 @@ class Collar
 
     void onMainBtn();
     void updateTrajectory(const GeoPoint &geoPt);
-    void createObjects();
+    void commonConstructor();
     void updateScreenLoading(bool isFlush = true);
     void updateScreenNormal(bool isFlush = true);
 public:
@@ -139,7 +142,20 @@ public:
     Screen *screen() { return mScreen; }
     Led* led() { return mLed; }
 
+    void restart();
     void sleep();
+
+    int batteryLevel();
+
+    int rssi(); // RSSI (Received Signal Strength Indicator) in dBm
+
+    // SNR (Signal-to-Noise Ratio)
+    int snr();
+
+    GeoPoint gps();
+    int satellites();
+
+    int signalStrength(); // RSSI
 };
 
 #ifndef SIMULATION

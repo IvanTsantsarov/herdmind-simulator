@@ -45,6 +45,7 @@ SOURCES += \
     hardware/collar/led.cpp \
     hardware/collar/memory.cpp \
     hardware/collar/res.cpp \
+    hardware/collar/serialcmd.cpp \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
@@ -89,6 +90,7 @@ HEADERS += \
     hardware/collar/led.h \
     hardware/collar/memory.h \
     hardware/collar/res.h \
+    hardware/collar/serialcmd.h \
     hardware/dialogcollarsim.h \
     hardware/collar/screen.h \
     hardware/defines.h \

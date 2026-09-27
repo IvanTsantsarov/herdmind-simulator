@@ -5,6 +5,7 @@
 #include "gps.h"
 #include "button.h"
 #include "led.h"
+#include "serialcmd.h"
 
 #define SCREEN_AWAKE_MSEC_MAX 5000
 
@@ -26,7 +27,7 @@ Collar::Collar( Animal* animal,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
               devEUI, appKey), mAnimal(animal)
 {
-    createObjects();
+    commonConstructor();
 
     // TODO: this should not happened here, but must be send from chirpstack
     mAnimalName = SimTools::translateCyrilic( animal->name() );
@@ -65,16 +66,17 @@ Collar::Collar()
     // Only one instance of the class is permitted
     assert(nullptr == gCollar);
     gCollar = this;
-    createObjects();
+    commonConstructor();
 }
 #endif
 
-void Collar::createObjects()
+void Collar::commonConstructor()
 {
     mScreen = new Screen(this);
     mGPS = new GPS;
     mBtnMain = new Button(PIN_BTN_MAIN);
     mLed = new Led;
+    mSerialCmd = new SerialCmd(this);
 }
 
 
@@ -152,6 +154,59 @@ void Collar::sleep()
 #endif
 }
 
+int Collar::batteryLevel()
+{
+    return 60;
+}
+
+int Collar::rssi()
+{
+    return -30;
+}
+
+int Collar::snr()
+{
+    return -80;
+}
+
+GeoPoint Collar::gps()
+{
+    if( !mGPS) {
+        return GeoPoint();
+    }
+
+    return mGPS->pos();
+}
+
+int Collar::satellites()
+{
+    if( !mGPS) {
+        return -1;
+    }
+
+    return mGPS->satelites();
+}
+
+
+int Collar::signalStrength()
+{
+    // 1. Calculate Estimated Signal Power (ESP)
+    // ESP = RSSI - 10 * log10(1 + 10^(-SNR/10))
+    float esp = rssi() - 10.0 * std::log10(1.0 + std::pow(10.0, -snr() / 10.0));
+
+    // 2. Define functional hardware boundaries
+    const float ESP_MAX = -30.0;  // Perfect signal (100%)
+    const float ESP_MIN = -140.0; // Absolute noise/sensitivity floor (0%)
+
+    // 3. Linear interpolation to find percentage
+    float percent = ((esp - ESP_MIN) / (ESP_MAX - ESP_MIN)) * 100.0;
+
+    // 4. Clamp the output strictly between 0 and 100
+    int finalPercent = static_cast<int>(std::round(percent));
+    return std::clamp(finalPercent, 0, 100);
+}
+
+
 void Collar::updateScreenLoading(bool isFlush)
 {
     // Clear the internal buffer
@@ -172,7 +227,6 @@ void Collar::updateScreenLoading(bool isFlush)
     if( isFlush){
         mScreen->flush();
     }
-
 }
 
 
@@ -205,15 +259,15 @@ void Collar::updateScreenNormal(bool isFlush)
 
     // Draw Lorawan icon
     mScreen->drawArray( 2, 48, 12, 12, lora_12x12);
-    String tower("35%");
+    String tower(String(signalStrength()) + "%");
     mScreen->drawTextTable( 3, 5, tower, 0, 2 );
 
     // Draw battery icon
     mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 1, 24, 12, battery_60_24x12);
 
     // Draw battery level
-    String battery("60%");
-    mScreen->drawTextTable( 13, 5, battery, 0, 2 );
+    String batstr = String(batteryLevel()) + "%";
+    mScreen->drawTextTable( 13, 5, batstr, 0, 2 );
 
     if( isFlush ) {
         mScreen->flush();
@@ -233,6 +287,7 @@ void Collar::onUpdate()
 
     uint32_t msec = millis();
 
+
     if( Stage::Sleep == mStage) {
         return;
     }
@@ -247,6 +302,8 @@ void Collar::onUpdate()
     if( Stage::Operate != mStage ) {
         return;
     }
+
+    mSerialCmd->update();
 
     // Check screen if it's time to sleep
     uint32_t msecAwakenScreen = msec - mAwakeningMillisScreen;
@@ -330,6 +387,18 @@ void Collar::onReceive(uint8_t *data, uint32_t size)
     }
 }
 
+void Collar::restart()
+{
+    Serial.println("Restarting...");
+    Serial.flush();
+    delay(500);
+
+#ifdef SIMULATION
+#else
+    ESP.restart();
+#endif
+}
+
 void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 {
     uint8_t buffer[1 + sizeof(uint32_t)];
@@ -343,4 +412,5 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 }
 
 String &Collar::animalName() { return mAnimalName; }
+
 

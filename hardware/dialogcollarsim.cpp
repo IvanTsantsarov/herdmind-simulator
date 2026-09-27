@@ -89,6 +89,7 @@ void DialogCollarSim::grabScreen()
 }
 
 
+
 void DialogCollarSim::sendScreen(const Animal *from)
 {
     if( !mAnimal) {
@@ -212,4 +213,36 @@ void DialogCollarSim::on_btnMain_pressed()
 
     mAnimal->collar()->onMainBtn();
 }
+
+void DialogCollarSim::on_editSerialCmd_textChanged(const QString &arg1)
+{
+    ui->btnSend->setEnabled(arg1.length());
+}
+
+void DialogCollarSim::on_btnSend_clicked()
+{
+    sendToSerial();
+}
+
+
+void DialogCollarSim::on_editSerialCmd_returnPressed()
+{
+    sendToSerial();
+}
+
+void DialogCollarSim::sendToSerial()
+{
+    QString txt = ui->editSerialCmd->text();
+    if( txt.isEmpty() ) {
+        return;
+    }
+
+    ui->editSerialCmd->clear();
+}
+
+
+
+
+
+
 

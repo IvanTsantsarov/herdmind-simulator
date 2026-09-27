@@ -397,3 +397,10 @@ if( gIndex >= MAX_BUFFER) {
     gIndex = 0;
     Serial.println(gBuffer);
 }
+
+
+inline bool isRestart(){ return Type::RESTART == mT; }
+inline bool isInfo(){ return Type::INFO == mT; }
+inline bool isEui(){ return Type::EUI == mT; }
+inline bool isGps(){ return Type::GPS == mT; }
+inline bool isBat(){ return Type::BAT == mT; }
