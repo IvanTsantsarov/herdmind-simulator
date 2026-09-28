@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>458</width>
-    <height>387</height>
+    <height>442</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -57,6 +57,9 @@
          <property name="icon">
           <iconset resource="../res/res.qrc">
            <normaloff>:/pixel_art.svg</normaloff>:/pixel_art.svg</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -400,6 +403,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="btnSend">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Send</string>
          </property>

@@ -243,7 +243,7 @@ class SoftwareSerial
 {
     byte mPinRX, mPinTX;
 
-    QByteArray mBuffer;
+    QByteArray mBufferIn, mBufferOut;
     bool mIsOn = false;
 
 public:
@@ -260,6 +260,9 @@ public:
 
     bool operator !();
     void flush();
+
+    void writeIn(const char* str);
+    QByteArray readOut();
 };
 
 extern SoftwareSerial Serial;

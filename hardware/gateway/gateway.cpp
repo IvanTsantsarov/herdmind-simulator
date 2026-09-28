@@ -8,7 +8,7 @@
 #include "defines_settings.h"
 #include "simtools.h"
 
-#ifdef SIMULATION
+#ifdef ONPC
 
 // #include "mainwindow.h"
 

@@ -1,6 +1,13 @@
 #ifndef SERIALCMD_H
 #define SERIALCMD_H
 
+#ifdef ONPC
+#include "../tools.h"
+#else
+#include <Arduino.h>
+#endif
+
+
 class Collar;
 
 class SerialCmd
@@ -19,6 +26,7 @@ public:
 
         enum struct Type {
             NONE = 0,
+            HELP,
             RESTART,
             INFO,
             EUI,
@@ -45,6 +53,11 @@ public:
 
     void update();
     void clear();
+
+#ifdef ONPC
+    inline void writeToSerial(const char* str) { Serial.writeIn(str); }
+    inline QByteArray readFromSerial() { return Serial.readOut(); }
+#endif
 };
 
 #endif // SERIALCMD_H

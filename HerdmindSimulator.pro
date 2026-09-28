@@ -2,7 +2,7 @@ QT       += core gui widgets positioning network mqtt serialport
 
 CONFIG += c++17
 
-DEFINES += SIMULATION
+DEFINES += ONPC
 
 # Link OpenSSL
 LIBS += -lcrypto

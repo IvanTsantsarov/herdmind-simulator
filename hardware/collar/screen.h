@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef SIMULATION
+#ifdef ONPC
     #include "../tools.h"
     #define ScreenLib ScreenSim
 #else

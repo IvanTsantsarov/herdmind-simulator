@@ -1,7 +1,7 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#ifdef SIMULATION
+#ifdef ONPC
 #include "qdebug.h"
 #include "qlogging.h"
 #endif

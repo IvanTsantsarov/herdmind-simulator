@@ -12,13 +12,13 @@
 #define PIN_BTN_MAIN 0
 #define PIN_LED_MAIN 35
 
-#ifdef SIMULATION
+#ifdef ONPC
 
 #include "../../animal.h"
 #include "../tools.h"
 
 //////////////////////////////////////////////////////////////
-/// Simulation
+/// On PC
 //////////////////////////////////////////////////////////////
 Collar::Collar( Animal* animal,
                const QByteArray &devEUI,
@@ -56,6 +56,16 @@ QPointF Collar::fenceClosestPoint() {
 
 const Animal *Collar::animal() const { return mAnimal; }
 
+void Collar::sendToSerial(const char *str)
+{
+    mSerialCmd->writeToSerial(str);
+}
+
+QByteArray Collar::readFromSerial()
+{
+    return mSerialCmd->readFromSerial();
+}
+
 #else
 ////////// REAL COLLAR
 
@@ -88,7 +98,7 @@ Collar::~Collar()
     delete mLed;
 }
 
-#ifndef SIMULATION
+#ifndef ONPC
 bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
     gMainButtonDown = true;
@@ -129,7 +139,7 @@ void Collar::onSetup()
 
     mLed->setup(PIN_LED_MAIN);
 
-#ifndef SIMULATION
+#ifndef ONPC
     attachInterrupt(
         digitalPinToInterrupt(mBtnMain->pin()),
         gMainButtonInterrupt,
@@ -142,7 +152,7 @@ void Collar::onSetup()
 
 void Collar::sleep()
 {
-#ifdef SIMULATION
+#ifdef ONPC
     mStage = Stage::Sleep;
 #else
     esp_sleep_enable_ext1_wakeup(
@@ -234,7 +244,7 @@ void Collar::updateScreenNormal(bool isFlush)
 {
     mScreen->clear();
 
-#ifdef SIMULATION
+#ifdef ONPC
     String animalName = SimTools::translateCyrilic( mAnimal->name() );
     bool isMale = mAnimal->isMale();
 #else
@@ -249,7 +259,7 @@ void Collar::updateScreenNormal(bool isFlush)
     mScreen->drawArray( 2, 24, 24, 24, satellite_24x24);
 
     GeoPoint pos = readGPS();
-    printGPS();
+    // printGPS();
 
     // Draw GPS position
     String lat (pos.mLat, 10);
@@ -277,7 +287,7 @@ void Collar::updateScreenNormal(bool isFlush)
 
 void Collar::onUpdate()
 {
-#ifndef SIMULATION
+#ifndef ONPC
     // after waking up
     if( gMainButtonDown ) {
         onMainBtn();
@@ -309,7 +319,7 @@ void Collar::onUpdate()
     uint32_t msecAwakenScreen = msec - mAwakeningMillisScreen;
     if( msecAwakenScreen > SCREEN_AWAKE_MSEC_MAX ) {
         mScreen->sleep();
-#ifdef SIMULATION
+#ifdef ONPC
         mScreen->flush();
 #endif
     }
@@ -321,7 +331,7 @@ void Collar::onUpdate()
         if( mGPS->isReady() )
         {
             if( !mIsSignal ) {
-                DBG( String("GPS signal arrived in") + millis() + " msec" );
+                DBG( String("GPS signal arrived in ") + millis() + " msec" );
                 mIsSignal = true;
             }
 
@@ -339,7 +349,7 @@ void Collar::onUpdate()
 
 
 
-#ifndef SIMULATION
+#ifndef ONPC
     delay(100);
 #else
     gTools.update(mAnimal);
@@ -356,7 +366,7 @@ void Collar::onSend()
     package.encodeLon( coord.mLon );
     package.mBattery = 100;
 
-#ifdef SIMULATION
+#ifdef ONPC
     sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
 #endif
 }
@@ -393,7 +403,7 @@ void Collar::restart()
     Serial.flush();
     delay(500);
 
-#ifdef SIMULATION
+#ifdef ONPC
 #else
     ESP.restart();
 #endif
@@ -404,7 +414,7 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
     uint8_t buffer[1 + sizeof(uint32_t)];
     buffer[0] = static_cast<uint8_t>(event);
     Protocol::writeUint32(value, buffer, 1);
-#ifdef SIMULATION
+#ifdef ONPC
     sendPackage(buffer, sizeof(buffer));
 #else
 

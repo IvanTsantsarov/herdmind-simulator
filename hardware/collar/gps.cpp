@@ -1,6 +1,6 @@
 #include "gps.h"
 
-#ifdef SIMULATION
+#ifdef ONPC
     #include "../tools.h"
 #else
     #include <Arduino.h>
@@ -27,7 +27,7 @@ void GPS::setup()
     Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
     Serial.println("GPS started");
 
-#ifdef SIMULATION
+#ifdef ONPC
     gGPS.setupSimulation();
 #endif
 }

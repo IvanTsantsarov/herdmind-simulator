@@ -132,7 +132,7 @@ void Mqtt::onConnected()
 {
     qInfo() << "MQTT connected:" << mAddr << ":" << mPort;
     emit connected();
-#ifdef SIMULATION
+#ifdef ONPC
     // gMainWindow->onMqttConnected();
 #endif
 

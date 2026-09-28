@@ -1,14 +1,14 @@
 #include "collar.h"
 #include "gps.h"
 
-#ifdef SIMULATION
+#ifdef ONPC
 #include "../../animal.h"
 #include "../tools.h"
 #endif
 
 GeoPoint Collar::readGPS()
 {
-#ifdef SIMULATION
+#ifdef ONPC
     QGeoCoordinate geoCoor = mAnimal->geoPos();
     return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
 #else

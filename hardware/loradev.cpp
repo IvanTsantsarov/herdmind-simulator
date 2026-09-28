@@ -3,7 +3,7 @@
 #include "gateway/gateway.h"
 #include "hardware/tools.h"
 #include "../simtools.h"
-#ifdef SIMULATION
+#ifdef ONPC
 
 #define SIMNODE_SENDING_DURATION 2000
 #define FCtrl_ACK_bit (1 << 5)
@@ -125,7 +125,7 @@ void LoraDev::sendPackage(void *package, int size)
 {
     mSendingMsec = SIMNODE_SENDING_DURATION;
     mReadings ++;
-#ifdef SIMULATION
+#ifdef ONPC
     uplink( QByteArray(static_cast<char*>(package), size) );
 #else
 #endif

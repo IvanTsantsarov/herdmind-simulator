@@ -9,7 +9,7 @@
 #include "../defines.h"
 #include "../protocol.h"
 
-#ifdef SIMULATION
+#ifdef ONPC
     #include "../tools.h"
 #else
     #include <Arduino.h>
@@ -29,7 +29,7 @@ class Button;
 class Led;
 class SerialCmd;
 
-#ifdef SIMULATION
+#ifdef ONPC
 #include <QPointF>
 #include <QLine>
 #include "../loradev.h"
@@ -53,7 +53,7 @@ class Collar
     String mAnimalName;
 
 
-#ifdef SIMULATION
+#ifdef ONPC
     friend class DialogCollarSim;
     Animal* mAnimal;
 #else
@@ -112,7 +112,7 @@ class Collar
 public:
 
 
-#ifdef SIMULATION
+#ifdef ONPC
     Collar(Animal* animal,
             const QByteArray &devEUI = QByteArray(),
            const QByteArray& appKey = QByteArray() );
@@ -121,6 +121,8 @@ public:
     QLine fenceClosestBorder();
     QPointF fenceClosestPoint();
     const Animal* animal() const;
+    void sendToSerial(const char* str);
+    QByteArray readFromSerial();
 #else
     Collar();
 #endif
@@ -158,7 +160,7 @@ public:
     int signalStrength(); // RSSI
 };
 
-#ifndef SIMULATION
+#ifndef ONPC
     extern Collar* gCollar;
 #endif
 

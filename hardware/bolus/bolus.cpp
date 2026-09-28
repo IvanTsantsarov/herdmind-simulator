@@ -3,13 +3,13 @@
 #include "accel.h"
 #include "../tools.h"
 
-#ifdef SIMULATION
+#ifdef ONPC
 #include "../../animal.h"
 #endif
 
 
 
-#ifdef SIMULATION
+#ifdef ONPC
 //////////////////////////////////////////////////////////////
 /// Simulation
 //////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ Bolus::Bolus() {
     init();
 }
 
-#endif // SIMULATION
+#endif // ONPC
 
 void Bolus::init()
 {

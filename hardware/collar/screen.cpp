@@ -1,4 +1,4 @@
-#ifdef SIMULATION
+#ifdef ONPC
     #include "animal.h"
 #else
 #endif
@@ -15,7 +15,7 @@
 
 Screen::Screen(Collar* c) :
     // Initialize the SSD1315 using the standard SSD1306 Full Frame Buffer constructor over SW I2C
-#ifdef SIMULATION
+#ifdef ONPC
     mLib(U8G2_R0, OLED_RST, OLED_SCL, OLED_SDA, c->animal()),
 #else
     mLib(U8G2_R0, OLED_RST, OLED_SCL, OLED_SDA),

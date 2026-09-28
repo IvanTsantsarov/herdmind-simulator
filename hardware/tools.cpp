@@ -328,7 +328,7 @@ void String::replace(char what, char with)
 
 uint SoftwareSerial::available()
 {
-    return mBuffer.length();
+    return mBufferIn.length();
 }
 
 SoftwareSerial::SoftwareSerial()
@@ -355,8 +355,8 @@ void SoftwareSerial::begin(uint baudRate, int a1, int a2, int a3)
 
 char SoftwareSerial::read()
 {
-    char ch = mBuffer[0];
-    mBuffer = mBuffer.right(mBuffer.length()-1);
+    char ch = mBufferIn[0];
+    mBufferIn = mBufferIn.right(mBufferIn.length()-1);
     return ch;
 }
 
@@ -368,6 +368,8 @@ void SoftwareSerial::write(char c)
 void SoftwareSerial::print(const String& str, bool isError)
 {
     SERIAL_RETURN_IF_OFF("print");
+
+    mBufferOut.append(str.toQString().toLatin1());
 
     String ps = str;
     if( isError)
@@ -388,6 +390,18 @@ void SoftwareSerial::flush()
 
 }
 
+void SoftwareSerial::writeIn(const char *str)
+{
+    mBufferIn.append(str, strlen(str));
+}
+
+QByteArray SoftwareSerial::readOut()
+{
+    QByteArray result(mBufferOut);
+    mBufferOut.clear();
+    return result;
+}
+
 void SoftwareSerial::println(const String& str, bool isError)
 {
 //    if( gMainWindow)
@@ -400,7 +414,7 @@ void SoftwareSerial::println(const String& str, bool isError)
 void SoftwareSerial::send(QByteArray &ba)
 {
     SERIAL_RETURN_IF_OFF("send");
-    mBuffer.append(ba);
+    mBufferOut.append(ba);
 }
 
 void SoftwareSerial::end()

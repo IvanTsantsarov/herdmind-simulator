@@ -1,7 +1,7 @@
 #ifndef INCLUDES_H
 #define INCLUDES_H
 
-#ifdef SIMULATION
+#ifdef ONPC
     #include <cstdint>
 #else
 

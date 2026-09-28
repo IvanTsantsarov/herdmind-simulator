@@ -55,10 +55,10 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
     setLightsColor(Qt::black);
     SimTools::setWidgetBackColor( ui->btnLedMain, Qt::black);
 
-
+    // In simulation mode SerialPort is not used
     ui->groupPorts->setVisible(!gMainWindow->isSimulation());
-
     if( !gMainWindow->isSimulation() ) {
+
 
         // Fill with all ports
         QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
@@ -135,6 +135,13 @@ void DialogCollarSim::update(Animal *animal)
     if( isOn != mIsLedOn ) {
         mIsLedOn = isOn;
         SimTools::setWidgetBackColor( ui->btnLedMain, isOn ? Qt::white : Qt::black);
+    }
+
+    if( gMainWindow->isSimulation() ) {
+        QByteArray out = mAnimal->collar()->readFromSerial();
+        if( out.length() ) {
+            ui->serialResponce->appendPlainText(QString::fromLatin1(out));
+        }
     }
 }
 
@@ -262,6 +269,11 @@ void DialogCollarSim::sendToSerial()
 
     ui->editSerialCmd->clear();
     ui->serialResponce->appendPlainText(">" + txt);
+
+    if( gMainWindow->isSimulation() && mAnimal ) {
+        txt.append('\r');
+        mAnimal->collar()->sendToSerial(txt.toLocal8Bit().data());
+    }
 }
 
 void DialogCollarSim::on_checkConnect_toggled(bool checked)

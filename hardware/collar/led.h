@@ -1,7 +1,7 @@
 #ifndef LED_H
 #define LED_H
 
-#ifdef SIMULATION
+#ifdef ONPC
     #include "../tools.h"
 #else
     #include <Arduino.h>

@@ -19,7 +19,7 @@
 class Network;
 class Mqtt;
 
-#ifdef  SIMULATION
+#ifdef  ONPC
     #include <QPointF>
 
 class Gateway : public QObject {
@@ -60,7 +60,7 @@ public:
     void process();
     bool publishOnline();
 
-#ifdef  SIMULATION
+#ifdef  ONPC
     QPointF mPos;
 
     void start();

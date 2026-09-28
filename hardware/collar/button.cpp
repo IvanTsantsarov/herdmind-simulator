@@ -1,6 +1,6 @@
 #include "button.h"
 
-#ifdef SIMULATION
+#ifdef ONPC
     #include "../tools.h"
 #else
     #include <Arduino.h>

@@ -11,7 +11,7 @@
 
 #define HIGH_TEMPERATURE 39.8
 
-#ifdef SIMULATION
+#ifdef ONPC
 #include <QObject>
 #include <QTimer>
 #include "../loradev.h"
@@ -44,7 +44,7 @@ private:
 public:
 
 
-#ifdef SIMULATION
+#ifdef ONPC
     Bolus(Animal* animal,
           const QByteArray &devEUI = QByteArray(),
           const QByteArray& appKey = QByteArray());
