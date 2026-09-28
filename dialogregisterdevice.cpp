@@ -2,7 +2,7 @@
 #include "ui_dialogregisterdevice.h"
 
 
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 //#include "hardware/loradev_def.h"
 //#include "hardware/gateway/gateway.h"
 //#include "hardware/hardware/tools.h"

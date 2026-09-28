@@ -146,6 +146,9 @@ void Collar::onSetup()
         FALLING
         );
 #endif
+
+    LoraDev::onSetup();
+
     mStage = Stage::Init;
 
 }
@@ -339,11 +342,11 @@ void Collar::onUpdate()
             updateTrajectory(mGPS->pos());
             mLed->updateOn(1600, 1600);
         }else {
-            Serial.print("-");
+            // Serial.print("-");
             mLed->updateOn(300, 1000);
         }
     }else {
-        Serial.print(".");
+        // Serial.print(".");
         mLed->updateOn(100, 500);
     }
 

@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QVector2D>
 #include <QLineF>
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 
 class Animal;
 class Shepherd;

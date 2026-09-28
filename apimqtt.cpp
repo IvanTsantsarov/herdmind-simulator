@@ -2,7 +2,7 @@
 #include "apimqtt.h"
 #include "devmanager.h"
 #include "mqtt.h"
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 
 DevManager *ApiMqtt::devman()
 {

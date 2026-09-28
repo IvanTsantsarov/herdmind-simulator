@@ -5,7 +5,7 @@
 #include <QVector2D>
 #include <QSettings>
 #include "hardware/collar/collar.h"
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 
 #define AES_BYTES_LEN 16
 

@@ -1,12 +1,7 @@
 #ifndef SERIALCMD_H
 #define SERIALCMD_H
 
-#ifdef ONPC
-#include "../tools.h"
-#else
-#include <Arduino.h>
-#endif
-
+#include "../arduino.h"
 
 class Collar;
 

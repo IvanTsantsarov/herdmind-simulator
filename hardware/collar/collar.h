@@ -9,11 +9,7 @@
 #include "../defines.h"
 #include "../protocol.h"
 
-#ifdef ONPC
-    #include "../tools.h"
-#else
-    #include <Arduino.h>
-#endif
+#include "../arduino.h"
 
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 100
@@ -30,14 +26,13 @@ class Led;
 class SerialCmd;
 
 #ifdef ONPC
-#include <QPointF>
-#include <QLine>
-#include "../loradev.h"
+    #include <QPointF>
+    #include <QLine>
+#endif
+
+#include "loradev.h"
 
 class Collar : public LoraDev
-#else
-class Collar
-#endif
 {
     friend void gMainButtonInterrupt();
 

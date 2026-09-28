@@ -1,6 +1,6 @@
 #include <QTableWidgetItem>
 #include "apirest.h"
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 #include "mainwindow.h"
 #include "devmanager.h"
 #include "dialogdevicemsg.h"

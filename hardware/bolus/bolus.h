@@ -14,7 +14,7 @@
 #ifdef ONPC
 #include <QObject>
 #include <QTimer>
-#include "../loradev.h"
+#include "loradev.h"
 #include "../protocol.h"
 
 class Animal;

@@ -11,7 +11,7 @@ SerialCmd::SerialCmd(Collar* c)
     mCollar = c;
 
     // Flush the old content
-    while(Serial.available());
+    //while(Serial.available()); // IT CRASHES HERE! Serial not available on constructor
 
     // Create the buffer
     mBuffer = new char[SERIAL_BUFFER_SIZE + 1];
@@ -126,7 +126,9 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 void SerialCmd::execute()
 {
     switch( mCmd.type() ) {
-
+    case Cmd::Type::NONE:
+        Serial.println( "Error:Empty command!" );
+        break;
     case Cmd::Type::RESTART:
         mCollar->restart();
         break;
@@ -134,7 +136,7 @@ void SerialCmd::execute()
         Serial.println("Info will be added later.");
         break;
     case Cmd::Type::EUI:
-        Serial.println(QString::fromLatin1(mCollar->eui().toBase64()));
+        Serial.println(mCollar->euiHex());
         break;
 
     case Cmd::Type::GPS: {

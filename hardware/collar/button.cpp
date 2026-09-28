@@ -1,10 +1,6 @@
 #include "button.h"
 
-#ifdef ONPC
-    #include "../tools.h"
-#else
-    #include <Arduino.h>
-#endif
+#include "../arduino.h"
 
 
 Button::Button(int pinNumber)
@@ -12,8 +8,6 @@ Button::Button(int pinNumber)
 {
 
 }
-
-
 
 void Button::setup()
 {

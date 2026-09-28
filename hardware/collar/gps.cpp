@@ -1,9 +1,8 @@
 #include "gps.h"
 
-#ifdef ONPC
-    #include "../tools.h"
-#else
-    #include <Arduino.h>
+#include "../arduino.h"
+
+#ifndef ONPC
     #include <TinyGPSPlus.h>
 #endif
 

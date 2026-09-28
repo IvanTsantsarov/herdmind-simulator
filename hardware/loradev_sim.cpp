@@ -1,4 +1,4 @@
-#include "loradev.h"
+#include "loradev_sim.h"
 #include "loradev_def.h"
 #include "gateway/gateway.h"
 #include "hardware/tools.h"
@@ -125,10 +125,7 @@ void LoraDev::sendPackage(void *package, int size)
 {
     mSendingMsec = SIMNODE_SENDING_DURATION;
     mReadings ++;
-#ifdef ONPC
     uplink( QByteArray(static_cast<char*>(package), size) );
-#else
-#endif
 }
 
 
@@ -448,10 +445,6 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
         }
     }
 }
-#else
-
-#endif
-
 
 void LoraDev::updateLastSeen()
 {
@@ -507,3 +500,4 @@ QString LoraDev::profileString()
 
     return "unknown";
 }
+#endif

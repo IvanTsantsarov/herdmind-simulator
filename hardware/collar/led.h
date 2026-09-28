@@ -1,11 +1,7 @@
 #ifndef LED_H
 #define LED_H
 
-#ifdef ONPC
-    #include "../tools.h"
-#else
-    #include <Arduino.h>
-#endif
+#include "../arduino.h"
 
 #define LED_MAX_BUFFER 20
 

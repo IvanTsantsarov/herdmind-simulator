@@ -1,11 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#ifdef ONPC
-    #include "../tools.h"
-#else
-    #include <Arduino.h>
-#endif
+#include "../arduino.h"
 
 #define MEMORY_MAX_BUFFER 100
 

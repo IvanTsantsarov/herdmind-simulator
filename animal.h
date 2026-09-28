@@ -5,7 +5,7 @@
 #include <QList>
 #include <QJsonObject>
 #include "meadow.h"
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 
 
 class Herd;

@@ -6,7 +6,7 @@
 #include <QDialog>
 //#include <QColor>
 
-#include "hardware/loradev.h"
+#include "hardware/loradev_sim.h"
 
 class Herd;
 class QListWidgetItem;

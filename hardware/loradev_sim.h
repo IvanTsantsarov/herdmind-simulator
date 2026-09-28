@@ -83,6 +83,7 @@ protected:
 
 public:
     inline QByteArray eui(){ return mDevEUI; };
+    inline const char* euiHex(){ return mDevEUI.toHex().data(); };
     inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
@@ -122,7 +123,7 @@ public:
 
     bool isSending() { return mSendingMsec > 0; }
 
-    virtual void onSetup() = 0; // On regular sensors update
+    virtual void onSetup(){}; // On regular sensors setup
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
     virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
@@ -147,15 +148,6 @@ private slots:
     void onTimerStart();
     void onTimerUpdate();
     void onDownlink(const QByteArray& phy);
-
-
 };
 
-
-
-#else
-class LoraDev
-{
-
-};
 #endif

@@ -37,6 +37,7 @@ SOURCES += \
     grpc.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
+    hardware/bolus/loradev_esp32.cpp \
     hardware/collar/button.cpp \
     hardware/collar/collar.cpp \
     hardware/collar/collar_gps.cpp \
@@ -50,7 +51,8 @@ SOURCES += \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
     dialogregisterdevice.cpp \
-    hardware/loradev.cpp \
+    hardware/collar/loradev_esp32.cpp \
+    hardware/loradev_sim.cpp \
     hardware/tools.cpp \
     herd.cpp \
     herd_simulation.cpp \
@@ -78,9 +80,12 @@ HEADERS += \
     dialoginitial.h \
     dialogsettings.h \
     grpc.h \
+    hardware/arduino.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
+    hardware/bolus/loradev.h \
+    hardware/bolus/loradev_esp32.h \
     hardware/collar/button.h \
     hardware/collar/collar.h \
     defines.h \
@@ -95,8 +100,10 @@ HEADERS += \
     hardware/collar/screen.h \
     hardware/defines.h \
     hardware/gateway/gateway.h \
-    hardware/loradev.h \
+    hardware/collar/loradev.h \
     hardware/loradev_def.h \
+    hardware/collar/loradev_esp32.h \
+    hardware/loradev_sim.h \
     hardware/protocol.h \
     hardware/tools.h \
     dialogregisterdevice.h \
