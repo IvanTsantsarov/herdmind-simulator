@@ -4,7 +4,9 @@
 #include <QDialog>
 #include <QSettings>
 
+
 class Animal;
+class QSerialPort;
 
 namespace Ui {
 class DialogCollarSim;
@@ -30,6 +32,7 @@ class DialogCollarSim : public QDialog
 
     QList<Animal*> mAnimals;
     Animal* mAnimal = nullptr;
+    QSerialPort* mPort = nullptr;
     QSettings& mEnv;
     QIcon mIconMale, mIconFemale, mIconSoundOff, mIconSoundOn;
 
@@ -41,7 +44,10 @@ class DialogCollarSim : public QDialog
 
     bool mIsLedOn = false;
 
+    bool mIsOpeningPort = false;
     void sendToSerial();
+
+    static uint32_t mBaudrates[];
 
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
@@ -64,6 +70,8 @@ private slots:
     void on_editSerialCmd_textChanged(const QString &arg1);
 
     void on_btnSend_clicked();
+
+    void on_checkConnect_toggled(bool checked);
 
 private:
     Ui::DialogCollarSim *ui;

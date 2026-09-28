@@ -1,6 +1,8 @@
 #include <QToolTip>
 #include <QFileDialog>
 #include <QPainter>
+#include <QSerialPort>
+#include <QSerialPortInfo>
 
 #include "hardware/collar/button.h"
 #include "tools.h"
@@ -10,6 +12,10 @@
 #include "../mainwindow.h"
 #include "dialogcollarsim.h"
 #include "ui_dialogcollarsim.h"
+
+uint32_t DialogCollarSim::mBaudrates[] =  {
+    9600, 19200, 38400, 57600, 19200
+};
 
 void DialogCollarSim::setLightsColor(const QColor &col)
 {
@@ -48,6 +54,23 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
 
     setLightsColor(Qt::black);
     SimTools::setWidgetBackColor( ui->btnLedMain, Qt::black);
+
+
+    ui->groupPorts->setVisible(!gMainWindow->isSimulation());
+
+    if( !gMainWindow->isSimulation() ) {
+
+        // Fill with all ports
+        QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+        for( QSerialPortInfo& info:ports ) {
+            ui->comboPorts->addItem(info.portName());
+        }
+
+        int baudratesCount = sizeof(mBaudrates)/sizeof(uint32_t);
+        for( auto i = 0; i < baudratesCount; i ++) {
+            ui->comboBaudrate->addItem(QString("%1").arg(mBaudrates[i]));
+        }
+    }
 }
 
 void DialogCollarSim::init(QList<Animal *> animals)
@@ -238,11 +261,41 @@ void DialogCollarSim::sendToSerial()
     }
 
     ui->editSerialCmd->clear();
+    ui->serialResponce->appendPlainText(">" + txt);
 }
 
+void DialogCollarSim::on_checkConnect_toggled(bool checked)
+{
+    if( mIsOpeningPort ) {
+        return;
+    }
 
+    if( checked ) {
+        QString portName = ui->comboPorts->currentText();
+        uint32_t baudrate = ui->comboBaudrate->currentText().toInt();
 
-
-
-
+        qInfo() << QString("Opening serial port %1 @ %2 ..").arg(portName).arg(baudrate);
+        Q_ASSERT(!mPort);
+        mIsOpeningPort = true;
+        mPort = new QSerialPort();
+        mPort->setBaudRate(baudrate);
+        if( !mPort->open(QIODevice::ReadWrite) ) {
+            gMainWindow->errorMsgBox( QString("Opening %1 port").arg(portName) );
+            ui->checkConnect->setChecked(false);
+            mIsOpeningPort = false;
+            return;
+        }
+    }else {
+        if( !mPort) {
+            mIsOpeningPort = false;
+            return;
+        }
+        qInfo() << QString("Closing serial port %1 @ %2 ..").arg(mPort->portName()).arg(mPort->baudRate());
+        Q_ASSERT(mPort);
+        mPort->close();
+        mPort->deleteLater();
+        mPort = nullptr;
+        mIsOpeningPort = false;
+    }
+}
 

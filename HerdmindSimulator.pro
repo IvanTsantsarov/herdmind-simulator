@@ -1,4 +1,4 @@
-QT       += core gui widgets positioning network mqtt
+QT       += core gui widgets positioning network mqtt serialport
 
 CONFIG += c++17
 

@@ -361,7 +361,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupUSB">
+      <widget class="QGroupBox" name="groupPorts">
        <property name="title">
         <string>USB port</string>
        </property>
@@ -369,7 +369,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QComboBox" name="comboUSB">
+           <widget class="QComboBox" name="comboPorts">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -379,6 +379,9 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBaudrate"/>
         </item>
         <item>
          <widget class="QCheckBox" name="checkConnect">
