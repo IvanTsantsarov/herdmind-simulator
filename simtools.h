@@ -31,7 +31,7 @@ public:
     SimTools(const QSettings &settings);
 
     inline QString appId(){ return mAppId; }
-    QString profileId(LoraDev::Profile profile);
+    QString profileId(LoraDevSim::Profile profile);
 
 
     struct HarmonicsGenerator {

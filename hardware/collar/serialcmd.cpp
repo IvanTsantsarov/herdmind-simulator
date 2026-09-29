@@ -1,64 +1,104 @@
 #include "serialcmd.h"
 
 #include "collar.h"
+#include "defines.h"
 
-#define SERIAL_BUFFER_SIZE 127
+#define SERIAL_COMMAND_SIZE 7
 
+#define SERIAL_ARGUMENT_SIZE 32
+
+#define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
 #define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
 SerialCmd::SerialCmd(Collar* c)
 {
     mCollar = c;
 
-    // Flush the old content
-    //while(Serial.available()); // IT CRASHES HERE! Serial not available on constructor
-
     // Create the buffer
-    mBuffer = new char[SERIAL_BUFFER_SIZE + 1];
-    mBuffer[0] = 0;
+    mCommand = new char[SERIAL_COMMAND_SIZE + 1];
+    mArgument = new char[SERIAL_ARGUMENT_SIZE + 1];
+    clear();
 }
 
 SerialCmd::~SerialCmd()
 {
-    if( mBuffer) {
-        delete [] mBuffer;
-        mBuffer = 0;
-        mBufferLen = 0;
+    if( mCommand) {
+        delete [] mCommand;
+        mCommand = nullptr;
+        mCommandLen = 0;
+    }
+
+    if( mArgument ) {
+        delete [] mArgument;
+        mArgument = nullptr;
+        mArgumentLen = 0;
     }
 }
 
 void SerialCmd::clear()
 {
     mCmd.clear();
-    mBuffer[0] = 0;
-    mBufferLen = 0;
+    mCommand[0] = 0;
+    mCommandLen = 0;
+    mArgument[0] = 0;
+    mArgumentLen = 0;
+    mIsArgument = false;
+
 }
 
-#define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String("Error:") + __err__); clear(); return;
+#define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String("Error:") + __err__); clear(); skipAvailable(); return;
 
 void SerialCmd::update()
 {
-    if( !mBuffer ||!mCollar) {
+    if( !mCommand ||!mCollar) {
         return;
     }
 
-    while(Serial.available() && mBufferLen < SERIAL_BUFFER_SIZE) {
+    while( Serial.available() ) {
 
         // Read and tap the buffer
         char ch = Serial.read();
 
-        if( SERIAL_CMD_END(ch) ) {
-            if( !mCmd.parse(mBuffer, mBufferLen) ) {
-                clear();
-                SERIAL_UPDATE_ERROR("Unknown command!");
+        if( SERIAL_CMD_DELIMETER(ch)) {
+            if( mIsArgument ) {
+                SERIAL_UPDATE_ERROR("Second delimeter");
             }
 
-            execute();
+            mIsArgument = true;
+            continue;
+        }
+
+        if( SERIAL_CMD_END(ch) ) {
+            if( !mCmd.parse(mCommand, mCommandLen) ) {
+                SERIAL_UPDATE_ERROR("Unknown command");
+            }
+
+            if( mIsArgument && !hasArgumentString() ) {
+                SERIAL_UPDATE_ERROR("Missing argument");
+            }
+
+            if( !execute() ) {
+                SERIAL_UPDATE_ERROR(mErrStr);
+            }
             clear();
             return;
         }else {
-            mBuffer[mBufferLen++] = ch;
-            mBuffer[mBufferLen] = 0;
+            if( mIsArgument ) {
+
+                if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
+                    SERIAL_UPDATE_ERROR("Argument too long");
+                }
+
+                mArgument[mArgumentLen++] = ch;
+                mArgument[mArgumentLen] = 0;
+
+            }else {
+                if( mCommandLen >= SERIAL_COMMAND_SIZE ) {
+                    SERIAL_UPDATE_ERROR("Command too long");
+                }
+                mCommand[mCommandLen++] = ch;
+                mCommand[mCommandLen] = 0;
+            }
         }
     }
 }
@@ -111,9 +151,16 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
     if( cmp("snr") ) {
             mT = Type::SNR;
     }else
-    if( cmp("ss") ) {
-        mT = Type::SS;
+    if( cmp("nkey") ) {
+        mT = Type::NKEY;
+    }else
+    if( cmp("akey") ) {
+        mT = Type::AKEY;
+    }else
+    if( cmp("addr") ) {
+        mT = Type::ADDR;
     }
+
     else {
         mT = Type::NONE;
         return false;
@@ -123,7 +170,7 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 }
 
 
-void SerialCmd::execute()
+bool SerialCmd::execute()
 {
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
@@ -134,9 +181,6 @@ void SerialCmd::execute()
         break;
     case Cmd::Type::INFO:
         Serial.println("Info will be added later.");
-        break;
-    case Cmd::Type::EUI:
-        Serial.println(mCollar->euiHex());
         break;
 
     case Cmd::Type::GPS: {
@@ -164,6 +208,46 @@ void SerialCmd::execute()
     case Cmd::Type::SS:
         Serial.println( mCollar->signalStrength() );
         break;
+
+    case Cmd::Type::NKEY:
+        if( mIsArgument ) {
+            if( mArgumentLen != LORA_KEY_LEN) {
+                mErrStr = "Wrong netkey length";
+                return false;
+            }
+            mCollar->setNKey(mArgument);
+            Serial.println("nkey ok");
+        }else {
+            Serial.println(mCollar->nwkSKeyStr());
+        }
+        break;
+
+    case Cmd::Type::AKEY:
+        if( mIsArgument ) {
+            if( mArgumentLen != LORA_KEY_LEN) {
+                mErrStr = "Wrong AppKey lenght";
+                return false;
+            }
+            mCollar->setAKey(mArgument);
+            Serial.println("akey ok");
+        }else {
+            Serial.println(mCollar->appSKeyStr());
+        }
+        break;
+
+    case Cmd::Type::EUI:
+        if( mIsArgument ) {
+            if( mArgumentLen != LORA_EUI_STR_LEN) {
+                mErrStr = "Wrong EUI lenght";
+                return false;
+            }
+            mCollar->setEui(mArgument);
+            Serial.println("eui ok");
+        }else {
+            Serial.println(mCollar->euiStr());
+        }
+        break;
+
     case Cmd::Type::HELP:
         Serial.println("restart: Restarts the ESP32");
         Serial.println("help: This help");
@@ -176,6 +260,16 @@ void SerialCmd::execute()
         Serial.println("snr: Signal to Noise Ratio in dB");
         Serial.println("ss: Signal Strength in percents");
         break;
+    }
+
+    return true;
+}
+
+void SerialCmd::skipAvailable()
+{
+    // Flush the old content
+    while(Serial.available()) {
+        Serial.read();
     }
 }
 

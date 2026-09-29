@@ -32,7 +32,12 @@ class SerialCmd;
 
 #include "loradev.h"
 
-class Collar : public LoraDev
+#ifdef ONPC
+class Collar : public LoraDevSim
+#else
+class Collar : public LoraDevCollar
+#endif
+
 {
     friend void gMainButtonInterrupt();
 

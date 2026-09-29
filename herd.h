@@ -33,7 +33,7 @@ public:
     bool mIsEnabledGrazing = true;
     bool mIsEnabledHerding = true;
 
-    QList<LoraDev*> gatherDevices();
+    QList<LoraDevSim *> gatherDevices();
 
 
 private:

@@ -375,15 +375,15 @@ SimTools::SimTools(const QSettings &settings)
     }
 }
 
-QString SimTools::profileId(LoraDev::Profile profile) {
+QString SimTools::profileId(LoraDevSim::Profile profile) {
 
     switch( profile )
     {
-    case LoraDev::Profile::None :
+    case LoraDevSim::Profile::None :
         Q_ASSERT(0);
         break;
-    case LoraDev::Profile::Bolus: return mBolusProfileId;
-    case LoraDev::Profile::Collar: return mCollarProfileId;
+    case LoraDevSim::Profile::Bolus: return mBolusProfileId;
+    case LoraDevSim::Profile::Collar: return mCollarProfileId;
     }
 
     return "";

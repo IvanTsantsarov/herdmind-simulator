@@ -17,7 +17,7 @@
 Bolus::Bolus(   Animal *animal,
                 const QByteArray &devEUI,
                 const QByteArray& appKey)
-    : LoraDev(QString("%1 bolus").arg(animal->name()), LoraDev::Profile::Bolus,
+    : LoraDevSim(QString("%1 bolus").arg(animal->name()), LoraDevSim::Profile::Bolus,
               BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL,
               devEUI, appKey ), mAnimal(animal)
 {

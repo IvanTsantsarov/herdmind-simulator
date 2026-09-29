@@ -7,12 +7,19 @@ class Collar;
 
 class SerialCmd
 {
-    char* mBuffer = nullptr;
-    int mBufferLen = 0;
+    char* mCommand = nullptr;
+    int mCommandLen = 0;
     Collar* mCollar = nullptr;
+    char* mArgument = nullptr;
+    int mArgumentLen = 0;
+    bool mIsArgument = false;
+    const char* mErrStr = nullptr;
 
     void parse();
-    void execute();
+    bool execute();
+    inline bool hasArgumentString(){ return 0 != mArgument[0]; }
+
+    void skipAvailable();
 public:
 
     SerialCmd(Collar *c);
@@ -25,12 +32,16 @@ public:
             RESTART,
             INFO,
             EUI,
-            GPS,    // Current position
-            SAT,    // Number of GPS sattelites
+            GPS,    // Get current position
+            SAT,    // Get number of GPS sattelites
             BAT,
-            RSSI,   // Received Signal Strength Indicator
-            SNR,    // SNR (Signal-to-Noise Ratio
-            SS      // Signal Strength
+            RSSI,   // Get Received Signal Strength Indicator
+            SNR,    // Get SNR (Signal-to-Noise Ratio
+            SS,     // Get Signal Strength
+            NKEY,   // Set/Get network key
+            AKEY,   // Set/Get application key
+            ADDR    // Set/Get address
+
         };
 
 

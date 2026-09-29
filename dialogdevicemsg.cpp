@@ -31,7 +31,7 @@ QString DialogDeviceMsg::currentEUI()
     return item->data(Qt::UserRole).toString();
 }
 
-LoraDev *DialogDeviceMsg::deviceByRow(int row)
+LoraDevSim *DialogDeviceMsg::deviceByRow(int row)
 {
     QTableWidgetItem* item = ui->tableDevices->item(row, DLG_MSG_TABLE_NAME_COL);
     return mDevManager->device( item->data(Qt::UserRole).toString() );
@@ -84,7 +84,7 @@ void DialogDeviceMsg::updateDevices()
     clearConnections();
 
     // performs deep copy
-    QList<LoraDev*> devices = mDevManager->devices();
+    QList<LoraDevSim*> devices = mDevManager->devices();
 
     // ui->tableDevices->clear();
 
@@ -109,7 +109,7 @@ void DialogDeviceMsg::updateDevices()
 
 
     int row = 0;
-    for(LoraDev* dev : devices) {
+    for(LoraDevSim* dev : devices) {
         DevCon con;
 
         con.mDev = dev;
@@ -129,7 +129,7 @@ void DialogDeviceMsg::updateDevices()
         ui->tableDevices->setItem(row, DLG_MSG_TABLE_NAME_COL, itemName);
 
         con.mRow = row++;
-        con.mConn = connect( dev, &LoraDev::messageReceivedAndDecrypted, this, &DialogDeviceMsg::onDeviceMessage );
+        con.mConn = connect( dev, &LoraDevSim::messageReceivedAndDecrypted, this, &DialogDeviceMsg::onDeviceMessage );
         mDevsMap[dev->addr()] = con;
     }
 
@@ -212,7 +212,7 @@ void DialogDeviceMsg::onDeviceMessage(const QByteArray &addr, const QByteArray &
     DevCon con = mDevsMap[addr];
     changeDeviceMsgIcon(con.mRow, (Protocol::Collar::Event)msg[0], true);
 
-    LoraDev* dev = mDevManager->findByAddress(addr);
+    LoraDevSim* dev = mDevManager->findByAddress(addr);
 
     QString respStr = msg.toBase64();
     if( dev ) {
@@ -230,7 +230,7 @@ bool DialogDeviceMsg::selectCollarByEUI(const QByteArray &eui)
 {
     int rowsCount = ui->tableDevices->rowCount();
     for( auto row = 0; row < rowsCount; row ++) {
-        LoraDev* dev = deviceByRow(row);
+        LoraDevSim* dev = deviceByRow(row);
         if( eui == dev->eui() ) {
             ui->tableDevices->selectRow(row);
             return true;
@@ -272,7 +272,7 @@ void DialogDeviceMsg::on_tableDevices_currentItemChanged(QTableWidgetItem *curre
         return;
     }
 
-    LoraDev* dev = deviceByRow( current->row() );
+    LoraDevSim* dev = deviceByRow( current->row() );
     if( !dev ) {
         qCritical() << "DialogDeviceMsg::on_tableDevices_currentItemChanged: Device unavailable";
         return;

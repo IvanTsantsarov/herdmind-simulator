@@ -23,7 +23,7 @@ class DialogRegisterDevice : public QDialog
         QString mName;
         bool mIsNew = false;
         bool mIsMale = false;
-        LoraDev::Profile mProfile;
+        LoraDevSim::Profile mProfile;
         QString mEui;
         QListWidgetItem* item = nullptr;
     };
@@ -43,7 +43,7 @@ class DialogRegisterDevice : public QDialog
     bool isMale();
     QString name();
     QString eui();
-    LoraDev::Profile profile();
+    LoraDevSim::Profile profile();
     bool isCollar();
     bool isBolus();
     bool isRelay();

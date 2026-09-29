@@ -159,7 +159,7 @@ void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
         return;
     }
 
-    LoraDev* dev = device(devEUI);
+    LoraDevSim* dev = device(devEUI);
 
     if( nullptr == dev) {
         qWarning() << "Device" << devEUI << " missing in the herd";
@@ -194,7 +194,7 @@ void DevManager::onDeviceDel(const QString &devEUI)
 
 void DevManager::onDeviceActivated(const QString &devEUI)
 {
-    LoraDev* dev = device(devEUI);
+    LoraDevSim* dev = device(devEUI);
     qInfo() << "Device" << devEUI << dev->name() << "activated with address:" << dev->addr().toHex();
 
     mActivatedDevicesCount++;
@@ -207,7 +207,7 @@ void DevManager::onDeviceActivated(const QString &devEUI)
 
 
 
-bool DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs, Gateway* edge )
+bool DevManager::syncDevices(const QByteArray &jsonList, QList<LoraDevSim *> devs, Gateway* edge )
 {
     mEdge = edge;
     mAddingDevicesCount = 0;
@@ -233,7 +233,7 @@ bool DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
     mDevsMapJson.clear();
 
     mDevicesMap.clear();
-    for( LoraDev* dev: devs) {
+    for( LoraDevSim* dev: devs) {
         mDevicesMap[dev->eui().toHex()] = dev;
         dev->setGateway(mEdge);
         if( dev->isBolus() ) {
@@ -263,7 +263,7 @@ bool DevManager::syncDevices( const QByteArray &jsonList, QList<LoraDev *> devs,
 }
 
 
-LoraDev *DevManager::device(const QString &devEUI)
+LoraDevSim *DevManager::device(const QString &devEUI)
 {
     if( !mDevicesMap.contains(devEUI) ) {
         return nullptr;
@@ -274,7 +274,7 @@ LoraDev *DevManager::device(const QString &devEUI)
 
 QString DevManager::deviceName(const QString &eui)
 {
-    LoraDev* dev = device(eui);
+    LoraDevSim* dev = device(eui);
     if( dev ) {
         return dev->name();
     }
@@ -284,7 +284,7 @@ QString DevManager::deviceName(const QString &eui)
 
 bool DevManager::sendMessageRest(const QString &eui, const QByteArray &msg)
 {
-    LoraDev* dev = device(eui);
+    LoraDevSim* dev = device(eui);
 
     if( !dev ) {
         qCritical() << "REST sending to unknown device:" << msg;
@@ -298,7 +298,7 @@ bool DevManager::sendMessageRest(const QString &eui, const QByteArray &msg)
 
 bool DevManager::sendMessageMqtt(const QString &eui, const QByteArray &msg)
 {
-    LoraDev* dev = device(eui);
+    LoraDevSim* dev = device(eui);
 
     if( !dev ) {
         qCritical() << "MQTT sending to unknown device:" << msg;
@@ -374,7 +374,7 @@ void DevManager::onGateways(const QJsonObject &jobj)
 // Sent with sendMessageMqtt
 void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray &msg)
 {
-    LoraDev* dev = findByAddress(devAddr);
+    LoraDevSim* dev = findByAddress(devAddr);
 
     if( !dev ) {
         qCritical() << "DevManager received message from unknown device:" << devAddr;
@@ -426,7 +426,7 @@ bool DevManager::setupFence(const QGeoCoordinate& center,
         offset = Protocol::writeInt16( Protocol::encodeCoordOffset(coords[i].longitude(), center.longitude()), data, offset );
     }
 
-    for( LoraDev* dev: mDevicesList) {
+    for( LoraDevSim* dev: mDevicesList) {
         if( dev->isCollar() ) {
             // sendMessageRest(dev->eui(), ba);
             sendMessageMqtt(dev->eui().toHex(), ba);
@@ -439,9 +439,9 @@ bool DevManager::setupFence(const QGeoCoordinate& center,
     return true;
 }
 
-LoraDev *DevManager::findByAddress(const QByteArray &address)
+LoraDevSim *DevManager::findByAddress(const QByteArray &address)
 {
-    for( LoraDev* dev: mDevicesList) {
+    for( LoraDevSim* dev: mDevicesList) {
         if( dev->addr() == address ) {
             return dev;
         }

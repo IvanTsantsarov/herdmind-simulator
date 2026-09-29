@@ -4,7 +4,7 @@
 #include "hardware/protocol.h"
 #include <QDialog>
 
-class LoraDev;
+class LoraDevSim;
 class DevManager;
 class QTableWidgetItem;
 
@@ -28,11 +28,11 @@ class DialogDeviceMsg : public QDialog
     void closeEvent(QCloseEvent* e);
     QString currentEUI();
 
-    LoraDev* deviceByRow(int row);
+    LoraDevSim *deviceByRow(int row);
 
     typedef struct DevCon {
         int mRow;
-        LoraDev* mDev;
+        LoraDevSim* mDev;
         QMetaObject::Connection mConn;
     } DeviceConnection;
 

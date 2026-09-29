@@ -1,4 +1,5 @@
 #include "loradev_sim.h"
+#include "hardware/collar/defines.h"
 #include "loradev_def.h"
 #include "gateway/gateway.h"
 #include "hardware/tools.h"
@@ -8,9 +9,9 @@
 #define SIMNODE_SENDING_DURATION 2000
 #define FCtrl_ACK_bit (1 << 5)
 
-uint32_t LoraDev::NODE_ADDR = 1000;
+uint32_t LoraDevSim::NODE_ADDR = 1000;
 
-LoraDev::LoraDev(const QString &name,
+LoraDevSim::LoraDevSim(const QString &name,
                  Profile profile,
                  int updateInterval,
                  int sendInterval,
@@ -27,10 +28,10 @@ LoraDev::LoraDev(const QString &name,
     mNwkSKey = nSKey.size() ? nSKey : QByteArray::fromHex( SimTools::genAesKey() );
 
     QTimer delayTimer;
-    delayTimer.singleShot( Tools::rnd(0, sendInterval), this, &LoraDev::onTimerStart );
+    delayTimer.singleShot( Tools::rnd(0, sendInterval), this, &LoraDevSim::onTimerStart );
 }
 
-void LoraDev::setKeys(const QString &devEUI,
+void LoraDevSim::setKeys(const QString &devEUI,
                       const QString &devAddr,
                       const QString &aSKey,
                       const QString &nSKey)
@@ -41,7 +42,7 @@ void LoraDev::setKeys(const QString &devEUI,
     mNwkSKey = QByteArray::fromHex( nSKey.toLatin1() );
 }
 
-bool LoraDev::setFromJson(const QJsonObject &jobj)
+bool LoraDevSim::setFromJson(const QJsonObject &jobj)
 {
     if( !jobj.contains("devEui") ||
         !jobj.contains("devAddr") ||
@@ -59,7 +60,7 @@ bool LoraDev::setFromJson(const QJsonObject &jobj)
 }
 
 
-void LoraDev::updateSendingSimulation(int msec) {
+void LoraDevSim::updateSendingSimulation(int msec) {
     if( mSendingMsec <= 0 ) {
         return;
     }
@@ -69,7 +70,7 @@ void LoraDev::updateSendingSimulation(int msec) {
 
 
 
-QString LoraDev::jsonInfo(const QString& animalName)
+QString LoraDevSim::jsonInfo(const QString& animalName)
 {
     if( !animalName.length() ) {
         return QString( "{ \"devEui\":\"%1\","
@@ -100,15 +101,15 @@ QString LoraDev::jsonInfo(const QString& animalName)
 
 
 
-void LoraDev::onTimerStart()
+void LoraDevSim::onTimerStart()
 {
-    connect( &mTimerUpdate, &QTimer::timeout, this, &LoraDev::onTimerUpdate );
+    connect( &mTimerUpdate, &QTimer::timeout, this, &LoraDevSim::onTimerUpdate );
     mTimerUpdate.start(mUpdateInterval);
 
     onSetup();
 }
 
-void LoraDev::onTimerUpdate()
+void LoraDevSim::onTimerUpdate()
 {
     onUpdate();
 
@@ -121,7 +122,7 @@ void LoraDev::onTimerUpdate()
 }
 
 
-void LoraDev::sendPackage(void *package, int size)
+void LoraDevSim::sendPackage(void *package, int size)
 {
     mSendingMsec = SIMNODE_SENDING_DURATION;
     mReadings ++;
@@ -129,7 +130,7 @@ void LoraDev::sendPackage(void *package, int size)
 }
 
 
-QByteArray LoraDev::cryptPayload(const QByteArray& payload,
+QByteArray LoraDevSim::cryptPayload(const QByteArray& payload,
                                  quint32 frameCounter,
                                  bool isDownlink,
                                  bool isMacCommand)
@@ -168,7 +169,7 @@ QByteArray LoraDev::cryptPayload(const QByteArray& payload,
 }
 
 
-QByteArray LoraDev::calculateMIC(const QByteArray& msg, quint32 fCnt,
+QByteArray LoraDevSim::calculateMIC(const QByteArray& msg, quint32 fCnt,
                                  bool isDownlink )
 {
     QByteArray B0(16, 0x00);
@@ -192,7 +193,7 @@ QByteArray LoraDev::calculateMIC(const QByteArray& msg, quint32 fCnt,
     return fullCmac.left(4);
 }
 
-bool LoraDev::uplink(const QByteArray& data)
+bool LoraDevSim::uplink(const QByteArray& data)
 {
     QByteArray fOpts = mPendingMacAns.left(MaxFOptsLen);
     mPendingMacAns.remove(0, fOpts.size());
@@ -234,7 +235,8 @@ bool LoraDev::uplink(const QByteArray& data)
     mPendingMacAns = fOpts + mPendingMacAns;
     return false;
 }
-void LoraDev::setAddress(const QByteArray &ba)
+
+void LoraDevSim::setAddress(const QByteArray &ba)
 {
     mDevAddr = ba;
     mDevAddrRev.reserve(ba.size());
@@ -243,17 +245,17 @@ void LoraDev::setAddress(const QByteArray &ba)
     }
 }
 
-void LoraDev::setGateway(Gateway *gw)
+void LoraDevSim::setGateway(Gateway *gw)
 {
     mGateway = gw;
-    connect(mGateway, &Gateway::downlinkReceived, this, &LoraDev::onDownlink );
+    connect(mGateway, &Gateway::downlinkReceived, this, &LoraDevSim::onDownlink );
 }
 
 
 // test it with:
 // mosquitto_sub -v -t 'application/+/device/+/command/+'
 // mosquitto_sub -v -t 'eu868/gateway/+/command/down'
-void LoraDev::onDownlink(const QByteArray& phy)
+void LoraDevSim::onDownlink(const QByteArray& phy)
 {
     if (phy.size() < 12) {
         return;
@@ -329,7 +331,7 @@ void LoraDev::onDownlink(const QByteArray& phy)
     mFCntDown = fCnt32 + 1;
 }
 
-void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
+void LoraDevSim::onDownlinkDecrypted(const QByteArray &raw)
 {
     int i = 0;
     while (i < raw.size()) {
@@ -446,7 +448,7 @@ void LoraDev::onDownlinkDecrypted(const QByteArray &raw)
     }
 }
 
-void LoraDev::updateLastSeen()
+void LoraDevSim::updateLastSeen()
 {
     if( !mLastSeen.isValid() ) {
         mLastSeen.start();
@@ -455,7 +457,7 @@ void LoraDev::updateLastSeen()
     mLastSeen.restart();
 }
 
-LoraDev::LastSeenStruct LoraDev::lastSeen()
+LoraDevSim::LastSeenStruct LoraDevSim::lastSeen()
 {
     LastSeenStruct ls;
 
@@ -476,7 +478,7 @@ LoraDev::LastSeenStruct LoraDev::lastSeen()
     return ls;
 }
 
-QString LoraDev::lastSeenInfo()
+QString LoraDevSim::lastSeenInfo()
 {
     LastSeenStruct ls = lastSeen();
     if( ls.hours < 0) {
@@ -488,16 +490,47 @@ QString LoraDev::lastSeenInfo()
         .arg(QString(ls.seconds < 10 ? "0%1" : "%1").arg(ls.seconds));
 }
 
-QString LoraDev::profileString()
+QString LoraDevSim::profileString()
 {
     switch(mProfile) {
-    case LoraDev::Profile::None: return "none";
-    case LoraDev::Profile::Bolus: return "bolus";
-    case LoraDev::Profile::Collar: return "colar";
-    case LoraDev::Profile::Relay: return "relay";
-    case LoraDev::Profile::Gateway: return "gateway";
+    case LoraDevSim::Profile::None: return "none";
+    case LoraDevSim::Profile::Bolus: return "bolus";
+    case LoraDevSim::Profile::Collar: return "colar";
+    case LoraDevSim::Profile::Relay: return "relay";
+    case LoraDevSim::Profile::Gateway: return "gateway";
     }
 
     return "unknown";
 }
+
 #endif
+
+const char *LoraDevSim::euiStr()
+{
+    return mDevEUI.toHex().data();
+
+}
+const char *LoraDevSim::appSKeyStr()
+{
+    return mAppSKey.toHex().data();
+}
+
+const char *LoraDevSim::nwkSKeyStr()
+{
+    return mNwkSKey.toHex().data();
+}
+
+void LoraDevSim::setEui(const char *eui)
+{
+    mDevEUI = QByteArray::fromHex( QByteArray(eui, LORA_EUI_STR_LEN) );
+}
+
+void LoraDevSim::setNKey(const char* key)
+{
+    mNwkSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_LEN) );
+}
+
+void LoraDevSim::setAKey(const char* key)
+{
+    mAppSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_LEN) );
+}

@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QJsonArray>
 
-class LoraDev;
+class LoraDevSim;
 class Gateway;
 class ApiRest;
 class ApiMqtt;
@@ -32,8 +32,8 @@ class DevManager : public QObject
     ApiRest* mApiRest = nullptr;
     ApiMqtt* mApiMqtt = nullptr;
 
-    QList<LoraDev*> mDevicesList;
-    QMap<QString, LoraDev*> mDevicesMap;
+    QList<LoraDevSim*> mDevicesList;
+    QMap<QString, LoraDevSim*> mDevicesMap;
 
     // array of saved devices in the device.json
     // from previous generation here in the simulator
@@ -87,17 +87,17 @@ public:
     inline bool isReady(){ return mIsDevicesReady; }
     inline int collarsCount(){ return mCollarsCount; }
     inline int bolusesCount(){ return mBolusesCount; }
-    bool syncDevices(const QByteArray &jsonList, QList<LoraDev*> devs, Gateway *edge);
-    LoraDev* device(const QString& eui);
+    bool syncDevices(const QByteArray &jsonList, QList<LoraDevSim*> devs, Gateway *edge);
+    LoraDevSim* device(const QString& eui);
     QString deviceName(const QString& eui);
-    QList<LoraDev*> devices(){ return mDevicesList; }
+    QList<LoraDevSim*> devices(){ return mDevicesList; }
     inline int devicesCount(){ return mDevicesList.count(); }
     bool sendMessageRest(const QString& eui, const QByteArray& msg);
     bool sendMessageMqtt(const QString& eui, const QByteArray& msg);
     bool setupFence(const QGeoCoordinate &center, const QVector<QGeoCoordinate>& coords);
     bool addDevice(const QString& str, const QString& eui);
 
-    LoraDev* findByAddress(const QByteArray &address );
+    LoraDevSim* findByAddress(const QByteArray &address );
 
     int getDevicesFenceStatus(bool isOn);
 

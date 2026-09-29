@@ -23,7 +23,7 @@
 Collar::Collar( Animal* animal,
                const QByteArray &devEUI,
                const QByteArray& appKey)
-    : LoraDev(QString("%1 collar").arg(animal->name()), LoraDev::Profile::Collar,
+    : LoraDevSim(QString("%1 collar").arg(animal->name()), LoraDevSim::Profile::Collar,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
               devEUI, appKey), mAnimal(animal)
 {
@@ -147,7 +147,7 @@ void Collar::onSetup()
         );
 #endif
 
-    LoraDev::onSetup();
+    LoraDevSim::onSetup();
 
     mStage = Stage::Init;
 

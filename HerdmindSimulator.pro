@@ -37,13 +37,14 @@ SOURCES += \
     grpc.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
-    hardware/bolus/loradev_esp32.cpp \
+    hardware/bolus/loradev_bolus.cpp \
     hardware/collar/button.cpp \
     hardware/collar/collar.cpp \
     hardware/collar/collar_gps.cpp \
     hardware/collar/geometry.cpp \
     hardware/collar/gps.cpp \
     hardware/collar/led.cpp \
+    hardware/collar/loradev_collar.cpp \
     hardware/collar/memory.cpp \
     hardware/collar/res.cpp \
     hardware/collar/serialcmd.cpp \
@@ -51,7 +52,6 @@ SOURCES += \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
     dialogregisterdevice.cpp \
-    hardware/collar/loradev_esp32.cpp \
     hardware/loradev_sim.cpp \
     hardware/tools.cpp \
     herd.cpp \
@@ -85,7 +85,7 @@ HEADERS += \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
     hardware/bolus/loradev.h \
-    hardware/bolus/loradev_esp32.h \
+    hardware/bolus/loradev_bolus.h \
     hardware/collar/button.h \
     hardware/collar/collar.h \
     defines.h \
@@ -93,6 +93,7 @@ HEADERS += \
     hardware/collar/geometry.h \
     hardware/collar/gps.h \
     hardware/collar/led.h \
+    hardware/collar/loradev_collar.h \
     hardware/collar/memory.h \
     hardware/collar/res.h \
     hardware/collar/serialcmd.h \
@@ -102,7 +103,6 @@ HEADERS += \
     hardware/gateway/gateway.h \
     hardware/collar/loradev.h \
     hardware/loradev_def.h \
-    hardware/collar/loradev_esp32.h \
     hardware/loradev_sim.h \
     hardware/protocol.h \
     hardware/tools.h \

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <cassert>
 #include <cstdint>
 #include <QString>
@@ -18,6 +19,12 @@
 #define SERIAL_8N1 0
 
 #define INPUT_PULLUP 0
+
+#define ESP_MAC_WIFI_STA 0
+
+inline void esp_read_mac(uint8_t mac[], int arg1) {
+    (void) mac, (void) arg1;
+};
 
 class DialogCollarSim;
 class Animal;

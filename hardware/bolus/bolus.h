@@ -20,7 +20,7 @@
 class Animal;
 class Accel;
 
-class Bolus : public LoraDev {
+class Bolus : public LoraDevSim {
     Animal* mAnimal = nullptr;
 #else
 class Bolus {}

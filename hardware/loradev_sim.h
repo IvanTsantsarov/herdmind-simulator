@@ -14,7 +14,7 @@ class Gateway;
 #define LORA_FPORT_START 9
 
 
-class LoraDev : public QObject
+class LoraDevSim : public QObject
 {
     Q_OBJECT
 
@@ -29,7 +29,7 @@ public:
 private:
 
     QString mName;
-    Profile mProfile = LoraDev::Profile::None;
+    Profile mProfile = LoraDevSim::Profile::None;
     QElapsedTimer mLastSeen;
 
     static uint32_t NODE_ADDR;
@@ -83,13 +83,20 @@ protected:
 
 public:
     inline QByteArray eui(){ return mDevEUI; };
-    inline const char* euiHex(){ return mDevEUI.toHex().data(); };
+    const char* euiStr();;
     inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
     QString profileString();
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
+    const char* appSKeyStr();
+    const char* nwkSKeyStr();
+
+    void setEui(const char* eui);
+    void setNKey(const char *key);
+    void setAKey(const char *key);
+
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
@@ -100,7 +107,7 @@ public:
     inline uint8_t fport(){ return (quint8)LORA_FPORT_START + (quint8)mProfile; }
     /// inline uint8_t fport(){ return 1; }
 
-    LoraDev( const QString& name,
+    LoraDevSim( const QString& name,
             Profile profile,
             int updateInterval, int sendInterval,
             const QByteArray &devEUI = QByteArray(),

@@ -14,9 +14,9 @@
 
 #define ANIMAL_MIN_DISTANCE 0.2
 
-QList<LoraDev *> Herd::gatherDevices()
+QList<LoraDevSim *> Herd::gatherDevices()
 {
-    QList<LoraDev*> ls;
+    QList<LoraDevSim*> ls;
 
     foreach(Animal* a, mAnimals) {
         if( a->hasBolus() ) {

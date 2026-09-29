@@ -71,17 +71,17 @@ bool DialogRegisterDevice::isMale()
     return ui->radioMale->isChecked();
 }
 
-LoraDev::Profile DialogRegisterDevice::profile()
+LoraDevSim::Profile DialogRegisterDevice::profile()
 {
     if( ui->radioTypeCollar->isChecked() ) {
-        return LoraDev::Profile::Collar;
+        return LoraDevSim::Profile::Collar;
     }
 
     if( ui->radioTypeBolus->isChecked() ) {
-        return LoraDev::Profile::Bolus;
+        return LoraDevSim::Profile::Bolus;
     }
 
-    return LoraDev::Profile::None;
+    return LoraDevSim::Profile::None;
 }
 
 void DialogRegisterDevice::on_btnClose_clicked()
