@@ -4,7 +4,7 @@
 #include "../arduino.h"
 #include "defines.h"
 
-class LoraDevCollar
+class LoraDevHW
 {
     uint8_t mEui[LORA_EUI_LEN];
     uint8_t mNKey[LORA_KEY_LEN];
@@ -14,7 +14,7 @@ class LoraDevCollar
     static void fromHex(const char* src, uint8_t *dst, int srcLen);
     static String toHex(uint8_t* a, int len);
 public:
-    LoraDevCollar();
+    LoraDevHW();
     String euiStr(){ return toHex(mEui, LORA_EUI_LEN); }
 
     const uint8_t* nkey(){ return mNKey; }

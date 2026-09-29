@@ -14,7 +14,7 @@
 #include "ui_dialogcollarsim.h"
 
 uint32_t DialogCollarSim::mBaudrates[] =  {
-    9600, 19200, 38400, 57600, 19200
+    115200, 57600, 38400, 19200, 9600
 };
 
 void DialogCollarSim::setLightsColor(const QColor &col)
@@ -311,3 +311,20 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
     }
 }
 
+
+void DialogCollarSim::on_btnGenAKey_clicked()
+{
+
+}
+
+
+void DialogCollarSim::on_btnGenNKey_clicked()
+{
+
+}
+
+
+void DialogCollarSim::on_btnFlash_clicked()
+{
+
+}

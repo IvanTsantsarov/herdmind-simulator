@@ -145,12 +145,12 @@ void Collar::onSetup()
         gMainButtonInterrupt,
         FALLING
         );
+    LoraDevHW::onSetup();
+#else
+    LoraDevSim::onSetup();
 #endif
 
-    LoraDevSim::onSetup();
-
     mStage = Stage::Init;
-
 }
 
 void Collar::sleep()

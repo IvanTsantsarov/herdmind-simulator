@@ -3,5 +3,5 @@
 #ifdef ONPC
     #include "../loradev_sim.h"
 #else
-    #include "loradev_collar.h"
+    #include "loradev_hw.h"
 #endif

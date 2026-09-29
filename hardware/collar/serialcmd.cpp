@@ -218,7 +218,7 @@ bool SerialCmd::execute()
             mCollar->setNKey(mArgument);
             Serial.println("nkey ok");
         }else {
-            Serial.println(mCollar->nwkSKeyStr());
+            Serial.println(mCollar->nkeyStr());
         }
         break;
 
@@ -231,7 +231,7 @@ bool SerialCmd::execute()
             mCollar->setAKey(mArgument);
             Serial.println("akey ok");
         }else {
-            Serial.println(mCollar->appSKeyStr());
+            Serial.println(mCollar->akeyStr());
         }
         break;
 
@@ -252,12 +252,15 @@ bool SerialCmd::execute()
         Serial.println("restart: Restarts the ESP32");
         Serial.println("help: This help");
         Serial.println("info: Common info");
-        Serial.println("eui: EUI of the LoraWAN module");
         Serial.println("gps: Current geo position");
         Serial.println("sat: Count of available GPS sattelites");
         Serial.println("bat: Battery level");
         Serial.println("rssi: Received Signal Strenght Indicator in dB");
         Serial.println("snr: Signal to Noise Ratio in dB");
+        Serial.println("ss: Signal Strength in percents");
+        Serial.println("eui: Set/Get EUI of the LoraWAN module");
+        Serial.println("nkey: Set/Get network key (only OTA supported)");
+        Serial.println("akey: Set/Get app key (only OTA supported)");
         Serial.println("ss: Signal Strength in percents");
         break;
     }

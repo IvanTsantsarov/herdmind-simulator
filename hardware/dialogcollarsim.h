@@ -73,6 +73,12 @@ private slots:
 
     void on_checkConnect_toggled(bool checked);
 
+    void on_btnGenAKey_clicked();
+
+    void on_btnGenNKey_clicked();
+
+    void on_btnFlash_clicked();
+
 private:
     Ui::DialogCollarSim *ui;
 };

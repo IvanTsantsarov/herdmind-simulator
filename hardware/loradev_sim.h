@@ -90,8 +90,8 @@ public:
     QString profileString();
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
-    const char* appSKeyStr();
-    const char* nwkSKeyStr();
+    const char* akeyStr();
+    const char* nkeyStr();
 
     void setEui(const char* eui);
     void setNKey(const char *key);

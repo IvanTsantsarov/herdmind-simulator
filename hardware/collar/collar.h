@@ -35,7 +35,7 @@ class SerialCmd;
 #ifdef ONPC
 class Collar : public LoraDevSim
 #else
-class Collar : public LoraDevCollar
+class Collar : public LoraDevHW
 #endif
 
 {

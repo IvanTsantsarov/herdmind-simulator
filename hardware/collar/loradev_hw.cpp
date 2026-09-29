@@ -1,4 +1,4 @@
-#include "loradev_collar.h"
+#include "loradev_hw.h"
 
 #include <cstdio>
 
@@ -8,7 +8,7 @@
     #include "esp_mac.h" // Required for ESP32 MAC/ChipID functions
 #endif
 
-LoraDevCollar::LoraDevCollar() {
+LoraDevHW::LoraDevHW() {
 
     uint8_t mac[6];
 
@@ -17,7 +17,7 @@ LoraDevCollar::LoraDevCollar() {
 }
 
 
-String LoraDevCollar::toHex(uint8_t* a, int len)
+String LoraDevHW::toHex(uint8_t* a, int len)
 {
     String result;
     char hex[3] = {0};
@@ -34,7 +34,7 @@ String LoraDevCollar::toHex(uint8_t* a, int len)
 }
 
 
-void LoraDevCollar::fromHex(const char *src, uint8_t *dst, int srcLen)
+void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
 {
     auto x2b4 = [&](char b) {
         if( b >= '0' && b <= '9') b -= '0';
@@ -57,7 +57,7 @@ void LoraDevCollar::fromHex(const char *src, uint8_t *dst, int srcLen)
     }
 }
 
-void LoraDevCollar::onSetup() {
+void LoraDevHW::onSetup() {
     uint8_t mac[6];
 
     // Get the base MAC address of the ESP32 (6 bytes unique)
@@ -76,6 +76,6 @@ void LoraDevCollar::onSetup() {
 
 }
 
-LoraDevCollar gLDC;
+LoraDevHW gLDC;
 
 // #endif

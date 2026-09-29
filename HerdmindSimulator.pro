@@ -44,7 +44,7 @@ SOURCES += \
     hardware/collar/geometry.cpp \
     hardware/collar/gps.cpp \
     hardware/collar/led.cpp \
-    hardware/collar/loradev_collar.cpp \
+    hardware/collar/loradev_hw.cpp \
     hardware/collar/memory.cpp \
     hardware/collar/res.cpp \
     hardware/collar/serialcmd.cpp \
@@ -93,7 +93,7 @@ HEADERS += \
     hardware/collar/geometry.h \
     hardware/collar/gps.h \
     hardware/collar/led.h \
-    hardware/collar/loradev_collar.h \
+    hardware/collar/loradev_hw.h \
     hardware/collar/memory.h \
     hardware/collar/res.h \
     hardware/collar/serialcmd.h \

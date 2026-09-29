@@ -510,12 +510,12 @@ const char *LoraDevSim::euiStr()
     return mDevEUI.toHex().data();
 
 }
-const char *LoraDevSim::appSKeyStr()
+const char *LoraDevSim::akeyStr()
 {
     return mAppSKey.toHex().data();
 }
 
-const char *LoraDevSim::nwkSKeyStr()
+const char *LoraDevSim::nkeyStr()
 {
     return mNwkSKey.toHex().data();
 }

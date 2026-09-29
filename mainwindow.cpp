@@ -769,9 +769,10 @@ void MainWindow::on_btnClearCount_clicked()
 void MainWindow::on_btnAdd_clicked()
 {
     if( nullptr == mHerd ) {
-        // TODO:
-        // create new Herd
+        // TODO: generate a new
+        create(false);
     }
+
     DialogRegisterDevice dlg(mHerd, this);
     dlg.exec();
 
