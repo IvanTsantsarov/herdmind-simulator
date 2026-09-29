@@ -522,7 +522,7 @@ const char *LoraDevSim::nwkSKeyStr()
 
 void LoraDevSim::setEui(const char *eui)
 {
-    mDevEUI = QByteArray::fromHex( QByteArray(eui, LORA_EUI_STR_LEN) );
+    mDevEUI = QByteArray::fromHex( QByteArray(eui, LORA_EUI_HEX_LEN) );
 }
 
 void LoraDevSim::setNKey(const char* key)

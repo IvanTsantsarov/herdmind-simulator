@@ -237,7 +237,7 @@ bool SerialCmd::execute()
 
     case Cmd::Type::EUI:
         if( mIsArgument ) {
-            if( mArgumentLen != LORA_EUI_STR_LEN) {
+            if( mArgumentLen != LORA_EUI_HEX_LEN) {
                 mErrStr = "Wrong EUI lenght";
                 return false;
             }

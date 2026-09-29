@@ -8,14 +8,25 @@
     #include "esp_mac.h" // Required for ESP32 MAC/ChipID functions
 #endif
 
+LoraDevCollar::LoraDevCollar() {
 
-String LoraDevCollar::arrayToString(uint8_t* a, int len)
+    uint8_t mac[6];
+
+    // Get the base MAC address of the ESP32 (6 bytes unique)
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+}
+
+
+String LoraDevCollar::toHex(uint8_t* a, int len)
 {
     String result;
     char hex[3] = {0};
-    int len_1 = len - 1;
     for( int i = 0; i < len; i ++) {
-        std::sprintf(hex, "%x", a[len_1-i]);
+        if( a[i]  < 9) {
+            std::sprintf(hex, "0%x", a[i]);
+        } else {
+            std::sprintf(hex, "%x", a[i]);
+        }
         result += hex;
     }
 
@@ -23,19 +34,27 @@ String LoraDevCollar::arrayToString(uint8_t* a, int len)
 }
 
 
-void LoraDevCollar::setArray(uint8_t *src, uint8_t *dst, int len)
+void LoraDevCollar::fromHex(const char *src, uint8_t *dst, int srcLen)
 {
-    for( int i = 0; i < len; i ++) {
-        dst[i] = src[i];
+    auto x2b4 = [&](char b) {
+        if( b >= '0' && b <= '9') b -= '0';
+        else
+        if( b >= 'a' && b <= 'z') b = b - 'a' + 10;
+        else
+        if( b >= 'A' && b <= 'Z') b = b - 'A' + 10;
+        return (uint8_t)b;
+    };
+
+    auto x2b = [&](const char* b) {
+        uint8_t bl = x2b4(b[0]);
+        uint8_t bh = x2b4(b[1]);
+        return bh | (bl << 4);
+    };
+
+    int dstLen = srcLen / 2;
+    for( int i = 0; i < dstLen; i ++ ) {
+        dst[i] = x2b( &src[i * 2] );
     }
-}
-
-LoraDevCollar::LoraDevCollar() {
-
-    uint8_t mac[6];
-
-    // Get the base MAC address of the ESP32 (6 bytes unique)
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
 }
 
 void LoraDevCollar::onSetup() {
@@ -56,5 +75,7 @@ void LoraDevCollar::onSetup() {
     mEui[7] = mac[5];
 
 }
+
+LoraDevCollar gLDC;
 
 // #endif
