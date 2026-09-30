@@ -337,6 +337,8 @@ void MainWindow::onUpdate()
 
     gSimTimer->update();
 
+    mDlgCollar->update();
+
     if( !mIsCreated) {
         return;
     }

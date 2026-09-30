@@ -84,7 +84,6 @@ public:
     void setup(DialogCollarSim* dlg );
 
     inline DialogCollarSim* collarDlg(){ return mCollarDlg; }
-    void update(Animal *animal);
 
     inline uint32_t millis(){ return mProgramTimer.elapsed(); }
     static int16_t f2i16(float v, float scale);

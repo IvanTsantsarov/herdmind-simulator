@@ -105,12 +105,6 @@ void Tools::setup(DialogCollarSim *dlg)
     mCollarDlg = dlg;
 }
 
-void Tools::update(Animal *animal)
-{
-    mCollarDlg->update(animal);
-}
-
-
 int16_t Tools::f2i16(float v, float scale) {
     long s = lroundf(v * scale);
     if (s > 32767) s = 32767;

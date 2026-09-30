@@ -355,7 +355,7 @@ void Collar::onUpdate()
 #ifndef ONPC
     delay(100);
 #else
-    gTools.update(mAnimal);
+
 #endif
 }
 

@@ -261,7 +261,6 @@ bool SerialCmd::execute()
         Serial.println("eui: Set/Get EUI of the LoraWAN module");
         Serial.println("nkey: Set/Get network key (only OTA supported)");
         Serial.println("akey: Set/Get app key (only OTA supported)");
-        Serial.println("ss: Signal Strength in percents");
         break;
     }
 

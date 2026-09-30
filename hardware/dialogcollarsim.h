@@ -3,6 +3,15 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QSerialPort>
+
+#define RESPONCE_COLOR_NORMAL QColor(0, 0, 0)
+#define RESPONCE_COLOR_ERROR QColor(150, 0, 0)
+#define RESPONCE_COLOR_WARNING QColor(150, 150, 0)
+#define RESPONCE_COLOR_SUCESS QColor(0, 150, 0)
+#define RESPONCE_COLOR_COMMAND QColor(128, 64, 128)
+#define RESPONCE_COLOR_RESPONCE QColor(110, 99, 184)
+#define RESPONCE_COLOR_INFO QColor(100, 100, 100)
 
 
 class Animal;
@@ -32,7 +41,7 @@ class DialogCollarSim : public QDialog
 
     QList<Animal*> mAnimals;
     Animal* mAnimal = nullptr;
-    QSerialPort* mPort = nullptr;
+    QSerialPort mPort;
     QSettings& mEnv;
     QIcon mIconMale, mIconFemale, mIconSoundOff, mIconSoundOn;
 
@@ -49,13 +58,15 @@ class DialogCollarSim : public QDialog
 
     static uint32_t mBaudrates[];
 
+    void addResponce(const QString& txt, const QColor& c = RESPONCE_COLOR_NORMAL);
+
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
     void init(QList<Animal*> animals);
     ~DialogCollarSim();
     void sendScreen(const Animal *from);
 
-    void update(Animal *animal);
+    void update();
 
 private slots:
     void on_comboAnimals_currentIndexChanged(int index);
@@ -78,6 +89,8 @@ private slots:
     void on_btnGenNKey_clicked();
 
     void on_btnFlash_clicked();
+
+    void on_serialPortError(QSerialPort::SerialPortError err);
 
 private:
     Ui::DialogCollarSim *ui;

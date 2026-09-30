@@ -1,10 +1,10 @@
 #include <QToolTip>
 #include <QFileDialog>
 #include <QPainter>
-#include <QSerialPort>
 #include <QSerialPortInfo>
 
 #include "hardware/collar/button.h"
+#include "hardware/collar/defines.h"
 #include "tools.h"
 #include "collar/screen.h"
 #include "collar/led.h"
@@ -59,7 +59,6 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
     ui->groupPorts->setVisible(!gMainWindow->isSimulation());
     if( !gMainWindow->isSimulation() ) {
 
-
         // Fill with all ports
         QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
         for( QSerialPortInfo& info:ports ) {
@@ -70,6 +69,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
         for( auto i = 0; i < baudratesCount; i ++) {
             ui->comboBaudrate->addItem(QString("%1").arg(mBaudrates[i]));
         }
+
+        connect(&mPort, &QSerialPort::errorOccurred, this, &DialogCollarSim::on_serialPortError);
     }
 }
 
@@ -125,23 +126,29 @@ void DialogCollarSim::sendScreen(const Animal *from)
     grabScreen();
 }
 
-void DialogCollarSim::update(Animal *animal)
+void DialogCollarSim::update()
 {
-    if( !mAnimal || animal != mAnimal ) {
+    if( !gMainWindow->isSimulation()) {
+        if( mPort.isOpen() ) {
+            if( mPort.bytesAvailable() ) {
+                QByteArray out = mPort.read(mPort.bytesAvailable());
+                addResponce(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
+            }
+        }
+
         return;
     }
 
+    // Simulation
     const bool isOn = mAnimal->collar()->led()->isOn();
     if( isOn != mIsLedOn ) {
         mIsLedOn = isOn;
         SimTools::setWidgetBackColor( ui->btnLedMain, isOn ? Qt::white : Qt::black);
     }
 
-    if( gMainWindow->isSimulation() ) {
-        QByteArray out = mAnimal->collar()->readFromSerial();
-        if( out.length() ) {
-            ui->serialResponce->appendPlainText(QString::fromLatin1(out));
-        }
+    QByteArray out = mAnimal->collar()->readFromSerial();
+    if( out.length() ) {
+        addResponce(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
     }
 }
 
@@ -267,14 +274,34 @@ void DialogCollarSim::sendToSerial()
         return;
     }
 
-    ui->editSerialCmd->clear();
-    ui->serialResponce->appendPlainText(">" + txt);
+    QString txtTerm = QString( "%1\r").arg(txt);
 
-    if( gMainWindow->isSimulation() && mAnimal ) {
-        txt.append('\r');
-        mAnimal->collar()->sendToSerial(txt.toLocal8Bit().data());
+    if( gMainWindow->isSimulation() ) {
+        if( !mAnimal) {
+            addResponce("Error:No animal selected.", RESPONCE_COLOR_ERROR);
+            return;
+        }
+
+        mAnimal->collar()->sendToSerial(txtTerm.toLocal8Bit().data());
+    }else {
+        if( !mPort.isOpen() ) {
+            addResponce("Error:Port not opened.", RESPONCE_COLOR_ERROR);
+            return;
+        }
+
+        mPort.write(txtTerm.toLatin1());
     }
+
+    ui->editSerialCmd->clear();
+    addResponce(">" + txt, RESPONCE_COLOR_COMMAND);
 }
+
+void DialogCollarSim::addResponce(const QString &txt, const QColor &c)
+{
+    ui->editResponce->setTextColor(c);
+    ui->editResponce->append(txt);
+}
+
 
 void DialogCollarSim::on_checkConnect_toggled(bool checked)
 {
@@ -286,45 +313,77 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
         QString portName = ui->comboPorts->currentText();
         uint32_t baudrate = ui->comboBaudrate->currentText().toInt();
 
-        qInfo() << QString("Opening serial port %1 @ %2 ..").arg(portName).arg(baudrate);
-        Q_ASSERT(!mPort);
+        QString log = QString("Opening serial port %1 @ %2 ..").arg(portName).arg(baudrate);
+        qInfo() << log;
+        addResponce(log, RESPONCE_COLOR_INFO);
+
         mIsOpeningPort = true;
-        mPort = new QSerialPort();
-        mPort->setBaudRate(baudrate);
-        if( !mPort->open(QIODevice::ReadWrite) ) {
-            gMainWindow->errorMsgBox( QString("Opening %1 port").arg(portName) );
+        mPort.setPortName(portName);
+        mPort.setBaudRate(baudrate);
+
+        if( !mPort.open(QIODevice::ReadWrite) ) {
+            addResponce( QString("Opening %1 port").arg(portName), RESPONCE_COLOR_ERROR );
             ui->checkConnect->setChecked(false);
             mIsOpeningPort = false;
             return;
         }
+
+        log = QString("Port %1 open").arg(portName);
+        addResponce( log, RESPONCE_COLOR_SUCESS );
+
     }else {
-        if( !mPort) {
+        if( !mPort.isOpen() ) {
             mIsOpeningPort = false;
             return;
         }
-        qInfo() << QString("Closing serial port %1 @ %2 ..").arg(mPort->portName()).arg(mPort->baudRate());
-        Q_ASSERT(mPort);
-        mPort->close();
-        mPort->deleteLater();
-        mPort = nullptr;
+
+        QString log = QString("Closing serial port %1 @ %2 ..").arg(mPort.portName()).arg(mPort.baudRate());
+        qInfo() << log;
+        addResponce( log, RESPONCE_COLOR_INFO);
+
+        mPort.close();
         mIsOpeningPort = false;
     }
+
+    ui->editAKey->setEnabled(checked);
+    ui->btnGenAKey->setEnabled(checked);
+    ui->editNKey->setEnabled(checked);
+    ui->btnGenNKey->setEnabled(checked);
+    ui->btnFlash->setEnabled(checked);
+    ui->comboPorts->setEnabled(!checked);
+    ui->comboBaudrate->setEnabled(!checked);
+
+    mIsOpeningPort = false;
 }
 
 
 void DialogCollarSim::on_btnGenAKey_clicked()
 {
-
+    QByteArray ba = SimTools::genHex(LORA_KEY_LEN);
+    ui->editAKey->setText(ba.toUpper());
 }
 
 
 void DialogCollarSim::on_btnGenNKey_clicked()
 {
-
+    QByteArray ba = SimTools::genHex(LORA_KEY_LEN);
+    ui->editNKey->setText(ba.toUpper());
 }
 
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
 
+}
+
+void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
+{
+    if( QSerialPort::NoError == err ) {
+        // Why the f*ck you sending no error?!
+        return;
+    }
+
+    QString log = QString("Serial port error:(%1) %2").arg(err).arg(mPort.errorString());
+    addResponce(log, RESPONCE_COLOR_ERROR);
+    qWarning() << log;
 }

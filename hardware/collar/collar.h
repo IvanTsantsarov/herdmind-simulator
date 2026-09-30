@@ -15,7 +15,7 @@
 #define COLLAR_UPDATE_INTERVAL 100
 
 // interval for sending data to collars/gateways
-#define COLLAR_SEND_INTERVAL 20000
+#define COLLAR_SEND_INTERVAL 100
 
 #define COLLAR_MAX_GPS_POINTS 500
 
