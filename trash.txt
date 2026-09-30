@@ -422,3 +422,9 @@ printf("%s", buffer);
 setEui(buffer);
 std::sprintf(buffer, "%s", euiStr().c_str());
 printf("%s", buffer);
+
+
+
+//sendToSerial("eui 1234567890123456");
+//sendToSerial("nkey 12345678901234567890123456789012");
+//sendToSerial("akey 12345678901234567890123456789012");

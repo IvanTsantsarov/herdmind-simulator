@@ -104,6 +104,29 @@ void SerialCmd::update()
 }
 
 
+const char *SerialCmd::Cmd::typeStr()
+{
+    switch(mT) {
+    case Type::NONE: return "none";
+    case Type::HELP: return "help";
+    case Type::RESTART: return "restart";
+    case Type::INFO: return "info";
+    case Type::EUI: return "eui";
+    case Type::GPS: return "gps";
+    case Type::SAT: return "sat";
+    case Type::BAT: return "bat";
+    case Type::RSSI: return "rssi";
+    case Type::SNR: return "snr";
+    case Type::SS: return "ss";
+    case Type::NKEY: return "nkey";
+    case Type::AKEY: return "akey";
+    case Type::ADDR: return "addr";
+        break;
+    }
+
+    return "";
+}
+
 bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
  {
     auto cmp = [&](const char* str){
@@ -172,9 +195,12 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 
 bool SerialCmd::execute()
 {
+    String head = String(mCmd.typeStr()) + ":";
+
+    Serial.print(head);
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
-        Serial.println( "Error:Empty command!" );
+        Serial.println( head + "Error:Empty command!" );
         break;
     case Cmd::Type::RESTART:
         mCollar->restart();
@@ -211,7 +237,7 @@ bool SerialCmd::execute()
 
     case Cmd::Type::NKEY:
         if( mIsArgument ) {
-            if( mArgumentLen != LORA_KEY_LEN) {
+            if( mArgumentLen != LORA_KEY_HEX_LEN) {
                 mErrStr = "Wrong netkey length";
                 return false;
             }
@@ -224,7 +250,7 @@ bool SerialCmd::execute()
 
     case Cmd::Type::AKEY:
         if( mIsArgument ) {
-            if( mArgumentLen != LORA_KEY_LEN) {
+            if( mArgumentLen != LORA_KEY_HEX_LEN) {
                 mErrStr = "Wrong AppKey lenght";
                 return false;
             }
@@ -261,6 +287,9 @@ bool SerialCmd::execute()
         Serial.println("eui: Set/Get EUI of the LoraWAN module");
         Serial.println("nkey: Set/Get network key (only OTA supported)");
         Serial.println("akey: Set/Get app key (only OTA supported)");
+        break;
+
+    case Cmd::Type::ADDR:
         break;
     }
 

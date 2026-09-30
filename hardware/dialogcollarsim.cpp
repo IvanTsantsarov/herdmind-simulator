@@ -128,27 +128,65 @@ void DialogCollarSim::sendScreen(const Animal *from)
 
 void DialogCollarSim::update()
 {
+    auto fillOnResponce = [&](QString resp, const QString& cmd, QLineEdit* edit) {
+
+        resp = resp.trimmed();
+
+        if( resp.length() < (cmd.length() + 2) ) {
+            return;
+        }
+
+        QString head = QString("%1:").arg(cmd);
+
+        if( resp.left(head.length()) != head ) {
+            return;
+        }
+
+        if( mRequests.contains(cmd) )
+        {
+            mRequests[cmd]--;
+            if( !mRequests[cmd] ) {
+                mRequests.remove(cmd);
+            }
+        }else{
+            return;
+        }
+
+        QString val = resp.right(resp.length() - head.length());
+        edit->setText(val);
+    };
+
     if( !gMainWindow->isSimulation()) {
         if( mPort.isOpen() ) {
             if( mPort.bytesAvailable() ) {
-                QByteArray out = mPort.read(mPort.bytesAvailable());
-                addResponce(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
+                QByteArray out = mPort.readLine();
+                QString resp = QString::fromLatin1(out);
+                addResponce(resp, RESPONCE_COLOR_RESPONCE);
+
+                fillOnResponce(resp, "eui", ui->editEui);
+                fillOnResponce(resp, "akey", ui->editAKey);
+                fillOnResponce(resp, "nkey", ui->editNKey);
             }
         }
 
         return;
-    }
+    }else
+    {
+        if( !mAnimal) {
+            return;
+        }
 
-    // Simulation
-    const bool isOn = mAnimal->collar()->led()->isOn();
-    if( isOn != mIsLedOn ) {
-        mIsLedOn = isOn;
-        SimTools::setWidgetBackColor( ui->btnLedMain, isOn ? Qt::white : Qt::black);
-    }
+        // Simulation
+        const bool isOn = mAnimal->collar()->led()->isOn();
+        if( isOn != mIsLedOn ) {
+            mIsLedOn = isOn;
+            SimTools::setWidgetBackColor( ui->btnLedMain, isOn ? Qt::white : Qt::black);
+        }
 
-    QByteArray out = mAnimal->collar()->readFromSerial();
-    if( out.length() ) {
-        addResponce(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
+        QByteArray out = mAnimal->collar()->readFromSerial();
+        if( out.length() ) {
+            addResponce(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
+        }
     }
 }
 
@@ -267,11 +305,19 @@ void DialogCollarSim::on_editSerialCmd_returnPressed()
     sendToSerial();
 }
 
-void DialogCollarSim::sendToSerial()
+void DialogCollarSim::sendToSerial(const QString& msg, bool isRequest)
 {
-    QString txt = ui->editSerialCmd->text();
+    QString txt = msg.isEmpty() ? ui->editSerialCmd->text() : msg;
     if( txt.isEmpty() ) {
         return;
+    }
+
+    if( isRequest ) {
+        if( mRequests.contains(msg) ) {
+            mRequests[msg] ++;
+        }else{
+            mRequests[msg] = 1;
+        }
     }
 
     QString txtTerm = QString( "%1\r").arg(txt);
@@ -290,7 +336,10 @@ void DialogCollarSim::sendToSerial()
         }
 
         mPort.write(txtTerm.toLatin1());
+        mPort.flush();
     }
+
+    // delay(100);
 
     ui->editSerialCmd->clear();
     addResponce(">" + txt, RESPONCE_COLOR_COMMAND);
@@ -331,6 +380,11 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
         log = QString("Port %1 open").arg(portName);
         addResponce( log, RESPONCE_COLOR_SUCESS );
 
+        // request keys
+        sendToSerial("eui", true);
+        sendToSerial("akey", true);
+        sendToSerial("nkey", true);
+
     }else {
         if( !mPort.isOpen() ) {
             mIsOpeningPort = false;
@@ -345,6 +399,9 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
         mIsOpeningPort = false;
     }
 
+
+    ui->editEui->setEnabled(checked);
+    ui->btnGenEui->setEnabled(checked);
     ui->editAKey->setEnabled(checked);
     ui->btnGenAKey->setEnabled(checked);
     ui->editNKey->setEnabled(checked);
@@ -370,10 +427,25 @@ void DialogCollarSim::on_btnGenNKey_clicked()
     ui->editNKey->setText(ba.toUpper());
 }
 
+void DialogCollarSim::on_btnGenEui_clicked()
+{
+    QByteArray ba = SimTools::genHex(LORA_EUI_LEN);
+    ui->editNKey->setText(ba.toUpper());
+}
+
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
+    if( !gMainWindow->question("Are you sure you wanna flash the device?") ) {
+        return;
+    }
 
+    if( ui->checkFlashEui->isChecked() ) {
+        sendToSerial(QString("eui %1").arg(ui->editEui->text()));
+    }
+
+    sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
+    sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
 }
 
 void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
@@ -387,3 +459,4 @@ void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
     addResponce(log, RESPONCE_COLOR_ERROR);
     qWarning() << log;
 }
+

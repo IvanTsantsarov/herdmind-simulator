@@ -54,11 +54,12 @@ class DialogCollarSim : public QDialog
     bool mIsLedOn = false;
 
     bool mIsOpeningPort = false;
-    void sendToSerial();
+    void sendToSerial(const QString &msg = QString(), bool isRequest = false);
 
     static uint32_t mBaudrates[];
 
     void addResponce(const QString& txt, const QColor& c = RESPONCE_COLOR_NORMAL);
+    QMap<QString, int> mRequests;
 
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
@@ -91,6 +92,8 @@ private slots:
     void on_btnFlash_clicked();
 
     void on_serialPortError(QSerialPort::SerialPortError err);
+
+    void on_btnGenEui_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

@@ -46,6 +46,7 @@ public:
 
 
         inline Type type(){ return mT;}
+        const char* typeStr();
         inline bool isNone(){ return Type::NONE == mT; }
 
         inline void clear(){ mT = Type::NONE; }
