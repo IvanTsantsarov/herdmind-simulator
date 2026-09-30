@@ -24,6 +24,7 @@ class Screen;
 class Button;
 class Led;
 class SerialCmd;
+class Battery;
 
 #ifdef ONPC
     #include <QPointF>
@@ -66,8 +67,11 @@ class Collar : public LoraDevHW
     Button* mBtnMain = nullptr;
     Led* mLed = nullptr;
     SerialCmd* mSerialCmd = nullptr;
+    Battery* mBattery = nullptr;
     uint16_t mSequence = 0;
+    uint32_t mSetupMillis = 0;
     uint32_t mAwakeningMillisScreen = 0;
+
 
     bool mIsSignal = false;
     GeoPoint readGPS();
@@ -147,8 +151,6 @@ public:
     void restart();
     void sleep();
 
-    int batteryLevel();
-
     int rssi(); // RSSI (Received Signal Strength Indicator) in dBm
 
     // SNR (Signal-to-Noise Ratio)
@@ -158,6 +160,8 @@ public:
     int satellites();
 
     int signalStrength(); // RSSI
+
+    String batteryInfo();
 };
 
 #ifndef ONPC

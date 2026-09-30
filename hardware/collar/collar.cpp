@@ -1,5 +1,6 @@
 #include "collar.h"
 #include "defines.h"
+#include "battery.h"
 #include "res.h"
 #include "screen.h"
 #include "gps.h"
@@ -8,6 +9,7 @@
 #include "serialcmd.h"
 
 #define SCREEN_AWAKE_MSEC_MAX 5000
+#define SCREEN_LOADING_MSEC 2000
 
 #define PIN_BTN_MAIN 0
 #define PIN_LED_MAIN 35
@@ -87,6 +89,7 @@ void Collar::commonConstructor()
     mBtnMain = new Button(PIN_BTN_MAIN);
     mLed = new Led;
     mSerialCmd = new SerialCmd(this);
+    mBattery = new Battery;
 }
 
 
@@ -96,6 +99,8 @@ Collar::~Collar()
     delete mGPS;
     delete mBtnMain;
     delete mLed;
+    delete mSerialCmd;
+    delete mBattery;
 }
 
 #ifndef ONPC
@@ -110,8 +115,6 @@ void Collar::onMainBtn() {
     mBtnMain->update();
     if( mScreen->isSleeping() ) {
         if( !mIsSignal) {
-            updateScreenLoading(false);
-        }else {
             updateScreenNormal(false);
         }
         mScreen->wakeup();
@@ -131,6 +134,7 @@ void Collar::onSetup()
     delay(100);
     Serial.println("Setup collar...");
 
+
     mScreen->setup();
 
     mGPS->setup();
@@ -138,6 +142,8 @@ void Collar::onSetup()
     mBtnMain->setup();
 
     mLed->setup(PIN_LED_MAIN);
+
+    mBattery->setup();
 
 #ifndef ONPC
     attachInterrupt(
@@ -149,6 +155,10 @@ void Collar::onSetup()
 #else
     LoraDevSim::onSetup();
 #endif
+
+    mSetupMillis = millis();
+
+    Serial.println("Setup collar finished.");
 
     mStage = Stage::Init;
 }
@@ -165,11 +175,6 @@ void Collar::sleep()
 
     esp_deep_sleep_start();
 #endif
-}
-
-int Collar::batteryLevel()
-{
-    return 60;
 }
 
 int Collar::rssi()
@@ -219,6 +224,14 @@ int Collar::signalStrength()
     return std::clamp(finalPercent, 0, 100);
 }
 
+String Collar::batteryInfo()
+{
+    return String(mBattery->level())
+           + "," + mBattery->voltage()
+           + "V" + ","
+           + (mBattery->isPresent() ? "yes" : "no");
+}
+
 
 void Collar::updateScreenLoading(bool isFlush)
 {
@@ -259,28 +272,51 @@ void Collar::updateScreenNormal(bool isFlush)
     mScreen->drawArray( c.x2 + 2*FONT_CX, 4, 12, 12, isMale ? male_12x12 : female_12x12);
 
     // Draw satellite icon
-    mScreen->drawArray( 2, 24, 24, 24, satellite_24x24);
+    if( !satellites() ) {
+        mScreen->drawArray( 2, 24, 24, 24, satellite_no_24x24);
+    }else {
 
-    GeoPoint pos = readGPS();
-    // printGPS();
+        mScreen->drawArray( 2, 24, 24, 24, satellite_24x24);
 
-    // Draw GPS position
-    String lat (pos.mLat, 10);
-    String lon (pos.mLon, 10);
-    mScreen->drawTextTable( 1, 3, lat, 24, 2 );
-    mScreen->drawTextTable( 1, 4, lon, 24, 2 );
+        GeoPoint pos = readGPS();
+        // printGPS();
+
+        // Draw GPS position
+        String lat (pos.mLat, 10);
+        String lon (pos.mLon, 10);
+        mScreen->drawTextTable( 1, 3, lat, 24, 2 );
+        mScreen->drawTextTable( 1, 4, lon, 24, 2 );
+    }
 
     // Draw Lorawan icon
     mScreen->drawArray( 2, 48, 12, 12, lora_12x12);
     String tower(String(signalStrength()) + "%");
     mScreen->drawTextTable( 3, 5, tower, 0, 2 );
 
-    // Draw battery icon
-    mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 1, 24, 12, battery_60_24x12);
 
-    // Draw battery level
-    String batstr = String(batteryLevel()) + "%";
-    mScreen->drawTextTable( 13, 5, batstr, 0, 2 );
+    if( mBattery->isPresent() ) {
+        // Draw battery icon
+        int batLevel20 = mBattery->level() / 20;
+
+        uint8_t* iconArray = nullptr;
+        switch(batLevel20) {
+        case 0:  iconArray = battery_0_24x12; break;
+        case 20: iconArray = battery_20_24x12; break;
+        case 40: iconArray = battery_40_24x12; break;
+        case 60: iconArray = battery_60_24x12; break;
+        case 80: iconArray = battery_80_24x12; break;
+        default: iconArray = battery_100_24x12; break;
+        }
+
+        mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 1, 24, 12, iconArray );
+
+        // Draw battery level
+        String batstr = String(mBattery->level()) + "%";
+        mScreen->drawTextTable( 13, 5, batstr, 0, 2 );
+    }else {
+        // Draw battery icon
+        mScreen->drawArray( 3*FONT_CX + 32, 4*FONT_CY + 1, 24, 12, battery_no_24x12);
+    }
 
     if( isFlush ) {
         mScreen->flush();
@@ -306,15 +342,20 @@ void Collar::onUpdate()
     }
 
     if( Stage::Init == mStage) {
-        Serial.println("Initializing collar...");
         updateScreenLoading();
-        mStage = Stage::Operate;
-        mAwakeningMillisScreen = msec;
+
+        // Wait loading interval
+        if( SCREEN_LOADING_MSEC < (msec - mSetupMillis)  ) {
+            mStage = Stage::Operate;
+            mAwakeningMillisScreen = msec;
+        }
     }
 
     if( Stage::Operate != mStage ) {
         return;
     }
+
+    mBattery->update();
 
     mSerialCmd->update();
 
@@ -329,6 +370,8 @@ void Collar::onUpdate()
 
     mGPS->onUpdate();
 
+    updateScreenNormal();
+
     if( mGPS->isConnection() )
     {
         if( mGPS->isReady() )
@@ -338,7 +381,6 @@ void Collar::onUpdate()
                 mIsSignal = true;
             }
 
-            updateScreenNormal();
             updateTrajectory(mGPS->pos());
             mLed->updateOn(1600, 1600);
         }else {

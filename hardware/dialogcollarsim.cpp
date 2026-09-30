@@ -460,3 +460,9 @@ void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
     qWarning() << log;
 }
 
+
+void DialogCollarSim::on_btnClear_clicked()
+{
+    ui->editResponce->clear();
+}
+

@@ -73,6 +73,13 @@ int analogRead(byte pin)
     return Pins[pin].mValue * 1024;
 }
 
+int analogReadMilliVolts(byte pin)
+{
+    SIM_CHECK_PIN_RANGE(pin);
+    return Pins[pin].mValue;
+}
+
+
 void analogWrite(byte pin, int val)
 {
     SIM_CHECK_PIN_RANGE(pin);
@@ -462,3 +469,7 @@ void TinyGPSPlus::onReady()
 }
 
 
+int constrain(int val, int minval, int maxval)
+{
+    return val < minval ? minval : (val > maxval ? maxval : val);
+}

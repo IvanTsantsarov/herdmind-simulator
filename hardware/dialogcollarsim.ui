@@ -577,6 +577,20 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="btnClear">
+         <property name="toolTip">
+          <string>Clear output</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/cross.svg</normaloff>:/cross.svg</iconset>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>

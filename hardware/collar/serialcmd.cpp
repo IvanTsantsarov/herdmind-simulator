@@ -222,7 +222,7 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::BAT:
-        Serial.println( mCollar->batteryLevel() );
+        Serial.println( mCollar->batteryInfo() );
         break;
 
     case Cmd::Type::RSSI:

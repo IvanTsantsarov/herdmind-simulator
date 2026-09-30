@@ -95,6 +95,8 @@ private slots:
 
     void on_btnGenEui_clicked();
 
+    void on_btnClear_clicked();
+
 private:
     Ui::DialogCollarSim *ui;
 };

@@ -35,6 +35,7 @@ SOURCES += \
     dialoginitial.cpp \
     dialogsettings.cpp \
     grpc.cpp \
+    hardware/collar//battery.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/bolus/loradev_bolus.cpp \
@@ -81,6 +82,7 @@ HEADERS += \
     dialogsettings.h \
     grpc.h \
     hardware/arduino.h \
+    hardware/collar/battery.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
@@ -145,9 +147,15 @@ DISTFILES += \
     res/battery_40.png \
     res/battery_60.png \
     res/battery_80.png \
+    res/battery_no.pixil \
+    res/battery_no.png \
     res/environment.ini \
     res/lora.png \
     res/satellite.pixil \
+    res/satellite_no.pixil \
+    res/satellite_no.png \
+    res/sattelite_no.pixil \
+    res/sattelite_no.png \
     res/settings.ini \
     res/settings_external.ini \
     res/tower.pixil \

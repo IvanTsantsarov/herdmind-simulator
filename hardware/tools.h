@@ -58,6 +58,8 @@ void digitalWrite(byte pin, bool val );
 int analogRead(byte pin );
 void analogWrite(byte pin, int val );
 
+int analogReadMilliVolts(byte pin);
+
 void pinMode(byte pin, byte type);
 int digitalPinToInterrupt(int pin);
 
@@ -352,3 +354,9 @@ private slots:
 
 extern WireSim Wire;
 
+
+#define ADC_11db 0
+inline void analogReadResolution(int res) {}
+inline void analogSetAttenuation(int arg){}
+
+int constrain(int val, int minval, int maxval);

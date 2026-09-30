@@ -428,3 +428,16 @@ printf("%s", buffer);
 //sendToSerial("eui 1234567890123456");
 //sendToSerial("nkey 12345678901234567890123456789012");
 //sendToSerial("akey 12345678901234567890123456789012");
+
+
+
+// GPIO37 must be HIGH before reading GPIO1.
+digitalWrite(BAT_CTRL_PIN, HIGH);
+
+// Give the divider/ADC a little time to settle.
+delay(10);
+
+int raw = analogRead(1);
+int mv = analogReadMilliVolts(1);
+
+Serial.println( String("Battery setup:raw=") + raw + "adc=" + mv + "mV\n" );
