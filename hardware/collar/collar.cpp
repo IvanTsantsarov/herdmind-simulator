@@ -301,10 +301,10 @@ void Collar::updateScreenNormal(bool isFlush)
         uint8_t* iconArray = nullptr;
         switch(batLevel20) {
         case 0:  iconArray = battery_0_24x12; break;
-        case 20: iconArray = battery_20_24x12; break;
-        case 40: iconArray = battery_40_24x12; break;
-        case 60: iconArray = battery_60_24x12; break;
-        case 80: iconArray = battery_80_24x12; break;
+        case 1: iconArray = battery_20_24x12; break;
+        case 2: iconArray = battery_40_24x12; break;
+        case 3: iconArray = battery_60_24x12; break;
+        case 4: iconArray = battery_80_24x12; break;
         default: iconArray = battery_100_24x12; break;
         }
 

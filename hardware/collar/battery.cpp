@@ -45,4 +45,7 @@ void Battery::update()
         ((mVoltage - 3.2f) / (4.2f - 3.2f)) * 100.0f;
 
     mPercentage = constrain(batteryPercentage, 0.0f, 100.0f);
+
+    //mPercentage = 55; // trash
+    //mIsPresent = true; // trash
 }
