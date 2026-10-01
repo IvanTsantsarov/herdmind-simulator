@@ -11,12 +11,6 @@
 
 #include "../arduino.h"
 
-// interval for reading the sensors
-#define COLLAR_UPDATE_INTERVAL 100
-
-// interval for sending data to collars/gateways
-#define COLLAR_SEND_INTERVAL 100
-
 #define COLLAR_MAX_GPS_POINTS 500
 
 class GPS;
@@ -25,6 +19,7 @@ class Button;
 class Led;
 class SerialCmd;
 class Battery;
+class Memory;
 
 #ifdef ONPC
     #include <QPointF>
@@ -58,7 +53,7 @@ class Collar : public LoraDevHW
     friend class DialogCollarSim;
     Animal* mAnimal;
 #else
-
+    uint32_t mDbgMsec = 0;
 #endif
 
 
@@ -68,6 +63,8 @@ class Collar : public LoraDevHW
     Led* mLed = nullptr;
     SerialCmd* mSerialCmd = nullptr;
     Battery* mBattery = nullptr;
+    Memory* mMemory = nullptr;
+
     uint16_t mSequence = 0;
     uint32_t mSetupMillis = 0;
     uint32_t mAwakeningMillisScreen = 0;
@@ -129,6 +126,7 @@ public:
     QByteArray readFromSerial();
 #else
     Collar();
+    String dbgStr();
 #endif
 
     ~Collar();
@@ -157,11 +155,16 @@ public:
     int snr();
 
     GeoPoint gps();
+    String gpsStr();
     int satellites();
 
     int signalStrength(); // RSSI
 
     String batteryInfo();
+
+    bool flash();
+    bool restore();
+
 };
 
 #ifndef ONPC

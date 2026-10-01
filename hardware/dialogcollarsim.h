@@ -15,6 +15,7 @@
 
 
 class Animal;
+class Collar;
 class QSerialPort;
 
 namespace Ui {
@@ -60,6 +61,10 @@ class DialogCollarSim : public QDialog
 
     void addResponce(const QString& txt, const QColor& c = RESPONCE_COLOR_NORMAL);
     QMap<QString, int> mRequests;
+
+    QStringList mCmds;
+
+    void processSerialInput();
 
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);

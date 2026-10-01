@@ -28,6 +28,7 @@ public:
 
         enum struct Type {
             NONE = 0,
+            DBG,
             HELP,
             RESTART,
             INFO,
@@ -40,7 +41,9 @@ public:
             SS,     // Get Signal Strength
             NKEY,   // Set/Get network key
             AKEY,   // Set/Get application key
-            ADDR    // Set/Get address
+            ADDR,    // Set/Get address
+            FLASH,    // Store in memory
+            RESTORE   // Restore from memory
 
         };
 

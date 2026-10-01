@@ -7,6 +7,15 @@
 #include "button.h"
 #include "led.h"
 #include "serialcmd.h"
+#include "memory.h"
+
+// interval for reading the sensors
+#define COLLAR_UPDATE_INTERVAL 100
+
+#define COLLAR_DBG_INTERVAL 2000
+
+// interval for sending data to collars/gateways
+#define COLLAR_SEND_INTERVAL 100
 
 #define SCREEN_AWAKE_MSEC_MAX 5000
 #define SCREEN_LOADING_MSEC 2000
@@ -90,6 +99,7 @@ void Collar::commonConstructor()
     mLed = new Led;
     mSerialCmd = new SerialCmd(this);
     mBattery = new Battery;
+    mMemory = new Memory;
 }
 
 
@@ -101,6 +111,7 @@ Collar::~Collar()
     delete mLed;
     delete mSerialCmd;
     delete mBattery;
+    delete mMemory;
 }
 
 #ifndef ONPC
@@ -108,6 +119,14 @@ bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
     gMainButtonDown = true;
 }
+
+String Collar::dbgStr()
+{
+    return String("dbg:gps=") + satellites() + "," + gpsStr() +
+           + "|bat=" + batteryInfo()
+           + "|btn=" + (gMainButtonDown ? "y":"n");
+}
+
 #endif
 
 
@@ -119,6 +138,7 @@ void Collar::onMainBtn() {
         }
         mScreen->wakeup();
         mScreen->flush();
+        Serial.println("Waking up screen...");
     }
     mAwakeningMillisScreen = millis();
 
@@ -133,7 +153,6 @@ void Collar::onSetup()
     Serial.begin(SERIAL_BAUDRATE);
     delay(100);
     Serial.println("Setup collar...");
-
 
     mScreen->setup();
 
@@ -196,6 +215,15 @@ GeoPoint Collar::gps()
     return mGPS->pos();
 }
 
+String Collar::gpsStr()
+{
+    GeoPoint pos = gps();
+    String lat (pos.mLat, 10);
+    String lon (pos.mLon, 10);
+    return lat + "," + lon;
+
+}
+
 int Collar::satellites()
 {
     if( !mGPS) {
@@ -226,12 +254,41 @@ int Collar::signalStrength()
 
 String Collar::batteryInfo()
 {
-    return String(mBattery->level())
-           + "," + mBattery->voltage()
-           + "V" + ","
-           + (mBattery->isPresent() ? "yes" : "no");
+    return String( String((mBattery->isPresent() ? "yes" : "no"))
+            + "," + mBattery->level())
+           + "%," + mBattery->voltage()
+           + "V";
 }
 
+bool Collar::flash()
+{
+    if( !mMemory->writeKey("akey", akey()) ) {
+        return false;
+    }
+
+    if( !mMemory->writeKey("nkey", nkey()) ) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Collar::restore()
+{
+    uint8_t key[LORA_KEY_LEN] = {0};
+
+    if( !mMemory->readKey("akey", key) ) {
+        return false;
+    }
+    setAKey(key);
+
+    if( !mMemory->readKey("nkey", key) ) {
+        return false;
+    }
+    setNKey(key);
+
+    return true;
+}
 
 void Collar::updateScreenLoading(bool isFlush)
 {
@@ -326,15 +383,23 @@ void Collar::updateScreenNormal(bool isFlush)
 
 void Collar::onUpdate()
 {
+    uint32_t msec = millis();
+
 #ifndef ONPC
     // after waking up
     if( gMainButtonDown ) {
         onMainBtn();
+        Serial.println(dbgStr());
         gMainButtonDown = false;
+        mDbgMsec = msec;
+    }else
+    if( COLLAR_DBG_INTERVAL < (msec - mDbgMsec) ) {
+        Serial.println(dbgStr());
+        mDbgMsec = msec;
     }
 #endif
 
-    uint32_t msec = millis();
+
 
 
     if( Stage::Sleep == mStage) {
@@ -342,7 +407,10 @@ void Collar::onUpdate()
     }
 
     if( Stage::Init == mStage) {
+
         updateScreenLoading();
+
+        restore();
 
         // Wait loading interval
         if( SCREEN_LOADING_MSEC < (msec - mSetupMillis)  ) {

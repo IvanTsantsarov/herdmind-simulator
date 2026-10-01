@@ -16,6 +16,16 @@ LoraDevHW::LoraDevHW() {
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
 }
 
+void LoraDevHW::setAKey(const uint8_t *key)
+{
+    memcpy(mAKey, key, LORA_KEY_LEN);
+}
+
+void LoraDevHW::setNKey(const uint8_t *key)
+{
+    memcpy(mNKey, key, LORA_KEY_LEN);
+}
+
 
 String LoraDevHW::toHex(uint8_t* a, int len)
 {

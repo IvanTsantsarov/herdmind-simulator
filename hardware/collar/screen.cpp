@@ -94,12 +94,16 @@ void Screen::flush()
 
 void Screen::sleep()
 {
-    mLib.setPowerSave(1);
-    mIsSleeping = true;
+    if( !mIsSleeping) {
+        mLib.setPowerSave(1);
+        mIsSleeping = true;
+    }
 }
 
 void Screen::wakeup()
 {
-    mLib.setPowerSave(0);
-    mIsSleeping = false;
+    if( mIsSleeping ) {
+        mLib.setPowerSave(0);
+        mIsSleeping = false;
+    }
 }

@@ -108,6 +108,7 @@ const char *SerialCmd::Cmd::typeStr()
 {
     switch(mT) {
     case Type::NONE: return "none";
+    case Type::DBG: return "dbg";
     case Type::HELP: return "help";
     case Type::RESTART: return "restart";
     case Type::INFO: return "info";
@@ -121,6 +122,7 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::NKEY: return "nkey";
     case Type::AKEY: return "akey";
     case Type::ADDR: return "addr";
+    case Type::FLASH: return "flash";
         break;
     }
 
@@ -149,6 +151,9 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 
     if( cmp("help") ) {
          mT = Type::HELP;
+    }else
+    if( cmp("dbg") ) {
+        mT = Type::DBG;
     }else
     if( cmp("restart") ) {
         mT = Type::RESTART;
@@ -182,6 +187,12 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
     }else
     if( cmp("addr") ) {
         mT = Type::ADDR;
+    }else
+    if( cmp("flash") ) {
+        mT = Type::FLASH;
+    }else
+    if( cmp("restore") ) {
+        mT = Type::RESTORE;
     }
 
     else {
@@ -196,11 +207,13 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 bool SerialCmd::execute()
 {
     String head = String(mCmd.typeStr()) + ":";
-
     Serial.print(head);
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
-        Serial.println( head + "Error:Empty command!" );
+        Serial.println( "Error:Empty command!" );
+        break;
+    case Cmd::Type::DBG:
+        // do nothing - it's sending constantly on COLLAR_DBG_INTERVAL
         break;
     case Cmd::Type::RESTART:
         mCollar->restart();
@@ -210,10 +223,7 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::GPS: {
-        GeoPoint pos = mCollar->gps();
-        String lat (pos.mLat, 10);
-        String lon (pos.mLon, 10);
-        Serial.println( lat + "," + lon );
+        Serial.println( mCollar->gpsStr() );
     }
     break;
 
@@ -241,10 +251,10 @@ bool SerialCmd::execute()
                 mErrStr = "Wrong netkey length";
                 return false;
             }
-            mCollar->setNKey(mArgument);
+            mCollar->setNKeyHex(mArgument);
             Serial.println("nkey ok");
         }else {
-            Serial.println(mCollar->nkeyStr());
+            Serial.println(mCollar->nkeyHex());
         }
         break;
 
@@ -254,10 +264,10 @@ bool SerialCmd::execute()
                 mErrStr = "Wrong AppKey lenght";
                 return false;
             }
-            mCollar->setAKey(mArgument);
+            mCollar->setAKeyHex(mArgument);
             Serial.println("akey ok");
         }else {
-            Serial.println(mCollar->akeyStr());
+            Serial.println(mCollar->akeyHex());
         }
         break;
 
@@ -267,10 +277,10 @@ bool SerialCmd::execute()
                 mErrStr = "Wrong EUI lenght";
                 return false;
             }
-            mCollar->setEui(mArgument);
+            mCollar->setEuiHex(mArgument);
             Serial.println("eui ok");
         }else {
-            Serial.println(mCollar->euiStr());
+            Serial.println(mCollar->euiHex());
         }
         break;
 
@@ -280,17 +290,34 @@ bool SerialCmd::execute()
         Serial.println("info: Common info");
         Serial.println("gps: Current geo position");
         Serial.println("sat: Count of available GPS sattelites");
-        Serial.println("bat: Battery level");
+        Serial.println("bat: Battery status");
         Serial.println("rssi: Received Signal Strenght Indicator in dB");
         Serial.println("snr: Signal to Noise Ratio in dB");
         Serial.println("ss: Signal Strength in percents");
         Serial.println("eui: Set/Get EUI of the LoraWAN module");
         Serial.println("nkey: Set/Get network key (only OTA supported)");
         Serial.println("akey: Set/Get app key (only OTA supported)");
+        Serial.println("flash: Flash values into peristent memory");
+        Serial.println("restore: Restore values from peristent memory");
         break;
 
     case Cmd::Type::ADDR:
         break;
+    case Cmd::Type::FLASH:
+        if( !mCollar->flash() ) {
+            Serial.println("Error flashing.");
+        }else {
+            Serial.println("Flashing done.");
+        }
+        break;
+    case Cmd::Type::RESTORE:
+        if( !mCollar->restore() ) {
+            Serial.println("Error restoring.");
+        }else {
+            Serial.println("Restoring done.");
+        }
+        break;
+
     }
 
     return true;

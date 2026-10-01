@@ -505,32 +505,42 @@ QString LoraDevSim::profileString()
 
 #endif
 
-const char *LoraDevSim::euiStr()
+const char *LoraDevSim::euiHex()
 {
     return mDevEUI.toHex().data();
 
 }
-const char *LoraDevSim::akeyStr()
+const char *LoraDevSim::akeyHex()
 {
     return mAppSKey.toHex().data();
 }
 
-const char *LoraDevSim::nkeyStr()
+const char *LoraDevSim::nkeyHex()
 {
     return mNwkSKey.toHex().data();
 }
 
-void LoraDevSim::setEui(const char *eui)
+void LoraDevSim::setAKey(const uint8_t *src)
+{
+    mAppSKey = QByteArray((const char*) src, LORA_KEY_LEN);
+}
+
+void LoraDevSim::setNKey(const uint8_t *src)
+{
+    mNwkSKey = QByteArray((const char*) src, LORA_KEY_LEN);
+}
+
+void LoraDevSim::setEuiHex(const char *eui)
 {
     mDevEUI = QByteArray::fromHex( QByteArray(eui, LORA_EUI_HEX_LEN) );
 }
 
-void LoraDevSim::setNKey(const char* key)
+void LoraDevSim::setNKeyHex(const char* key)
 {
-    mNwkSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_LEN) );
+    mNwkSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_HEX_LEN) );
 }
 
-void LoraDevSim::setAKey(const char* key)
+void LoraDevSim::setAKeyHex(const char* key)
 {
-    mAppSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_LEN) );
+    mAppSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_HEX_LEN) );
 }

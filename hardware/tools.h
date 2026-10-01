@@ -360,3 +360,20 @@ inline void analogReadResolution(int res) {}
 inline void analogSetAttenuation(int arg){}
 
 int constrain(int val, int minval, int maxval);
+
+
+class QSettings;
+
+class Preferences
+{
+    QSettings* mSettings = nullptr;
+public:
+    Preferences();
+    ~Preferences();
+    void begin(const char *name, bool readOnly = false, const char *partition_label = NULL);
+    void end();
+
+    size_t putBytes(const char* key, const void* buf, size_t len);
+    size_t getBytes(const char* key, void * buf, size_t maxLen);
+
+};

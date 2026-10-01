@@ -13,6 +13,8 @@
 #include "dialogcollarsim.h"
 #include "ui_dialogcollarsim.h"
 
+#define DLGCOLLARSIM_MAX_COMMAND_STRINGS 10
+
 uint32_t DialogCollarSim::mBaudrates[] =  {
     115200, 57600, 38400, 19200, 9600
 };
@@ -128,47 +130,8 @@ void DialogCollarSim::sendScreen(const Animal *from)
 
 void DialogCollarSim::update()
 {
-    auto fillOnResponce = [&](QString resp, const QString& cmd, QLineEdit* edit) {
-
-        resp = resp.trimmed();
-
-        if( resp.length() < (cmd.length() + 2) ) {
-            return;
-        }
-
-        QString head = QString("%1:").arg(cmd);
-
-        if( resp.left(head.length()) != head ) {
-            return;
-        }
-
-        if( mRequests.contains(cmd) )
-        {
-            mRequests[cmd]--;
-            if( !mRequests[cmd] ) {
-                mRequests.remove(cmd);
-            }
-        }else{
-            return;
-        }
-
-        QString val = resp.right(resp.length() - head.length());
-        edit->setText(val);
-    };
-
     if( !gMainWindow->isSimulation()) {
-        if( mPort.isOpen() ) {
-            if( mPort.bytesAvailable() ) {
-                QByteArray out = mPort.readLine();
-                QString resp = QString::fromLatin1(out);
-                addResponce(resp, RESPONCE_COLOR_RESPONCE);
-
-                fillOnResponce(resp, "eui", ui->editEui);
-                fillOnResponce(resp, "akey", ui->editAKey);
-                fillOnResponce(resp, "nkey", ui->editNKey);
-            }
-        }
-
+        processSerialInput();
         return;
     }else
     {
@@ -446,6 +409,7 @@ void DialogCollarSim::on_btnFlash_clicked()
 
     sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
     sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
+    sendToSerial("flash");
 }
 
 void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
@@ -466,3 +430,77 @@ void DialogCollarSim::on_btnClear_clicked()
     ui->editResponce->clear();
 }
 
+
+
+void DialogCollarSim::processSerialInput()
+{
+    auto fillOnResponce = [&](QString resp, const QString& cmd, QLineEdit* edit = nullptr) {
+
+        resp = resp.trimmed();
+
+        if( resp.length() < (cmd.length() + 2) ) {
+            return false;
+        }
+
+        QString head = QString("%1:").arg(cmd);
+
+        if( resp.left(head.length()) != head ) {
+            return false;
+        }
+
+        if( mRequests.contains(cmd) ) {
+            mRequests[cmd]--;
+            if( !mRequests[cmd] ) {
+                mRequests.remove(cmd);
+            }
+        }else{
+            return true;
+        }
+
+        QString val = resp.right(resp.length() - head.length());
+        if( edit ) {
+            edit->setText(val);
+        } else {
+            QStringList params = val.split("|");
+            for(QString param : params) {
+                QStringList pair = param.split('=');
+                if( pair.first() == "gps") {
+
+                }else
+                if( pair.first() == "bat") {
+                }else
+                if( pair.first() == "btn") {
+                    on_btnMain_pressed();
+                }
+            }
+        }
+        return true;
+    };
+
+
+    if( mPort.isOpen() ) {
+        if( mPort.bytesAvailable() ) {
+            QByteArray out = mPort.readLine();
+            QString resp = QString::fromLatin1(out);
+
+            if( fillOnResponce(resp, "dbg") ) {
+                return;
+            }else {
+                addResponce(resp, RESPONCE_COLOR_RESPONCE);
+            }
+
+            if( fillOnResponce(resp, "eui", ui->editEui) ) {
+                return;
+            }
+
+            if( fillOnResponce(resp, "akey", ui->editAKey) ) {
+                return;
+            }
+
+            if( fillOnResponce(resp, "nkey", ui->editNKey) ) {
+                return;
+            }
+
+        }
+    }
+}

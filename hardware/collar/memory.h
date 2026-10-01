@@ -11,11 +11,10 @@ class Memory
     int mBufferLen = 0;
 public:
     Memory();
-    void readBegin();
-    void writeBegin();
-    char* read(const char* name);
-    void write(const char *name, const String& val);
-    void end();
+    size_t read(const char* name, char *dst, size_t maxLen);
+    size_t write(const char *name, const char *val, size_t len);
+    bool readKey(const char* name, uint8_t* dst);
+    bool writeKey(const char* name, const uint8_t *src);
 };
 
 #endif // MEMORY_H

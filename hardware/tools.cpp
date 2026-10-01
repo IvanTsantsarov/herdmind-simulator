@@ -473,3 +473,43 @@ int constrain(int val, int minval, int maxval)
 {
     return val < minval ? minval : (val > maxval ? maxval : val);
 }
+
+#define MEM_FILE_NAME "memory.ini"
+
+Preferences::Preferences()
+{
+    mSettings = new QSettings(MEM_FILE_NAME, QSettings::IniFormat);
+}
+
+Preferences::~Preferences()
+{
+    delete mSettings;
+}
+
+void Preferences::begin(const char *name, bool readOnly, const char *partition_label)
+{
+    (void) readOnly;
+    (void) partition_label;
+    mSettings->beginGroup(name);
+}
+
+void Preferences::end()
+{
+    mSettings->endGroup();
+}
+
+size_t Preferences::putBytes(const char *key, const void *buf, size_t len)
+{
+    QByteArray ba((const char*)buf, len);
+    mSettings->setValue(key, ba.toHex());
+    return len;
+}
+
+
+ size_t Preferences::getBytes(const char* key, void* value, size_t maxLen)
+{
+    QByteArray ba = QByteArray::fromHex( mSettings->value(key).toByteArray() );
+    memcpy(value, ba.data(), maxLen);
+    return ba.length();
+}
+

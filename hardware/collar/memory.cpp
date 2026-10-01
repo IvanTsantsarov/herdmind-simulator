@@ -1,38 +1,42 @@
 #include "memory.h"
+#include "defines.h"
 
+#ifndef ONPC
+    #include <Preferences.h>
+#endif
 
+Preferences gMem;
+
+#define MEMORY_SECTION "Main"
 
 Memory::Memory()
 {
-
 }
 
-void Memory::readBegin()
+size_t Memory::read(const char* name, char* dst, size_t maxLen)
 {
-
+    gMem.begin( MEMORY_SECTION, true );
+    size_t sz = gMem.getBytes( name, dst, maxLen );
+    gMem.end();
+    return sz;
 }
 
-void Memory::writeBegin()
+size_t Memory::write(const char* name, const char* val, size_t len)
 {
-
+    gMem.begin( MEMORY_SECTION, false );
+    size_t sz = gMem.putBytes( name, val, len );
+    gMem.end();
+    return sz;
 }
 
-
-char* Memory::read(const char* name)
+bool Memory::readKey(const char *name, uint8_t *dst)
 {
-    return mBuffer;
+    return LORA_KEY_LEN == read(name, (char*)dst, LORA_KEY_LEN);
 }
 
-
-
-void Memory::write(const char* name, const String &val)
+bool Memory::writeKey(const char *name, const uint8_t *src)
 {
-
-}
-
-void Memory::end()
-{
-
+    return LORA_KEY_LEN == write( name, (const char*) src, LORA_KEY_LEN);
 }
 
 

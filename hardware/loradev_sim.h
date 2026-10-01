@@ -83,19 +83,23 @@ protected:
 
 public:
     inline QByteArray eui(){ return mDevEUI; };
-    const char* euiStr();;
+    const char* euiHex();;
     inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
     QString profileString();
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
-    const char* akeyStr();
-    const char* nkeyStr();
+    const char* akeyHex();
+    const char* nkeyHex();
+    inline uint8_t* akey(){ return (uint8_t*)mAppSKey.data(); }
+    inline uint8_t* nkey(){ return (uint8_t*)mNwkSKey.data(); }
+    void setAKey(const uint8_t *src);
+    void setNKey(const uint8_t *src);
 
-    void setEui(const char* eui);
-    void setNKey(const char *key);
-    void setAKey(const char *key);
+    void setEuiHex(const char* eui);
+    void setNKeyHex(const char *key);
+    void setAKeyHex(const char *key);
 
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
