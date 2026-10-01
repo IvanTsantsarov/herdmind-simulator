@@ -24,28 +24,23 @@ void Battery::setup()
 
 void Battery::update()
 {
-    // GPIO37 must be HIGH before reading GPIO1.
+    // Enable battery voltage measurement
     digitalWrite(BAT_CTRL_PIN, HIGH);
-
-    // Give the divider/ADC a little time to settle.
     delay(10);
 
-    const int rawAdc = analogRead(BAT_READ_PIN);
+    const uint32_t adc_mV = analogReadMilliVolts(BAT_READ_PIN);
 
-    // 390k / 100k divider:
-    //
-    // Vadc = Vbat * 100 / (390 + 100)
-    // Vbat = Vadc * 4.9
-    //
-    mVoltage = (rawAdc / 4095.0f) * 3.3f * 4.9f;
+    // 390k / 100k divider => 4.9x
+    mVoltage = adc_mV * 4.9f / 1000.0f;
 
-    mIsPresent = (mVoltage > 1.0f && mVoltage < 4.35f);
+    // A connected Li-ion battery should be several volts.
+    mIsPresent = mVoltage >= 2.5f;
 
-    const float batteryPercentage =
-        ((mVoltage - 3.2f) / (4.2f - 3.2f)) * 100.0f;
+    const float percentage =
+        (mVoltage - 3.2f) / (4.2f - 3.2f) * 100.0f;
 
-    mPercentage = constrain(batteryPercentage, 0.0f, 100.0f);
+    mPercentage = constrain(percentage, 0.0f, 100.0f);
 
-    //mPercentage = 55; // trash
-    //mIsPresent = true; // trash
+    // Disable the measurement circuit when finished.
+    digitalWrite(BAT_CTRL_PIN, LOW);
 }

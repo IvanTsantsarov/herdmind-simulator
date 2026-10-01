@@ -441,3 +441,11 @@ int raw = analogRead(1);
 int mv = analogReadMilliVolts(1);
 
 Serial.println( String("Battery setup:raw=") + raw + "adc=" + mv + "mV\n" );
+
+
+
+DBG( mScreen->isSleeping()? "Currently sleeping" : "Currently awake" );
+DBG( msec );
+DBG( mAwakeningMillisScreen );
+DBG( msecAwakenScreen );
+DBG("SCR TIME TO SLEEP");

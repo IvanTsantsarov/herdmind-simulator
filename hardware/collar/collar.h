@@ -53,9 +53,10 @@ class Collar : public LoraDevHW
     friend class DialogCollarSim;
     Animal* mAnimal;
 #else
-    uint32_t mDbgMsec = 0;
+    int64_t mDbgMsec = 0;
 #endif
 
+    bool mIsDbgInfo = false;
 
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
@@ -66,11 +67,11 @@ class Collar : public LoraDevHW
     Memory* mMemory = nullptr;
 
     uint16_t mSequence = 0;
-    uint32_t mSetupMillis = 0;
-    uint32_t mAwakeningMillisScreen = 0;
+    int64_t mSetupMillis = 0;
+    int64_t mAwakeningMillisScreen = 0;
 
 
-    bool mIsSignal = false;
+    bool mIsSignalGPS = false;
     GeoPoint readGPS();
     void printGPS();
     GeoPoint mLastGeoPos;
@@ -126,8 +127,9 @@ public:
     QByteArray readFromSerial();
 #else
     Collar();
-    String dbgStr();
+    void sendDbg();
 #endif
+
 
     ~Collar();
 
@@ -164,6 +166,9 @@ public:
 
     bool flash();
     bool restore();
+
+    inline void setDebugInfo(bool is){ mIsDbgInfo = is; };
+    bool toggleDebugInfo(){ mIsDbgInfo = !mIsDbgInfo; return mIsDbgInfo; };
 
 };
 

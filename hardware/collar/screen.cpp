@@ -97,6 +97,7 @@ void Screen::sleep()
     if( !mIsSleeping) {
         mLib.setPowerSave(1);
         mIsSleeping = true;
+        // DBG("SCR SLEEP");
     }
 }
 
@@ -105,5 +106,6 @@ void Screen::wakeup()
     if( mIsSleeping ) {
         mLib.setPowerSave(0);
         mIsSleeping = false;
+        // DBG("SCR WAKE");
     }
 }

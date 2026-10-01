@@ -123,7 +123,7 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::AKEY: return "akey";
     case Type::ADDR: return "addr";
     case Type::FLASH: return "flash";
-        break;
+    case Type::RESTORE: return "restore";
     }
 
     return "";
@@ -213,7 +213,7 @@ bool SerialCmd::execute()
         Serial.println( "Error:Empty command!" );
         break;
     case Cmd::Type::DBG:
-        // do nothing - it's sending constantly on COLLAR_DBG_INTERVAL
+        Serial.println(String("Debug info ") + (mCollar->toggleDebugInfo() ? "ON" : "OFF"));
         break;
     case Cmd::Type::RESTART:
         mCollar->restart();

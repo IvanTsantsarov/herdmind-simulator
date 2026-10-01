@@ -120,30 +120,24 @@ void gMainButtonInterrupt() {
     gMainButtonDown = true;
 }
 
-String Collar::dbgStr()
+void Collar::sendDbg()
 {
-    return String("dbg:gps=") + satellites() + "," + gpsStr() +
-           + "|bat=" + batteryInfo()
-           + "|btn=" + (gMainButtonDown ? "y":"n");
+    if( !mIsDbgInfo ) {
+        return;
+    }
+
+    String dbgStr = String("dbg:gps=") + satellites() + "," + gpsStr() +
+                    + "|bat=" + batteryInfo()
+                    + "|btn=" + (gMainButtonDown ? "y":"n");
+
+    Serial.println(dbgStr);
 }
 
 #endif
 
 
-void Collar::onMainBtn() {
-    mBtnMain->update();
-    if( mScreen->isSleeping() ) {
-        if( !mIsSignal) {
-            updateScreenNormal(false);
-        }
-        mScreen->wakeup();
-        mScreen->flush();
-        Serial.println("Waking up screen...");
-    }
-    mAwakeningMillisScreen = millis();
 
-    DBG("Main button press!");
-}
+
 
 
 void Collar::onSetup()
@@ -380,27 +374,39 @@ void Collar::updateScreenNormal(bool isFlush)
     }
 }
 
+void Collar::onMainBtn() {
+    mBtnMain->update();
+    if( mScreen->isSleeping() ) {
+        if( !mIsSignalGPS) {
+            updateScreenNormal(false);
+        }
+        mScreen->wakeup();
+        mScreen->flush();
+        Serial.println("Waking up screen...");
+    }
+    mAwakeningMillisScreen = millis();
+
+    DBG("Main button press!");
+}
+
 
 void Collar::onUpdate()
 {
-    uint32_t msec = millis();
+    int64_t msec = millis();
 
 #ifndef ONPC
     // after waking up
     if( gMainButtonDown ) {
         onMainBtn();
-        Serial.println(dbgStr());
+        sendDbg();
         gMainButtonDown = false;
         mDbgMsec = msec;
     }else
     if( COLLAR_DBG_INTERVAL < (msec - mDbgMsec) ) {
-        Serial.println(dbgStr());
+        sendDbg();
         mDbgMsec = msec;
     }
 #endif
-
-
-
 
     if( Stage::Sleep == mStage) {
         return;
@@ -428,9 +434,11 @@ void Collar::onUpdate()
     mSerialCmd->update();
 
     // Check screen if it's time to sleep
-    uint32_t msecAwakenScreen = msec - mAwakeningMillisScreen;
-    if( msecAwakenScreen > SCREEN_AWAKE_MSEC_MAX ) {
+    uint32_t msecAwakenScreen = millis() - mAwakeningMillisScreen;
+    if( !mScreen->isSleeping() && (msecAwakenScreen > SCREEN_AWAKE_MSEC_MAX) ) {
+
         mScreen->sleep();
+
 #ifdef ONPC
         mScreen->flush();
 #endif
@@ -444,9 +452,9 @@ void Collar::onUpdate()
     {
         if( mGPS->isReady() )
         {
-            if( !mIsSignal ) {
-                DBG( String("GPS signal arrived in ") + millis() + " msec" );
-                mIsSignal = true;
+            if( !mIsSignalGPS ) {
+                DBG( String("GPS signal arrived in ") + msec + " msec" );
+                mIsSignalGPS = true;
             }
 
             updateTrajectory(mGPS->pos());
@@ -459,8 +467,6 @@ void Collar::onUpdate()
         // Serial.print(".");
         mLed->updateOn(100, 500);
     }
-
-
 
 #ifndef ONPC
     delay(100);
