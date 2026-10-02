@@ -110,7 +110,7 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::NONE: return "none";
     case Type::DBG: return "dbg";
     case Type::HELP: return "help";
-    case Type::RESTART: return "restart";
+    case Type::RESET: return "reset";
     case Type::INFO: return "info";
     case Type::EUI: return "eui";
     case Type::GPS: return "gps";
@@ -156,7 +156,7 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
         mT = Type::DBG;
     }else
     if( cmp("restart") ) {
-        mT = Type::RESTART;
+        mT = Type::RESET;
     }else
     if( cmp("info") ) {
         mT = Type::INFO;
@@ -215,7 +215,7 @@ bool SerialCmd::execute()
     case Cmd::Type::DBG:
         Serial.println(String("Debug info ") + (mCollar->toggleDebugInfo() ? "ON" : "OFF"));
         break;
-    case Cmd::Type::RESTART:
+    case Cmd::Type::RESET:
         mCollar->restart();
         break;
     case Cmd::Type::INFO:
@@ -285,7 +285,7 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::HELP:
-        Serial.println("restart: Restarts the ESP32");
+        Serial.println("reset: Restarts the ESP32");
         Serial.println("help: This help");
         Serial.println("info: Common info");
         Serial.println("gps: Current geo position");

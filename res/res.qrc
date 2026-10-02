@@ -37,5 +37,7 @@
         <file>check.svg</file>
         <file>tower.png</file>
         <file>satellite.png</file>
+        <file>flash.svg</file>
+        <file>reload.svg</file>
     </qresource>
 </RCC>

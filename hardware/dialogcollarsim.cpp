@@ -74,6 +74,10 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
 
         connect(&mPort, &QSerialPort::errorOccurred, this, &DialogCollarSim::on_serialPortError);
     }
+
+
+    // Hide for now LEDs
+    ui->groupLEDs->setVisible(false);
 }
 
 void DialogCollarSim::init(QList<Animal *> animals)
@@ -155,8 +159,10 @@ void DialogCollarSim::update()
 
 void DialogCollarSim::on_comboAnimals_currentIndexChanged(int index)
 {
+    ui->btnStore->setEnabled(index >= 0);
+
     mAnimal = nullptr;
-    if( index > 0 ) {
+    if( index < 0 ) {
         return;
     }
 
@@ -365,10 +371,13 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
 
     ui->editEui->setEnabled(checked);
     ui->btnGenEui->setEnabled(checked);
+    ui->btnCopyEui->setEnabled(checked);
     ui->editAKey->setEnabled(checked);
     ui->btnGenAKey->setEnabled(checked);
+    ui->btnCopyAKey->setEnabled(checked);
     ui->editNKey->setEnabled(checked);
     ui->btnGenNKey->setEnabled(checked);
+    ui->btnCopyAKey->setEnabled(checked);
     ui->btnFlash->setEnabled(checked);
     ui->comboPorts->setEnabled(!checked);
     ui->comboBaudrate->setEnabled(!checked);
@@ -504,3 +513,29 @@ void DialogCollarSim::processSerialInput()
         }
     }
 }
+
+void DialogCollarSim::on_btnReset_clicked()
+{
+    sendToSerial("reset");
+}
+
+void DialogCollarSim::on_btnCopyEui_clicked()
+{
+    SimTools::clipboardCopy(ui->editEui->text());
+    QToolTip::showText( QCursor::pos(), "EUI copied!");
+}
+
+
+void DialogCollarSim::on_btnCopyAKey_clicked()
+{
+    SimTools::clipboardCopy(ui->editAKey->text());
+    QToolTip::showText( QCursor::pos(), "AppKey copied!");
+}
+
+
+void DialogCollarSim::on_btnCopyNKey_clicked()
+{
+    SimTools::clipboardCopy(ui->editNKey->text());
+    QToolTip::showText( QCursor::pos(), "NwkKey copied!");
+}
+

@@ -4,7 +4,7 @@
 #include "mainwindow.h"
 #include "simtools.h"
 
-void MainWindow::initSimulation()
+void MainWindow::initGenerationUI()
 {
     // Generation parameters
     ui->doubleSpinAnimalSize->setValue(ANIMAL_LENGTH);

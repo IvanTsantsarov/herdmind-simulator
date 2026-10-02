@@ -81,7 +81,6 @@ private slots:
 
     void on_btnMain_pressed();
 
-
     void on_editSerialCmd_returnPressed();
 
     void on_editSerialCmd_textChanged(const QString &arg1);
@@ -101,6 +100,14 @@ private slots:
     void on_btnGenEui_clicked();
 
     void on_btnClear_clicked();
+
+    void on_btnReset_clicked();
+
+    void on_btnCopyEui_clicked();
+
+    void on_btnCopyAKey_clicked();
+
+    void on_btnCopyNKey_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

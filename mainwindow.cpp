@@ -38,6 +38,8 @@ MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget 
 
     ui->setupUi(this);
 
+    setWindowTitle(mIsSimulation ? "Herdmind Simulation" : "Herdmind real");
+
     ui->groupSimulation->setVisible(mIsSimulation);
     ui->btnAdd->setVisible(!mIsSimulation);
 
@@ -71,9 +73,7 @@ MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget 
             color: black;\
         }");
 
-    if( isSimulation() ){
-        initSimulation();
-    }
+    initGenerationUI();
 
     QObject::connect(&mUpdateTimer, &QTimer::timeout, this, &MainWindow::onUpdate );
     mUpdateTimer.start(HERD_UPDATE_INTERVAL);
@@ -501,6 +501,7 @@ void MainWindow::onSceneItemSelected()
     }
 }
 
+
 void MainWindow::onError(const QString &err)
 {
     setStatus(err);
@@ -798,3 +799,11 @@ void MainWindow::on_actionSettings_triggered()
     mDlgSettings->exec();
 }
 
+
+bool MainWindow::registerCollar(Animal *animal, const QString &euiHex, const QString &akeyHex, const QString &nkeyHex)
+{
+
+    mDevMsg->updateDevices();
+    syncDevices();
+    mHerd->storeAnimals();
+}

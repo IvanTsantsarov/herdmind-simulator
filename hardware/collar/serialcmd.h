@@ -30,7 +30,7 @@ public:
             NONE = 0,
             DBG,
             HELP,
-            RESTART,
+            RESET,
             INFO,
             EUI,
             GPS,    // Get current position

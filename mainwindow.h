@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "animal.h"
 #include <QMainWindow>
 #include <QSettings>
 #include <QElapsedTimer>
@@ -66,7 +67,7 @@ public:
 
     inline bool isSimulation(){ return mIsSimulation; }
 
-    void initSimulation();
+    void initGenerationUI();
 
     inline Herd* herd(){ return mHerd; }
     inline Meadow* meadow(){ return mMeadow; }
@@ -88,6 +89,8 @@ public:
     void infoMsgBox(const QString& msg);
     bool question(const QString& msg);
     void onSceneItemSelected();
+
+    bool registerCollar(Animal* animal, const QString& euiHex, const QString& akeyHex, const QString& nkeyHex);
 
 
 protected:
