@@ -61,6 +61,9 @@ class MainWindow : public QMainWindow
 
     bool syncDevices();
 
+    bool mCountPercentageRecalc = false;
+    bool mCountPercentageToggled = false;
+
 public:
     MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget *parent = nullptr);
     ~MainWindow();
@@ -126,6 +129,13 @@ private slots:
     // void on_btnClearCount_clicked();
     void on_actionDlgCollar_triggered();
     void on_actionSettings_triggered();
+    void on_spinFemalesCount_valueChanged(int);
+    void on_spinMalesCount_valueChanged(int);
+    void on_spinMalesPercentage_valueChanged(int);
+    void on_spinFemalesPercentage_valueChanged(int);
+    void on_radioAnimalsCount_toggled(bool checked);
+    void on_radioAnimalsPercentage_toggled(bool checked);
+    void on_spinAnimalsCount_valueChanged(int count);
 };
 
 extern MainWindow* gMainWindow;

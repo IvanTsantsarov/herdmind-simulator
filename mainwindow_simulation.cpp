@@ -7,10 +7,19 @@
 void MainWindow::initGenerationUI()
 {
     // Generation parameters
-    ui->doubleSpinAnimalSize->setValue(ANIMAL_LENGTH);
+
+
+    mCountPercentageRecalc = true;
     ui->spinAnimalsCount->setValue(INITIAL_ANIMALS_COUNT);
-    ui->doubleSpinArea->setValue(INITIAL_HERD_SPREAD);
+    ui->spinMalesPercentage->setValue(INITIAL_MALES_PERCENTAGE);
+    ui->spinFemalesPercentage->setValue(INITIAL_FEMALES_PERCENTAGE);
+    ui->spinMalesCount->setValue(INITIAL_MALES_COUNT);
+    ui->spinFemalesCount->setValue(INITIAL_FEMALES_COUNT);
+    mCountPercentageRecalc = false;
+
     ui->spinCollarsPercentage->setValue(INITIAL_COLLAR_PERCENTAGE);
+    ui->doubleSpinAnimalSize->setValue(ANIMAL_LENGTH);
+    ui->doubleSpinArea->setValue(INITIAL_HERD_SPREAD);
 
     // Simulation parameters
     ui->spinAttrPower->setValue(ANIMAL_ATTRACTION_POWER);

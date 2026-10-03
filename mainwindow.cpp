@@ -145,6 +145,9 @@ MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget 
     if( settings.value("GUI/isLoadLast").toBool() ) {
         create(true);
     }
+
+    ui->radioAnimalsCount->setChecked(!isSim);
+    ui->radioAnimalsPercentage->setChecked(isSim);
 }
 
 MainWindow::~MainWindow()
@@ -807,3 +810,139 @@ bool MainWindow::registerCollar(Animal *animal, const QString &euiHex, const QSt
     syncDevices();
     mHerd->storeAnimals();
 }
+
+void MainWindow::on_spinFemalesCount_valueChanged(int)
+{
+    if( mCountPercentageRecalc ) {
+        return;
+    }
+    int count = ui->spinAnimalsCount->value();
+    int fc = ui->spinFemalesCount->value();
+
+    if( fc > count) {
+        count = fc;
+        ui->spinAnimalsCount->setValue(count);
+    }
+
+
+    int mc = count - fc;
+    int fp = 100 * fc / count;
+    int mp = 100 - fp;
+    mCountPercentageRecalc = true;
+    ui->spinMalesCount->setValue(mc);
+    ui->spinMalesPercentage->setValue(mp);
+    ui->spinFemalesPercentage->setValue(fp);
+    mCountPercentageRecalc = false;
+}
+
+
+void MainWindow::on_spinMalesCount_valueChanged(int )
+{
+    if( mCountPercentageRecalc ) {
+        return;
+    }
+    int count = ui->spinAnimalsCount->value();
+    int mc = ui->spinMalesCount->value();
+
+    if( mc > count) {
+        count = mc;
+        ui->spinAnimalsCount->setValue(count);
+    }
+
+
+    int fc = count - mc;
+    int mp = 100 * mc / count;
+    int fp = 100 - mp;
+    mCountPercentageRecalc = true;
+    ui->spinFemalesCount->setValue(fc);
+    ui->spinFemalesPercentage->setValue(fp);
+    ui->spinMalesPercentage->setValue(mp);
+    mCountPercentageRecalc = false;
+}
+
+
+void MainWindow::on_spinMalesPercentage_valueChanged(int )
+{
+    if( mCountPercentageRecalc ) {
+        return;
+    }
+    int count = ui->spinAnimalsCount->value();
+    int mp = ui->spinMalesPercentage->value();
+    int fp = 100 - mp;
+    int mc = mp * count / 100;
+    int fc = count - mc;
+    mCountPercentageRecalc = true;
+    ui->spinFemalesPercentage->setValue(fp);
+    ui->spinFemalesCount->setValue(fc);
+    ui->spinMalesCount->setValue(mc);
+    mCountPercentageRecalc = false;
+}
+
+
+void MainWindow::on_spinFemalesPercentage_valueChanged(int )
+{
+    if( mCountPercentageRecalc ) {
+        return;
+    }
+    int count = ui->spinAnimalsCount->value();
+    int fp = ui->spinFemalesPercentage->value();
+    int mp = 100 - fp;
+    int fc = fp * count / 100;
+    int mc = count - fc;
+    mCountPercentageRecalc = true;
+    ui->spinMalesPercentage->setValue(mp);
+    ui->spinFemalesCount->setValue(fc);
+    ui->spinMalesCount->setValue(mc);
+    mCountPercentageRecalc = false;
+}
+
+void MainWindow::on_spinAnimalsCount_valueChanged(int count)
+{
+    if( mCountPercentageRecalc ) {
+        return;
+    }
+
+    int fp = ui->spinFemalesPercentage->value();
+    int mp = 100 - fp;
+    int fc = count * fp / 100;
+    int mc = count - fc;
+
+    mCountPercentageRecalc = true;
+    ui->spinMalesPercentage->setValue(mp);
+    ui->spinFemalesPercentage->setValue(fp);
+    ui->spinFemalesCount->setValue(fc);
+    ui->spinMalesCount->setValue(mc);
+    mCountPercentageRecalc = false;
+}
+
+
+void MainWindow::on_radioAnimalsCount_toggled(bool checked)
+{
+    if( mCountPercentageToggled ) {
+        return;
+    }
+
+    mCountPercentageToggled = true;
+    ui->spinMalesCount->setEnabled(checked);
+    ui->spinFemalesCount->setEnabled(checked);
+    ui->spinMalesPercentage->setEnabled(!checked);
+    ui->spinFemalesPercentage->setEnabled(!checked);
+    mCountPercentageToggled = false;
+}
+
+
+void MainWindow::on_radioAnimalsPercentage_toggled(bool checked)
+{
+    if( mCountPercentageToggled ) {
+        return;
+    }
+    mCountPercentageToggled = true;
+    ui->spinMalesCount->setEnabled(!checked);
+    ui->spinFemalesCount->setEnabled(!checked);
+    ui->spinMalesPercentage->setEnabled(checked);
+    ui->spinFemalesPercentage->setEnabled(checked);
+    mCountPercentageToggled = false;
+}
+
+
+
