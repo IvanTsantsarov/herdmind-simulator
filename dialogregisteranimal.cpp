@@ -105,7 +105,7 @@ void DialogRegisterAnimal::on_btnAdd_clicked()
     QListWidgetItem* item = new QListWidgetItem( (a->isMale() ? mMale : mFemale), a->name() );
     ui->listRegister->addItem( item );
 
-    mChanged = true;
+    mIsChange = true;
 }
 
 
@@ -132,7 +132,7 @@ void DialogRegisterAnimal::on_btnRemove_clicked()
     for( QListWidgetItem* i:items) {
         if( mHerd->removeAnimal(i->text()) ) {
             delete i;
-            mChanged = true;
+            mIsChange = true;
         }else {
             gMainWindow->errorMsgBox( QString("Error removing animal: %1").arg(i->text()));
         }
@@ -150,7 +150,7 @@ void DialogRegisterAnimal::on_listRegister_itemSelectionChanged()
 
 void DialogRegisterAnimal::on_btnCancel_clicked()
 {
-    if( mChanged ) {
+    if( mIsChange ) {
         if( QMessageBox::Yes != QMessageBox::question(this, "Close without register?", QString("You made changes in the herd. Do you want to close it without saving (registering)?")) ) {
             return;
         }

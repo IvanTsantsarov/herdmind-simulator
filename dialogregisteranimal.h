@@ -37,9 +37,6 @@ class DialogRegisterAnimal : public QDialog
     bool isRelay();
 
     bool mIsSugestingNames = false;
-    bool mChanged = false;
-
-
 
 public:
     explicit DialogRegisterAnimal(Herd *herd, QWidget *parent = nullptr);
