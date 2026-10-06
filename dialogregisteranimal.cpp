@@ -156,7 +156,6 @@ void DialogRegisterAnimal::on_btnCancel_clicked()
         }
     }
     close();
-    gMainWindow->reload();
 }
 
 
