@@ -54,7 +54,7 @@ QGeoCoordinate Animal::geoPos() const
 QList<int> Animal::namesIndices(bool isMale)
 {
     QList<int> indices;
-    int reservedCount = isMale ? MALE_NAMES_COUNT : FEMALE_NAMES_COUNT;
+    int reservedCount = isMale ? mMaleNames.count() : mFemaleNames.count();
     indices.reserve(reservedCount);
 
     for(auto i = 0; i < reservedCount; i ++ ) {

@@ -1,269 +1,185 @@
-#include "dialogregisterdevice.h"
-#include "ui_dialogregisterdevice.h"
+#include <QToolTip>
+#include <QMessageBox>
+#include <QCompleter>
+#include <QLineEdit>
+
+
+#include "dialogregisteranimal.h"
+#include "ui_dialogregisteranimal.h"
 
 
 #include "hardware/loradev_sim.h"
 //#include "hardware/loradev_def.h"
 //#include "hardware/gateway/gateway.h"
 //#include "hardware/hardware/tools.h"
+#include "mainwindow.h"
 #include "simtools.h"
 #include "herd.h"
 #include "animal.h"
-#include <QToolTip>
-#include <QMessageBox>
 
 #define COL_ERR QColor(255, 50, 50)
 #define COL_DONE QColor(50, 255, 50)
 
-void DialogRegisterDevice::updateExisting()
+void DialogRegisterAnimal::updateExisting()
 {
-    if( ui->comboHerd->count() < 1 ) {
-        ui->radioAnimalExisting->setEnabled(false);
-        ui->radioAnimalExisting->setChecked(false);
-        ui->radioAnimalNew->setChecked(true);
-        ui->comboHerd->setVisible(false);
-    }else {
-        ui->radioAnimalExisting->setEnabled(true);
-    }
 }
 
-void DialogRegisterDevice::clear()
+void DialogRegisterAnimal::clear()
 {
-    ui->editName->clear();
+    ui->comboName->lineEdit()->clear();
     // setStatus("", mStatusBackColor);
 }
 
 
-DialogRegisterDevice::DialogRegisterDevice(Herd* herd, QWidget *parent)
+DialogRegisterAnimal::DialogRegisterAnimal(Herd* herd, QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::DialogRegisterDevice)
+    , ui(new Ui::DialogRegisterAnimal)
 {
     ui->setupUi(this);
     mHerd = herd;
-
-    mNames = mHerd->names();
 
     mMale = QIcon("://male.svg");
     mFemale = QIcon("://female.svg");
     mMaleNew = QIcon("://male_new.svg");
     mFemaleNew = QIcon("://female_new.svg");
 
-    for( const QString& name: mNames) {
-        ui->comboHerd->addItem(name);
+    for( auto i = 0; i < mHerd->animalsCount(); i ++) {
+        Animal* a = mHerd->animal(i);
+        QListWidgetItem* item = new QListWidgetItem( (a->isMale() ? mMale : mFemale), a->name() );
+        ui->listRegister->addItem( item );
     }
+
+    QStringList ls = Animal::names(true) + Animal::names(false);
+    QCompleter *completer = new QCompleter(ls, ui->comboName);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    ui->comboName->setCompleter(completer);
 
     updateExisting();
 }
 
-DialogRegisterDevice::~DialogRegisterDevice()
+DialogRegisterAnimal::~DialogRegisterAnimal()
 {
     delete ui;
 }
 
 
-bool DialogRegisterDevice::isNew()
-{
-    return ui->radioAnimalNew->isChecked();
-}
 
-bool DialogRegisterDevice::isMale()
+bool DialogRegisterAnimal::isMale()
 {
     return ui->radioMale->isChecked();
 }
 
-LoraDevSim::Profile DialogRegisterDevice::profile()
-{
-    if( ui->radioTypeCollar->isChecked() ) {
-        return LoraDevSim::Profile::Collar;
-    }
-
-    if( ui->radioTypeBolus->isChecked() ) {
-        return LoraDevSim::Profile::Bolus;
-    }
-
-    return LoraDevSim::Profile::None;
-}
-
-void DialogRegisterDevice::on_btnClose_clicked()
+void DialogRegisterAnimal::on_btnClose_clicked()
 {
     close();
 }
 
 
-void DialogRegisterDevice::on_btnGenEUI_clicked()
+
+QString DialogRegisterAnimal::name()
 {
-    QByteArray ba = SimTools::genHex(EUI_BYTES_LEN);
-    ui->editEUI->setText(ba.toUpper());
+    return ui->comboName->currentText();
 }
 
 
-
-
-void DialogRegisterDevice::on_btnClearEUI_clicked()
-{
-    ui->editEUI->clear();
-}
-
-
-void DialogRegisterDevice::on_btnCopyEUI_clicked()
-{
-    SimTools::clipboardCopy(ui->editEUI->text());
-    QToolTip::showText( QCursor::pos(), "EUI copied!");
-}
-
-void DialogRegisterDevice::on_radioAnimalNew_toggled(bool checked)
-{
-    ui->editName->setVisible(checked);
-    ui->radioFemale->setVisible(checked);
-    ui->radioMale->setVisible(checked);
-
-    ui->comboHerd->setVisible(!checked);
-}
-
-
-bool DialogRegisterDevice::isCollar()
-{
-    return ui->radioTypeCollar->isChecked();
-}
-
-bool DialogRegisterDevice::isBolus()
-{
-    return ui->radioTypeBolus->isChecked();
-}
-
-bool DialogRegisterDevice::isRelay()
-{
-    return ui->radioTypeRelay->isChecked();
-}
-
-
-QString DialogRegisterDevice::name()
-{
-    return ui->editName->text();
-}
-
-QString DialogRegisterDevice::eui()
-{
-    return ui->editEUI->text();
-}
-
-void DialogRegisterDevice::on_btnAdd_clicked()
+void DialogRegisterAnimal::on_btnAdd_clicked()
 {
     if( name().isEmpty()) {
-        ui->editName->setFocus();
+        ui->comboName->setFocus();
         return;
     }
 
-    if( eui().isEmpty()) {
-        ui->editEUI->setFocus();
+    if( !ui->listRegister->findItems(name(), Qt::MatchExactly).empty() ) {
+        gMainWindow->errorMsgBox(QString("An animal with the name %1 already exists!").arg(name()));
         return;
     }
 
-    Record r;
-    r.mIsNew = isNew();
-    r.mName = name();
-    r.mEui = eui();
-    r.mProfile = profile();
-    r.mIsMale = isMale();
-    QString row = QString("%1 %2 %3")
-        .arg(r.mIsNew? "*": "")
-        .arg(r.mName)
-        .arg(r.mEui);
+    Animal* a = mHerd->newAnimal( ui->comboName->lineEdit()->text(), ui->radioMale->isChecked() ? true: false );
 
-
-    QIcon icon;
-    if( isMale() ) {
-        icon = isNew() ? mMaleNew : mMale;
-    }else {
-        icon = isNew() ? mFemaleNew : mFemale;
+    if( !a) {
+        gMainWindow->errorMsgBox(QString("Error adding animal %1").arg(name()));
+        return;
     }
 
-    QListWidgetItem* item = new QListWidgetItem( icon, row, ui->listRegister );
-    r.item = item;
 
-    mRecords.append(r);
+    QListWidgetItem* item = new QListWidgetItem( (a->isMale() ? mMale : mFemale), a->name() );
+    ui->listRegister->addItem( item );
 
-    ui->btnRemove->setEnabled(true);
-    ui->listRegister->setCurrentRow(mRecords.count() - 1);
+    mChanged = true;
 }
 
 
-void DialogRegisterDevice::on_btnRemove_clicked()
+void DialogRegisterAnimal::on_btnRemove_clicked()
 {
-    int current = ui->listRegister->currentRow();
-    if( current < 0) {
-        return;
-    }
-    QString txt = ui->listRegister->currentItem()->text();
-    if( QMessageBox::Yes != QMessageBox::question(this, "Remove device?", QString("Are you sure you want to remove:%1").arg(txt)) ) {
+    QList<QListWidgetItem*> items = ui->listRegister->selectedItems();
+    if( items.count() <= 0) {
         return;
     }
 
-    delete mRecords[current].item;
-    mRecords.removeAt(current);
+    QString names;
 
-    current--;
-    if( current < 0 ) {
-        current = 0;
+    for( QListWidgetItem* i:items) {
+        names.append(i->text());
+        names.append(", ");
     }
 
-    if( ui->listRegister->count() ) {
-        ui->listRegister->setCurrentRow(current);
-    }else {
-        ui->btnRemove->setEnabled(false);
+    names = names.left(names.length() - 2);
+
+    if( QMessageBox::Yes != QMessageBox::question(this, "Remove animals?", QString("Are you sure you want to remove:%1").arg(names)) ) {
+        return;
     }
-}
 
-
-// TODO:
-void DialogRegisterDevice::on_btnRegister_clicked()
-{
-    for( const Record& r: mRecords) {
-        Animal* animal = nullptr;
-        if( isNew() ) {
-            if( mNames.contains(r.mName) ){
-                qCritical() << QString("%1 already exists!").arg(r.mName);
-                return;
-            }
-
-            animal = mHerd->newAnimal(r.mName,
-                                      ui->radioMale->isChecked(),
-                                      isCollar() ? r.mEui : "",
-                                      isBolus() ? r.mEui : "" );
+    for( QListWidgetItem* i:items) {
+        if( mHerd->removeAnimal(i->text()) ) {
+            delete i;
+            mChanged = true;
         }else {
-
-            animal = mHerd->animal(r.mName);
-            if( !animal) {
-                qCritical() << QString("%1 already exists!").arg(name());
-                return;
-            }
-
-            if( isCollar() ) {
-                animal->putCollar(r.mEui.toUtf8().toBase64());
-            }else
-            if( isBolus() ) {
-                animal->putBolus(r.mEui.toUtf8().toBase64());
-            }else
-            if( isRelay() ) {
-
-            };
+            gMainWindow->errorMsgBox( QString("Error removing animal: %1").arg(i->text()));
         }
     }
 
-    mRecords.clear();
-    ui->listRegister->clear();
 
-    mIsChange = true;
 }
 
-void DialogRegisterDevice::on_btnCancel_clicked()
+void DialogRegisterAnimal::on_listRegister_itemSelectionChanged()
 {
-    if( mRecords.count()) {
-        if( QMessageBox::Yes != QMessageBox::question(this, "Close registration?", QString("Are you sure you want to cancel all devices (%1) from registration?").arg(mRecords.count())) ) {
+    QList<QListWidgetItem*> items = ui->listRegister->selectedItems();
+    ui->btnRemove->setEnabled(items.count());
+}
+
+
+void DialogRegisterAnimal::on_btnCancel_clicked()
+{
+    if( mChanged ) {
+        if( QMessageBox::Yes != QMessageBox::question(this, "Close without register?", QString("You made changes in the herd. Do you want to close it without saving (registering)?")) ) {
             return;
         }
     }
-
     close();
+    gMainWindow->reload();
+}
+
+
+void DialogRegisterAnimal::on_btnRegister_clicked()
+{
+    if( QMessageBox::Yes != QMessageBox::question(this, "Save changes?", QString("Are you sure you want to overwrite current herd?")) ) {
+        return;
+    }
+
+    mHerd->storeAnimals();
+    gMainWindow->reload();
+    mIsChange = false;
+}
+
+
+
+void DialogRegisterAnimal::on_comboName_editTextChanged(const QString &txt)
+{
+    if( Animal::names(true).indexOf(txt) >= 0 ) {
+        ui->radioMale->setChecked(true);
+    }else
+    if( Animal::names(false).indexOf(txt) >= 0 ) {
+        ui->radioFemale->setChecked(true);
+    }
 }
 

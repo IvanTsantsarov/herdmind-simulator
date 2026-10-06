@@ -64,8 +64,6 @@ Herd::~Herd()
 
 bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, float grazingCapacity )
 {
-    mIsSimulation = true;
-
     qDebug() << "Loading herd from" << jsonPath;
 
     float areaRadius = beforeGeneration( areaDimeter, animalSize);
@@ -144,8 +142,9 @@ bool Herd::generate(int count,
     mMalesCount = percentageMales * count;
     if( mMalesCount < 1 ) mMalesCount = 1;
 
-    if( mMalesCount > MALE_NAMES_COUNT) {
-        mMalesCount = MALE_NAMES_COUNT;
+    int maleNamesCount = Animal::names(true).count();
+    if( mMalesCount > maleNamesCount) {
+        mMalesCount = maleNamesCount;
     }
 
     // fill animals array
@@ -174,30 +173,31 @@ bool Herd::generate(int count,
         mAnimals.append(animal);
 
         // Put boluses only ot specified percentage
-        if( i < bollusesCount ) {
+        if( mIsSimulation && (i < bollusesCount) ) {
             animal->putBolus();
         }
 
         processCollision(animalSize * 2.0f);
     }
 
-    // fill animals with collar array
-    mCollars.reserve(collarsCount);
-    for( int i = 0; i < collarsCount; i ++) {
-        int indexCollar = Tools::rnd(0, count);
-        Animal* animal = mAnimals[indexCollar];
-        while(animal->hasCollar()) {
-            indexCollar ++;
-            if( indexCollar >= count) {
-                indexCollar = 0;
+    // generate collars only in simulation
+    if( mIsSimulation ) {
+        // fill animals with collar array
+        mCollars.reserve(collarsCount);
+        for( int i = 0; i < collarsCount; i ++) {
+            int indexCollar = Tools::rnd(0, count);
+            Animal* animal = mAnimals[indexCollar];
+            while(animal->hasCollar()) {
+                indexCollar ++;
+                if( indexCollar >= count) {
+                    indexCollar = 0;
+                }
+                animal = mAnimals[indexCollar];
             }
-            animal = mAnimals[indexCollar];
+            animal->putCollar();
+            mCollars.append(animal);
         }
-        animal->putCollar();
-        mCollars.append(animal);
     }
-
-    mIsSimulation = true;
 
     return true;
 }
@@ -351,16 +351,6 @@ QString Herd::jsonAnimalsList( bool isDevicesList )
     return result;
 }
 
-QStringList Herd::names()
-{
-    QStringList names(animalsCount());
-    for( auto i = 0; i < animalsCount(); i++) {
-        names.append(animal(i)->name());
-    }
-
-    return names;
-}
-
 bool Herd::storeAnimals(const QString& dir)
 {
     qDebug() << "Storing herd lists in:" << dir;
@@ -393,23 +383,37 @@ bool Herd::storeDevices(const QString& dir)
 }
 
 // TODO:
-Animal* Herd::newAnimal(const QString& name, bool isMale, const QString& collarEUI, const QString& bolusEUI)
+Animal* Herd::newAnimal(const QString& name, bool isMale)
 {
+    if( animal(name) ) {
+        return nullptr;
+    }
+
     int x = 0;
     int y = 0;
     float grazingCapacity = ANIMAL_INITIAL_GRAZING_CAPACITY;
     Animal* animal = new Animal(this, isMale, name, x, y, grazingCapacity);
     mAnimals.append(animal);
 
-    if( !collarEUI.isEmpty() ) {
-        animal->putCollar(collarEUI.toUtf8().toHex());
-    }
-
-    if( !bolusEUI.isEmpty() ) {
-        animal->putBolus(bolusEUI.toUtf8().toHex());
-    }
-
     return animal;
+}
+
+bool Herd::removeAnimal(const QString& name)
+{
+    Animal* a = animal(name);
+
+    if( !a ) {
+        return false;
+    }
+
+    int index = mAnimals.indexOf(a);
+    mAnimals.removeAt(index);
+    index = mCollars.indexOf(a);
+    if( index >= 0) {
+        mCollars.removeAt(index);
+    }
+
+    return true;
 }
 
 QList<Animal *> Herd::animalsWithCollars()

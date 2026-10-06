@@ -1,7 +1,7 @@
 #include <QString>
 #include "animal.h"
 
-const QString Animal::mFemaleNames[] = {
+const QStringList Animal::mFemaleNames = {
 "Абена",
 "Аблена",
 "Ава",
@@ -3187,7 +3187,7 @@ const QString Animal::mFemaleNames[] = {
 
 
 
-const QString Animal::mMaleNames[] = {
+const QStringList Animal::mMaleNames = {
 "Авитохол",
 "Ирник",
 "Гостун",

@@ -95,6 +95,8 @@ public:
 
     bool registerCollar(Animal* animal, const QString& euiHex, const QString& akeyHex, const QString& nkeyHex);
 
+    void reload();
+
 
 protected:
     void moveEvent(QMoveEvent *);

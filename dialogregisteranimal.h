@@ -1,5 +1,5 @@
-#ifndef DIALOGREGISTERDEVICE_H
-#define DIALOGREGISTERDEVICE_H
+#ifndef DIALOGREGISTERANIMAL_H
+#define DIALOGREGISTERANIMAL_H
 
 
 
@@ -12,23 +12,12 @@ class Herd;
 class QListWidgetItem;
 
 namespace Ui {
-class DialogRegisterDevice;
+class DialogRegisterAnimal;
 }
 
-class DialogRegisterDevice : public QDialog
+class DialogRegisterAnimal : public QDialog
 {
     Q_OBJECT
-
-    struct Record {
-        QString mName;
-        bool mIsNew = false;
-        bool mIsMale = false;
-        LoraDevSim::Profile mProfile;
-        QString mEui;
-        QListWidgetItem* item = nullptr;
-    };
-
-    QList<Record> mRecords;
 
     QIcon mMale, mFemale, mMaleNew, mFemaleNew;
 
@@ -39,18 +28,22 @@ class DialogRegisterDevice : public QDialog
     void clear();
     bool mIsChange = false;
 
-    bool isNew();
+
     bool isMale();
     QString name();
     QString eui();
-    LoraDevSim::Profile profile();
     bool isCollar();
     bool isBolus();
     bool isRelay();
 
+    bool mIsSugestingNames = false;
+    bool mChanged = false;
+
+
+
 public:
-    explicit DialogRegisterDevice(Herd *herd, QWidget *parent = nullptr);
-    ~DialogRegisterDevice();
+    explicit DialogRegisterAnimal(Herd *herd, QWidget *parent = nullptr);
+    ~DialogRegisterAnimal();
 
     bool devicesChanged(){ return mIsChange; }
 
@@ -58,26 +51,24 @@ private slots:
 
     void on_btnClose_clicked();
 
-    void on_btnGenEUI_clicked();
-
-    void on_btnClearEUI_clicked();
-
-    void on_btnCopyEUI_clicked();
-
-    void on_radioAnimalNew_toggled(bool checked);
-
-    void on_btnRegister_clicked();
-
     void on_btnAdd_clicked();
 
     void on_btnRemove_clicked();
 
     void on_btnCancel_clicked();
 
+    void on_listRegister_itemSelectionChanged();
+
+    void on_btnRegister_clicked();
+
+
+
+    void on_comboName_editTextChanged(const QString &arg1);
+
 private:
-    Ui::DialogRegisterDevice *ui;
+    Ui::DialogRegisterAnimal *ui;
 };
 
 
 
-#endif // DIALOGREGISTERDEVICE_H
+#endif // DIALOGREGISTERANIMAL_H

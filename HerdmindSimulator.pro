@@ -33,6 +33,7 @@ SOURCES += \
     dialogconsole.cpp \
     dialogdevicemsg.cpp \
     dialoginitial.cpp \
+    dialogregisteranimal.cpp \
     dialogsettings.cpp \
     grpc.cpp \
     hardware/collar//battery.cpp \
@@ -52,7 +53,6 @@ SOURCES += \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
-    dialogregisterdevice.cpp \
     hardware/loradev_sim.cpp \
     hardware/tools.cpp \
     herd.cpp \
@@ -79,6 +79,7 @@ HEADERS += \
     dialogconsole.h \
     dialogdevicemsg.h \
     dialoginitial.h \
+    dialogregisteranimal.h \
     dialogsettings.h \
     grpc.h \
     hardware/arduino.h \
@@ -108,7 +109,6 @@ HEADERS += \
     hardware/loradev_sim.h \
     hardware/protocol.h \
     hardware/tools.h \
-    dialogregisterdevice.h \
     herd.h \
     mainwindow.h \
     meadow.h \
@@ -124,8 +124,8 @@ FORMS += \
     dialogconsole.ui \
     dialogdevicemsg.ui \
     dialoginitial.ui \
+    dialogregisteranimal.ui \
     dialogsettings.ui \
-    dialogregisterdevice.ui \
     hardware/dialogcollarsim.ui \
     mainwindow.ui
 

@@ -13,7 +13,7 @@ class LoraDev;
 
 class Herd : public QObject
 {
-    bool mIsSimulation = true;
+    const bool mIsSimulation;
 public:
 
     class AnimalPair {
@@ -97,10 +97,10 @@ public:
 
     inline Animal* animal(int index){ return mAnimals[index]; }
     Animal* animal(const QString& name);
+    inline int animalsCount(){ return mAnimals.count(); }
+
     inline Meadow* meadow(){ return mMeadow; }
 
-
-    inline int animalsCount(){ return mAnimals.count(); }
     PairsListBC& pairs() { return mPairsBC; };
     inline int count(){ return mAnimals.count(); }
     int collarsCount(){ return mCollars.count(); }
@@ -114,9 +114,16 @@ public:
     bool storeDevices(const QString &dir = "./");
     bool storeAnimals(const QString &dir = "./");
 
-    QStringList names();
+    struct AnimalDesc {
+        QString mName;
+        bool mIsMale;
+        AnimalDesc(const QString name, bool isMale) {
+            mName = name; mIsMale = isMale;
+        }
+    };
 
-    Animal *newAnimal(const QString &name, bool isMale, const QString &CollarEUI, const QString &BolusEUI);
+    Animal *newAnimal(const QString &name, bool isMale);
+    bool removeAnimal(const QString &name);
 
     QList<Animal*> animalsWithCollars();
 signals:

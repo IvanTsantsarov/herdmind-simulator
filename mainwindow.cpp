@@ -20,7 +20,7 @@
 #include "simtools.h"
 #include "simtimer.h"
 #include "hardware/defines.h"
-#include "dialogregisterdevice.h"
+#include "dialogregisteranimal.h"
 #include "dialogsettings.h"
 #include "hardware/dialogcollarsim.h"
 
@@ -775,20 +775,30 @@ void MainWindow::on_btnClearCount_clicked()
 void MainWindow::on_btnAdd_clicked()
 {
     if( nullptr == mHerd ) {
-        // TODO: generate a new
-        create(false);
-    }
-
-    DialogRegisterDevice dlg(mHerd, this);
-    dlg.exec();
-
-    if( !dlg.devicesChanged()) {
+        errorMsgBox( "Cannot add animal - herd not available. Load or generate!" );
         return;
     }
 
-    mDevMsg->updateDevices();
-    syncDevices();
-    mHerd->storeAnimals();
+    bool isPause = ui->btnPause->isChecked();
+
+    if( !isPause) {
+        ui->btnPause->setChecked(true);
+    }
+
+    DialogRegisterAnimal dlg(mHerd, this);
+    dlg.exec();
+
+    if( !isPause) {
+        ui->btnPause->setChecked(false);
+    }
+
+    /*
+    if( dlg.devicesChanged()) {
+        mDevMsg->updateDevices();
+        syncDevices();
+        mHerd->storeAnimals();
+    }*/
+
 }
 
 void MainWindow::on_actionDlgCollar_triggered()
@@ -809,6 +819,11 @@ bool MainWindow::registerCollar(Animal *animal, const QString &euiHex, const QSt
     mDevMsg->updateDevices();
     syncDevices();
     mHerd->storeAnimals();
+}
+
+void MainWindow::reload()
+{
+    create(true);
 }
 
 void MainWindow::on_spinFemalesCount_valueChanged(int)

@@ -13,13 +13,10 @@ class Bolus;
 class Collar;
 
 
-#define FEMALE_NAMES_COUNT 3181
-#define MALE_NAMES_COUNT 41
-
 class Animal
 {
-    static const QString mFemaleNames[FEMALE_NAMES_COUNT];
-    static const QString mMaleNames[MALE_NAMES_COUNT];
+    static const QStringList mFemaleNames;
+    static const QStringList mMaleNames;
 
     QString mName;
     bool mIsMale = false;
@@ -192,6 +189,8 @@ public:
     QString info();
     QString jsonInfo(bool isDevicesList);
     bool jsonLoad(const QJsonObject& jobj);
+
+    static const QStringList& names(bool isMale) { return isMale ? mMaleNames : mFemaleNames;}
 };
 
 #endif // ANIMAL_H
