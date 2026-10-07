@@ -19,6 +19,25 @@ uint32_t DialogCollarSim::mBaudrates[] =  {
     115200, 57600, 38400, 19200, 9600
 };
 
+void DialogCollarSim::createMirror(const QString& animalName, bool isMale, const QString& euiHex, const QString& akeyHex, const QString& nkeyHex )
+{
+    deleteMirror();
+    if( !gMainWindow->isSimulation() && !mMirror ) {
+        mMirror = new Collar(animalName, isMale,
+                             QByteArray::fromHex(euiHex.toLatin1()),
+                             QByteArray::fromHex(akeyHex.toLatin1()),
+                             QByteArray::fromHex(nkeyHex.toLatin1()));
+    }
+}
+
+void DialogCollarSim::deleteMirror()
+{
+    if( mMirror ) {
+        delete mMirror;
+        mMirror = nullptr;
+    }
+}
+
 void DialogCollarSim::setLightsColor(const QColor &col)
 {
     SimTools::setWidgetBackColor( ui->btnLed0, col);
@@ -43,6 +62,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
     ui(new Ui::DialogCollarSim)
 {
     ui->setupUi(this);
+
+    mImageDisconnected = QImage("://disconnected.png");
 
     mIconMale = QIcon("://male.svg");
     mIconFemale = QIcon("://female.svg");
@@ -78,40 +99,60 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
 
     // Hide for now LEDs
     ui->groupLEDs->setVisible(false);
+
+    ui->widgetScreen->image() = mImageDisconnected;
+
 }
 
-void DialogCollarSim::init(QList<Animal *> animals)
+void DialogCollarSim::loadAnimals(QList<Animal *> animals)
 {
+    mIsLoadingAnimals = true;
 
+    mAnimal = nullptr;
     ui->comboAnimals->clear();
     for(Animal* a:animals) {
         ui->comboAnimals->addItem(a->isMale() ? mIconMale: mIconFemale, a->name(), QVariant::fromValue(a));
     }
+
+    mIsLoadingAnimals = false;
 
     ui->comboAnimals->setCurrentIndex(0);
 }
 
 DialogCollarSim::~DialogCollarSim()
 {
+    deleteMirror();
     delete ui;
 }
 
 void DialogCollarSim::grabScreen()
 {
-    if( !mAnimal) {
-        return;
+    QImage& img = ui->widgetScreen->image();
+    ScreenLib* lib = nullptr;
+    QColor col;
+
+    if( !gMainWindow->isSimulation() ) {
+        if( mMirror ) {
+            lib = &mMirror->screen()->lib();
+            col = SCREEN_COL_MIRROR;
+
+        }
+    }else {
+        if( !mIsLoadingAnimals && mAnimal && mAnimal->hasCollar() ) {
+            lib = &mAnimal->collar()->screen()->lib();
+            col = mAnimal->collar()->screen()->isSleeping() ? SCREEN_COL_SLEEPING :  SCREEN_COL_LIGHT;
+        }
     }
 
-    ScreenLib& lib = mAnimal->collar()->screen()->lib();
-    uint8_t* src = lib.mBuffer;
+    if( !lib) {
+        img = mImageDisconnected;
+    }else {
+        uint8_t* src = lib->mBuffer;
 
-    QImage& img = ui->widgetScreen->image();
-
-    QColor col = mAnimal->collar()->screen()->isSleeping() ? SCREEN_COL_SLEEPING :  SCREEN_COL_LIGHT;
-
-    for( auto y = 0; y < SCREEN_CY; y++) {
-        for( auto x = 0; x < SCREEN_CX; x++) {
-            img.setPixelColor(x, y, src[y*SCREEN_CX + x] ? col : SCREEN_COL_DARK);
+        for( auto y = 0; y < SCREEN_CY; y++) {
+            for( auto x = 0; x < SCREEN_CX; x++) {
+                img.setPixelColor(x, y, src[y*SCREEN_CX + x] ? col : SCREEN_COL_DARK);
+            }
         }
     }
 
@@ -136,6 +177,7 @@ void DialogCollarSim::update()
 {
     if( !gMainWindow->isSimulation()) {
         processSerialInput();
+        grabScreen();
         return;
     }else
     {
@@ -159,6 +201,10 @@ void DialogCollarSim::update()
 
 void DialogCollarSim::on_comboAnimals_currentIndexChanged(int index)
 {
+    if( mIsLoadingAnimals) {
+        return;
+    }
+
     ui->btnStore->setEnabled(index >= 0);
 
     mAnimal = nullptr;
@@ -350,15 +396,19 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
         addResponce( log, RESPONCE_COLOR_SUCESS );
 
         // request keys
-        sendToSerial("eui", true);
-        sendToSerial("akey", true);
-        sendToSerial("nkey", true);
+        //sendToSerial("eui", true);
+        //sendToSerial("akey", true);
+        //sendToSerial("nkey", true);
+
+        sendToSerial("info", true);
 
     }else {
         if( !mPort.isOpen() ) {
             mIsOpeningPort = false;
             return;
         }
+
+        deleteMirror();
 
         QString log = QString("Closing serial port %1 @ %2 ..").arg(mPort.portName()).arg(mPort.baudRate());
         qInfo() << log;
@@ -443,8 +493,7 @@ void DialogCollarSim::on_btnClear_clicked()
 
 void DialogCollarSim::processSerialInput()
 {
-    auto fillOnResponce = [&](QString resp, const QString& cmd, QLineEdit* edit = nullptr) {
-
+    auto stripResponce = [&](QString& resp, const QString& cmd) {
         resp = resp.trimmed();
 
         if( resp.length() < (cmd.length() + 2) ) {
@@ -457,6 +506,17 @@ void DialogCollarSim::processSerialInput()
             return false;
         }
 
+        resp = resp.right(resp.length() - head.length());
+
+        return true;
+    };
+
+    auto fillOnResponce = [&](QString resp, const QString& cmd, QLineEdit* edit = nullptr) {
+
+        if( !stripResponce(resp, cmd)) {
+            return false;
+        }
+
         if( mRequests.contains(cmd) ) {
             mRequests[cmd]--;
             if( !mRequests[cmd] ) {
@@ -466,23 +526,10 @@ void DialogCollarSim::processSerialInput()
             return true;
         }
 
-        QString val = resp.right(resp.length() - head.length());
         if( edit ) {
-            edit->setText(val);
-        } else {
-            QStringList params = val.split("|");
-            for(QString param : params) {
-                QStringList pair = param.split('=');
-                if( pair.first() == "gps") {
-
-                }else
-                if( pair.first() == "bat") {
-                }else
-                if( pair.first() == "btn") {
-                    on_btnMain_pressed();
-                }
-            }
+            edit->setText(resp);
         }
+
         return true;
     };
 
@@ -493,9 +540,50 @@ void DialogCollarSim::processSerialInput()
             QString resp = QString::fromLatin1(out);
 
             if( fillOnResponce(resp, "dbg") ) {
+                if( !mMirror) {
+                    return;
+                }
+                GeoPoint pos;
+                int snr, rssi, bat, sat;
+
+                QStringList params = resp.right(4).split("|");
+                for(QString param : params) {
+                    QStringList pair = param.split('=');
+                    QStringList args = pair[1].split(",");
+                    if( pair.first() == "gps") {
+                        sat = args[0].toInt();
+                        pos.mLat = args[1].toFloat();
+                        pos.mLon = args[2].toFloat();
+                    }else
+                    if( pair.first() == "rssi") {
+                        rssi = args[0].toInt();
+                    }else
+                    if( pair.first() == "snr") {
+                        snr = args[0].toInt();
+                    }else
+                    if( pair.first() == "bat") {
+                        bat = args[1].remove("%").toInt();
+                    }else
+                    if( pair.first() == "btn") {
+                        on_btnMain_pressed();
+                    }
+                }
+                mMirror->inject(pos, sat, rssi, snr, bat);
                 return;
             }else {
                 addResponce(resp, RESPONCE_COLOR_RESPONCE);
+            }
+
+            if( stripResponce(resp, "info") ) {
+                QStringList args = resp.split("|");
+                if( !mMirror ) {
+                    createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4]);
+                }
+                return;
+            }
+
+            if( fillOnResponce(resp, "eui", ui->editEui) ) {
+                return;
             }
 
             if( fillOnResponce(resp, "eui", ui->editEui) ) {

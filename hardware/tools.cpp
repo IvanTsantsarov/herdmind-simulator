@@ -246,8 +246,9 @@ void ScreenSim::drawStr(int x, int y, char *str) {
 
 void ScreenSim::sendBuffer()
 {
-    assert(mAnimal);
-    gTools.collarDlg()->sendScreen(mAnimal);
+    if(mAnimal) {
+        gTools.collarDlg()->sendScreen(mAnimal);
+    }
 }
 
 

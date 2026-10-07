@@ -47,16 +47,21 @@ class Collar : public LoraDevHW
 
     Stage mStage = Stage::None;
     String mAnimalName;
+    bool mIsMale = false;
 
 
 #ifdef ONPC
     friend class DialogCollarSim;
     Animal* mAnimal;
+    GeoPoint mInjectedPos;
+    int mInjectedRSSI = 0;
+    int mInjectedSNR = 0;
+    int mInjectedBat = 0;
 #else
     int64_t mDbgMsec = 0;
 #endif
 
-    bool mIsDbgInfo = false;
+    bool mIsDbgInfo = true;
 
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
@@ -116,8 +121,16 @@ public:
 
 #ifdef ONPC
     Collar(Animal* animal,
-            const QByteArray &devEUI = QByteArray(),
-           const QByteArray& appKey = QByteArray() );
+           const QByteArray &devEUI = QByteArray(),
+           const QByteArray& appKey = QByteArray(),
+           const QByteArray& nwkKey = QByteArray() );
+
+    Collar(QString animalName, bool isMale,
+            const QByteArray &devEUI,
+            const QByteArray& appKey,
+            const QByteArray& nwkKey );
+
+
     Protocol::Collar getPackageOut();
     QList<Protocol::Collar> getBoluses();
     QLine fenceClosestBorder();
@@ -125,6 +138,7 @@ public:
     const Animal* animal() const;
     void sendToSerial(const char* str);
     QByteArray readFromSerial();
+    void inject(GeoPoint _pos, int _sat, int _rssi, int _snr, int _bat);
 #else
     Collar();
     void sendDbg();
@@ -133,7 +147,8 @@ public:
 
     ~Collar();
 
-    String& animalName();
+    String& animalName() { return mAnimalName; }
+    bool isMale(){ return mIsMale; }
     void onSetup();
     void onUpdate();
     void onSend();

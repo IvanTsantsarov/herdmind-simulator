@@ -9,8 +9,11 @@
 GeoPoint Collar::readGPS()
 {
 #ifdef ONPC
-    QGeoCoordinate geoCoor = mAnimal->geoPos();
-    return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
+    if( mAnimal ) {
+        QGeoCoordinate geoCoor = mAnimal->geoPos();
+        return GeoPoint( geoCoor.latitude(), geoCoor.longitude());
+    }
+    return mGPS->pos();
 #else
     return mGPS->pos();
 #endif

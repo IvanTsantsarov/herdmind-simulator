@@ -24,6 +24,10 @@ public:
     void powerOff();
     void powerOn();
 
+    #ifdef ONPC
+        void inject(GeoPoint gp, int sat) { mPos = gp; mSatelites = sat; }
+    #endif
+
 };
 
 #endif // GPS_H

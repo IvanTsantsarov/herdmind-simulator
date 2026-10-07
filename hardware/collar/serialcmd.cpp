@@ -1,6 +1,7 @@
 #include "serialcmd.h"
 
 #include "collar.h"
+#include "led.h"
 #include "defines.h"
 
 #define SERIAL_COMMAND_SIZE 7
@@ -109,6 +110,7 @@ const char *SerialCmd::Cmd::typeStr()
     switch(mT) {
     case Type::NONE: return "none";
     case Type::DBG: return "dbg";
+    case Type::LED: return "led";
     case Type::HELP: return "help";
     case Type::RESET: return "reset";
     case Type::INFO: return "info";
@@ -154,6 +156,9 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
     }else
     if( cmp("dbg") ) {
         mT = Type::DBG;
+    }else
+    if( cmp("led") ) {
+        mT = Type::LED;
     }else
     if( cmp("restart") ) {
         mT = Type::RESET;
@@ -215,11 +220,14 @@ bool SerialCmd::execute()
     case Cmd::Type::DBG:
         Serial.println(String("Debug info ") + (mCollar->toggleDebugInfo() ? "ON" : "OFF"));
         break;
+    case Cmd::Type::LED:
+        Serial.println(String("LED is") + (mCollar->led()->toggle() ? "ON" : "OFF"));
+        break;
     case Cmd::Type::RESET:
         mCollar->restart();
         break;
     case Cmd::Type::INFO:
-        Serial.println("Info will be added later.");
+        Serial.println( mCollar->animalName() + "|" + (mCollar->isMale() ? "m":"f") + "|" + mCollar->euiHex() + "|" + mCollar->akeyHex() + "|" + mCollar->nkeyHex() );
         break;
 
     case Cmd::Type::GPS: {
@@ -286,6 +294,8 @@ bool SerialCmd::execute()
 
     case Cmd::Type::HELP:
         Serial.println("reset: Restarts the ESP32");
+        Serial.println("dbg: enable/disable debug info");
+        Serial.println("led: enable/disable board LED");
         Serial.println("help: This help");
         Serial.println("info: Common info");
         Serial.println("gps: Current geo position");

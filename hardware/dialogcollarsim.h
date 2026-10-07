@@ -40,11 +40,19 @@ class DialogCollarSim : public QDialog
 {
     Q_OBJECT
 
+    bool mIsLoadingAnimals = false;
     QList<Animal*> mAnimals;
     Animal* mAnimal = nullptr;
     QSerialPort mPort;
     QSettings& mEnv;
     QIcon mIconMale, mIconFemale, mIconSoundOff, mIconSoundOn;
+    Collar* mMirror = nullptr;
+    void createMirror(const QString &animalName,
+                      bool isMale,
+                      const QString &euiHex,
+                      const QString &akeyHex,
+                      const QString &nkeyHex);
+    void deleteMirror();
 
     void setLightsColor(const QColor& col);
 
@@ -66,9 +74,13 @@ class DialogCollarSim : public QDialog
 
     void processSerialInput();
 
+    QImage mImageDisconnected;
+
+
+
 public:
     explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
-    void init(QList<Animal*> animals);
+    void loadAnimals(QList<Animal*> animals);
     ~DialogCollarSim();
     void sendScreen(const Animal *from);
 

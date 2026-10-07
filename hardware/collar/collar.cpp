@@ -23,6 +23,8 @@
 #define PIN_BTN_MAIN 0
 #define PIN_LED_MAIN 35
 
+#define SERIAL_TX_BUFFER_SIZE 1024
+
 #ifdef ONPC
 
 #include "../../animal.h"
@@ -31,18 +33,30 @@
 //////////////////////////////////////////////////////////////
 /// On PC
 //////////////////////////////////////////////////////////////
-Collar::Collar( Animal* animal,
+Collar::Collar(Animal* animal,
                const QByteArray &devEUI,
-               const QByteArray& appKey)
+               const QByteArray& appKey, const QByteArray &nwkKey)
     : LoraDevSim(QString("%1 collar").arg(animal->name()), LoraDevSim::Profile::Collar,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-              devEUI, appKey), mAnimal(animal)
+              devEUI, appKey, nwkKey), mAnimal(animal)
 {
     commonConstructor();
 
     // TODO: this should not happened here, but must be send from chirpstack
     mAnimalName = SimTools::translateCyrilic( animal->name() );
+    mIsMale = animal->isMale();
 }
+
+Collar::Collar(QString animalName, bool isMale,
+               const QByteArray &devEUI,
+               const QByteArray& appKey , const QByteArray &nwkKey)
+: LoraDevSim(QString("%1 collar").arg(animalName), LoraDevSim::Profile::Collar,
+                   COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
+                 devEUI, appKey, nwkKey), mAnimalName(animalName), mIsMale(isMale)
+{
+    commonConstructor();
+}
+
 
 Protocol::Collar Collar::getPackageOut(){ return mPackage; }
 
@@ -75,6 +89,10 @@ void Collar::sendToSerial(const char *str)
 QByteArray Collar::readFromSerial()
 {
     return mSerialCmd->readFromSerial();
+}
+
+void Collar::inject(GeoPoint _pos, int _sat, int _rssi, int _snr, int _bat) {
+    mGPS->inject(_pos, _sat), mInjectedRSSI = _rssi, mInjectedSNR = _snr, mInjectedBat = _bat;
 }
 
 #else
@@ -126,7 +144,9 @@ void Collar::sendDbg()
         return;
     }
 
-    String dbgStr = String("dbg:gps=") + satellites() + "," + gpsStr() +
+    String dbgStr = String("dbg:gps=") + satellites() + "," + gpsStr()
+                    + "|rssi=" + rssi()
+                    + "|snr=" + snr()
                     + "|bat=" + batteryInfo()
                     + "|btn=" + (gMainButtonDown ? "y":"n");
 
@@ -143,6 +163,9 @@ void Collar::sendDbg()
 void Collar::onSetup()
 {
     mStage = Stage::Setup;
+
+    // allocate TX buffer for non-blocking sends
+    Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
 
     Serial.begin(SERIAL_BAUDRATE);
     delay(100);
@@ -190,6 +213,18 @@ void Collar::sleep()
 #endif
 }
 
+
+#ifdef ONPC
+int Collar::rssi()
+{
+    return mInjectedRSSI;
+}
+
+int Collar::snr()
+{
+    return mInjectedSNR;
+}
+#else
 int Collar::rssi()
 {
     return -30;
@@ -199,6 +234,8 @@ int Collar::snr()
 {
     return -80;
 }
+#endif
+
 
 GeoPoint Collar::gps()
 {
@@ -311,16 +348,8 @@ void Collar::updateScreenNormal(bool isFlush)
 {
     mScreen->clear();
 
-#ifdef ONPC
-    String animalName = SimTools::translateCyrilic( mAnimal->name() );
-    bool isMale = mAnimal->isMale();
-#else
-    // TODO: set here name and gender
-    String animalName("<Animal name>");
-    bool isMale = false;
-#endif
-    Screen::CenterH c = mScreen->drawTextTableCenterH( 1, animalName, 6 );
-    mScreen->drawArray( c.x2 + 2*FONT_CX, 4, 12, 12, isMale ? male_12x12 : female_12x12);
+    Screen::CenterH c = mScreen->drawTextTableCenterH( 1, mAnimalName, 6 );
+    mScreen->drawArray( c.x2 + 2*FONT_CX, 4, 12, 12, mIsMale ? male_12x12 : female_12x12);
 
     // Draw satellite icon
     if( !satellites() ) {
@@ -540,6 +569,5 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 #endif
 }
 
-String &Collar::animalName() { return mAnimalName; }
 
 

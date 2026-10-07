@@ -8,6 +8,10 @@ void Led::setup(int pinNum)
 
 void Led::on(uint32_t duration, uint32_t durationAfter)
 {
+    if( !mIsEnabled ) {
+        return;
+    }
+
     mIsOn = true;
     mDuration = duration;
     mMSec = millis();
@@ -23,9 +27,29 @@ void Led::updateOn(uint32_t duration, uint32_t durationAfter)
 
 void Led::off()
 {
+    if( !mIsEnabled ) {
+        return;
+    }
+
     mIsOn = false;
     digitalWrite(mPin, LOW);   // Turn the LED off
 }
+
+void Led::enable(bool is)
+{
+    mIsEnabled = is;
+
+    if( !mIsEnabled ) {
+        off();
+    }
+}
+
+bool Led::toggle()
+{
+    enable(!mIsEnabled);
+    return mIsEnabled;
+}
+
 
 
 bool Led::update()

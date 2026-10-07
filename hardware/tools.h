@@ -106,6 +106,8 @@ inline uint32_t millis() { return gTools.millis(); }
 #define SCREEN_COL_LIGHT QColor(0, 240, 255)
 #define SCREEN_COL_DARK QColor(10, 10, 10)
 #define SCREEN_COL_SLEEPING QColor(0, 40, 50)
+#define SCREEN_COL_SLEEPING QColor(0, 40, 50)
+#define SCREEN_COL_MIRROR QColor(245, 152, 66)
 
 
 class ScreenSim {
@@ -271,6 +273,7 @@ public:
 
     void writeIn(const char* str);
     QByteArray readOut();
+    void setTxBufferSize(int size) {(void )size; }
 };
 
 extern SoftwareSerial Serial;

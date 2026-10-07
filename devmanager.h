@@ -104,6 +104,9 @@ public:
 private slots:
     void onConnectedMqtt();
 
+signals:
+    void deviceActivated(LoraDevSim* dev);
+
 };
 
 #endif // DEVMANAGER_H

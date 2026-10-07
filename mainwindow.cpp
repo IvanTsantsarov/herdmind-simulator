@@ -326,7 +326,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
         mHerd->storeAnimals();
     }
 
-    mDlgCollar->init(mHerd->animalsWithCollars());
+    mDlgCollar->loadAnimals(mHerd->animals(false));
 
     return true;
 }

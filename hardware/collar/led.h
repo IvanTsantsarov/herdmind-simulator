@@ -14,6 +14,7 @@ class Led
     bool mIsOn = false;
     bool mIsPhase2 = false;
     int mBufferLen = 0;
+    bool mIsEnabled = true;
 
 public:
     void setup(int pinNum);
@@ -22,6 +23,9 @@ public:
     void updateOn(uint32_t duration = 0, uint32_t durationAfter = 0);
     void off();
     inline bool isOn(){ return mIsOn; }
+    inline bool isEnabled(){ return mIsEnabled; }
+    void enable(bool is);
+    bool toggle();
 };
 
 #endif // LED_H

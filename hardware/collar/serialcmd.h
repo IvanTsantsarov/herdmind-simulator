@@ -29,6 +29,7 @@ public:
         enum struct Type {
             NONE = 0,
             DBG,
+            LED,    // led on/off
             HELP,
             RESET,
             INFO,

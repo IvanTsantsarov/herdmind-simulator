@@ -39,5 +39,6 @@
         <file>satellite.png</file>
         <file>flash.svg</file>
         <file>reload.svg</file>
+        <file>disconnected.png</file>
     </qresource>
 </RCC>

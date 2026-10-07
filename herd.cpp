@@ -416,11 +416,15 @@ bool Herd::removeAnimal(const QString& name)
     return true;
 }
 
-QList<Animal *> Herd::animalsWithCollars()
+QList<Animal *> Herd::animals(bool withCollars)
 {
     QList<Animal*> ls;
     for( Animal* a: mAnimals) {
-        if( a->hasCollar() ) {
+        if(withCollars ) {
+            if( a->hasCollar() ) {
+                ls.append(a);
+            }
+        }else {
             ls.append(a);
         }
     }

@@ -181,6 +181,23 @@ void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
     mApiRest->activateDevice(devEUI, devAddr, dev->appSKey().toHex(), dev->nwkSKey().toHex());
 }
 
+void DevManager::onDeviceActivated(const QString &devEUI)
+{
+    LoraDevSim* dev = device(devEUI);
+    qInfo() << "Device" << devEUI << dev->name() << "activated with address:" << dev->addr().toHex();
+
+    // Emit signal
+    emit deviceActivated(dev);
+
+    mActivatedDevicesCount++;
+    if( mAddedDevicesCount == mActivatedDevicesCount ) {
+        qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
+        onDevicesReady(true);
+    }
+
+
+}
+
 void DevManager::onDeviceDel(const QString &devEUI)
 {
     qInfo() << "Device" << devEUI << "deleted from Chirpstack.";
@@ -191,19 +208,6 @@ void DevManager::onDeviceDel(const QString &devEUI)
     }
 
 }
-
-void DevManager::onDeviceActivated(const QString &devEUI)
-{
-    LoraDevSim* dev = device(devEUI);
-    qInfo() << "Device" << devEUI << dev->name() << "activated with address:" << dev->addr().toHex();
-
-    mActivatedDevicesCount++;
-    if( mAddedDevicesCount == mActivatedDevicesCount ) {
-        qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
-        onDevicesReady(true);
-    }
-}
-
 
 
 
