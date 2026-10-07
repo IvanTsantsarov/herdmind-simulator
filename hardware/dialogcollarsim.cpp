@@ -549,6 +549,8 @@ void DialogCollarSim::processSerialInput()
                 ui->editEui->setText(args[2]);
                 ui->editAKey->setText(args[3]);
                 ui->editNKey->setText(args[4]);
+                ui->btnFlash->setEnabled(false);
+                ui->btnReload->setEnabled(false);
                 if( !mMirror ) {
                     createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4]);
                 }
@@ -584,5 +586,32 @@ void DialogCollarSim::on_btnCopyNKey_clicked()
 {
     SimTools::clipboardCopy(ui->editNKey->text());
     QToolTip::showText( QCursor::pos(), "NwkKey copied!");
+}
+
+
+void DialogCollarSim::on_editEui_textChanged(const QString &arg1)
+{
+    ui->btnFlash->setEnabled(true);
+    ui->btnReload->setEnabled(true);
+}
+
+
+void DialogCollarSim::on_editAKey_textEdited(const QString &arg1)
+{
+    ui->btnFlash->setEnabled(true);
+    ui->btnReload->setEnabled(true);
+}
+
+
+void DialogCollarSim::on_editNKey_textChanged(const QString &arg1)
+{
+    ui->btnFlash->setEnabled(true);
+    ui->btnReload->setEnabled(true);
+}
+
+
+void DialogCollarSim::on_btnReload_clicked()
+{
+    sendToSerial("info", true);
 }
 

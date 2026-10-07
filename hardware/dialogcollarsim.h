@@ -121,6 +121,14 @@ private slots:
 
     void on_btnCopyNKey_clicked();
 
+    void on_editEui_textChanged(const QString &arg1);
+
+    void on_editAKey_textEdited(const QString &arg1);
+
+    void on_editNKey_textChanged(const QString &arg1);
+
+    void on_btnReload_clicked();
+
 private:
     Ui::DialogCollarSim *ui;
 };
