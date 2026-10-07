@@ -52,7 +52,7 @@ class Collar : public LoraDevHW
 
 #ifdef ONPC
     friend class DialogCollarSim;
-    Animal* mAnimal;
+    Animal* mAnimal = nullptr;
     GeoPoint mInjectedPos;
     int mInjectedRSSI = 0;
     int mInjectedSNR = 0;

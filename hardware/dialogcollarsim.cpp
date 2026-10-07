@@ -394,12 +394,6 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
 
         log = QString("Port %1 open").arg(portName);
         addResponce( log, RESPONCE_COLOR_SUCESS );
-
-        // request keys
-        //sendToSerial("eui", true);
-        //sendToSerial("akey", true);
-        //sendToSerial("nkey", true);
-
         sendToSerial("info", true);
 
     }else {
@@ -513,7 +507,8 @@ void DialogCollarSim::processSerialInput()
 
 
     if( mPort.isOpen() ) {
-        if( mPort.bytesAvailable() ) {
+        if( mPort.bytesAvailable() && mPort.canReadLine()) {
+
             QByteArray out = mPort.readLine();
             QString resp = QString::fromLatin1(out);
 

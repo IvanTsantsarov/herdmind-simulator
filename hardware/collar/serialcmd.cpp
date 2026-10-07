@@ -209,27 +209,25 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 }
 
 
-TODO: ADD hashtag to all commands
-
 bool SerialCmd::execute()
 {
     String head = String(mCmd.typeStr()) + ":";
     Serial.print(head);
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
-        Serial.println( "Error:Empty command!#" );
+        Serial.println( "Error:Empty command!" );
         break;
     case Cmd::Type::DBG:
-        Serial.println(String("Debug info ") + (mCollar->toggleDebugInfo() ? "ON" : "OFF") + "#");
+        Serial.println(String("Debug info ") + (mCollar->toggleDebugInfo() ? "ON" : "OFF"));
         break;
     case Cmd::Type::LED:
-        Serial.println(String("LED is") + (mCollar->led()->toggle() ? "ON" : "OFF")+ "#");
+        Serial.println(String("LED is") + (mCollar->led()->toggle() ? "ON" : "OFF"));
         break;
     case Cmd::Type::RESET:
         mCollar->restart();
         break;
     case Cmd::Type::INFO:
-        Serial.println( mCollar->animalName() + "|" + (mCollar->isMale() ? "m":"f") + "|" + mCollar->euiHex() + "|" + mCollar->akeyHex() + "|" + mCollar->nkeyHex() + "#" );
+        Serial.println( mCollar->animalName() + "|" + (mCollar->isMale() ? "m":"f") + "|" + mCollar->euiHex() + "|" + mCollar->akeyHex() + "|" + mCollar->nkeyHex() );
         break;
 
     case Cmd::Type::GPS: {
