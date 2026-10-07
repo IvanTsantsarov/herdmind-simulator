@@ -511,35 +511,13 @@ void DialogCollarSim::processSerialInput()
         return true;
     };
 
-    auto fillOnResponce = [&](QString resp, const QString& cmd, QLineEdit* edit = nullptr) {
-
-        if( !stripResponce(resp, cmd)) {
-            return false;
-        }
-
-        if( mRequests.contains(cmd) ) {
-            mRequests[cmd]--;
-            if( !mRequests[cmd] ) {
-                mRequests.remove(cmd);
-            }
-        }else{
-            return true;
-        }
-
-        if( edit ) {
-            edit->setText(resp);
-        }
-
-        return true;
-    };
-
 
     if( mPort.isOpen() ) {
         if( mPort.bytesAvailable() ) {
             QByteArray out = mPort.readLine();
             QString resp = QString::fromLatin1(out);
 
-            if( fillOnResponce(resp, "dbg") ) {
+            if( stripResponce(resp, "dbg") ) {
                 if( !mMirror) {
                     return;
                 }
@@ -570,34 +548,20 @@ void DialogCollarSim::processSerialInput()
                 }
                 mMirror->inject(pos, sat, rssi, snr, bat);
                 return;
-            }else {
-                addResponce(resp, RESPONCE_COLOR_RESPONCE);
-            }
-
+            }else
             if( stripResponce(resp, "info") ) {
                 QStringList args = resp.split("|");
+                ui->editEui->setText(args[2]);
+                ui->editAKey->setText(args[3]);
+                ui->editNKey->setText(args[4]);
                 if( !mMirror ) {
                     createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4]);
                 }
                 return;
+            }else
+            {
+                addResponce(resp, RESPONCE_COLOR_RESPONCE);
             }
-
-            if( fillOnResponce(resp, "eui", ui->editEui) ) {
-                return;
-            }
-
-            if( fillOnResponce(resp, "eui", ui->editEui) ) {
-                return;
-            }
-
-            if( fillOnResponce(resp, "akey", ui->editAKey) ) {
-                return;
-            }
-
-            if( fillOnResponce(resp, "nkey", ui->editNKey) ) {
-                return;
-            }
-
         }
     }
 }
