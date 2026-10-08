@@ -125,7 +125,7 @@ public:
     Animal *newAnimal(const QString &name, bool isMale);
     bool removeAnimal(const QString &name);
 
-    QList<Animal*> animals(bool withCollars = false);
+    QList<Animal*> animals(bool onlyWithCollars = false);
 signals:
 };
 

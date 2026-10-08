@@ -105,8 +105,7 @@ MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget 
 
     mDevMsg = new DialogDeviceMsg(mDevManager, this);
 
-    mDlgCollar = new DialogCollarSim(env, this);
-    gTools.setup(mDlgCollar);
+    mDlgCollar = new DialogCollarSim(env, mDevManager, this);
 
     QRect screenrect = qApp->primaryScreen()->geometry();
     mConsole->move(screenrect.left(), screenrect.bottom()/2);
@@ -326,7 +325,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
         mHerd->storeAnimals();
     }
 
-    mDlgCollar->loadAnimals(mHerd->animals(true));
+    mDlgCollar->loadAnimals(mHerd->animals(false));
 
     return true;
 }
@@ -840,7 +839,9 @@ bool MainWindow::storeHerd()
         return false;
     }
 
-    mDlgCollar->loadAnimals(mHerd->animals(true));
+    mDlgCollar->loadAnimals(mHerd->animals(false));
+
+    syncDevices();
 
     return true;
 }

@@ -17,6 +17,8 @@
 class Animal;
 class Collar;
 class QSerialPort;
+class DevManager;
+class LoraDevSim;
 
 namespace Ui {
 class DialogCollarSim;
@@ -40,6 +42,7 @@ class DialogCollarSim : public QDialog
 {
     Q_OBJECT
 
+    DevManager* mDM = nullptr;
     bool mIsLoadingAnimals = false;
     QList<Animal*> mAnimals;
     Animal* mAnimal = nullptr;
@@ -81,7 +84,7 @@ class DialogCollarSim : public QDialog
 
 
 public:
-    explicit DialogCollarSim(QSettings &env, QWidget *parent = nullptr);
+    explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
     void loadAnimals(QList<Animal*> animals);
     ~DialogCollarSim();
     void sendScreen(const Animal *from);
@@ -132,6 +135,8 @@ private slots:
     void on_btnReload_clicked();
 
     void on_btnStore_clicked();
+
+    void on_deviceActivated(LoraDevSim* dev);
 
 private:
     Ui::DialogCollarSim *ui;

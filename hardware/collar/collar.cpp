@@ -144,7 +144,7 @@ void Collar::sendDbg()
         return;
     }
 
-    String dbgStr = String("dbg:gps=") + satellites() + SERIAL_CMD_COMMA + gpsStr()
+    String dbgStr = String(SERIAL_CMD_BEGIN) + "dbg:gps=" + satellites() + SERIAL_CMD_COMMA + gpsStr()
                     + "|rssi=" + rssi()
                     + "|snr=" + snr()
                     + "|bat=" + batteryInfo()

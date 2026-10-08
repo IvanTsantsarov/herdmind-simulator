@@ -7,6 +7,7 @@
 #include "hardware/collar/defines.h"
 #include "hardware/collar/serialcmd.h"
 #include "tools.h"
+#include "devmanager.h"
 #include "collar/screen.h"
 #include "collar/led.h"
 #include "../animal.h"
@@ -58,8 +59,8 @@ void DialogCollarSim::closeEvent(QCloseEvent *e)
 }
 
 
-DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
-    : QDialog(parent), mEnv(env),
+DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent)
+    : QDialog(parent), mDM(dm), mEnv(env),
     ui(new Ui::DialogCollarSim)
 {
     ui->setupUi(this);
@@ -97,6 +98,7 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
         }
 
         connect(&mPort, &QSerialPort::errorOccurred, this, &DialogCollarSim::on_serialPortError);
+        connect(mDM, &DevManager::deviceActivated, this, &DialogCollarSim::on_deviceActivated );
     }
 
 
@@ -145,8 +147,7 @@ void DialogCollarSim::grabScreen()
     if( !gMainWindow->isSimulation() ) {
         if( mMirror ) {
             lib = &mMirror->screen()->lib();
-            col = SCREEN_COL_MIRROR;
-
+            col = mMirror->screen()->isSleeping() ? SCREEN_COL_MIRROR_SLEEPING : SCREEN_COL_MIRROR;
         }
     }else {
         if( !mIsLoadingAnimals && mAnimal && mAnimal->hasCollar() ) {
@@ -308,11 +309,15 @@ void ScreenWidget::paintEvent(QPaintEvent *event)
 
 void DialogCollarSim::on_btnMain_pressed()
 {
-    if( !mAnimal) {
+    if( mMirror ) {
+        mMirror->onMainBtn();
         return;
     }
 
-    mAnimal->collar()->onMainBtn();
+    if( mAnimal) {
+        mAnimal->collar()->onMainBtn();
+        return;
+    }
 }
 
 void DialogCollarSim::on_editSerialCmd_textChanged(const QString &arg1)
@@ -538,7 +543,7 @@ void DialogCollarSim::processSerialInput()
                 GeoPoint pos;
                 int snr, rssi, bat, sat;
 
-                QStringList params = resp.right(4).split(SERIAL_CMD_PARAMS_DM);
+                QStringList params = resp.split(SERIAL_CMD_PARAMS_DM);
                 for(QString param : params) {
                     QStringList pair = param.split(SERIAL_CMD_EQUAL);
                     QStringList args = pair[1].split(SERIAL_CMD_COMMA);
@@ -556,7 +561,7 @@ void DialogCollarSim::processSerialInput()
                     if( pair.first() == "bat") {
                         bat = args[1].remove("%").toInt();
                     }else
-                    if( pair.first() == "btn") {
+                    if( pair.first() == "btn" && pair[1] == "y") {
                         on_btnMain_pressed();
                     }
                 }
@@ -670,5 +675,14 @@ void DialogCollarSim::on_btnStore_clicked()
     }
 
     ui->btnStore->setEnabled(false);
+}
+
+void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
+{
+    if( mMirror && (dev->eui() == mMirror->eui())) {
+        gMainWindow->infoMsgBox( QString("Collar %1 (%2) activated!")
+                                    .arg(mMirror->animalName().toQString())
+                                    .arg(mMirror->euiHex()) );
+    }
 }
 

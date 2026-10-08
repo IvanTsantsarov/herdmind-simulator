@@ -107,9 +107,9 @@ int ScreenSim::mLastFont = 0;
 
 Tools::Tools() {}
 
-void Tools::setup(DialogCollarSim *dlg)
+void Tools::setup()
 {
-    mCollarDlg = dlg;
+
 }
 
 int16_t Tools::f2i16(float v, float scale) {

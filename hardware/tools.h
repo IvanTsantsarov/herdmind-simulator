@@ -83,7 +83,7 @@ class Tools
 public:
 
     Tools();
-    void setup(DialogCollarSim* dlg );
+    void setup();
 
     inline DialogCollarSim* collarDlg(){ return mCollarDlg; }
 
@@ -108,6 +108,7 @@ inline uint32_t millis() { return gTools.millis(); }
 #define SCREEN_COL_SLEEPING QColor(0, 40, 50)
 #define SCREEN_COL_SLEEPING QColor(0, 40, 50)
 #define SCREEN_COL_MIRROR QColor(245, 152, 66)
+#define SCREEN_COL_MIRROR_SLEEPING QColor(145, 52, 0)
 
 
 class ScreenSim {
