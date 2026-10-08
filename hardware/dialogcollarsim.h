@@ -43,9 +43,11 @@ class DialogCollarSim : public QDialog
     bool mIsLoadingAnimals = false;
     QList<Animal*> mAnimals;
     Animal* mAnimal = nullptr;
+    QString mPrevAnimal;
     QSerialPort mPort;
     QSettings& mEnv;
-    QIcon mIconMale, mIconFemale, mIconSoundOff, mIconSoundOn;
+    QIcon mIconMale, mIconFemale, mIconMaleCollar, mIconFemaleCollar;
+    QIcon mIconSoundOff, mIconSoundOn;
     Collar* mMirror = nullptr;
     void createMirror(const QString &animalName,
                       bool isMale,
@@ -123,11 +125,13 @@ private slots:
 
     void on_editEui_textChanged(const QString &arg1);
 
-    void on_editAKey_textEdited(const QString &arg1);
+    void on_editAKey_textChanged(const QString &arg1);
 
     void on_editNKey_textChanged(const QString &arg1);
 
     void on_btnReload_clicked();
+
+    void on_btnStore_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

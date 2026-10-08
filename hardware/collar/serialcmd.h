@@ -3,6 +3,13 @@
 
 #include "../arduino.h"
 
+#define SERIAL_CMD_BEGIN 'S'
+#define SERIAL_CMD_PARAMS_DM '|'
+#define SERIAL_CMD_COMMA ','
+#define SERIAL_CMD_TAIL ':'
+#define SERIAL_CMD_EQUAL '='
+
+
 class Collar;
 
 class SerialCmd

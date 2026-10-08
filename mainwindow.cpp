@@ -326,7 +326,7 @@ bool MainWindow::create(bool isLoad, const QString& dir)
         mHerd->storeAnimals();
     }
 
-    mDlgCollar->loadAnimals(mHerd->animals(false));
+    mDlgCollar->loadAnimals(mHerd->animals(true));
 
     return true;
 }
@@ -824,6 +824,25 @@ bool MainWindow::registerCollar(Animal *animal, const QString &euiHex, const QSt
 void MainWindow::reload()
 {
     create(true);
+}
+
+bool MainWindow::storeHerd()
+{
+    if( !mHerd) {
+        return false;
+    }
+
+    if(!mHerd->storeAnimals()) {
+        return false;
+    }
+
+    if( !mHerd->storeDevices() ){
+        return false;
+    }
+
+    mDlgCollar->loadAnimals(mHerd->animals(true));
+
+    return true;
 }
 
 void MainWindow::on_spinFemalesCount_valueChanged(int)

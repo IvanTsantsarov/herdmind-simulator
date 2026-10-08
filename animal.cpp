@@ -236,11 +236,16 @@ Bolus* Animal::putBolus(const QByteArray &devEUI, const QByteArray &appKey)
     return mBolus;
 }
 
-Collar* Animal::putCollar(const QByteArray &devEUI, const QByteArray &appKey)
+Collar* Animal::putCollar(const QByteArray &devEUI, const QByteArray &appKey, const QByteArray& nwkKey)
 {
     if( mCollar ) delete mCollar;
-    mCollar = new Collar(this, devEUI, appKey);
+    mCollar = new Collar(this, devEUI, appKey, nwkKey);
     return mCollar;
+}
+
+Collar *Animal::putCollar(Collar *mirror)
+{
+    return putCollar(mirror->eui(), mirror->appSKey(), mirror->nwkSKey());
 }
 
 bool Animal::isAhead(Animal *a, float maxCosAngle)

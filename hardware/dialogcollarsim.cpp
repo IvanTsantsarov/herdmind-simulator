@@ -5,6 +5,7 @@
 
 #include "hardware/collar/button.h"
 #include "hardware/collar/defines.h"
+#include "hardware/collar/serialcmd.h"
 #include "tools.h"
 #include "collar/screen.h"
 #include "collar/led.h"
@@ -67,6 +68,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, QWidget *parent)
 
     mIconMale = QIcon("://male.svg");
     mIconFemale = QIcon("://female.svg");
+    mIconMaleCollar = QIcon("://male_new.svg");
+    mIconFemaleCollar = QIcon("://female_new.svg");
 
     mIconSoundOn = QIcon("://icon-sound-on.svg");
     mIconSoundOff = QIcon("://icon-sound-off.svg");
@@ -111,12 +114,20 @@ void DialogCollarSim::loadAnimals(QList<Animal *> animals)
     mAnimal = nullptr;
     ui->comboAnimals->clear();
     for(Animal* a:animals) {
-        ui->comboAnimals->addItem(a->isMale() ? mIconMale: mIconFemale, a->name(), QVariant::fromValue(a));
+        ui->comboAnimals->addItem(a->isMale() ?
+                                      (a->hasCollar() ? mIconMaleCollar : mIconMale) :
+                                      (a->hasCollar() ? mIconFemaleCollar : mIconFemale),
+                                  a->name(), QVariant::fromValue(a));
     }
 
     mIsLoadingAnimals = false;
 
-    ui->comboAnimals->setCurrentIndex(0);
+    if( mPrevAnimal.isEmpty() ) {
+        ui->comboAnimals->setCurrentIndex(0);
+    }else {
+        int index = ui->comboAnimals->findText(mPrevAnimal);
+        ui->comboAnimals->setCurrentIndex(index >= 0 ? index : 0);
+    }
 }
 
 DialogCollarSim::~DialogCollarSim()
@@ -452,6 +463,8 @@ void DialogCollarSim::on_btnGenEui_clicked()
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
+    // TODO: check all the hex
+
     if( !gMainWindow->question("Are you sure you wanna flash the device?") ) {
         return;
     }
@@ -463,6 +476,8 @@ void DialogCollarSim::on_btnFlash_clicked()
     sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
     sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
     sendToSerial("flash");
+
+    ui->btnStore->setEnabled(true);
 }
 
 void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
@@ -490,11 +505,11 @@ void DialogCollarSim::processSerialInput()
     auto stripResponce = [&](QString& resp, const QString& cmd) {
         resp = resp.trimmed();
 
-        if( resp.length() < (cmd.length() + 2) ) {
+        if( resp.length() < (cmd.length() + 3) ) {
             return false;
         }
 
-        QString head = QString("%1:").arg(cmd);
+        QString head = QString("%1%2:").arg(SERIAL_CMD_BEGIN).arg(cmd);
 
         if( resp.left(head.length()) != head ) {
             return false;
@@ -512,6 +527,10 @@ void DialogCollarSim::processSerialInput()
             QByteArray out = mPort.readLine();
             QString resp = QString::fromLatin1(out);
 
+            if( SERIAL_CMD_BEGIN != resp[0] ) {
+                return;
+            }
+
             if( stripResponce(resp, "dbg") ) {
                 if( !mMirror) {
                     return;
@@ -519,10 +538,10 @@ void DialogCollarSim::processSerialInput()
                 GeoPoint pos;
                 int snr, rssi, bat, sat;
 
-                QStringList params = resp.right(4).split("|");
+                QStringList params = resp.right(4).split(SERIAL_CMD_PARAMS_DM);
                 for(QString param : params) {
-                    QStringList pair = param.split('=');
-                    QStringList args = pair[1].split(",");
+                    QStringList pair = param.split(SERIAL_CMD_EQUAL);
+                    QStringList args = pair[1].split(SERIAL_CMD_COMMA);
                     if( pair.first() == "gps") {
                         sat = args[0].toInt();
                         pos.mLat = args[1].toFloat();
@@ -551,6 +570,7 @@ void DialogCollarSim::processSerialInput()
                 ui->editNKey->setText(args[4]);
                 ui->btnFlash->setEnabled(false);
                 ui->btnReload->setEnabled(false);
+                ui->btnStore->setEnabled(false);
                 if( !mMirror ) {
                     createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4]);
                 }
@@ -589,29 +609,66 @@ void DialogCollarSim::on_btnCopyNKey_clicked()
 }
 
 
-void DialogCollarSim::on_editEui_textChanged(const QString &arg1)
+void DialogCollarSim::on_editEui_textChanged(const QString &)
 {
     ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
+    ui->btnStore->setEnabled(false);
 }
 
 
-void DialogCollarSim::on_editAKey_textEdited(const QString &arg1)
+void DialogCollarSim::on_editAKey_textChanged(const QString &)
 {
     ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
+    ui->btnStore->setEnabled(false);
 }
 
 
-void DialogCollarSim::on_editNKey_textChanged(const QString &arg1)
+void DialogCollarSim::on_editNKey_textChanged(const QString &)
 {
     ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
+    ui->btnStore->setEnabled(false);
 }
 
 
 void DialogCollarSim::on_btnReload_clicked()
 {
     sendToSerial("info", true);
+}
+
+
+void DialogCollarSim::on_btnStore_clicked()
+{
+    if( !mMirror ) {
+        gMainWindow->errorMsgBox("Not connected to collar with a serial.");
+        return;
+    }
+
+    if( !mAnimal) {
+        QString txt( QString("No animal selected.%1").arg( ui->comboAnimals->count() ? "Pick one from the combo" : "Load from the main window.") );
+        gMainWindow->errorMsgBox(txt);
+        return;
+    }
+
+    if( !gMainWindow->question( QString("Are you sure you wanna %1 animal %2?")
+            .arg(mAnimal->hasCollar() ? "replace it's collar" : "apply this collar to")
+            .arg(mAnimal->name())) ) {
+        return;
+    }
+
+    mAnimal->putCollar(mMirror);
+    mPrevAnimal = mAnimal->name();
+
+    // This will gonna call void DialogCollarSim::loadAnimals(QList<Animal *> animals)
+    // and fill the list again
+    if( !gMainWindow->storeHerd() ) {
+        gMainWindow->errorMsgBox("Error storing herd!");
+    }else {
+        gMainWindow->infoMsgBox("Herd stored!");
+    }
+
+    ui->btnStore->setEnabled(false);
 }
 

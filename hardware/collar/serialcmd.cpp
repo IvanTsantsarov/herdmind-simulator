@@ -211,7 +211,7 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 
 bool SerialCmd::execute()
 {
-    String head = String(mCmd.typeStr()) + ":";
+    String head = String(SERIAL_CMD_BEGIN) + mCmd.typeStr() + SERIAL_CMD_TAIL;
     Serial.print(head);
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
@@ -227,7 +227,11 @@ bool SerialCmd::execute()
         mCollar->restart();
         break;
     case Cmd::Type::INFO:
-        Serial.println( mCollar->animalName() + "|" + (mCollar->isMale() ? "m":"f") + "|" + mCollar->euiHex() + "|" + mCollar->akeyHex() + "|" + mCollar->nkeyHex() );
+        Serial.println( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
+                       (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
+                       mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
+                       mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
+                       mCollar->nkeyHex() );
         break;
 
     case Cmd::Type::GPS: {

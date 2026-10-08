@@ -156,7 +156,10 @@ public:
                     const QByteArray& appKey = QByteArray());
 
     Collar *putCollar(const QByteArray &devEUI = QByteArray(),
-                      const QByteArray& appKey = QByteArray());
+                      const QByteArray& appKey = QByteArray(),
+                      const QByteArray &nwkKey  = QByteArray());
+
+    Collar *putCollar(Collar* mirror);
 
     bool hasBolus() const { return nullptr != mBolus; }
     bool hasCollar() const { return nullptr != mCollar; }
