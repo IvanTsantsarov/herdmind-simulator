@@ -25,7 +25,7 @@ public:
     void powerOn();
 
     #ifdef ONPC
-        void inject(GeoPoint gp, int sat) { mPos = gp; mSatelites = sat; }
+        void inject(GeoPoint gp, int sat);
     #endif
 
 };

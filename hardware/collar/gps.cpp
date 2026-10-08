@@ -72,3 +72,10 @@ void GPS::powerOn()
     mIsPowered = true;
 }
 
+#ifdef ONPC
+void GPS::inject(GeoPoint gp, int sat)
+{
+    gGPS.inject(gp.mLat, gp.mLon, gp.mAlt, sat);
+}
+#endif
+

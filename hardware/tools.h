@@ -352,6 +352,8 @@ public:
         }
     }
 
+    void inject(float lat, float lon, float alt, int sat);
+
 private slots:
     void onReady();
 };

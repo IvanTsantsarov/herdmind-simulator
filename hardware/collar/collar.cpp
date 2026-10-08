@@ -353,7 +353,10 @@ void Collar::updateScreenNormal(bool isFlush)
 
     // Draw satellite icon
     if( !satellites() ) {
+        String str("???");
         mScreen->drawArray( 2, 24, 24, 24, satellite_no_24x24);
+        mScreen->drawTextTable( 1, 3, str, 24, 2 );
+        mScreen->drawTextTable( 1, 4, str, 24, 2 );
     }else {
 
         mScreen->drawArray( 2, 24, 24, 24, satellite_24x24);

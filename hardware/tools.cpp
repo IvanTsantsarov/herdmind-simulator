@@ -6,6 +6,7 @@
 #include <QImage>
 #include "tools.h"
 #include "dialogcollarsim.h"
+#include "mainwindow.h"
 
 
 Tools gTools;
@@ -247,7 +248,7 @@ void ScreenSim::drawStr(int x, int y, char *str) {
 void ScreenSim::sendBuffer()
 {
     if(mAnimal) {
-        gTools.collarDlg()->sendScreen(mAnimal);
+        gMainWindow->dlgCollar()->sendScreen(mAnimal);
     }
 }
 
@@ -458,15 +459,20 @@ void TinyGPSPlus::setupSimulation()
     QTimer::singleShot(GPS_DELAY_SATELLITES_SIMULATION, this, &TinyGPSPlus::onReady);
 }
 
-void TinyGPSPlus::onReady()
+void TinyGPSPlus::inject(float lat, float lon, float alt, int sat)
 {
     location.mIsValid = true;
     location.mIsUpdated = true;
 
-    altitude.mMeters = 120;
-    location.mLat = 42.140457;
-    location.mLon = 24.758694;
-    satellites.mValue = 4;
+    location.mLat = lat;
+    location.mLon = lon;
+    altitude.mMeters = alt;
+    satellites.mValue = sat;
+}
+
+void TinyGPSPlus::onReady()
+{
+
 }
 
 

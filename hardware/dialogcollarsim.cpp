@@ -657,10 +657,37 @@ void DialogCollarSim::on_btnStore_clicked()
         return;
     }
 
+    Animal * removeCollarAnimal = nullptr;
+
+    // Check for other animals collars
+    for( int i = 0; i < ui->comboAnimals->count(); i ++) {
+        Animal* a = ui->comboAnimals->itemData(i).value<Animal*>();
+        if( !a->hasCollar() ) {
+            continue;
+        }
+
+        if( a->collar()->eui() == mMirror->eui()) {
+            if( !gMainWindow->question( QString("Animal %1 has the same collar. We need to remove it, ok?").arg(a->name())) ) {
+                return;
+            }else {
+                removeCollarAnimal = a;
+                break;
+            }
+
+        }
+    }
+
     if( !gMainWindow->question( QString("Are you sure you wanna %1 animal %2?")
-            .arg(mAnimal->hasCollar() ? "replace it's collar" : "apply this collar to")
+            .arg(mAnimal->hasCollar() ? "to replace current collar of" : "apply this collar to the")
             .arg(mAnimal->name())) ) {
         return;
+    }
+
+    if( removeCollarAnimal ) {
+        if( !removeCollarAnimal->removeCollar() ) {
+            gMainWindow->errorMsgBox( QString("Animal %1 collar removal error").arg(removeCollarAnimal->name()) );
+            return;
+        }
     }
 
     mAnimal->putCollar(mMirror);

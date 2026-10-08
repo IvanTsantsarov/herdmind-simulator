@@ -158,6 +158,7 @@ public:
     Collar *putCollar(const QByteArray &devEUI = QByteArray(),
                       const QByteArray& appKey = QByteArray(),
                       const QByteArray &nwkKey  = QByteArray());
+    bool removeCollar();
 
     Collar *putCollar(Collar* mirror);
 

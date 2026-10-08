@@ -243,6 +243,16 @@ Collar* Animal::putCollar(const QByteArray &devEUI, const QByteArray &appKey, co
     return mCollar;
 }
 
+bool Animal::removeCollar()
+{
+    if( mCollar ) {
+        if( mCollar ) delete mCollar;
+        mCollar = 0;
+    }
+
+    return true;
+}
+
 Collar *Animal::putCollar(Collar *mirror)
 {
     return putCollar(mirror->eui(), mirror->appSKey(), mirror->nwkSKey());

@@ -97,6 +97,7 @@ public:
 
     void reload();
     bool storeHerd();
+    DialogCollarSim* dlgCollar(){ return mDlgCollar; }
 
 
 protected:
