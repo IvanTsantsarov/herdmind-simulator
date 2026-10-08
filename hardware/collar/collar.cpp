@@ -35,10 +35,12 @@
 //////////////////////////////////////////////////////////////
 Collar::Collar(Animal* animal,
                const QByteArray &devEUI,
-               const QByteArray& appKey, const QByteArray &nwkKeyHex)
-    : LoraDevSim(QString("%1 collar").arg(animal->name()), LoraDevSim::Profile::Collar,
-              COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-                 devEUI, appKey, nwkKeyHex), mAnimal(animal)
+               const QByteArray& appKey,
+               const QByteArray &nwkKeyHex)
+    : LoraDevSim(QString("%1 collar").arg(animal->name()),
+                LoraDevSim::Profile::Collar,
+                COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
+                devEUI, appKey, nwkKeyHex), mAnimal(animal)
 {
     commonConstructor();
 
@@ -49,10 +51,12 @@ Collar::Collar(Animal* animal,
 
 Collar::Collar(QString animalName, bool isMale,
                const QByteArray &devEUI,
-               const QByteArray& appKey , const QByteArray &nwkKey)
-: LoraDevSim(QString("%1 collar").arg(animalName), LoraDevSim::Profile::Collar,
-                   COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-                 devEUI, appKey, nwkKey), mAnimalName(animalName), mIsMale(isMale)
+               const QByteArray& appKey ,
+               const QByteArray &nwkKey)
+    : LoraDevSim(QString("%1 collar").arg(animalName),
+                LoraDevSim::Profile::Collar,
+                COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
+                devEUI, appKey, nwkKey), mAnimalName(animalName), mIsMale(isMale)
 {
     commonConstructor();
 }
@@ -306,6 +310,10 @@ bool Collar::flash()
 
 bool Collar::restore()
 {
+    if( !mEnableRestore ) {
+        return true;
+    }
+
     uint8_t key[LORA_KEY_LEN] = {0};
 
     if( !mMemory->readKey("akey", key) ) {

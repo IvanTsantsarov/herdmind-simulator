@@ -49,7 +49,6 @@ class Collar : public LoraDevHW
     String mAnimalName;
     bool mIsMale = false;
 
-
 #ifdef ONPC
     friend class DialogCollarSim;
     Animal* mAnimal = nullptr;
@@ -57,11 +56,15 @@ class Collar : public LoraDevHW
     int mInjectedRSSI = 0;
     int mInjectedSNR = 0;
     int mInjectedBat = 0;
+    bool mEnableRestore = false;
 #else
     int64_t mDbgMsec = 0;
+    bool mEnableRestore = true;
 #endif
 
     bool mIsDbgInfo = true;
+
+
 
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;

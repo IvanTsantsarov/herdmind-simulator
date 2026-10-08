@@ -103,6 +103,8 @@ void LoraDevHW::onSetup() {
 
 }
 
-LoraDevHW gLDC;
+#ifndef  ONPC
+    LoraDevHW gLDC;
+#endif
 
 // #endif

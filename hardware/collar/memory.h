@@ -9,6 +9,7 @@ class Memory
 {
     char* mBuffer = nullptr;
     int mBufferLen = 0;
+
 public:
     Memory();
     size_t read(const char* name, char *dst, size_t maxLen);

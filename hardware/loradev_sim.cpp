@@ -31,15 +31,15 @@ LoraDevSim::LoraDevSim(const QString &name,
     delayTimer.singleShot( Tools::rnd(0, sendInterval), this, &LoraDevSim::onTimerStart );
 }
 
-void LoraDevSim::setKeys(const QString &devEUI,
-                         const QString &devAddr,
-                         const QString &aSKey,
-                         const QString &nSKey)
+void LoraDevSim::setKeysHex(const QString &devEuiHex,
+                            const QString &devAddrHex,
+                            const QString &aSKeyHex,
+                            const QString &nSKeyHex)
 {
-    mDevEUI = devEUI.toLatin1();
-    setAddress( devAddr.toLatin1() );
-    mAppSKey = aSKey.toLatin1();
-    mNwkSKey = nSKey.toLatin1() ;
+    mDevEUI = QByteArray::fromHex( devEuiHex.toLatin1() );
+    setAddress( QByteArray::fromHex( devAddrHex.toLatin1() ) );
+    mAppSKey = QByteArray::fromHex( aSKeyHex.toLatin1() );
+    mNwkSKey = QByteArray::fromHex( nSKeyHex.toLatin1() );
 }
 
 bool LoraDevSim::setFromJson(const QJsonObject &jobj)
@@ -51,7 +51,7 @@ bool LoraDevSim::setFromJson(const QJsonObject &jobj)
         return false;
     }
 
-    setKeys( jobj["devEui"].toString(),
+    setKeysHex( jobj["devEui"].toString(),
              jobj["devAddr"].toString(),
              jobj["appSKey"].toString(),
              jobj["nwkSKey"].toString() );

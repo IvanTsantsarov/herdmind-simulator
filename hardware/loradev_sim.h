@@ -122,9 +122,10 @@ public:
                const QByteArray& aSKey = QByteArray(),
                const QByteArray& nSKey = QByteArray() );
 
-    void setKeys(const QString &devEUI,
-                 const QString &devAddr,
-                 const QString &aSKey , const QString &nSKey);
+    void setKeysHex(const QString &devEuiHex,
+                 const QString &devAddrHex,
+                 const QString &aSKeyHex,
+                const QString &nSKeyHex);
 
     bool setFromJson(const QJsonObject &jobj );
 
