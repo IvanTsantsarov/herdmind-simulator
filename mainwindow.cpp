@@ -835,13 +835,7 @@ bool MainWindow::storeHerd()
         return false;
     }
 
-    if( !mHerd->storeDevices() ){
-        return false;
-    }
-
-    mDlgCollar->loadAnimals(mHerd->animals(false));
-
-    syncDevices();
+    reload();
 
     return true;
 }

@@ -103,12 +103,13 @@ inline uint32_t millis() { return gTools.millis(); }
 #define u8g2_font_spleen8x16_mf 1
 #define u8g2_font_spleen6x12_mf 2
 
-#define SCREEN_COL_LIGHT QColor(0, 240, 255)
 #define SCREEN_COL_DARK QColor(10, 10, 10)
-#define SCREEN_COL_SLEEPING QColor(0, 40, 50)
-#define SCREEN_COL_SLEEPING QColor(0, 40, 50)
-#define SCREEN_COL_MIRROR QColor(245, 152, 66)
-#define SCREEN_COL_MIRROR_SLEEPING QColor(145, 52, 0)
+
+#define SCREEN_COL_LIGHT QColor(245, 152, 66)
+#define SCREEN_COL_SLEEPING QColor(145, 52, 0)
+
+#define SCREEN_COL_MIRROR QColor(0, 240, 255)
+#define SCREEN_COL_MIRROR_SLEEPING QColor(0, 40, 50)
 
 
 class ScreenSim {

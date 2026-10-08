@@ -3,15 +3,10 @@
 #include <QCompleter>
 #include <QLineEdit>
 
-
 #include "dialogregisteranimal.h"
 #include "ui_dialogregisteranimal.h"
 
-
 #include "hardware/loradev_sim.h"
-//#include "hardware/loradev_def.h"
-//#include "hardware/gateway/gateway.h"
-//#include "hardware/hardware/tools.h"
 #include "mainwindow.h"
 #include "simtools.h"
 #include "herd.h"

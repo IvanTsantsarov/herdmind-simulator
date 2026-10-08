@@ -23,6 +23,12 @@ size_t Memory::read(const char* name, char* dst, size_t maxLen)
 
 size_t Memory::write(const char* name, const char* val, size_t len)
 {
+    // ijh debug start
+    char dbgbuf[100] = {0};
+    memcpy(dbgbuf, val, len);
+    DBG(String("Flashing") + name + ":" + dbgbuf );
+    // ijh debug end
+
     gMem.begin( MEMORY_SECTION, false );
     size_t sz = gMem.putBytes( name, val, len );
     gMem.end();

@@ -12,18 +12,18 @@
 uint32_t LoraDevSim::NODE_ADDR = 1000;
 
 LoraDevSim::LoraDevSim(const QString &name,
-                 Profile profile,
-                 int updateInterval,
-                 int sendInterval,
-                 const QByteArray& devEUI,
-                 const QByteArray& aSKey,
-                 const QByteArray& nSKey
-                  )
+                       Profile profile,
+                       int updateInterval,
+                       int sendInterval,
+                       const QByteArray& devEui,
+                       const QByteArray& aSKey,
+                       const QByteArray& nSKey
+                       )
     : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
 {
     mName = name;
     mProfile = profile;
-    mDevEUI = devEUI.size() ? devEUI : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
+    mDevEUI = devEui.size() ? devEui : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
     mAppSKey = aSKey.size() ? aSKey : QByteArray::fromHex( SimTools::genAesKey() );
     mNwkSKey = nSKey.size() ? nSKey : QByteArray::fromHex( SimTools::genAesKey() );
 
@@ -32,14 +32,14 @@ LoraDevSim::LoraDevSim(const QString &name,
 }
 
 void LoraDevSim::setKeys(const QString &devEUI,
-                      const QString &devAddr,
-                      const QString &aSKey,
-                      const QString &nSKey)
+                         const QString &devAddr,
+                         const QString &aSKey,
+                         const QString &nSKey)
 {
-    mDevEUI = QByteArray::fromHex( devEUI.toLatin1() );
-    setAddress( QByteArray::fromHex( devAddr.toLatin1()) );
-    mAppSKey = QByteArray::fromHex( aSKey.toLatin1() );
-    mNwkSKey = QByteArray::fromHex( nSKey.toLatin1() );
+    mDevEUI = devEUI.toLatin1();
+    setAddress( devAddr.toLatin1() );
+    mAppSKey = aSKey.toLatin1();
+    mNwkSKey = nSKey.toLatin1() ;
 }
 
 bool LoraDevSim::setFromJson(const QJsonObject &jobj)
@@ -543,4 +543,14 @@ void LoraDevSim::setNKeyHex(const char* key)
 void LoraDevSim::setAKeyHex(const char* key)
 {
     mAppSKey = QByteArray::fromHex( QByteArray(key, LORA_KEY_HEX_LEN) );
+}
+
+void LoraDevSim::setAddrHex(const char *addr)
+{
+    mAddr = QByteArray::fromHex( QByteArray(addr, LORA_ADDR_HEX_LEN) );
+}
+
+const char *LoraDevSim::addrHex()
+{
+    return mAddr.toHex().data();
 }

@@ -37,6 +37,7 @@ private:
     QByteArray mDevEUI; // build-in unique 8 bytes like MAC address (ex:0x1234567890AAAAAA)
     QByteArray mNwkSKey;
     QByteArray mAppSKey;
+    QByteArray mAddr;
 
     // 4 bytes - dynamic address, obtained from chirpstack after accepting connection
     QByteArray mDevAddr, mDevAddrRev;
@@ -83,13 +84,14 @@ protected:
 
 public:
     inline QByteArray eui(){ return mDevEUI; };
-    const char* euiHex();;
+    const char* euiHex();
     inline QByteArray addr(){ return mDevAddr; };
     inline QString name(){ return mName; }
     inline Profile profile(){ return mProfile; }
     QString profileString();
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
+
     const char* akeyHex();
     const char* nkeyHex();
     inline uint8_t* akey(){ return (uint8_t*)mAppSKey.data(); }
@@ -100,23 +102,25 @@ public:
     void setEuiHex(const char* eui);
     void setNKeyHex(const char *key);
     void setAKeyHex(const char *key);
+    void setAddrHex(const char* eui);
+    const char* addrHex();
 
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
     inline bool isValid(){ return Profile::None != mProfile; }
     inline uint8_t dataRate(){ return mDataRate; }
-    void setAddress(const QByteArray& ba);;
+    void setAddress(const QByteArray& ba);
     void setGateway(Gateway* gw);
 
     inline uint8_t fport(){ return (quint8)LORA_FPORT_START + (quint8)mProfile; }
     /// inline uint8_t fport(){ return 1; }
 
-    LoraDevSim( const QString& name,
-            Profile profile,
-            int updateInterval, int sendInterval,
-            const QByteArray &devEUI = QByteArray(),
-            const QByteArray& aSKey = QByteArray(),
-            const QByteArray& nSKey = QByteArray() );
+    LoraDevSim(const QString& name,
+               Profile profile,
+               int updateInterval, int sendInterval,
+               const QByteArray &devEui = QByteArray(),
+               const QByteArray& aSKey = QByteArray(),
+               const QByteArray& nSKey = QByteArray() );
 
     void setKeys(const QString &devEUI,
                  const QString &devAddr,

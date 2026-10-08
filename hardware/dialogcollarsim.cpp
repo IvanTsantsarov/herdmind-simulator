@@ -17,6 +17,16 @@
 
 #define DLGCOLLARSIM_MAX_COMMAND_STRINGS 10
 
+#define DLGCOLLARSIM_BACKCOL_OK QColor(255, 255, 255)
+#define DLGCOLLARSIM_BACKCOL_ERROR QColor(235, 192, 188)
+
+
+const QRegularExpression DialogCollarSim::mRegexEuiHex =
+    QRegularExpression(R"(^[0-9a-fA-F]{16})");
+const QRegularExpression DialogCollarSim::mRegexKeyHex =
+    QRegularExpression(R"(^[0-9a-fA-F]{32})");
+
+
 uint32_t DialogCollarSim::mBaudrates[] =  {
     115200, 57600, 38400, 19200, 9600
 };
@@ -26,9 +36,9 @@ void DialogCollarSim::createMirror(const QString& animalName, bool isMale, const
     deleteMirror();
     if( !gMainWindow->isSimulation() && !mMirror ) {
         mMirror = new Collar(animalName, isMale,
-                             QByteArray::fromHex(euiHex.toLatin1()),
-                             QByteArray::fromHex(akeyHex.toLatin1()),
-                             QByteArray::fromHex(nkeyHex.toLatin1()));
+                             QByteArray::fromHex( euiHex.toLatin1()),
+                             QByteArray::fromHex( akeyHex.toLatin1()),
+                             QByteArray::fromHex( nkeyHex.toLatin1()));
     }
 }
 
@@ -437,7 +447,9 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
     ui->btnCopyAKey->setEnabled(checked);
     ui->editNKey->setEnabled(checked);
     ui->btnGenNKey->setEnabled(checked);
-    ui->btnCopyAKey->setEnabled(checked);
+    ui->btnCopyNKey->setEnabled(checked);
+    ui->btnCopyAddr->setEnabled(checked);
+
     ui->btnFlash->setEnabled(checked);
     ui->comboPorts->setEnabled(!checked);
     ui->comboBaudrate->setEnabled(!checked);
@@ -573,6 +585,7 @@ void DialogCollarSim::processSerialInput()
                 ui->editEui->setText(args[2]);
                 ui->editAKey->setText(args[3]);
                 ui->editNKey->setText(args[4]);
+                ui->editAddr->setText(args[5]);
                 ui->btnFlash->setEnabled(false);
                 ui->btnReload->setEnabled(false);
                 ui->btnStore->setEnabled(false);
@@ -587,6 +600,7 @@ void DialogCollarSim::processSerialInput()
         }
     }
 }
+
 
 void DialogCollarSim::on_btnReset_clicked()
 {
@@ -613,28 +627,47 @@ void DialogCollarSim::on_btnCopyNKey_clicked()
     QToolTip::showText( QCursor::pos(), "NwkKey copied!");
 }
 
-
-void DialogCollarSim::on_editEui_textChanged(const QString &)
+void DialogCollarSim::on_btnCopyAddr_clicked()
 {
-    ui->btnFlash->setEnabled(true);
-    ui->btnReload->setEnabled(true);
-    ui->btnStore->setEnabled(false);
+    SimTools::clipboardCopy(ui->editAddr->text());
+    QToolTip::showText( QCursor::pos(), "Address copied!");
 }
 
 
-void DialogCollarSim::on_editAKey_textChanged(const QString &)
+void DialogCollarSim::setBackgroundError(QLineEdit *edit, bool isError)
+{
+    QPalette p = edit->palette();
+    p.setColor(QPalette::Base, isError ? DLGCOLLARSIM_BACKCOL_ERROR : DLGCOLLARSIM_BACKCOL_OK); // BG
+    edit->setPalette(p);
+}
+
+void DialogCollarSim::on_editEui_textChanged(const QString &newEui)
 {
     ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
     ui->btnStore->setEnabled(false);
+
+    DialogCollarSim::setBackgroundError(ui->editEui, !mRegexEuiHex.match(newEui).hasMatch());
 }
 
 
-void DialogCollarSim::on_editNKey_textChanged(const QString &)
+void DialogCollarSim::on_editAKey_textChanged(const QString &newKey)
 {
     ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
     ui->btnStore->setEnabled(false);
+
+    DialogCollarSim::setBackgroundError(ui->editAKey, !mRegexKeyHex.match(newKey).hasMatch());
+}
+
+
+void DialogCollarSim::on_editNKey_textChanged(const QString &newKey)
+{
+    ui->btnFlash->setEnabled(true);
+    ui->btnReload->setEnabled(true);
+    ui->btnStore->setEnabled(false);
+
+    DialogCollarSim::setBackgroundError(ui->editNKey, !mRegexKeyHex.match(newKey).hasMatch());
 }
 
 
@@ -700,8 +733,6 @@ void DialogCollarSim::on_btnStore_clicked()
     }else {
         gMainWindow->infoMsgBox("Herd stored!");
     }
-
-    ui->btnStore->setEnabled(false);
 }
 
 void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
@@ -710,6 +741,12 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
         gMainWindow->infoMsgBox( QString("Collar %1 (%2) activated!")
                                     .arg(mMirror->animalName().toQString())
                                     .arg(mMirror->euiHex()) );
+
+        ui->editAddr->setText( dev->addr().toHex() );
+
+        ui->btnStore->setEnabled(false);
     }
 }
+
+
 

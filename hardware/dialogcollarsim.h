@@ -19,6 +19,7 @@ class Collar;
 class QSerialPort;
 class DevManager;
 class LoraDevSim;
+class QLineEdit;
 
 namespace Ui {
 class DialogCollarSim;
@@ -82,6 +83,10 @@ class DialogCollarSim : public QDialog
     QImage mImageDisconnected;
 
 
+    static const QRegularExpression mRegexEuiHex;
+    static const QRegularExpression mRegexKeyHex;
+
+    static void setBackgroundError(QLineEdit* edit, bool isError);
 
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
@@ -126,17 +131,19 @@ private slots:
 
     void on_btnCopyNKey_clicked();
 
-    void on_editEui_textChanged(const QString &arg1);
+    void on_editEui_textChanged(const QString &newEui);
 
-    void on_editAKey_textChanged(const QString &arg1);
+    void on_editAKey_textChanged(const QString &newKey);
 
-    void on_editNKey_textChanged(const QString &arg1);
+    void on_editNKey_textChanged(const QString &newKey);
 
     void on_btnReload_clicked();
 
     void on_btnStore_clicked();
 
     void on_deviceActivated(LoraDevSim* dev);
+
+    void on_btnCopyAddr_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

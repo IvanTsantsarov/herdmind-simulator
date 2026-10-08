@@ -229,9 +229,10 @@ bool SerialCmd::execute()
     case Cmd::Type::INFO:
         Serial.println( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
                        (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
-                       mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
-                       mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
-                       mCollar->nkeyHex() );
+                        mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
+                        mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
+                        mCollar->nkeyHex() + SERIAL_CMD_PARAMS_DM +
+                        mCollar->addrHex() );
         break;
 
     case Cmd::Type::GPS: {
@@ -264,7 +265,6 @@ bool SerialCmd::execute()
                 return false;
             }
             mCollar->setNKeyHex(mArgument);
-            Serial.println("nkey ok");
         }else {
             Serial.println(mCollar->nkeyHex());
         }
@@ -277,7 +277,6 @@ bool SerialCmd::execute()
                 return false;
             }
             mCollar->setAKeyHex(mArgument);
-            Serial.println("akey ok");
         }else {
             Serial.println(mCollar->akeyHex());
         }
@@ -290,9 +289,20 @@ bool SerialCmd::execute()
                 return false;
             }
             mCollar->setEuiHex(mArgument);
-            Serial.println("eui ok");
         }else {
             Serial.println(mCollar->euiHex());
+        }
+        break;
+
+    case Cmd::Type::ADDR:
+        if( mIsArgument ) {
+            if( mArgumentLen != LORA_ADDR_HEX_LEN) {
+                mErrStr = "Wrong Address lenght";
+                return false;
+            }
+            mCollar->setAddrHex(mArgument);
+        }else {
+            Serial.println(mCollar->addrHex());
         }
         break;
 
@@ -315,8 +325,6 @@ bool SerialCmd::execute()
         Serial.println("restore: Restore values from peristent memory");
         break;
 
-    case Cmd::Type::ADDR:
-        break;
     case Cmd::Type::FLASH:
         if( !mCollar->flash() ) {
             Serial.println("Error flashing.");

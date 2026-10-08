@@ -16,6 +16,23 @@ LoraDevHW::LoraDevHW() {
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
 }
 
+String LoraDevHW::addrHex()
+{
+    uint8_t ba[LORA_ADDR_LEN];
+    ba[0] = (uint8_t) mAddr & 0x000000FF;
+    ba[1] = (uint8_t) (mAddr & 0x0000FF00) >> 8;
+    ba[2] = (uint8_t) (mAddr & 0x00FF0000) >> 16;
+    ba[3] = (uint8_t) (mAddr & 0xFF000000) >> 24;
+    return toHex(ba, LORA_ADDR_LEN);
+}
+
+void LoraDevHW::setAddrHex(const char *addr)
+{
+    uint8_t dst[LORA_ADDR_LEN];
+    fromHex(addr, dst, LORA_ADDR_HEX_LEN);
+    mAddr = (uint32_t)(dst[0]) | ((uint32_t)(dst[1]) << 8) | ((uint32_t)(dst[2]) << 16) | ((uint32_t)(dst[3]) << 24);
+}
+
 void LoraDevHW::setAKey(const uint8_t *key)
 {
     memcpy(mAKey, key, LORA_KEY_LEN);
@@ -32,7 +49,7 @@ String LoraDevHW::toHex(uint8_t* a, int len)
     String result;
     char hex[3] = {0};
     for( int i = 0; i < len; i ++) {
-        if( a[i]  < 9) {
+        if( a[i]  < 16) {
             std::sprintf(hex, "0%x", a[i]);
         } else {
             std::sprintf(hex, "%x", a[i]);

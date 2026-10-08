@@ -35,10 +35,10 @@
 //////////////////////////////////////////////////////////////
 Collar::Collar(Animal* animal,
                const QByteArray &devEUI,
-               const QByteArray& appKey, const QByteArray &nwkKey)
+               const QByteArray& appKey, const QByteArray &nwkKeyHex)
     : LoraDevSim(QString("%1 collar").arg(animal->name()), LoraDevSim::Profile::Collar,
               COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-              devEUI, appKey, nwkKey), mAnimal(animal)
+                 devEUI, appKey, nwkKeyHex), mAnimal(animal)
 {
     commonConstructor();
 
