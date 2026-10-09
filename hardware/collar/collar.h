@@ -64,8 +64,6 @@ class Collar : public LoraDevHW
 
     bool mIsDbgInfo = true;
 
-
-
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
     Button* mBtnMain = nullptr;
@@ -129,9 +127,10 @@ public:
            const QByteArray& nwkKey = QByteArray() );
 
     Collar(QString animalName, bool isMale,
-            const QByteArray &devEUI,
-            const QByteArray& appKey,
-            const QByteArray& nwkKey );
+           const QByteArray& devEUI,
+           const QByteArray& appKey,
+           const QByteArray& nwkKey ,
+           const QByteArray& addrHex);
 
 
     Protocol::Collar getPackageOut();
@@ -149,6 +148,9 @@ public:
 
 
     ~Collar();
+
+    void setAnimalName(const String& name);
+    void setIsMale(bool is){ mIsMale = is; }
 
     String& animalName() { return mAnimalName; }
     bool isMale(){ return mIsMale; }

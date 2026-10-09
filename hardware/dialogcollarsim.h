@@ -57,7 +57,8 @@ class DialogCollarSim : public QDialog
                       bool isMale,
                       const QString &euiHex,
                       const QString &akeyHex,
-                      const QString &nkeyHex);
+                      const QString &nkeyHex,
+                      const QString &addrHex);
     void deleteMirror();
 
     void setLightsColor(const QColor& col);

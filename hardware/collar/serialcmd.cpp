@@ -126,6 +126,9 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::ADDR: return "addr";
     case Type::FLASH: return "flash";
     case Type::RESTORE: return "restore";
+    case Type::NAME: return "name";
+    case Type::SEX: return "sex";
+        break;
     }
 
     return "";
@@ -198,8 +201,13 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
     }else
     if( cmp("restore") ) {
         mT = Type::RESTORE;
+    }else
+    if( cmp("name") ) {
+        mT = Type::NAME;
+    }else
+    if( cmp("sex") ) {
+        mT = Type::SEX;
     }
-
     else {
         mT = Type::NONE;
         return false;
@@ -282,6 +290,30 @@ bool SerialCmd::execute()
         }
         break;
 
+    case Cmd::Type::NAME:
+        if( mIsArgument ) {
+            if( mArgumentLen < 3) {
+                mErrStr = "Wrong name lenght";
+                return false;
+            }
+            mCollar->setAnimalName(mArgument);
+        }else {
+            Serial.println(mCollar->animalName());
+        }
+        break;
+
+    case Cmd::Type::SEX:
+        if( mIsArgument ) {
+            if( mArgumentLen < 1) {
+                mErrStr = "Wrong sex lenght";
+                return false;
+            }
+            mCollar->setIsMale(strcmp(mArgument,"m") == 0 ? true : false);
+        }else {
+            Serial.println(mCollar->isMale() ? "m" : "f");
+        }
+        break;
+
     case Cmd::Type::EUI:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_EUI_HEX_LEN) {
@@ -318,6 +350,8 @@ bool SerialCmd::execute()
         Serial.println("rssi: Received Signal Strenght Indicator in dB");
         Serial.println("snr: Signal to Noise Ratio in dB");
         Serial.println("ss: Signal Strength in percents");
+        Serial.println("name: Set/Get animal's name");
+        Serial.println("sex: Set/Get gender: f or m");
         Serial.println("eui: Set/Get EUI of the LoraWAN module");
         Serial.println("nkey: Set/Get network key (only OTA supported)");
         Serial.println("akey: Set/Get app key (only OTA supported)");

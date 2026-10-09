@@ -10,6 +10,7 @@
 #define LORA_KEY_HEX_LEN 32
 #define LORA_ADDR_LEN 4
 #define LORA_ADDR_HEX_LEN 8
+#define LORA_NAME_MAX_LEN 32
 
 
 #endif // DEFINES_H

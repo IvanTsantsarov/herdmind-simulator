@@ -47,6 +47,8 @@ public:
             RSSI,   // Get Received Signal Strength Indicator
             SNR,    // Get SNR (Signal-to-Noise Ratio
             SS,     // Get Signal Strength
+            NAME,   // Get/Set animal name
+            SEX,    // m or f
             NKEY,   // Set/Get network key
             AKEY,   // Set/Get application key
             ADDR,    // Set/Get address

@@ -12,12 +12,21 @@ class Memory
 
 public:
     Memory();
-    size_t read(const char* name, char *dst, size_t maxLen);
     size_t write(const char *name, const char *val, size_t len);
-    bool readKey(const char* name, uint8_t* dst);
+    size_t read(const char* name, char *dst, size_t maxLen);
+
     bool writeKey(const char* name, const uint8_t *src);
-    bool readAddrHex(char *toAddr);
+    bool readKey(const char* name, uint8_t* dst);
+
     bool writeAddrHex(String fromAddr);
+    bool readAddrHex(char *toAddr);
+
+    bool writeName(String from);
+    bool readName( String& to );
+
+    bool writeSex( bool isMale);
+    bool readSex( bool& isMale);
+
 };
 
 #endif // MEMORY_H

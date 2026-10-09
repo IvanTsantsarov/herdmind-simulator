@@ -36,11 +36,11 @@
 Collar::Collar(Animal* animal,
                const QByteArray &devEUI,
                const QByteArray& appKey,
-               const QByteArray &nwkKeyHex)
+               const QByteArray &nwkKey)
     : LoraDevSim(QString("%1 collar").arg(animal->name()),
                 LoraDevSim::Profile::Collar,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-                devEUI, appKey, nwkKeyHex), mAnimal(animal)
+                devEUI, appKey, nwkKey), mAnimal(animal)
 {
     commonConstructor();
 
@@ -52,12 +52,15 @@ Collar::Collar(Animal* animal,
 Collar::Collar(QString animalName, bool isMale,
                const QByteArray &devEUI,
                const QByteArray& appKey ,
-               const QByteArray &nwkKey)
+               const QByteArray &nwkKey,
+               const QByteArray &addrHex)
     : LoraDevSim(QString("%1 collar").arg(animalName),
                 LoraDevSim::Profile::Collar,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-                devEUI, appKey, nwkKey), mAnimalName(animalName), mIsMale(isMale)
+                devEUI, appKey, nwkKey), mIsMale(isMale)
 {
+    mAnimalName = SimTools::translateCyrilic( animalName );
+    setAddrHex(addrHex);
     commonConstructor();
 }
 
@@ -136,7 +139,18 @@ Collar::~Collar()
     delete mMemory;
 }
 
-#ifndef ONPC
+
+#ifdef ONPC
+void Collar::setAnimalName(const String &name)
+{
+    mAnimalName = SimTools::translateCyrilic( name.toQString() );
+}
+#else
+void Collar::setAnimalName(const String &name)
+{
+    mAnimalName = name;
+}
+
 bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
     gMainButtonDown = true;
@@ -309,6 +323,14 @@ bool Collar::flash()
         return false;
     }
 
+    if( !mMemory->writeName(mAnimalName) ) {
+        return false;
+    }
+
+    if( !mMemory->writeSex(mIsMale)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -336,6 +358,14 @@ bool Collar::restore()
     }
 
     setAddrHex(addrBufferHex);
+
+    if( !mMemory->readName(mAnimalName)) {
+        return false;
+    }
+
+    if( !mMemory->readSex(mIsMale)) {
+        return false;
+    }
 
     return true;
 }

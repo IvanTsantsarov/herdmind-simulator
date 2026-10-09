@@ -31,14 +31,19 @@ uint32_t DialogCollarSim::mBaudrates[] =  {
     115200, 57600, 38400, 19200, 9600
 };
 
-void DialogCollarSim::createMirror(const QString& animalName, bool isMale, const QString& euiHex, const QString& akeyHex, const QString& nkeyHex )
+void DialogCollarSim::createMirror(const QString& animalName, bool isMale,
+                                   const QString& euiHex,
+                                   const QString& akeyHex,
+                                   const QString& nkeyHex,
+                                   const QString& addrHex )
 {
     deleteMirror();
-    if( !gMainWindow->isSimulation() && !mMirror ) {
+    if( !gMainWindow->isSimulation() ) {
         mMirror = new Collar(animalName, isMale,
                              QByteArray::fromHex( euiHex.toLatin1()),
                              QByteArray::fromHex( akeyHex.toLatin1()),
-                             QByteArray::fromHex( nkeyHex.toLatin1()));
+                             QByteArray::fromHex( nkeyHex.toLatin1()),
+                            addrHex.toLatin1());
     }
 }
 
@@ -451,7 +456,6 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
     ui->btnCopyNKey->setEnabled(checked);
     ui->btnCopyAddr->setEnabled(checked);
 
-    ui->btnFlash->setEnabled(checked);
     ui->comboPorts->setEnabled(!checked);
     ui->comboBaudrate->setEnabled(!checked);
 
@@ -481,25 +485,6 @@ void DialogCollarSim::on_btnGenEui_clicked()
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
-    if( !isFlashDataValid() ) {
-        gMainWindow->errorMsgBox("Flash data not valid. Correct red fields");
-        return;
-    }
-
-    if( !gMainWindow->question("Are you sure you wanna flash the device?") ) {
-        return;
-    }
-
-    if( ui->checkFlashEui->isChecked() ) {
-        sendToSerial(QString("eui %1").arg(ui->editEui->text()));
-    }
-
-    sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
-    sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
-    sendToSerial(QString("addr %1").arg(ui->editAddr->text()));
-    sendToSerial("flash");
-
-    ui->btnStore->setEnabled(true);
 }
 
 void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
@@ -587,15 +572,16 @@ void DialogCollarSim::processSerialInput()
             }else
             if( stripResponce(resp, "info") ) {
                 QStringList args = resp.split("|");
+                ui->editAnimalName->setText(args[0]);
+                ui->btnSex->setIcon(args[1] == "m" ? mIconMale : mIconFemale );
                 ui->editEui->setText(args[2].toUpper());
                 ui->editAKey->setText(args[3].toUpper());
                 ui->editNKey->setText(args[4].toUpper());
                 ui->editAddr->setText(args[5].toUpper());
-                ui->btnFlash->setEnabled(false);
                 ui->btnReload->setEnabled(false);
                 ui->btnStore->setEnabled( ui->comboAnimals->currentIndex() >= 0 );
                 if( !mMirror ) {
-                    createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4]);
+                    createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4], args[5]);
                 }
                 return;
             }else
@@ -655,30 +641,21 @@ bool DialogCollarSim::isFlashDataValid()
 
 void DialogCollarSim::on_editEui_textChanged(const QString &newEui)
 {
-    ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
-    ui->btnStore->setEnabled(false);
-
     DialogCollarSim::setBackgroundError(ui->editEui, !mRegexEuiHex.match(newEui).hasMatch());
 }
 
 
 void DialogCollarSim::on_editAKey_textChanged(const QString &newKey)
 {
-    ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
-    ui->btnStore->setEnabled(false);
-
     DialogCollarSim::setBackgroundError(ui->editAKey, !mRegexKeyHex.match(newKey).hasMatch());
 }
 
 
 void DialogCollarSim::on_editNKey_textChanged(const QString &newKey)
 {
-    ui->btnFlash->setEnabled(true);
     ui->btnReload->setEnabled(true);
-    ui->btnStore->setEnabled(false);
-
     DialogCollarSim::setBackgroundError(ui->editNKey, !mRegexKeyHex.match(newKey).hasMatch());
 }
 
@@ -699,6 +676,11 @@ void DialogCollarSim::on_btnStore_clicked()
     if( !mAnimal) {
         QString txt( QString("No animal selected.%1").arg( ui->comboAnimals->count() ? "Pick one from the combo" : "Load from the main window.") );
         gMainWindow->errorMsgBox(txt);
+        return;
+    }
+
+    if( !isFlashDataValid() ) {
+        gMainWindow->errorMsgBox("Flash data not valid. Correct red fields");
         return;
     }
 
@@ -735,6 +717,10 @@ void DialogCollarSim::on_btnStore_clicked()
         }
     }
 
+    // Update mirror collar
+    mMirror->setAnimalName(mAnimal->name());
+    mMirror->setIsMale(mAnimal->isMale());
+    mMirror->setKeysHex( ui->editEui->text(), ui->editAddr->text(), ui->editAKey->text(), ui->editNKey->text());
     mAnimal->putCollar(mMirror);
     mPrevAnimal = mAnimal->name();
 
@@ -751,19 +737,27 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
 
         QString addr = dev->addr().toHex();
 
+        ui->editAddr->setText( addr );
+        ui->editAnimalName->setText( mMirror->animalName().toQString() );
+        mMirror->setAddrHex(addr.toLatin1());
+
+        if( ui->checkFlashEui->isChecked() ) {
+            sendToSerial(QString("eui %1").arg(ui->editEui->text()));
+        }
+
+        sendToSerial(QString("name %1").arg(mMirror->animalName().toQString()) );
+        sendToSerial(QString("sex %1").arg(mMirror->isMale() ? "m" : "f"));
+        sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
+        sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
+        sendToSerial(QString("addr %1").arg(addr));
+        sendToSerial("flash");
+
         QString str = QString("Collar of %1 (%2) activated! Address: %3")
                           .arg(mMirror->animalName().toQString())
                           .arg(mMirror->euiHex())
                           .arg(addr);
 
         QToolTip::showText( QCursor::pos(), str, this);
-
-        ui->editAddr->setText( addr );
-
-        sendToSerial(QString("addr %1").arg(addr));
-        sendToSerial("info");
-
-        ui->btnStore->setEnabled(false);
     }
 }
 
