@@ -76,6 +76,8 @@ private:
 
     QByteArray mPendingMacAns;   // bytes to send in next uplink as FOpts
 
+    bool mIsActivated = false;
+
 protected:
     bool isVirtual = true;
 
@@ -92,8 +94,8 @@ public:
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
 
-    const char* akeyHex();
-    const char* nkeyHex();
+    QString akeyHex();
+    QString nkeyHex();
     inline uint8_t* akey(){ return (uint8_t*)mAppSKey.data(); }
     inline uint8_t* nkey(){ return (uint8_t*)mNwkSKey.data(); }
     void setAKey(const uint8_t *src);
@@ -103,7 +105,7 @@ public:
     void setNKeyHex(const char *key);
     void setAKeyHex(const char *key);
     void setAddrHex(const char* eui);
-    const char* addrHex();
+    QString addrHex();
 
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
@@ -154,6 +156,9 @@ public:
     LastSeenStruct lastSeen();
     QString lastSeenInfo();
 
+    void activate(){ mIsActivated = true; }
+    inline bool isActivated(){ return mIsActivated; }
+    bool isFullyActivated() { return mIsActivated && !mAddr.isEmpty(); }
 
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());

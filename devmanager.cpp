@@ -186,6 +186,8 @@ void DevManager::onDeviceActivated(const QString &devEUI)
     LoraDevSim* dev = device(devEUI);
     qInfo() << "Device" << devEUI << dev->name() << "activated with address:" << dev->addr().toHex();
 
+    dev->activate();
+
     // Emit signal
     emit deviceActivated(dev);
 

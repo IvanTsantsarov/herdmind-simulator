@@ -58,7 +58,7 @@ void MainWindow::initGenerationUI()
 
 void MainWindow::on_btnGenerate_clicked()
 {
-    if( gSimTools->fileExists(ANIMALS_LIST_FILE_SIM) ) {
+    if( gSimTools->fileExists(mIsSimulation ? ANIMALS_LIST_FILE_SIM : ANIMALS_LIST_FILE) ) {
         if( QMessageBox::Yes != QMessageBox::question(this, "Generate new herd?", "This will erase existing saved animals list! Proceed with generating?") ) {
             return;
         }

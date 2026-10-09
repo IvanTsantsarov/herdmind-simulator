@@ -510,14 +510,14 @@ const char *LoraDevSim::euiHex()
     return mDevEUI.toHex().data();
 
 }
-const char *LoraDevSim::akeyHex()
+QString LoraDevSim::akeyHex()
 {
-    return mAppSKey.toHex().data();
+    return mAppSKey.toHex();
 }
 
-const char *LoraDevSim::nkeyHex()
+QString LoraDevSim::nkeyHex()
 {
-    return mNwkSKey.toHex().data();
+    return mNwkSKey.toHex();
 }
 
 void LoraDevSim::setAKey(const uint8_t *src)
@@ -550,7 +550,7 @@ void LoraDevSim::setAddrHex(const char *addr)
     mAddr = QByteArray::fromHex( QByteArray(addr, LORA_ADDR_HEX_LEN) );
 }
 
-const char *LoraDevSim::addrHex()
+QString LoraDevSim::addrHex()
 {
-    return mAddr.toHex().data();
+    return mAddr.toHex();
 }

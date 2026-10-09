@@ -305,6 +305,10 @@ bool Collar::flash()
         return false;
     }
 
+    if( !mMemory->writeAddrHex(addrHex()) ) {
+        return false;
+    }
+
     return true;
 }
 
@@ -325,6 +329,13 @@ bool Collar::restore()
         return false;
     }
     setNKey(key);
+
+    char addrBufferHex[LORA_ADDR_HEX_LEN + 1] = {0};
+    if( !mMemory->readAddrHex(addrBufferHex) ) {
+        return false;
+    }
+
+    setAddrHex(addrBufferHex);
 
     return true;
 }

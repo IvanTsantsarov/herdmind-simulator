@@ -88,6 +88,8 @@ class DialogCollarSim : public QDialog
 
     static void setBackgroundError(QLineEdit* edit, bool isError);
 
+    bool isFlashDataValid();
+
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
     void loadAnimals(QList<Animal*> animals);

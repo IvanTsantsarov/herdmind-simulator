@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
-    <height>555</height>
+    <width>414</width>
+    <height>557</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -435,7 +435,7 @@
      <item>
       <widget class="QGroupBox" name="groupPorts">
        <property name="title">
-        <string>USB port</string>
+        <string>Serial (USB) port</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
@@ -716,7 +716,7 @@
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>Store collar in the data base</string>
+             <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
             </property>
             <property name="text">
              <string>Store</string>

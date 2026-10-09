@@ -129,7 +129,8 @@ void DialogCollarSim::loadAnimals(QList<Animal *> animals)
         ui->comboAnimals->addItem(a->isMale() ?
                                       (a->hasCollar() ? mIconMaleCollar : mIconMale) :
                                       (a->hasCollar() ? mIconFemaleCollar : mIconFemale),
-                                  a->name(), QVariant::fromValue(a));
+                                    QString("%1%2").arg(a->name()).arg(a->hasCollar() && a->collar()->isActivated() ? "*" : ""),
+                                    QVariant::fromValue(a));
     }
 
     mIsLoadingAnimals = false;
@@ -480,7 +481,10 @@ void DialogCollarSim::on_btnGenEui_clicked()
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
-    // TODO: check all the hex
+    if( !isFlashDataValid() ) {
+        gMainWindow->errorMsgBox("Flash data not valid. Correct red fields");
+        return;
+    }
 
     if( !gMainWindow->question("Are you sure you wanna flash the device?") ) {
         return;
@@ -492,6 +496,7 @@ void DialogCollarSim::on_btnFlash_clicked()
 
     sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
     sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
+    sendToSerial(QString("addr %1").arg(ui->editAddr->text()));
     sendToSerial("flash");
 
     ui->btnStore->setEnabled(true);
@@ -582,13 +587,13 @@ void DialogCollarSim::processSerialInput()
             }else
             if( stripResponce(resp, "info") ) {
                 QStringList args = resp.split("|");
-                ui->editEui->setText(args[2]);
-                ui->editAKey->setText(args[3]);
-                ui->editNKey->setText(args[4]);
-                ui->editAddr->setText(args[5]);
+                ui->editEui->setText(args[2].toUpper());
+                ui->editAKey->setText(args[3].toUpper());
+                ui->editNKey->setText(args[4].toUpper());
+                ui->editAddr->setText(args[5].toUpper());
                 ui->btnFlash->setEnabled(false);
                 ui->btnReload->setEnabled(false);
-                ui->btnStore->setEnabled(false);
+                ui->btnStore->setEnabled( ui->comboAnimals->currentIndex() >= 0 );
                 if( !mMirror ) {
                     createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4]);
                 }
@@ -639,6 +644,13 @@ void DialogCollarSim::setBackgroundError(QLineEdit *edit, bool isError)
     QPalette p = edit->palette();
     p.setColor(QPalette::Base, isError ? DLGCOLLARSIM_BACKCOL_ERROR : DLGCOLLARSIM_BACKCOL_OK); // BG
     edit->setPalette(p);
+}
+
+bool DialogCollarSim::isFlashDataValid()
+{
+    return  mRegexEuiHex.match(ui->editEui->text()).hasMatch() &&
+            mRegexKeyHex.match(ui->editAKey->text()).hasMatch() &&
+            mRegexKeyHex.match(ui->editNKey->text()).hasMatch();
 }
 
 void DialogCollarSim::on_editEui_textChanged(const QString &newEui)
@@ -730,19 +742,26 @@ void DialogCollarSim::on_btnStore_clicked()
     // and fill the list again
     if( !gMainWindow->storeHerd() ) {
         gMainWindow->errorMsgBox("Error storing herd!");
-    }else {
-        gMainWindow->infoMsgBox("Herd stored!");
-    }
+    };
 }
 
 void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
 {
     if( mMirror && (dev->eui() == mMirror->eui())) {
-        gMainWindow->infoMsgBox( QString("Collar %1 (%2) activated!")
-                                    .arg(mMirror->animalName().toQString())
-                                    .arg(mMirror->euiHex()) );
 
-        ui->editAddr->setText( dev->addr().toHex() );
+        QString addr = dev->addr().toHex();
+
+        QString str = QString("Collar of %1 (%2) activated! Address: %3")
+                          .arg(mMirror->animalName().toQString())
+                          .arg(mMirror->euiHex())
+                          .arg(addr);
+
+        QToolTip::showText( QCursor::pos(), str, this);
+
+        ui->editAddr->setText( addr );
+
+        sendToSerial(QString("addr %1").arg(addr));
+        sendToSerial("info");
 
         ui->btnStore->setEnabled(false);
     }

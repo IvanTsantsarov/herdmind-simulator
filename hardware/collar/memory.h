@@ -16,6 +16,8 @@ public:
     size_t write(const char *name, const char *val, size_t len);
     bool readKey(const char* name, uint8_t* dst);
     bool writeKey(const char* name, const uint8_t *src);
+    bool readAddrHex(char *toAddr);
+    bool writeAddrHex(String fromAddr);
 };
 
 #endif // MEMORY_H

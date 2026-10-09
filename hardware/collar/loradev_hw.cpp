@@ -18,19 +18,19 @@ LoraDevHW::LoraDevHW() {
 
 String LoraDevHW::addrHex()
 {
-    uint8_t ba[LORA_ADDR_LEN];
-    ba[0] = (uint8_t) mAddr & 0x000000FF;
-    ba[1] = (uint8_t) (mAddr & 0x0000FF00) >> 8;
-    ba[2] = (uint8_t) (mAddr & 0x00FF0000) >> 16;
-    ba[3] = (uint8_t) (mAddr & 0xFF000000) >> 24;
+    uint8_t ba[LORA_ADDR_LEN] = {0};
+    ba[3] = (uint8_t)  (mAddr & 0x000000FF);
+    ba[2] = (uint8_t) ((mAddr & 0x0000FF00) >> 8 );
+    ba[1] = (uint8_t) ((mAddr & 0x00FF0000) >> 16);
+    ba[0] = (uint8_t) ((mAddr & 0xFF000000) >> 24);
     return toHex(ba, LORA_ADDR_LEN);
 }
 
 void LoraDevHW::setAddrHex(const char *addr)
 {
-    uint8_t dst[LORA_ADDR_LEN];
+    uint8_t dst[LORA_ADDR_LEN] = {0};
     fromHex(addr, dst, LORA_ADDR_HEX_LEN);
-    mAddr = (uint32_t)(dst[0]) | ((uint32_t)(dst[1]) << 8) | ((uint32_t)(dst[2]) << 16) | ((uint32_t)(dst[3]) << 24);
+    mAddr = (uint32_t)(dst[3]) | ((uint32_t)(dst[2]) << 8) | ((uint32_t)(dst[1]) << 16) | ((uint32_t)(dst[0]) << 24);
 }
 
 void LoraDevHW::setAKey(const uint8_t *key)
@@ -103,8 +103,8 @@ void LoraDevHW::onSetup() {
 
 }
 
-#ifndef  ONPC
+// #ifndef  ONPC
     LoraDevHW gLDC;
-#endif
+// #endif
 
 // #endif

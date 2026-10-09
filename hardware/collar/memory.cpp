@@ -45,4 +45,14 @@ bool Memory::writeKey(const char *name, const uint8_t *src)
     return LORA_KEY_LEN == write( name, (const char*) src, LORA_KEY_LEN);
 }
 
+bool Memory::readAddrHex(char *toAddr)
+{
+    return read("addr", (char*)toAddr, LORA_ADDR_HEX_LEN);
+}
+
+bool Memory::writeAddrHex( String fromAddr)
+{
+    return write( "addr", fromAddr.c_str(), LORA_ADDR_HEX_LEN);
+}
+
 
