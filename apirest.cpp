@@ -117,6 +117,32 @@ void ApiRest::addDevice(const QString& name,
     reply->setProperty("devEUI", devEUI);
 }
 
+void ApiRest::setDeviceName(const QString &devEUI,
+                            const QString &profileId,
+                            const QString &newName,
+                            const QString &newDesc)
+{
+    QString data = QString(
+                       "{"
+                       "\"device\": {"
+                       "\"applicationId\": \"%1\","
+                       "\"devEui\": \"%2\","
+                       "\"name\": \"%3\","
+                       "\"description\": \"%4\","
+                       "\"deviceProfileId\": \"%5"
+                       "}"
+                       "}")
+                       .arg(gSimTools->appId())
+                       .arg(devEUI)
+                       .arg(newName.toUtf8())
+                       .arg(newDesc.toUtf8())
+                       .arg(profileId);
+
+    QNetworkReply* reply = post(TENANT_REQUEST, "devices", RequestType::SetDeviceName, data.toUtf8() );
+    reply->setProperty("devEUI", devEUI);
+
+}
+
 
 // Activation By Personalization (static)
 void ApiRest::activateDevice(const QString &devEUI,

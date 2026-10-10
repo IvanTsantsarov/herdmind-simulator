@@ -89,51 +89,64 @@ void DevManager::onDevices(const QJsonObject &jobj)
     // and send delete request to chirpstack to devices that are not in our list
     for( const auto& jsonElement: array ) {
         QJsonObject jobj = jsonElement.toObject();
-        QString devEUI = jobj["devEui"].toString();
+        QString eui = jobj["devEui"].toString();
 
-        if( mDevsMapJson.contains(devEUI) ) {
-            mSkippedDevicesCount ++;
-            mDevsMapJson[devEUI].mIsMissing = false;
+        if( mDevsMapJson.contains(eui) ) {
+            mDevsMapJson[eui].mIsMissing = false;
             // if the device is already in the chirpstack, mark it as present
-            int index = mDevsMapJson[devEUI].mIndex;
+            int index = mDevsMapJson[eui].mIndex;
             QJsonObject jobjInternal = mDevicesJson[index].toObject();
-            qInfo() << devEUI << jobjInternal["name"].toString() << "presented";
+            qInfo() << eui << jobjInternal["name"].toString() << "presented";
             continue;
         }
 
 
         // delete the device, because it's not in our list
-        qInfo() << devEUI << jobj["name"].toString() << " to be deleted...";
-        mApiRest->deleteDevice(devEUI);
+        qInfo() << eui << jobj["name"].toString() << " to be deleted...";
+        mApiRest->deleteDevice(eui);
         mDeletingDevicesCount ++;
     }
 
     // if all devices are skipped call onDevicesReady
-    if( (count && (mSkippedDevicesCount == count)) || mDevsMapJson.empty() ) {
-        onDevicesReady(false);
-    } else {
 
-        qInfo() << "Adding devices to chirpstack...";
+    qInfo() << "Adding/modifying devices to chirpstack...";
 
-        // add mising devices
-        foreach(const DevsMapValue& val, mDevsMapJson) {
-            if( !val.mIsMissing) {
-                continue;
-            }
+    // add mising devices
+    foreach(const DevsMapValue& dev, mDevsMapJson) {
+        QJsonObject jobj = mDevicesJson[dev.mIndex].toObject();
 
-            QJsonObject jobj = mDevicesJson[val.mIndex].toObject();
+        QString eui = jobj["devEui"].toString();
+        QString name = jobj["name"].toString();
+        QString profileId = jobj["deviceProfileId"].toString();
+        QString addr = jobj["devAddr"].toString();
+        uint32_t addrInt = addr.toInt();
+        QString akey = jobj["appSKey"].toString();
+        QString nkey = jobj["nwkSKey"].toString();
+
+
+        // if device is missing - add it
+        if( dev.mIsMissing) {
             mAddingDevicesCount ++;
-
-            mApiRest->addDevice( jobj["name"].toString(),
-                                jobj["deviceProfileId"].toString(),
-                                jobj["devEui"].toString() );
+            mApiRest->addDevice( name, profileId, eui );
+            continue;
         }
 
-        qInfo() << "Sync devices first stage finished!";
-        qInfo() << "Adding:" << mAddingDevicesCount;
-        qInfo() << "Deleting:" << mDeletingDevicesCount;
-        qInfo() << "Skipped:" << mSkippedDevicesCount;
+        // If device is not missing - set it's name again
+        // description currently not used
+        mApiRest->setDeviceName(eui, profileId, name);
+
+        if( !addrInt ) {
+            // obtain new address if not available
+            mApiRest->getDeviceAddress(eui);
+        }else {
+            // activate device if address available
+            mApiRest->activateDevice(eui, addr, akey, nkey);
+        }
     }
+
+    qInfo() << "Sync devices first stage finished!";
+    qInfo() << "Adding:" << mAddingDevicesCount;
+    qInfo() << "Deleting:" << mDeletingDevicesCount;
 
     mState = States::GetGatewaysCount; // trash comment
     mApiRest->getGateways(); // trash comment
@@ -192,12 +205,10 @@ void DevManager::onDeviceActivated(const QString &devEUI)
     emit deviceActivated(dev);
 
     mActivatedDevicesCount++;
-    if( mAddedDevicesCount == mActivatedDevicesCount ) {
+    if( mDevsMapJson.count() == mActivatedDevicesCount ) {
         qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
         onDevicesReady(true);
     }
-
-
 }
 
 void DevManager::onDeviceDel(const QString &devEUI)
@@ -219,7 +230,6 @@ bool DevManager::syncDevices(const QByteArray &jsonList, QList<LoraDevSim *> dev
     mAddingDevicesCount = 0;
     mDeletingDevicesCount = 0;
     mAddedDevicesCount = 0;
-    mSkippedDevicesCount = 0;
     mDeletedDevicesCount = 0;
     mActivatedDevicesCount = 0;
     mCollarsCount = 0;

@@ -25,6 +25,7 @@ class ApiRest : public QObject
         GetDevices,
         DeleteDevice,
         AddDevice,
+        SetDeviceName,
         ActivateDevice,
         GetDeviceAddress,
         SendDeviceMessage,
@@ -84,6 +85,12 @@ public:
                    const QString &devEUI);
 
     void getDeviceAddress(const QString& devEUI);
+
+    void setDeviceName( const QString &devEUI,
+                       const QString &profileId,
+                       const QString &newName,
+                       const QString &newDesc = QString() );
+
     void activateDevice(const QString &devEUI,
                         const QString &devAddr,
                         const QString& appSKey,

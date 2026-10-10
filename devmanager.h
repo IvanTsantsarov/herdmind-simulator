@@ -50,7 +50,6 @@ class DevManager : public QObject
     int mAddingDevicesCount = 0;
     int mDeletingDevicesCount = 0;
     int mAddedDevicesCount = 0;
-    int mSkippedDevicesCount = 0;
     int mDeletedDevicesCount = 0;
     int mActivatedDevicesCount = 0;
     bool mIsDevicesReady = false;
