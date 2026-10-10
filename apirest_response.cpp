@@ -45,7 +45,8 @@ void ApiRest::onResponse()
         case RequestType::ActivateDevice: onActivateResponse(json); break;
         case RequestType::SendDeviceMessage: onDeviceMessageResponse(json); break;
         case RequestType::GetGateways: onGetGatewaysResponse(json); break;
-    }
+        case RequestType::SetDeviceName: onSetDeviceName(json); break;
+        }
 }
 
 void ApiRest::onGetDevicesResponse(QJsonObject& jobj)
@@ -75,6 +76,14 @@ void ApiRest::onActivateResponse(QJsonObject &jobj)
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString devEUI = reply->property("devEUI").toString();
     mDevManager->onDeviceActivated(devEUI);
+}
+
+void ApiRest::onSetDeviceName(QJsonObject &jobj)
+{
+    Q_UNUSED(jobj);
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString devEUI = reply->property("devEUI").toString();
+    // mDevManager->onDeviceNameSet(devEUI);
 }
 
 void ApiRest::onGetDeviceAddress(QJsonObject &jobj)

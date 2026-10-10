@@ -84,6 +84,15 @@ QNetworkReply* ApiRest::post(bool isTenant, const QString &url,
     return reply;
 }
 
+QNetworkReply *ApiRest::put(bool isTenant, const QString &url, RequestType type, const QByteArray &data, QUrlQuery query)
+{
+    QNetworkRequest request = createRequest(isTenant, url, query);
+    QNetworkReply* reply = mManager.put(request, data);
+    prepareReply(reply, type);
+    qDebug() << "Put request:" << request.url().toString() << query.toString() << data;
+    return reply;
+}
+
 QNetworkReply* ApiRest::del(bool isTenant, const QString &url, RequestType type, QUrlQuery query)
 {
     QNetworkRequest request = createRequest(isTenant, url, query);
@@ -129,7 +138,7 @@ void ApiRest::setDeviceName(const QString &devEUI,
                        "\"devEui\": \"%2\","
                        "\"name\": \"%3\","
                        "\"description\": \"%4\","
-                       "\"deviceProfileId\": \"%5"
+                       "\"deviceProfileId\": \"%5\""
                        "}"
                        "}")
                        .arg(gSimTools->appId())
@@ -138,9 +147,8 @@ void ApiRest::setDeviceName(const QString &devEUI,
                        .arg(newDesc.toUtf8())
                        .arg(profileId);
 
-    QNetworkReply* reply = post(TENANT_REQUEST, "devices", RequestType::SetDeviceName, data.toUtf8() );
+    QNetworkReply* reply = put(TENANT_REQUEST, QString("devices/%1").arg(devEUI), RequestType::SetDeviceName, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);
-
 }
 
 

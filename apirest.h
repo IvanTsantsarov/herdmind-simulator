@@ -54,6 +54,12 @@ class ApiRest : public QObject
                         const QByteArray &data = QByteArray(),
                         QUrlQuery query = QUrlQuery() );
 
+    QNetworkReply *put(bool isTenant,
+                        const QString& url,
+                        RequestType type,
+                        const QByteArray &data = QByteArray(),
+                        QUrlQuery query = QUrlQuery() );
+
     QNetworkReply *del( bool isTenant,
                         const QString& url,
                         RequestType type,
@@ -65,6 +71,7 @@ class ApiRest : public QObject
     void onDeleteDeviceResponse(QJsonObject& jobj);
     void onAddDeviceResponse(QJsonObject& jobj);
     void onActivateResponse(QJsonObject& jobj);
+    void onSetDeviceName(QJsonObject& jobj);
     void onGetDeviceAddress(QJsonObject& jobj);
     void onDeviceMessageResponse(QJsonObject& jobj);
     void onGetGatewaysResponse(QJsonObject& jobj);

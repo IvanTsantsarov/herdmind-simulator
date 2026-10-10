@@ -47,6 +47,11 @@ Mqtt::Mqtt(const QSettings &settings, QObject *parent)
             this, &Mqtt::onMessageStatusChanged);
 }
 
+Mqtt::~Mqtt()
+{
+    mIsDestructing = true;
+}
+
 bool Mqtt::subscribe(const QString &topic)
 {
     QMqttSubscription* subscription = mClient.subscribe(topic, 0);
@@ -140,6 +145,9 @@ void Mqtt::onConnected()
 
 void Mqtt::onMessageSent(quint32 id)
 {
+    if( mIsDestructing ) {
+        return;
+    }
     if( !mMessages.contains(id) ) {
         return;
     }
@@ -175,6 +183,12 @@ void Mqtt::onMessageStatusChanged(qint32 id, QMqtt::MessageStatus s, const QMqtt
 
 void Mqtt::updateMessages()
 {
+
+    if( mIsDestructing) {
+        // do not process messages if destructor is called
+        return;
+    }
+
     int sending = 0;
     int sent = 0;
     int failed = 0;

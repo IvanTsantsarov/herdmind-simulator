@@ -11,6 +11,7 @@ class Mqtt : public QObject
     QMqttClient mClient;
     QList<QMqttSubscription*> mSubscribtions;
 
+    bool mIsDestructing = false;
     void updateMessages();
 
 protected:
@@ -18,8 +19,10 @@ protected:
     quint16 mPort = 0;
     QString mAppId;
 
+
 public:
     explicit Mqtt(const QSettings &settings, QObject *parent = nullptr);
+    ~Mqtt();
     inline const QString& addr(){ return mAddr; }
     inline quint16 port(){ return mPort; }
     inline void connectToHost(){ mClient.connectToHost(); };
