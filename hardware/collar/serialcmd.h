@@ -21,6 +21,7 @@ class SerialCmd
     int mArgumentLen = 0;
     bool mIsArgument = false;
     const char* mErrStr = nullptr;
+    String mStrChanged;
 
     void parse();
     bool execute();

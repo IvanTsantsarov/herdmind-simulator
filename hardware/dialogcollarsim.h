@@ -91,6 +91,9 @@ class DialogCollarSim : public QDialog
 
     bool isFlashDataValid();
 
+    // flash only on request, not on each mirror device activation
+    bool mIsRequestToFlash = false;
+
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
     void loadAnimals(QList<Animal*> animals);

@@ -725,7 +725,8 @@ void DialogCollarSim::on_btnStore_clicked()
     mPrevAnimal = mAnimal->name();
 
     // This will gonna call void DialogCollarSim::loadAnimals(QList<Animal *> animals)
-    // and fill the list again
+    // and fill the list again, also activate device and flash it
+    mIsRequestToFlash = true;
     if( !gMainWindow->storeHerd() ) {
         gMainWindow->errorMsgBox("Error storing herd!");
     };
@@ -733,7 +734,7 @@ void DialogCollarSim::on_btnStore_clicked()
 
 void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
 {
-    if( mMirror && (dev->eui() == mMirror->eui())) {
+    if( mIsRequestToFlash && mMirror && (dev->eui() == mMirror->eui())) {
 
         QString addr = dev->addr().toHex();
 
@@ -758,6 +759,8 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
                           .arg(addr);
 
         QToolTip::showText( QCursor::pos(), str, this);
+
+        mIsRequestToFlash = false;
     }
 }
 

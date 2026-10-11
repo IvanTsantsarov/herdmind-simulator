@@ -11,7 +11,8 @@
 #define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
 #define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
-SerialCmd::SerialCmd(Collar* c)
+SerialCmd::SerialCmd(Collar* c) :
+    mStrChanged("->")
 {
     mCollar = c;
 
@@ -219,6 +220,10 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 
 bool SerialCmd::execute()
 {
+    auto printChanged = [&]() {
+        Serial.println(mStrChanged + mArgument) ;
+    };
+
     String head = String(SERIAL_CMD_BEGIN) + mCmd.typeStr() + SERIAL_CMD_TAIL;
     Serial.print(head);
     switch( mCmd.type() ) {
@@ -226,10 +231,10 @@ bool SerialCmd::execute()
         Serial.println( "Error:Empty command!" );
         break;
     case Cmd::Type::DBG:
-        Serial.println(String("Debug info ") + (mCollar->toggleDebugInfo() ? "ON" : "OFF"));
+        Serial.println(mCollar->toggleDebugInfo() ? "On" : "Off");
         break;
     case Cmd::Type::LED:
-        Serial.println(String("LED is") + (mCollar->led()->toggle() ? "ON" : "OFF"));
+        Serial.println(mCollar->led()->toggle() ? "On" : "Off");
         break;
     case Cmd::Type::RESET:
         mCollar->restart();
@@ -269,10 +274,11 @@ bool SerialCmd::execute()
     case Cmd::Type::NKEY:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
-                mErrStr = "Wrong netkey length";
+                mErrStr = "Wrong netkey length!";
                 return false;
             }
             mCollar->setNKeyHex(mArgument);
+            printChanged();
         }else {
             Serial.println(mCollar->nkeyHex());
         }
@@ -281,10 +287,11 @@ bool SerialCmd::execute()
     case Cmd::Type::AKEY:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
-                mErrStr = "Wrong AppKey lenght";
+                mErrStr = "Wrong AppKey lenght!";
                 return false;
             }
             mCollar->setAKeyHex(mArgument);
+            printChanged();
         }else {
             Serial.println(mCollar->akeyHex());
         }
@@ -293,10 +300,11 @@ bool SerialCmd::execute()
     case Cmd::Type::NAME:
         if( mIsArgument ) {
             if( mArgumentLen < 3) {
-                mErrStr = "Wrong name lenght";
+                mErrStr = "Wrong name lenght!";
                 return false;
             }
             mCollar->setAnimalName(mArgument);
+            printChanged();
         }else {
             Serial.println(mCollar->animalName());
         }
@@ -304,11 +312,12 @@ bool SerialCmd::execute()
 
     case Cmd::Type::SEX:
         if( mIsArgument ) {
-            if( mArgumentLen < 1) {
-                mErrStr = "Wrong sex lenght";
+            if( mArgumentLen != 1) {
+                mErrStr = "Wrong sex lenght!";
                 return false;
             }
             mCollar->setIsMale(strcmp(mArgument,"m") == 0 ? true : false);
+            Serial.println(mStrChanged + (mCollar->isMale() ? "male" : "female") );
         }else {
             Serial.println(mCollar->isMale() ? "m" : "f");
         }
@@ -317,10 +326,11 @@ bool SerialCmd::execute()
     case Cmd::Type::EUI:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_EUI_HEX_LEN) {
-                mErrStr = "Wrong EUI lenght";
+                mErrStr = "Wrong EUI lenght!";
                 return false;
             }
             mCollar->setEuiHex(mArgument);
+            printChanged();
         }else {
             Serial.println(mCollar->euiHex());
         }
@@ -329,10 +339,11 @@ bool SerialCmd::execute()
     case Cmd::Type::ADDR:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_ADDR_HEX_LEN) {
-                mErrStr = "Wrong Address lenght";
+                mErrStr = "Wrong Address lenght!";
                 return false;
             }
             mCollar->setAddrHex(mArgument);
+            printChanged();
         }else {
             Serial.println(mCollar->addrHex());
         }
@@ -361,16 +372,16 @@ bool SerialCmd::execute()
 
     case Cmd::Type::FLASH:
         if( !mCollar->flash() ) {
-            Serial.println("Error flashing.");
+            Serial.println("Error!");
         }else {
-            Serial.println("Flashing done.");
+            Serial.println("Done.");
         }
         break;
     case Cmd::Type::RESTORE:
         if( !mCollar->restore() ) {
-            Serial.println("Error restoring.");
+            Serial.println("Error!");
         }else {
-            Serial.println("Restoring done.");
+            Serial.println("Done.");
         }
         break;
 
