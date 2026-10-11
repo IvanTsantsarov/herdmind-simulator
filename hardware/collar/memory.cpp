@@ -24,9 +24,9 @@ size_t Memory::read(const char* name, char* dst, size_t maxLen)
 size_t Memory::write(const char* name, const char* val, size_t len)
 {
     // ijh debug start
-    char dbgbuf[100] = {0};
-    memcpy(dbgbuf, val, len);
-    DBG(String("Flashing") + name + ":" + dbgbuf );
+    // char dbgbuf[100] = {0};
+    // memcpy(dbgbuf, val, len);
+    // DBG(String("Flashing") + name + ":" + dbgbuf );
     // ijh debug end
 
     gMem.begin( MEMORY_SECTION, false );
@@ -64,7 +64,7 @@ bool Memory::writeName(String from)
         return false;
     }
 
-    if( write("nameLen", (const char*) &len, sizeof(len)) != sizeof(size_t) ); {
+    if( write("nameLen", (const char*) &len, sizeof(len)) != sizeof(size_t) ){
         return false;
     }
     return write("name", from.c_str(), len) == len;

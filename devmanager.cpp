@@ -131,6 +131,8 @@ void DevManager::onDevices(const QJsonObject &jobj)
             continue;
         }
 
+        mModifiedDevicesCount ++;
+
         // If device is not missing - set it's name again
         // description currently not used
         mApiRest->setDeviceName(eui, profileId, name);
@@ -146,6 +148,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
 
     qInfo() << "Sync devices first stage finished!";
     qInfo() << "Adding:" << mAddingDevicesCount;
+    qInfo() << "Modifying:" << mModifiedDevicesCount;
     qInfo() << "Deleting:" << mDeletingDevicesCount;
 
     mState = States::GetGatewaysCount; // trash comment

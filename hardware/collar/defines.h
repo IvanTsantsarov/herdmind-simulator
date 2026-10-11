@@ -12,5 +12,7 @@
 #define LORA_ADDR_HEX_LEN 8
 #define LORA_NAME_MAX_LEN 32
 
+#define SERIAL_CMD_SIZE 7
+#define SERIAL_CMD_MIN_SIZE 2
 
 #endif // DEFINES_H

@@ -4,8 +4,6 @@
 #include "led.h"
 #include "defines.h"
 
-#define SERIAL_COMMAND_SIZE 7
-
 #define SERIAL_ARGUMENT_SIZE 32
 
 #define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
@@ -17,7 +15,7 @@ SerialCmd::SerialCmd(Collar* c) :
     mCollar = c;
 
     // Create the buffer
-    mCommand = new char[SERIAL_COMMAND_SIZE + 1];
+    mCommand = new char[SERIAL_CMD_SIZE + 1];
     mArgument = new char[SERIAL_ARGUMENT_SIZE + 1];
     clear();
 }
@@ -48,7 +46,7 @@ void SerialCmd::clear()
 
 }
 
-#define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String("Error:") + __err__); clear(); skipAvailable(); return;
+#define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String(SERIAL_CMD_BEGIN) + "error" + SERIAL_CMD_TAIL + __err__); clear(); skipAvailable(); return;
 
 void SerialCmd::update()
 {
@@ -63,7 +61,7 @@ void SerialCmd::update()
 
         if( SERIAL_CMD_DELIMETER(ch)) {
             if( mIsArgument ) {
-                SERIAL_UPDATE_ERROR("Second delimeter");
+                SERIAL_UPDATE_ERROR("Second delimeter!");
             }
 
             mIsArgument = true;
@@ -72,11 +70,11 @@ void SerialCmd::update()
 
         if( SERIAL_CMD_END(ch) ) {
             if( !mCmd.parse(mCommand, mCommandLen) ) {
-                SERIAL_UPDATE_ERROR("Unknown command");
+                SERIAL_UPDATE_ERROR("Unknown command!");
             }
 
             if( mIsArgument && !hasArgumentString() ) {
-                SERIAL_UPDATE_ERROR("Missing argument");
+                SERIAL_UPDATE_ERROR("Missing argument!");
             }
 
             if( !execute() ) {
@@ -88,15 +86,15 @@ void SerialCmd::update()
             if( mIsArgument ) {
 
                 if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
-                    SERIAL_UPDATE_ERROR("Argument too long");
+                    SERIAL_UPDATE_ERROR("Argument too long!");
                 }
 
                 mArgument[mArgumentLen++] = ch;
                 mArgument[mArgumentLen] = 0;
 
             }else {
-                if( mCommandLen >= SERIAL_COMMAND_SIZE ) {
-                    SERIAL_UPDATE_ERROR("Command too long");
+                if( mCommandLen >= SERIAL_CMD_SIZE ) {
+                    SERIAL_UPDATE_ERROR("Command too long!");
                 }
                 mCommand[mCommandLen++] = ch;
                 mCommand[mCommandLen] = 0;
@@ -183,7 +181,10 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
         mT = Type::BAT;
     }else
     if( cmp("rssi") ) {
-            mT = Type::RSSI;
+        mT = Type::RSSI;
+    }else
+    if( cmp("ss") ) {
+        mT = Type::SS;
     }else
     if( cmp("snr") ) {
             mT = Type::SNR;
@@ -228,7 +229,7 @@ bool SerialCmd::execute()
     Serial.print(head);
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
-        Serial.println( "Error:Empty command!" );
+        return false;
         break;
     case Cmd::Type::DBG:
         Serial.println(mCollar->toggleDebugInfo() ? "On" : "Off");
@@ -319,7 +320,7 @@ bool SerialCmd::execute()
             mCollar->setIsMale(strcmp(mArgument,"m") == 0 ? true : false);
             Serial.println(mStrChanged + (mCollar->isMale() ? "male" : "female") );
         }else {
-            Serial.println(mCollar->isMale() ? "m" : "f");
+            Serial.println(mCollar->isMale() ? "male" : "female");
         }
         break;
 
@@ -350,24 +351,25 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::HELP:
-        Serial.println("reset: Restarts the ESP32");
-        Serial.println("dbg: enable/disable debug info");
-        Serial.println("led: enable/disable board LED");
-        Serial.println("help: This help");
-        Serial.println("info: Common info");
-        Serial.println("gps: Current geo position");
-        Serial.println("sat: Count of available GPS sattelites");
-        Serial.println("bat: Battery status");
-        Serial.println("rssi: Received Signal Strenght Indicator in dB");
-        Serial.println("snr: Signal to Noise Ratio in dB");
-        Serial.println("ss: Signal Strength in percents");
-        Serial.println("name: Set/Get animal's name");
-        Serial.println("sex: Set/Get gender: f or m");
-        Serial.println("eui: Set/Get EUI of the LoraWAN module");
-        Serial.println("nkey: Set/Get network key (only OTA supported)");
-        Serial.println("akey: Set/Get app key (only OTA supported)");
-        Serial.println("flash: Flash values into peristent memory");
-        Serial.println("restore: Restore values from peristent memory");
+        Serial.print("reset: Restarts the ESP32\r");
+        Serial.print("dbg: Toggle debug info\r");
+        Serial.print("led: enable/disable board LED\r");
+        Serial.print("help: This help\r");
+        Serial.print("info: Common info\r");
+        Serial.print("gps: Current geo position\r");
+        Serial.print("sat: Count of available GPS sattelites\r");
+        Serial.print("bat: Battery status\r");
+        Serial.print("rssi: Received Signal Strenght Indicator in dB\r");
+        Serial.print("snr: Signal to Noise Ratio in dB\r");
+        Serial.print("ss: Signal Strength in percents\r");
+        Serial.print("name: Set/Get animal's name\r");
+        Serial.print("sex: Set/Get gender: f or m\r");
+        Serial.print("eui: Set/Get EUI of the LoraWAN module\r");
+        Serial.print("nkey: Set/Get network key (only OTA supported)\r");
+        Serial.print("akey: Set/Get app key (only OTA supported)\r");
+        Serial.print("flash: Flash values into peristent memory\r");
+        Serial.print("restore: Restore values from peristent memory\r");
+        Serial.println("");
         break;
 
     case Cmd::Type::FLASH:

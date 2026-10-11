@@ -449,3 +449,22 @@ DBG( msec );
 DBG( mAwakeningMillisScreen );
 DBG( msecAwakenScreen );
 DBG("SCR TIME TO SLEEP");
+
+
+auto stripResponce = [&](QString& resp, const QString& cmd) {
+    resp = resp.trimmed();
+
+    if( resp.length() < (cmd.length() + 3) ) {
+        return false;
+    }
+
+    QString head = QString("%1%2:").arg(SERIAL_CMD_BEGIN).arg(cmd);
+
+    if( resp.left(head.length()) != head ) {
+        return false;
+    }
+
+    resp = resp.right(resp.length() - head.length());
+
+    return true;
+};

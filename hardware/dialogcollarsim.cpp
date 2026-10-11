@@ -509,36 +509,45 @@ void DialogCollarSim::on_btnClear_clicked()
 
 void DialogCollarSim::processSerialInput()
 {
-    auto stripResponce = [&](QString& resp, const QString& cmd) {
+    auto stripCmd = [&](QString& resp) {
         resp = resp.trimmed();
 
-        if( resp.length() < (cmd.length() + 3) ) {
-            return false;
+        if( resp.length() < (SERIAL_CMD_MIN_SIZE+2) ) {
+            return QString();
         }
 
-        QString head = QString("%1%2:").arg(SERIAL_CMD_BEGIN).arg(cmd);
-
-        if( resp.left(head.length()) != head ) {
-            return false;
+        if( SERIAL_CMD_BEGIN != resp[0] ) {
+            return QString();
         }
 
-        resp = resp.right(resp.length() - head.length());
+        int dmPos = resp.indexOf(SERIAL_CMD_TAIL);
+        if( dmPos <= 0) {
+            return QString();
+        }
 
-        return true;
+        return resp.mid(1, dmPos-1);
     };
 
+    auto cmpCmd = [&](QString& cmdResponce, const QString& cmd) {
+        return cmd == cmdResponce;
+    };
+
+    bool isError = false;
 
     if( mPort.isOpen() ) {
         if( mPort.bytesAvailable() && mPort.canReadLine()) {
 
             QByteArray out = mPort.readLine();
             QString resp = QString::fromLatin1(out);
+            QString cmd = stripCmd(resp);
 
-            if( SERIAL_CMD_BEGIN != resp[0] ) {
+            if( cmd.isEmpty() ) {
                 return;
             }
 
-            if( stripResponce(resp, "dbg") ) {
+            resp = resp.right(resp.length() - resp.indexOf(SERIAL_CMD_TAIL) - 1);
+
+            if( cmpCmd(cmd, "dbg") ) {
                 if( !mMirror) {
                     return;
                 }
@@ -570,7 +579,7 @@ void DialogCollarSim::processSerialInput()
                 mMirror->inject(pos, sat, rssi, snr, bat);
                 return;
             }else
-            if( stripResponce(resp, "info") ) {
+            if( cmpCmd(cmd, "info") ) {
                 QStringList args = resp.split("|");
                 ui->editAnimalName->setText(args[0]);
                 ui->btnSex->setIcon(args[1] == "m" ? mIconMale : mIconFemale );
@@ -583,11 +592,13 @@ void DialogCollarSim::processSerialInput()
                 if( !mMirror ) {
                     createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4], args[5]);
                 }
-                return;
             }else
+            if( cmpCmd(cmd, "error") )
             {
-                addResponce(resp, RESPONCE_COLOR_RESPONCE);
+                isError = true;
             }
+
+            addResponce(resp, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
         }
     }
 }
