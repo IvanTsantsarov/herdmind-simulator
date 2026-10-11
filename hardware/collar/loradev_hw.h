@@ -4,6 +4,17 @@
 #include "../arduino.h"
 #include "defines.h"
 
+#ifdef ONPC
+namespace Heltec
+{
+extern uint8_t appData[];
+extern uint8_t appDataSize;
+extern uint8_t appPort;
+
+extern LoRaWanClass LoRaWAN;
+}
+#endif
+
 class LoraDevHW
 {
     uint8_t mEui[LORA_EUI_LEN];
@@ -34,6 +45,8 @@ public:
     void setAKey(const uint8_t* key);
     void setNKey(const uint8_t* key);
     void setAddr(uint32_t a) { mAddr = a; }
+
+    void sendPackage(void* data, int len);
 
     virtual void onSetup();
 };

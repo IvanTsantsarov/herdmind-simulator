@@ -384,3 +384,8 @@ public:
     size_t getBytes(const char* key, void * buf, size_t maxLen);
 
 };
+
+
+class LoRaWanClass {
+
+};

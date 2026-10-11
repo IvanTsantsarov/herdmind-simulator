@@ -2,9 +2,6 @@
 
 #include "../arduino.h"
 
-#ifndef ONPC
-    #include <TinyGPSPlus.h>
-#endif
 
 TinyGPSPlus gGPS;
 

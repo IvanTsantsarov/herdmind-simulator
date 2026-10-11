@@ -4,16 +4,8 @@
 
 // #ifndef ONPC
 
-#ifndef ONPC
-    #include "esp_mac.h" // Required for ESP32 MAC/ChipID functions
-#endif
-
 LoraDevHW::LoraDevHW() {
 
-    uint8_t mac[6];
-
-    // Get the base MAC address of the ESP32 (6 bytes unique)
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
 }
 
 String LoraDevHW::addrHex()
@@ -42,6 +34,7 @@ void LoraDevHW::setNKey(const uint8_t *key)
 {
     memcpy(mNKey, key, LORA_KEY_LEN);
 }
+
 
 
 String LoraDevHW::toHex(uint8_t* a, int len)
@@ -102,6 +95,13 @@ void LoraDevHW::onSetup() {
     mEui[7] = mac[5];
 
 }
+
+
+void LoraDevHW::sendPackage(void *data, int len)
+{
+
+}
+
 
 // #ifndef  ONPC
     LoraDevHW gLDC;
