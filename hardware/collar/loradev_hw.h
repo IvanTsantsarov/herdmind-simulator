@@ -4,16 +4,11 @@
 #include "../arduino.h"
 #include "defines.h"
 
-#ifdef ONPC
-namespace Heltec
-{
-extern uint8_t appData[];
-extern uint8_t appDataSize;
-extern uint8_t appPort;
-
-extern LoRaWanClass LoRaWAN;
-}
-#endif
+//namespace Heltec
+//{
+/*
+*/
+//};
 
 class LoraDevHW
 {
@@ -24,7 +19,19 @@ class LoraDevHW
 
     static void fromHex(const char* src, uint8_t *dst, int srcLen);
     static String toHex(uint8_t* a, int len);
+
+    enum struct State {
+        Init = 0,
+        Join,
+        Send,
+        Cycle,
+        Sleep
+    };
+
+    State mState = State::Init;
+
 public:
+
     LoraDevHW();
     String euiHex(){ return toHex(mEui, LORA_EUI_LEN); }
 
@@ -49,5 +56,6 @@ public:
     void sendPackage(void* data, int len);
 
     virtual void onSetup();
+    virtual void onUpdate();
 };
  // #endif

@@ -22,6 +22,8 @@
 
 #define ESP_MAC_WIFI_STA 0
 
+#define LORAWAN_APP_DATA_MAX_SIZE 64
+
 inline void esp_read_mac(uint8_t mac[], int arg1) {
     (void) mac, (void) arg1;
 };
@@ -386,6 +388,44 @@ public:
 };
 
 
+
+typedef int DeviceClass_t;
+typedef int LoRaMacRegion_t;
+#define ACTIVE_REGION 1
+#define CLASS_A 1
+
 class LoRaWanClass {
+public:
+    void init(DeviceClass_t lClass, LoRaMacRegion_t lRegion) {
+        (void)lClass, (void)lRegion;
+    }
+
+    void setDefaultDR(int dr){ (void) dr; }
+    void join(){}
+    void send(){}
+    void cycle(int interval){ (void) interval; }
+    void sleep(DeviceClass_t lClass){ (void)lClass; }
 
 };
+
+
+enum eDeviceState {
+    DEVICE_STATE_INIT = 0,
+    DEVICE_STATE_JOIN,
+    DEVICE_STATE_SEND,
+    DEVICE_STATE_CYCLE,
+    DEVICE_STATE_SLEEP
+};
+
+extern eDeviceState deviceState;
+
+extern uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
+extern uint8_t appDataSize;
+
+extern LoRaWanClass LoRaWAN;
+
+// some shity Heltec internal variable
+extern uint32_t txDutyCycleTime;
+
+
+

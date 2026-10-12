@@ -182,6 +182,9 @@ void Collar::onSetup()
 {
     mStage = Stage::Setup;
 
+    // Bring back all the saved data
+    restore();
+
     // allocate TX buffer for non-blocking sends
     Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
 
@@ -497,8 +500,6 @@ void Collar::onUpdate()
 
         updateScreenLoading();
 
-        restore();
-
         // Wait loading interval
         if( SCREEN_LOADING_MSEC < (msec - mSetupMillis)  ) {
             mStage = Stage::Operate;
@@ -550,8 +551,11 @@ void Collar::onUpdate()
     }
 
 #ifndef ONPC
+    LoraDevHW::onUpdate();
     delay(100);
 #else
+
+
 
 #endif
 }
@@ -566,9 +570,7 @@ void Collar::onSend()
     package.encodeLon( coord.mLon );
     package.mBattery = 100;
 
-#ifdef ONPC
     sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
-#endif
 }
 
 void Collar::onReceive(uint8_t *data, uint32_t size)
