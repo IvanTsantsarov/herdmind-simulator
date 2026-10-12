@@ -25,6 +25,8 @@ const QRegularExpression DialogCollarSim::mRegexEuiHex =
     QRegularExpression(R"(^[0-9a-fA-F]{16})");
 const QRegularExpression DialogCollarSim::mRegexKeyHex =
     QRegularExpression(R"(^[0-9a-fA-F]{32})");
+const QRegularExpression DialogCollarSim::mRegexAddrHex =
+    QRegularExpression(R"(^[0-9a-fA-F]{8})");
 
 
 uint32_t DialogCollarSim::mBaudrates[] =  {
@@ -647,7 +649,8 @@ bool DialogCollarSim::isFlashDataValid()
 {
     return  mRegexEuiHex.match(ui->editEui->text()).hasMatch() &&
             mRegexKeyHex.match(ui->editAKey->text()).hasMatch() &&
-            mRegexKeyHex.match(ui->editNKey->text()).hasMatch();
+            mRegexKeyHex.match(ui->editNKey->text()).hasMatch() &&
+            mRegexAddrHex.match(ui->editAddr->text()).hasMatch();
 }
 
 void DialogCollarSim::on_editEui_textChanged(const QString &newEui)
@@ -669,6 +672,13 @@ void DialogCollarSim::on_editNKey_textChanged(const QString &newKey)
     ui->btnReload->setEnabled(true);
     DialogCollarSim::setBackgroundError(ui->editNKey, !mRegexKeyHex.match(newKey).hasMatch());
 }
+
+void DialogCollarSim::on_editAddr_textChanged(const QString &newAddr)
+{
+    ui->btnReload->setEnabled(true);
+    DialogCollarSim::setBackgroundError(ui->editAddr, !mRegexAddrHex.match(newAddr).hasMatch());
+}
+
 
 
 void DialogCollarSim::on_btnReload_clicked()
@@ -775,5 +785,12 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
     }
 }
 
+
+
+
+void DialogCollarSim::on_checkAddr_stateChanged(int state)
+{
+    ui->editAddr->setEnabled(state);
+}
 
 

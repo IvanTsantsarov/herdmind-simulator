@@ -10,14 +10,14 @@
 
 //using namespace Heltec;
 
-// OTAA para (not used)
-uint8_t devEui[] = { 0x22, 0x32, 0x33, 0x00, 0x00, 0x00, 0x00, 0x23 };
-uint8_t appEui[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-uint8_t appKey[] = { 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88};
+// OTAA para (not used, but dont remove it
+uint8_t devEui[LORA_EUI_LEN] = { 0 };
+uint8_t appEui[LORA_EUI_LEN] = { 0 };
+uint8_t appKey[LORA_KEY_LEN] = { 0 };
 // ABP para
-uint8_t nwkSKey[] = { 0x15, 0xb1, 0xd0, 0xef, 0xa4, 0x63, 0xdf, 0xbe, 0x3d, 0x11, 0x18, 0x1e, 0x1e, 0xc7, 0xda, 0x85 };
-uint8_t appSKey[] = { 0xd7, 0x2c, 0x78, 0x75, 0x8c, 0xdc, 0xca, 0xbf, 0x55, 0xee, 0x4a, 0x77, 0x8d, 0x16, 0xef, 0x67 };
-uint32_t devAddr =  ( uint32_t )0x007e6ae1;
+uint8_t nwkSKey[LORA_KEY_LEN] = { 0 };
+uint8_t appSKey[LORA_KEY_LEN] = { 0 };
+uint32_t devAddr = 0x0;
 
 // LoraWan channelsmask, default channels 0-7
 uint16_t userChannelsMask[6] = { 0x00FF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 };
@@ -26,13 +26,13 @@ uint32_t license[4] = {0x21701168, 0xAAAEEC0A, 0xFDA9F9D2, 0x0110E29E};
 LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
 
 // LoraWan Class, Class A and Class C are supported
-DeviceClass_t  loraWanClass = CLASS_A;
+DeviceClass_t  loraWanClass = CLASS_C;
 
 // the application data transmission duty cycle.  value in [ms].*/
 uint32_t appTxDutyCycle = 15000;
 
-// OTAA or ABP
-bool overTheAirActivation = true;
+// OTAA or ABP (only ABP supported!!!)
+bool overTheAirActivation = false;
 
 // ADR enable
 bool loraWanAdr = true;
@@ -113,6 +113,7 @@ String LoraDevHW::toHex(uint8_t* a, int len)
 }
 
 
+
 void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
 {
     auto x2b4 = [&](char b) {
@@ -136,6 +137,13 @@ void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
     }
 }
 
+void LoraDevHW::upplayParamsABP()
+{
+    memcpy( nwkSKey, mNKey, LORA_KEY_LEN );
+    memcpy( appSKey,mAKey, LORA_KEY_LEN );
+    devAddr =  mAddr;
+}
+
 
 void LoraDevHW::onSetup() {
     uint8_t mac[6];
@@ -154,18 +162,16 @@ void LoraDevHW::onSetup() {
     mEui[6] = mac[4];
     mEui[7] = mac[5];
 
-    memcpy( nwkSKey, mNKey, LORA_KEY_LEN );
-    memcpy( appSKey,mAKey, LORA_KEY_LEN );
-    devAddr =  mAddr;
-
-    LoRaWAN.init(loraWanClass, loraWanRegion);
+    upplayParamsABP();
 }
 
 void LoraDevHW::sendPackage(void *data, int len)
 {
     const char* charPtr = ((char*)data);
-    for( appDataSize = 0; appDataSize < len; appDataSize ++) {
-        appData[appDataSize] = charPtr[appDataSize++];
+    // memcpy(appData, data, static_cast<size_t>(len));
+    // appDataSize = static_cast<uint8_t>(len);
+    for( mBufferLen = 0; mBufferLen < len; mBufferLen ++) {
+        mBuffer[mBufferLen] = charPtr[mBufferLen];
     }
 }
 
@@ -177,22 +183,30 @@ void LoraDevHW::onUpdate()
         {
     #if(LORAWAN_DEVEUI_AUTO)
             LoRaWAN.generateDeveuiByChipID();
+            DBG( "generateDeveuiByChipID()" );
     #endif
             LoRaWAN.init(loraWanClass,loraWanRegion);
             //both set join DR and DR when ADR off
             LoRaWAN.setDefaultDR(3);
+
+            DBG("DEVICE_STATE_INIT passed" );
             break;
         }
         case DEVICE_STATE_JOIN:
         {
             LoRaWAN.join();
+            DBG("DEVICE_STATE_JOIN passed" );
             break;
         }
         case DEVICE_STATE_SEND:
         {
             // prepareTxFrame( appPort );
+            memcpy(appData, mBuffer, mBufferLen);
+            appDataSize = mBufferLen;
+
             LoRaWAN.send();
             deviceState = DEVICE_STATE_CYCLE;
+            DBG("DEVICE_STATE_SEND passed" );
             break;
         }
         case DEVICE_STATE_CYCLE:
@@ -200,12 +214,14 @@ void LoraDevHW::onUpdate()
             txDutyCycleTime = appTxDutyCycle;
             LoRaWAN.cycle(txDutyCycleTime);
             deviceState = DEVICE_STATE_SLEEP;
+            DBG("DEVICE_STATE_CYCLE passed" );
             break;
         }
         case DEVICE_STATE_SLEEP:
         {
-
+            DBG("DEVICE_STATE_SLEEP entered" );
             LoRaWAN.sleep(loraWanClass);
+            DBG("DEVICE_STATE_SLEEP passed" );
             break;
         }
         default:

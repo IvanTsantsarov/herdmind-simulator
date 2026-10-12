@@ -463,6 +463,7 @@ void MainWindow::onDeviceMessage(const QString &devEUI, const QJsonObject &jobjR
 void MainWindow::onDevicesReady(bool isStore )
 {
     if( isStore ) {
+        mHerd->storeAnimals();
         mHerd->storeDevices();
     }
 }

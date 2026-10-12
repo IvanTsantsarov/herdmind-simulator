@@ -393,6 +393,8 @@ typedef int DeviceClass_t;
 typedef int LoRaMacRegion_t;
 #define ACTIVE_REGION 1
 #define CLASS_A 1
+#define CLASS_B 2
+#define CLASS_C 3
 
 class LoRaWanClass {
 public:

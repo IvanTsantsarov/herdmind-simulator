@@ -599,7 +599,7 @@ void Collar::onReceive(uint8_t *data, uint32_t size)
     }
 }
 
-void Collar::restart()
+void Collar::reboot()
 {
     Serial.println("Restarting...");
     Serial.flush();

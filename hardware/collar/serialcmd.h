@@ -39,8 +39,9 @@ public:
             DBG,
             LED,    // led on/off
             HELP,
-            RESET,
+            REBOOT,
             INFO,
+            VER,    // Give software version
             EUI,
             GPS,    // Get current position
             SAT,    // Get number of GPS sattelites

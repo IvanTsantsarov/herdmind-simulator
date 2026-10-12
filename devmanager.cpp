@@ -119,7 +119,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
         QString name = jobj["name"].toString();
         QString profileId = jobj["deviceProfileId"].toString();
         QString addr = jobj["devAddr"].toString();
-        uint32_t addrInt = addr.toInt();
+        uint32_t addrInt = addr.toUInt(nullptr, 16);
         QString akey = jobj["appSKey"].toString();
         QString nkey = jobj["nwkSKey"].toString();
 

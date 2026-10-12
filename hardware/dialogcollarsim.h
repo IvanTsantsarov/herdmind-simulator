@@ -87,6 +87,7 @@ class DialogCollarSim : public QDialog
 
     static const QRegularExpression mRegexEuiHex;
     static const QRegularExpression mRegexKeyHex;
+    static const QRegularExpression mRegexAddrHex;
 
     static void setBackgroundError(QLineEdit* edit, bool isError);
 
@@ -144,6 +145,8 @@ private slots:
 
     void on_editNKey_textChanged(const QString &newKey);
 
+    void on_editAddr_textChanged(const QString &newAddr);
+
     void on_btnReload_clicked();
 
     void on_btnStore_clicked();
@@ -151,6 +154,9 @@ private slots:
     void on_deviceActivated(LoraDevSim* dev);
 
     void on_btnCopyAddr_clicked();
+
+    void on_checkAddr_stateChanged(int state);
+
 
 private:
     Ui::DialogCollarSim *ui;

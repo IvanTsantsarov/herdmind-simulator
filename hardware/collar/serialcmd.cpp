@@ -111,7 +111,7 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::DBG: return "dbg";
     case Type::LED: return "led";
     case Type::HELP: return "help";
-    case Type::RESET: return "reset";
+    case Type::REBOOT: return "reboot";
     case Type::INFO: return "info";
     case Type::EUI: return "eui";
     case Type::GPS: return "gps";
@@ -127,7 +127,7 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::RESTORE: return "restore";
     case Type::NAME: return "name";
     case Type::SEX: return "sex";
-        break;
+    case Type::VER: return "ver";
     }
 
     return "";
@@ -162,11 +162,14 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
     if( cmp("led") ) {
         mT = Type::LED;
     }else
-    if( cmp("restart") ) {
-        mT = Type::RESET;
+    if( cmp("reboot") ) {
+        mT = Type::REBOOT;
     }else
     if( cmp("info") ) {
         mT = Type::INFO;
+    }else
+    if( cmp("ver") ) {
+        mT = Type::VER;
     }else
     if( cmp("eui") ) {
         mT = Type::EUI;
@@ -187,7 +190,7 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
         mT = Type::SS;
     }else
     if( cmp("snr") ) {
-            mT = Type::SNR;
+        mT = Type::SNR;
     }else
     if( cmp("nkey") ) {
         mT = Type::NKEY;
@@ -237,8 +240,8 @@ bool SerialCmd::execute()
     case Cmd::Type::LED:
         Serial.println(mCollar->led()->toggle() ? "On" : "Off");
         break;
-    case Cmd::Type::RESET:
-        mCollar->restart();
+    case Cmd::Type::REBOOT:
+        mCollar->reboot();
         break;
     case Cmd::Type::INFO:
         Serial.println( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
@@ -369,6 +372,7 @@ bool SerialCmd::execute()
         Serial.print("akey: Set/Get app key (only OTA supported)\r");
         Serial.print("flash: Flash values into peristent memory\r");
         Serial.print("restore: Restore values from peristent memory\r");
+        Serial.print("reboot: Restart the device\r");
         Serial.println("");
         break;
 
@@ -387,6 +391,9 @@ bool SerialCmd::execute()
         }
         break;
 
+    case Cmd::Type::VER:
+        Serial.println(COLLAR_VERSION);
+        break;
     }
 
     return true;

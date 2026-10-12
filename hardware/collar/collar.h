@@ -168,7 +168,7 @@ public:
     Screen *screen() { return mScreen; }
     Led* led() { return mLed; }
 
-    void restart();
+    void reboot();
     void sleep();
 
     int rssi(); // RSSI (Received Signal Strength Indicator) in dBm

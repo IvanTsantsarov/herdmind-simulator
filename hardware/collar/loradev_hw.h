@@ -16,6 +16,8 @@ class LoraDevHW
     uint8_t mNKey[LORA_KEY_LEN];
     uint8_t mAKey[LORA_KEY_LEN];
     uint32_t mAddr;
+    uint8_t mBuffer[LORAWAN_APP_DATA_MAX_SIZE];
+    uint8_t mBufferLen = 0;
 
     static void fromHex(const char* src, uint8_t *dst, int srcLen);
     static String toHex(uint8_t* a, int len);
@@ -29,6 +31,8 @@ class LoraDevHW
     };
 
     State mState = State::Init;
+
+    void upplayParamsABP();
 
 public:
 
