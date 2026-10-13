@@ -557,6 +557,10 @@ void DialogCollarSim::processSerialInput()
                 QStringList params = resp.split(SERIAL_CMD_PARAMS_DM);
                 for(QString param : params) {
                     QStringList pair = param.split(SERIAL_CMD_EQUAL);
+                    if( pair.count() < 2 ) {
+                        addResponce(resp, RESPONCE_COLOR_RESPONCE);
+                        return;
+                    }
                     QStringList args = pair[1].split(SERIAL_CMD_COMMA);
                     if( pair.first() == "gps") {
                         sat = args[0].toInt();

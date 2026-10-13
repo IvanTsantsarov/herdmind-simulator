@@ -413,7 +413,7 @@ public:
 
 class SX1262: public Module {
 public:
-    SX1262(Module* m){ *this = m;}
+    SX1262(Module* m){ }
 
 };
 
