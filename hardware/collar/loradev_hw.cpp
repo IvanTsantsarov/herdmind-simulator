@@ -115,6 +115,13 @@ void LoraDevHW::onSetup() {
     config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
     //radio.tcxoVoltage = 1.6; // Some radio modules like SX126x often come with TCXO
 
+    Serial.println(String("=== Setup start ==="));
+    Serial.println(String("Addr:") + addrHex());
+    Serial.println(String("AKey:") + akeyHex());
+    Serial.println(String("NKey:") + nkeyHex());
+    Serial.println(String("=== Setup end ==="));
+
+
     int state = mRadio.begin(config);
     if (state != RADIOLIB_ERR_NONE) {
         Serial.println("Lora init failed!");
