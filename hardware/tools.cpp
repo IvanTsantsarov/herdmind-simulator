@@ -520,8 +520,5 @@ size_t Preferences::putBytes(const char *key, const void *buf, size_t len)
     return ba.length();
 }
 
-uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
-uint8_t appDataSize = 0;
-LoRaWanClass LoRaWAN;
-eDeviceState deviceState = eDeviceState::DEVICE_STATE_INIT;
-uint32_t txDutyCycleTime = 0;
+const int EU868 = 868;
+ClassSPI SPI;

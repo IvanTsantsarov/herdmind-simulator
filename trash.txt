@@ -468,3 +468,54 @@ auto stripResponce = [&](QString& resp, const QString& cmd) {
 
     return true;
 };
+
+
+
+
+typedef int DeviceClass_t;
+typedef int LoRaMacRegion_t;
+#define ACTIVE_REGION 1
+#define CLASS_A 1
+#define CLASS_B 2
+#define CLASS_C 3
+
+class LoRaWanClass {
+public:
+    void init(DeviceClass_t lClass, LoRaMacRegion_t lRegion) {
+        (void)lClass, (void)lRegion;
+    }
+
+    void setDefaultDR(int dr){ (void) dr; }
+    void join(){}
+    void send(){}
+    void cycle(int interval){ (void) interval; }
+    void sleep(DeviceClass_t lClass){ (void)lClass; }
+
+};
+
+
+enum eDeviceState {
+    DEVICE_STATE_INIT = 0,
+    DEVICE_STATE_JOIN,
+    DEVICE_STATE_SEND,
+    DEVICE_STATE_CYCLE,
+    DEVICE_STATE_SLEEP
+};
+
+extern eDeviceState deviceState;
+
+extern uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
+extern uint8_t appDataSize;
+
+extern LoRaWanClass LoRaWAN;
+
+// some shity Heltec internal variable
+extern uint32_t txDutyCycleTime;
+
+
+
+uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
+uint8_t appDataSize = 0;
+LoRaWanClass LoRaWAN;
+eDeviceState deviceState = eDeviceState::DEVICE_STATE_INIT;
+uint32_t txDutyCycleTime = 0;

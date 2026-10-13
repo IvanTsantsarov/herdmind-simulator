@@ -2,75 +2,14 @@
 
 #include <cstdio>
 
+#define PIN_NSS   8
+#define PIN_SCK   9
+#define PIN_MOSI  10
+#define PIN_MISO  11
+#define PIN_DIO1  14
+#define PIN_NRST  12
+#define PIN_BUSY  13
 
-// /home/ivants/Projects/Heltec_ESP32/src/LoRaWan_APP.h
- // /home/ivants/Arduino/libraries/Heltec_ESP32_Dev-Boards/src/LoRaWan_APP.h
-
-
-// #ifndef ONPC
-
-//namespace Heltec {
-//};
-
-
-//using namespace Heltec;
-
-// OTAA para (not used, but dont remove it
-uint8_t devEui[LORA_EUI_LEN] = { 0 };
-uint8_t appEui[LORA_EUI_LEN] = { 0 };
-uint8_t appKey[LORA_KEY_LEN] = { 0 };
-// ABP para
-uint8_t nwkSKey[LORA_KEY_LEN] = { 0 };
-uint8_t appSKey[LORA_KEY_LEN] = { 0 };
-uint32_t devAddr = 0x0;
-
-// LoraWan channelsmask, default channels 0-7
-uint16_t userChannelsMask[6] = { 0x00FF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 };
-uint32_t license[4] = {0x21701168, 0xAAAEEC0A, 0xFDA9F9D2, 0x0110E29E};
-// LoraWan region, select in arduino IDE tools
-LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
-
-// LoraWan Class, Class A and Class C are supported
-DeviceClass_t  loraWanClass = CLASS_A;
-
-// the application data transmission duty cycle.  value in [ms].*/
-uint32_t appTxDutyCycle = 15000;
-
-// OTAA or ABP (only ABP supported!!!)
-bool overTheAirActivation = false;
-
-// ADR enable
-bool loraWanAdr = true;
-// Indicates if the node is sending confirmed or unconfirmed messages
-bool isTxConfirmed = false;
-
-// Application port
-uint8_t appPort = 2;
-/*!
-  Number of trials to transmit the frame, if the LoRaMAC layer did not
-  receive an acknowledgment. The MAC performs a datarate adaptation,
-  according to the LoRaWAN Specification V1.0.2, chapter 18.4, according
-  to the following table:
-
-  Transmission nb | Data Rate
-  ----------------|-----------
-  1 (first)       | DR
-  2               | DR
-  3               | max(DR-1,0)
-  4               | max(DR-1,0)
-  5               | max(DR-2,0)
-  6               | max(DR-2,0)
-  7               | max(DR-3,0)
-  8               | max(DR-3,0)
-
-  Note, that if NbTrials is set to 1 or 2, the MAC will not decrease
-  the datarate, in case the LoRaMAC layer did not receive an acknowledgment
-*/
-uint8_t confirmedNbTrials = 4;
-
-LoraDevHW::LoraDevHW() {
-
-}
 
 String LoraDevHW::addrHex()
 {
@@ -142,17 +81,15 @@ void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
     }
 }
 
-void LoraDevHW::upplayParamsABP()
-{
-    memcpy( devEui, mEui, LORA_EUI_LEN );
-    memcpy( appEui, mEui, LORA_EUI_LEN );
-    memcpy( nwkSKey, mNKey, LORA_KEY_LEN );
-    memcpy( appSKey,mAKey, LORA_KEY_LEN );
-    memcpy( appKey,mAKey, LORA_KEY_LEN );
-    devAddr =  mAddr;
 
+LoraDevHW::LoraDevHW() {
+    // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
+    // Pins for V4.3: NSS=8, DIO1=14, NRST=12, BUSY=13
+    mRadio = new Module(PIN_NSS, PIN_DIO1, PIN_NRST, PIN_BUSY);
+
+    // 2. Create the LoRaWAN Node Instance
+    mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
 }
-
 
 void LoraDevHW::onSetup() {
     uint8_t mac[6];
@@ -171,7 +108,37 @@ void LoraDevHW::onSetup() {
     mEui[6] = mac[4];
     mEui[7] = mac[5];
 
-    upplayParamsABP();
+
+    SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);
+
+    ConfigLoRa_t config{};
+    config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
+    //radio.tcxoVoltage = 1.6; // Some radio modules like SX126x often come with TCXO
+
+    int state = mRadio.begin(config);
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.println("Lora init failed!");
+        return;
+    }
+
+    // Pull in the ABP profiles natively
+    state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
+
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.println( String("beginABP failed: ") + state);
+        return;
+    }
+
+
+    state = mNode->activateABP();
+
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.println(String("activateABP failed") + state);
+        return;
+    }
+
+
+    // ConfigLoRa_t config;
 }
 
 void LoraDevHW::sendPackage(void *data, int len)
@@ -186,70 +153,72 @@ void LoraDevHW::sendPackage(void *data, int len)
 
 void LoraDevHW::onUpdate()
 {
-    switch ( deviceState )
+    switch ( mState )
     {
-        case DEVICE_STATE_INIT:
+    case State::Init:
         {
-
-    #if(LORAWAN_DEVEUI_AUTO)
-//            LoRaWAN.generateDeveuiByChipID();
-//            DBG( "generateDeveuiByChipID()" );
-    #endif
-            LoRaWAN.init(loraWanClass,loraWanRegion);
             //both set join DR and DR when ADR off
-            LoRaWAN.setDefaultDR(3);
 
             DBG("DEVICE_STATE_INIT passed" );
+            mState = State::Join;
             break;
         }
-        case DEVICE_STATE_JOIN:
+    case State::Join:
         {
-            LoRaWAN.join();
-            deviceState = DEVICE_STATE_SEND; // <-- CRUCIAL LINE
             DBG("DEVICE_STATE_JOIN passed" );
+            mState = State::Send;
             break;
         }
-        case DEVICE_STATE_SEND:
+    case State::Send:
         {
             // prepareTxFrame( appPort );
             DBG("DEVICE_STATE_SEND entered." );
-            memcpy(appData, mBuffer, mBufferLen);
-            appDataSize = mBufferLen;
 
-            LoRaWAN.send();
-            deviceState = DEVICE_STATE_CYCLE;
+            // Fires an unconfirmed uplink packet directly on port 2
+            int state = mNode->sendReceive( mBuffer, mBufferLen, 2, false);
+
+            if (state >= RADIOLIB_ERR_NONE) {
+                Serial.println( "Uplink done");
+
+                if (state > 0) {
+                    Serial.println("Downlink received");
+                } else {
+                    Serial.println("No downlink received");
+                }
+            } else {
+                Serial.println( String("LoRaWAN send failed:") + state);
+            }
             DBG("DEVICE_STATE_SEND passed" );
+            mState = State::Cycle;
             mIsSent = true;
             break;
         }
-        case DEVICE_STATE_CYCLE:
+    case State::Cycle:
         {
-            txDutyCycleTime = appTxDutyCycle;
-            LoRaWAN.cycle(txDutyCycleTime);
-            deviceState = DEVICE_STATE_SLEEP;
             DBG("DEVICE_STATE_CYCLE passed" );
+            mState = State::Sleep;
             break;
         }
-        case DEVICE_STATE_SLEEP:
+    case State::Sleep:
         {
             if( mIsSent ) {
                 DBG("DEVICE_STATE_SLEEP entered" );
                 mIsSent = false;
                 mSecSleep = millis();
             }else {
-                if( (millis() - mSecSleep) >  appTxDutyCycle) {
+                if( (millis() - mSecSleep) >  mSendIntervalMsec) {
                     DBG("DEVICE_STATE_SLEEP passed" );
-                    deviceState = DEVICE_STATE_SEND;
+                    mState = State::Send;
                 }else {
-                    LoRaWAN.sleep(loraWanClass);
-                    delay(1);
+                    // Sleep here
+                    // delay(1);
                 }
             }
             break;
         }
         default:
         {
-            deviceState = DEVICE_STATE_INIT;
+            mState = State::Init;
 
             break;
         }

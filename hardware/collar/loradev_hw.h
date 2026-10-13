@@ -10,6 +10,8 @@
 */
 //};
 
+#define LORAWAN_APP_DATA_MAX_SIZE 64
+
 class LoraDevHW
 {
     uint8_t mEui[LORA_EUI_LEN];
@@ -36,6 +38,10 @@ class LoraDevHW
 
     bool mIsSent = false;
     int64_t mSecSleep = 0;
+    int64_t mSendIntervalMsec = 15000;
+
+    SX1262 mRadio = nullptr;
+    LoRaWANNode* mNode = nullptr;
 
 public:
 

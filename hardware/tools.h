@@ -389,45 +389,43 @@ public:
 
 
 
-typedef int DeviceClass_t;
-typedef int LoRaMacRegion_t;
-#define ACTIVE_REGION 1
-#define CLASS_A 1
-#define CLASS_B 2
-#define CLASS_C 3
-
-class LoRaWanClass {
+class ClassSPI {
 public:
-    void init(DeviceClass_t lClass, LoRaMacRegion_t lRegion) {
-        (void)lClass, (void)lRegion;
-    }
+    void begin(int sck, int miso, int mosi, int nss) { }
+};
 
-    void setDefaultDR(int dr){ (void) dr; }
-    void join(){}
-    void send(){}
-    void cycle(int interval){ (void) interval; }
-    void sleep(DeviceClass_t lClass){ (void)lClass; }
+extern ClassSPI SPI;
 
+#define RADIOLIB_ERR_NONE 0
+
+struct ConfigLoRa_t {
+    int frequency;
 };
 
 
-enum eDeviceState {
-    DEVICE_STATE_INIT = 0,
-    DEVICE_STATE_JOIN,
-    DEVICE_STATE_SEND,
-    DEVICE_STATE_CYCLE,
-    DEVICE_STATE_SLEEP
+class Module {
+public:
+    Module() {}
+    Module(uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio) { }
+    int begin(ConfigLoRa_t& c) {}
+
 };
 
-extern eDeviceState deviceState;
+class SX1262: public Module {
+public:
+    SX1262(Module* m){ *this = m;}
 
-extern uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
-extern uint8_t appDataSize;
+};
 
-extern LoRaWanClass LoRaWAN;
-
-// some shity Heltec internal variable
-extern uint32_t txDutyCycleTime;
+extern const int EU868;
 
 
+class LoRaWANNode {
+public:
+    LoRaWANNode(Module* radio, const int* standart) { }
+    int beginABP(uint8_t addr, uint8_t* fNwkSIntKey, uint8_t* sNwkSIntKey, uint8_t* nwkSEncKey, uint8_t* appSKey) { return RADIOLIB_ERR_NONE; }
+    int activateABP() {return RADIOLIB_ERR_NONE; }
+
+    int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ }
+};
 
