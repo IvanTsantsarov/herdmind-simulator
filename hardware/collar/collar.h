@@ -117,6 +117,13 @@ class Collar : public LoraDevHW
     void commonConstructor();
     void updateScreenLoading(bool isFlush = true);
     void updateScreenNormal(bool isFlush = true);
+
+    enum struct UpdateInterval{
+        Battery = 6000,
+        SerialCmd = 40,
+        GPS = 1000
+    };
+
 public:
 
 

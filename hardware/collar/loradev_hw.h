@@ -34,6 +34,9 @@ class LoraDevHW
 
     void upplayParamsABP();
 
+    bool mIsSent = false;
+    int64_t mSecSleep = 0;
+
 public:
 
     LoraDevHW();

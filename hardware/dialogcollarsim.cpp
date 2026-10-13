@@ -388,8 +388,6 @@ void DialogCollarSim::sendToSerial(const QString& msg, bool isRequest)
         mPort.flush();
     }
 
-    // delay(100);
-
     ui->editSerialCmd->clear();
     addResponce(">" + txt, RESPONCE_COLOR_COMMAND);
 }

@@ -2,6 +2,11 @@
 
 #include <cstdio>
 
+
+// /home/ivants/Projects/Heltec_ESP32/src/LoRaWan_APP.h
+ // /home/ivants/Arduino/libraries/Heltec_ESP32_Dev-Boards/src/LoRaWan_APP.h
+
+
 // #ifndef ONPC
 
 //namespace Heltec {
@@ -26,7 +31,7 @@ uint32_t license[4] = {0x21701168, 0xAAAEEC0A, 0xFDA9F9D2, 0x0110E29E};
 LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
 
 // LoraWan Class, Class A and Class C are supported
-DeviceClass_t  loraWanClass = CLASS_C;
+DeviceClass_t  loraWanClass = CLASS_A;
 
 // the application data transmission duty cycle.  value in [ms].*/
 uint32_t appTxDutyCycle = 15000;
@@ -37,7 +42,7 @@ bool overTheAirActivation = false;
 // ADR enable
 bool loraWanAdr = true;
 // Indicates if the node is sending confirmed or unconfirmed messages
-bool isTxConfirmed = true;
+bool isTxConfirmed = false;
 
 // Application port
 uint8_t appPort = 2;
@@ -139,9 +144,13 @@ void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
 
 void LoraDevHW::upplayParamsABP()
 {
+    memcpy( devEui, mEui, LORA_EUI_LEN );
+    memcpy( appEui, mEui, LORA_EUI_LEN );
     memcpy( nwkSKey, mNKey, LORA_KEY_LEN );
     memcpy( appSKey,mAKey, LORA_KEY_LEN );
+    memcpy( appKey,mAKey, LORA_KEY_LEN );
     devAddr =  mAddr;
+
 }
 
 
@@ -181,9 +190,10 @@ void LoraDevHW::onUpdate()
     {
         case DEVICE_STATE_INIT:
         {
+
     #if(LORAWAN_DEVEUI_AUTO)
-            LoRaWAN.generateDeveuiByChipID();
-            DBG( "generateDeveuiByChipID()" );
+//            LoRaWAN.generateDeveuiByChipID();
+//            DBG( "generateDeveuiByChipID()" );
     #endif
             LoRaWAN.init(loraWanClass,loraWanRegion);
             //both set join DR and DR when ADR off
@@ -195,18 +205,21 @@ void LoraDevHW::onUpdate()
         case DEVICE_STATE_JOIN:
         {
             LoRaWAN.join();
+            deviceState = DEVICE_STATE_SEND; // <-- CRUCIAL LINE
             DBG("DEVICE_STATE_JOIN passed" );
             break;
         }
         case DEVICE_STATE_SEND:
         {
             // prepareTxFrame( appPort );
+            DBG("DEVICE_STATE_SEND entered." );
             memcpy(appData, mBuffer, mBufferLen);
             appDataSize = mBufferLen;
 
             LoRaWAN.send();
             deviceState = DEVICE_STATE_CYCLE;
             DBG("DEVICE_STATE_SEND passed" );
+            mIsSent = true;
             break;
         }
         case DEVICE_STATE_CYCLE:
@@ -219,9 +232,19 @@ void LoraDevHW::onUpdate()
         }
         case DEVICE_STATE_SLEEP:
         {
-            DBG("DEVICE_STATE_SLEEP entered" );
-            LoRaWAN.sleep(loraWanClass);
-            DBG("DEVICE_STATE_SLEEP passed" );
+            if( mIsSent ) {
+                DBG("DEVICE_STATE_SLEEP entered" );
+                mIsSent = false;
+                mSecSleep = millis();
+            }else {
+                if( (millis() - mSecSleep) >  appTxDutyCycle) {
+                    DBG("DEVICE_STATE_SLEEP passed" );
+                    deviceState = DEVICE_STATE_SEND;
+                }else {
+                    LoRaWAN.sleep(loraWanClass);
+                    delay(1);
+                }
+            }
             break;
         }
         default:

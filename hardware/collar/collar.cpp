@@ -540,19 +540,18 @@ void Collar::onUpdate()
             }
 
             updateTrajectory(mGPS->pos());
-            mLed->updateOn(1600, 1600);
+            mLed->updateOn(500, 1000);
         }else {
             // Serial.print("-");
-            mLed->updateOn(300, 1000);
+            mLed->updateOn(50, 1000);
         }
     }else {
         // Serial.print(".");
-        mLed->updateOn(100, 500);
+        mLed->updateOn(10, 500);
     }
 
 #ifndef ONPC
     LoraDevHW::onUpdate();
-    delay(100);
 #else
 
 
