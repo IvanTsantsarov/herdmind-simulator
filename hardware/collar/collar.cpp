@@ -567,7 +567,7 @@ void Collar::onSend()
     GeoPoint coord = readGPS();
     package.encodeLat( coord.mLat );
     package.encodeLon( coord.mLon );
-    package.mBattery = 100;
+    package.mBattery = mBattery->level();
 
     sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
 }

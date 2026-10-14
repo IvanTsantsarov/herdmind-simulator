@@ -389,11 +389,17 @@ void DevManager::onGateways(const QJsonObject &jobj)
     }
 }
 
-
-// Sent with sendMessageMqtt
+//////////////////////////////////////////////////////////////////////////////////////////
+// Here receiving messages from devices
+//////////////////////////////////////////////////////////////////////////////////////////
+///
 void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray &msg)
 {
     LoraDevSim* dev = findByAddress(devAddr);
+
+    if( msg.size() < sizeof(Protocol::Collar) ) {
+        return;
+    }
 
     if( !dev ) {
         qCritical() << "DevManager received message from unknown device:" << devAddr;
@@ -414,6 +420,9 @@ void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray
             mDevicesMapFence[dev->eui()] = false;
             break;
         case Protocol::Collar::Event::Package:
+            Protocol::Collar package;
+            package.fromByteArray((const uint8_t*)msg.data());
+            qInfo() << dev->name() << ":" << package.decodeLat() << "," << package.decodeLon();
             break;
         }
 

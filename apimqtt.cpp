@@ -43,5 +43,10 @@ void ApiMqtt::onMessageReceived(const QByteArray &message, const QMqttTopicName 
 
     QByteArray content = QByteArray::fromBase64( jobj["data"].toString().toUtf8());
 
+    if( content.isEmpty() ) {
+        qDebug() << "Message with no data field" << jsonDoc.toJson();
+    }
+
+
     devman()->onDeviceMessageMqtt(addr, content);
 }
