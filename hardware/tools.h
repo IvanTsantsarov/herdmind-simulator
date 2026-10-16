@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <QString>
 #include <QElapsedTimer>
+#include <QDateTime>
 
 #include <QObject>
 
@@ -429,3 +430,5 @@ public:
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ }
 };
 
+
+QDateTime fromTimestamp(uint32_t secFrom2K);

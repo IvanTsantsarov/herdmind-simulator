@@ -520,5 +520,11 @@ size_t Preferences::putBytes(const char *key, const void *buf, size_t len)
     return ba.length();
 }
 
+#include <QDateTime>
+QDateTime fromTimestamp(uint32_t secFrom2K) {
+    QDateTime tm( QDate(2000, 1, 1), QTime(0,0) );
+    return tm.addSecs(secFrom2K);
+}
+
 const int EU868 = 868;
 ClassSPI SPI;

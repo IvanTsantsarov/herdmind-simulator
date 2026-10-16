@@ -10,6 +10,8 @@
 
 #ifdef ONPC
 
+#define GATEWAY_NOT_CONNECTED_MAX 10
+
 // #include "mainwindow.h"
 
 Gateway::Gateway(const QSettings &settings)
@@ -85,6 +87,10 @@ void Gateway::subscribe(const QString &topic)
 {
     QString fullTopic = QString("eu868/gateway/%1/%2").arg(mId).arg(topic);
     mClient->subscribe(fullTopic);
+
+    if( !mTopics.contains(topic)) {
+        mTopics[topic] = true;
+    }
 /*
     // Connect to messages for this subscription
     connect(subscription, &QMqttSubscription::messageReceived, this, [=](const QMqttMessage &msg){
@@ -110,6 +116,17 @@ bool Gateway::publish(const QByteArray &phyPayload)
 {
     if( mClient && !mClient->isConnected() ) {
         qCritical() << "Mqtt:publish: Not connected!";
+
+        // If critical count of unsubscribed events occured - try to reconnect to all topics
+        if( (++mNotConnectedEvents) > GATEWAY_NOT_CONNECTED_MAX ) {
+            qInfo() << "Gateway max not connected events reached. Reconecting to all topics...";
+            for( QString topic:mTopics.keys()) {
+                subscribe(topic);
+            }
+
+            mNotConnectedEvents = 0;
+        }
+
         return false;
     }
 

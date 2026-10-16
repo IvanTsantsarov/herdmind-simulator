@@ -36,6 +36,8 @@ class Gateway : public QObject {
 
     void sendPullData();
 
+    QMap<QString, bool> mTopics;
+
 #else
 class Gateway
 {
@@ -43,6 +45,7 @@ class Gateway
 
     uint32_t mHeardId = 0;
     uint16_t mAnimalsCount = 0;
+    uint mNotConnectedEvents = 0;
 
     std::map<uint32_t, uint32_t> mBolusesMap; // id_bolus, id_animal
     std::map<uint32_t, uint32_t> mCollarsMap; // id_collar, id_animal

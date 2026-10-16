@@ -422,7 +422,7 @@ void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray
         case Protocol::Collar::Event::Package:
             Protocol::Collar package;
             package.fromByteArray((const uint8_t*)msg.data());
-            qInfo() << dev->name() << ":" << package.decodeLat() << "," << package.decodeLon();
+            qInfo() << dev->name() << ":" << fromTimestamp(package.mTimestamp).toString("HH:mm dd.MM.yy") << package.decodeLat() << "," << package.decodeLon();
             break;
         }
 
