@@ -87,10 +87,6 @@ void Gateway::subscribe(const QString &topic)
 {
     QString fullTopic = QString("eu868/gateway/%1/%2").arg(mId).arg(topic);
     mClient->subscribe(fullTopic);
-
-    if( !mTopics.contains(topic)) {
-        mTopics[topic] = true;
-    }
 /*
     // Connect to messages for this subscription
     connect(subscription, &QMqttSubscription::messageReceived, this, [=](const QMqttMessage &msg){
@@ -119,11 +115,8 @@ bool Gateway::publish(const QByteArray &phyPayload)
 
         // If critical count of unsubscribed events occured - try to reconnect to all topics
         if( (++mNotConnectedEvents) > GATEWAY_NOT_CONNECTED_MAX ) {
-            qInfo() << "Gateway max not connected events reached. Reconecting to all topics...";
-            for( QString topic:mTopics.keys()) {
-                subscribe(topic);
-            }
-
+            qInfo() << "Gateway reconecting...";
+            mClient->connectToHost();
             mNotConnectedEvents = 0;
         }
 

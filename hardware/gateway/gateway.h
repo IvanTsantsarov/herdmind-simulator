@@ -36,8 +36,6 @@ class Gateway : public QObject {
 
     void sendPullData();
 
-    QMap<QString, bool> mTopics;
-
 #else
 class Gateway
 {
