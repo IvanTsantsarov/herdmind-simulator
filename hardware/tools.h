@@ -428,6 +428,8 @@ public:
     int activateABP() {return RADIOLIB_ERR_NONE; }
 
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ }
+    int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort,
+                    const uint8_t* dataDown, size_t* lenDown, bool isConfirmed){ }
 };
 
 

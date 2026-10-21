@@ -18,8 +18,10 @@ class LoraDevHW
     uint8_t mNKey[LORA_KEY_LEN];
     uint8_t mAKey[LORA_KEY_LEN];
     uint32_t mAddr;
-    uint8_t mBuffer[LORAWAN_APP_DATA_MAX_SIZE];
-    uint8_t mBufferLen = 0;
+    uint8_t mBufferUp[LORAWAN_APP_DATA_MAX_SIZE];
+    size_t mBufferUpLen = 0;
+    uint8_t mBufferDown[LORAWAN_APP_DATA_MAX_SIZE];
+    size_t mBufferDownLen = 0;
 
     static void fromHex(const char* src, uint8_t *dst, int srcLen);
     static String toHex(uint8_t* a, int len);
@@ -70,5 +72,6 @@ public:
 
     virtual void onSetup();
     virtual void onUpdate();
+    virtual void onReceive(uint8_t* data, uint32_t size); // data receiving
 };
  // #endif

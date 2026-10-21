@@ -46,10 +46,14 @@ SOURCES += \
     hardware/collar/geometry.cpp \
     hardware/collar/gps.cpp \
     hardware/collar/led.cpp \
+    hardware/collar/lights.cpp \
     hardware/collar/loradev_hw.cpp \
     hardware/collar/memory.cpp \
     hardware/collar/res.cpp \
     hardware/collar/serialcmd.cpp \
+    hardware/collar/shock.cpp \
+    hardware/collar/signal.cpp \
+    hardware/collar/sound.cpp \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
@@ -96,10 +100,14 @@ HEADERS += \
     hardware/collar/geometry.h \
     hardware/collar/gps.h \
     hardware/collar/led.h \
+    hardware/collar/lights.h \
     hardware/collar/loradev_hw.h \
     hardware/collar/memory.h \
     hardware/collar/res.h \
     hardware/collar/serialcmd.h \
+    hardware/collar/shock.h \
+    hardware/collar/signal.h \
+    hardware/collar/sound.h \
     hardware/dialogcollarsim.h \
     hardware/collar/screen.h \
     hardware/defines.h \

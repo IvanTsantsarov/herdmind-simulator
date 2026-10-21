@@ -8,6 +8,9 @@
 #include "led.h"
 #include "serialcmd.h"
 #include "memory.h"
+#include "lights.h"
+#include "sound.h"
+#include "shock.h"
 
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 100
@@ -125,6 +128,9 @@ void Collar::commonConstructor()
     mSerialCmd = new SerialCmd(this);
     mBattery = new Battery;
     mMemory = new Memory;
+    mLights = new Lights;
+    mSound = new Sound;
+    mShock = new Shock;
 }
 
 
@@ -137,6 +143,9 @@ Collar::~Collar()
     delete mSerialCmd;
     delete mBattery;
     delete mMemory;
+    delete mLights;
+    delete mSound;
+    delete mShock;
 }
 
 
@@ -586,9 +595,15 @@ void Collar::onReceive(uint8_t *data, uint32_t size)
         onSetupFence( count, GeoPoint(lat, lon), data + offset );
     }
         break;
-    case Protocol::Collar::Event::Light: break;
-    case Protocol::Collar::Event::Sound: break;
-    case Protocol::Collar::Event::Shock: break;
+    case Protocol::Collar::Event::Light:
+        mLights->execute();
+        break;
+    case Protocol::Collar::Event::Sound:
+        mSound->execute();
+        break;
+    case Protocol::Collar::Event::Shock:
+        mShock->execute();
+        break;
     // default: assert(0);
     case Protocol::Collar::Event::None:
     case Protocol::Collar::Event::Package:

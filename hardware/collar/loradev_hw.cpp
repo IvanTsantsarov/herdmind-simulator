@@ -153,8 +153,8 @@ void LoraDevHW::sendPackage(void *data, int len)
     const char* charPtr = ((char*)data);
     // memcpy(appData, data, static_cast<size_t>(len));
     // appDataSize = static_cast<uint8_t>(len);
-    for( mBufferLen = 0; mBufferLen < len; mBufferLen ++) {
-        mBuffer[mBufferLen] = charPtr[mBufferLen];
+    for( mBufferUpLen = 0; mBufferUpLen < len; mBufferUpLen ++) {
+        mBufferUp[mBufferUpLen] = charPtr[mBufferUpLen];
     }
 }
 
@@ -182,13 +182,16 @@ void LoraDevHW::onUpdate()
             DBG("DEVICE_STATE_SEND entered." );
 
             // Fires an unconfirmed uplink packet directly on port 2
-            int state = mNode->sendReceive( mBuffer, mBufferLen, 2, false);
+            int state = mNode->sendReceive( mBufferUp, mBufferUpLen, 2,
+                                            mBufferDown, &mBufferDownLen,
+                                           false);
 
             if (state >= RADIOLIB_ERR_NONE) {
                 Serial.println( "Uplink done");
 
                 if (state > 0) {
                     Serial.println("Downlink received");
+                    onReceive(mBufferDown, mBufferDownLen);
                 } else {
                     Serial.println("No downlink received");
                 }
@@ -230,6 +233,11 @@ void LoraDevHW::onUpdate()
             break;
         }
     }
+}
+
+void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
+{
+    Serial.println("Collar::onReceive() Not implemented!");
 }
 
 

@@ -20,6 +20,9 @@ class Led;
 class SerialCmd;
 class Battery;
 class Memory;
+class Lights;
+class Sound;
+class Shock;
 
 #ifdef ONPC
     #include <QPointF>
@@ -71,6 +74,9 @@ class Collar : public LoraDevHW
     SerialCmd* mSerialCmd = nullptr;
     Battery* mBattery = nullptr;
     Memory* mMemory = nullptr;
+    Lights* mLights = nullptr;
+    Sound* mSound = nullptr;
+    Shock* mShock = nullptr;
 
     uint16_t mSequence = 0;
     int64_t mSetupMillis = 0;
