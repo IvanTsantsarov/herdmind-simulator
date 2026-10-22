@@ -1,3 +1,3 @@
 #include "shock.h"
 
-Shock::Shock() {}
+Shock::Shock(Collar *c) : Signaling(c) {}

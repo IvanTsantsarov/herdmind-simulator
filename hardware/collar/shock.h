@@ -1,12 +1,13 @@
 #ifndef SHOCK_H
 #define SHOCK_H
 
-#include "signal.h"
+#include "signaling.h"
 
-class Shock: public Signal
+class Shock: public Signaling
 {
 public:
-    Shock();
+    Shock(Collar* c);
+    virtual ~Shock(){ }
     const char* name() { return "Shock"; }
 };
 

@@ -128,9 +128,9 @@ void Collar::commonConstructor()
     mSerialCmd = new SerialCmd(this);
     mBattery = new Battery;
     mMemory = new Memory;
-    mLights = new Lights;
-    mSound = new Sound;
-    mShock = new Shock;
+    mLights = new Lights(this);
+    mSound = new Sound(this);
+    mShock = new Shock(this);
 }
 
 
@@ -380,6 +380,11 @@ bool Collar::restore()
     }
 
     return true;
+}
+
+void Collar::serialRespond(const String& msg)
+{
+    mSerialCmd->sendResponce(msg);
 }
 
 void Collar::updateScreenLoading(bool isFlush)

@@ -37,6 +37,7 @@ public:
         enum struct Type {
             NONE = 0,
             DBG,
+            RSP,    // Responce - send back an aswer from action
             LED,    // led on/off
             HELP,
             REBOOT,
@@ -59,9 +60,13 @@ public:
 
         };
 
+        Cmd(){ mT = Type::NONE; }
+        Cmd(Type t){ mT = t; }
+
 
         inline Type type(){ return mT;}
         const char* typeStr();
+        static const char* typeStrStatic(const Cmd *c);
         inline bool isNone(){ return Type::NONE == mT; }
 
         inline void clear(){ mT = Type::NONE; }
@@ -80,6 +85,8 @@ public:
     inline void writeToSerial(const char* str) { Serial.writeIn(str); }
     inline QByteArray readFromSerial() { return Serial.readOut(); }
 #endif
+
+    void sendResponce(const String &rsp);
 };
 
 #endif // SERIALCMD_H

@@ -1,3 +1,3 @@
 #include "sound.h"
 
-Sound::Sound() {}
+Sound::Sound(Collar *c) : Signaling(c) {}

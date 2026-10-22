@@ -4,12 +4,10 @@
 #include <cmath>
 #include <cstdint>
 
-#include "geometry.h"
-
+#include "../arduino.h"
 #include "../defines.h"
 #include "../protocol.h"
-
-#include "../arduino.h"
+#include "geometry.h"
 
 #define COLLAR_MAX_GPS_POINTS 500
 
@@ -202,6 +200,7 @@ public:
 
     inline void setDebugInfo(bool is){ mIsDbgInfo = is; };
     bool toggleDebugInfo(){ mIsDbgInfo = !mIsDbgInfo; return mIsDbgInfo; };
+    void serialRespond(const String &msg);
 
 };
 

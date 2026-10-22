@@ -1,12 +1,13 @@
 #ifndef LIGHTS_H
 #define LIGHTS_H
 
-#include "signal.h"
+#include "signaling.h"
 
-class Lights : public Signal
+class Lights : public Signaling
 {
 public:
-    Lights();
+    Lights(Collar* c);
+    virtual ~Lights(){}
     const char* name() { return "Lights"; }
 
 };

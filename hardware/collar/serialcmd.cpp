@@ -9,8 +9,7 @@
 #define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
 #define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
-SerialCmd::SerialCmd(Collar* c) :
-    mStrChanged("->")
+SerialCmd::SerialCmd(Collar* c) : mStrChanged("->")
 {
     mCollar = c;
 
@@ -44,6 +43,13 @@ void SerialCmd::clear()
     mArgumentLen = 0;
     mIsArgument = false;
 
+}
+
+void SerialCmd::sendResponce(const String& rsp)
+{
+    Cmd cmd(Cmd::Type::RSP);
+    String r = String(SERIAL_CMD_BEGIN) + cmd.typeStr() + rsp + SERIAL_CMD_TAIL;
+    Serial.println(r);
 }
 
 #define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String(SERIAL_CMD_BEGIN) + "error" + SERIAL_CMD_TAIL + __err__); clear(); skipAvailable(); return;
@@ -104,9 +110,15 @@ void SerialCmd::update()
 }
 
 
+
 const char *SerialCmd::Cmd::typeStr()
 {
-    switch(mT) {
+    return SerialCmd::Cmd::typeStrStatic(this);
+}
+
+const char *SerialCmd::Cmd::typeStrStatic(const Cmd* c)
+{
+    switch(c->mT) {
     case Type::NONE: return "none";
     case Type::DBG: return "dbg";
     case Type::LED: return "led";
@@ -128,6 +140,7 @@ const char *SerialCmd::Cmd::typeStr()
     case Type::NAME: return "name";
     case Type::SEX: return "sex";
     case Type::VER: return "ver";
+    case Type::RSP: return "rsp"; break;
     }
 
     return "";
@@ -393,6 +406,9 @@ bool SerialCmd::execute()
 
     case Cmd::Type::VER:
         Serial.println(COLLAR_VERSION);
+        break;
+    case Cmd::Type::RSP:
+        // not receiving - just sending. Here because of the warning
         break;
     }
 

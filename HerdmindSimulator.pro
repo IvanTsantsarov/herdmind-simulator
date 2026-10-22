@@ -52,7 +52,7 @@ SOURCES += \
     hardware/collar/res.cpp \
     hardware/collar/serialcmd.cpp \
     hardware/collar/shock.cpp \
-    hardware/collar/signal.cpp \
+    hardware/collar/signaling.cpp \
     hardware/collar/sound.cpp \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
@@ -106,7 +106,7 @@ HEADERS += \
     hardware/collar/res.h \
     hardware/collar/serialcmd.h \
     hardware/collar/shock.h \
-    hardware/collar/signal.h \
+    hardware/collar/signaling.h \
     hardware/collar/sound.h \
     hardware/dialogcollarsim.h \
     hardware/collar/screen.h \
