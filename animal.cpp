@@ -229,17 +229,17 @@ bool Animal::collide(Animal *other, float minCollideDistance  )
 }
 
 
-Bolus* Animal::putBolus(const QByteArray &devEUI, const QByteArray &appKey)
+Bolus* Animal::putBolus(bool isSimulation, const QByteArray &devEUI, const QByteArray &appKey)
 {
     if( mBolus ) delete mBolus;
-    mBolus = new Bolus(this, devEUI, appKey);
+    mBolus = new Bolus(this, isSimulation, devEUI, appKey);
     return mBolus;
 }
 
-Collar* Animal::putCollar(const QByteArray &devEUI, const QByteArray &appKey, const QByteArray& nwkKey)
+Collar* Animal::putCollar(bool isSimulation, const QByteArray &devEUI, const QByteArray &appKey, const QByteArray& nwkKey)
 {
     if( mCollar ) delete mCollar;
-    mCollar = new Collar(this, devEUI, appKey, nwkKey);
+    mCollar = new Collar(this, isSimulation, devEUI, appKey, nwkKey);
     return mCollar;
 }
 
@@ -255,7 +255,7 @@ bool Animal::removeCollar()
 
 Collar *Animal::putCollar(Collar *mirror)
 {
-    return putCollar(mirror->eui(), mirror->appSKey(), mirror->nwkSKey());
+    return putCollar(false, mirror->eui(), mirror->appSKey(), mirror->nwkSKey());
 }
 
 bool Animal::isAhead(Animal *a, float maxCosAngle)

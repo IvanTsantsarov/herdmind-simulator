@@ -45,7 +45,7 @@ public:
 
 
 #ifdef ONPC
-    Bolus(Animal* animal,
+    Bolus(Animal* animal, bool isSimulation,
           const QByteArray &devEUI = QByteArray(),
           const QByteArray& appKey = QByteArray());
 

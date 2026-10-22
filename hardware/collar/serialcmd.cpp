@@ -4,6 +4,7 @@
 #include "led.h"
 #include "defines.h"
 
+#define SERIAL_TX_BUFFER_SIZE 1024
 #define SERIAL_ARGUMENT_SIZE 32
 
 #define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
@@ -32,6 +33,17 @@ SerialCmd::~SerialCmd()
         mArgument = nullptr;
         mArgumentLen = 0;
     }
+}
+
+void SerialCmd::setup()
+{
+    // allocate TX buffer for non-blocking sends
+    Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
+
+    Serial.begin(SERIAL_BAUDRATE);
+    while(!Serial);
+    delay(100);
+    Serial.println("Setup collar...");
 }
 
 void SerialCmd::clear()
@@ -214,6 +226,9 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
     if( cmp("addr") ) {
         mT = Type::ADDR;
     }else
+    if( cmp("fport") ) {
+        mT = Type::FPORT;
+    }else
     if( cmp("flash") ) {
         mT = Type::FLASH;
     }else
@@ -262,7 +277,8 @@ bool SerialCmd::execute()
                         mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
                         mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
                         mCollar->nkeyHex() + SERIAL_CMD_PARAMS_DM +
-                        mCollar->addrHex() );
+                        mCollar->addrHex() + SERIAL_CMD_PARAMS_DM +
+                        mCollar->fport() );
         break;
 
     case Cmd::Type::GPS: {
@@ -363,6 +379,19 @@ bool SerialCmd::execute()
             printChanged();
         }else {
             Serial.println(mCollar->addrHex());
+        }
+        break;
+
+    case Cmd::Type::FPORT:
+        if( mIsArgument ) {
+            if( mArgumentLen != LORA_FPORT_HEX_LEN) {
+                mErrStr = "Wrong FPort lenght!";
+                return false;
+            }
+            mCollar->setFPortHex(mArgument);
+            printChanged();
+        }else {
+            Serial.println(String("0x") + mCollar->fportHex());
         }
         break;
 

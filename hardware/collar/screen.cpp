@@ -65,7 +65,7 @@ void Screen::drawText(int x, int y, String &str)
     mLib.drawStr(x, y, str.c_str() );
 }
 
-void Screen::drawText(int x, int y, char* str)
+void Screen::drawText(int x, int y, const char* str)
 {
     mLib.drawStr(x, y, str );
 }

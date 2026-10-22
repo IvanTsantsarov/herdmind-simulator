@@ -875,6 +875,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="checkUnstripped">
+       <property name="text">
+        <string>Unstripped uotput</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>

@@ -14,10 +14,10 @@
 /// Simulation
 //////////////////////////////////////////////////////////////
 
-Bolus::Bolus(   Animal *animal,
+Bolus::Bolus(   Animal *animal, bool isSimulation,
                 const QByteArray &devEUI,
                 const QByteArray& appKey)
-    : LoraDevSim(QString("%1 bolus").arg(animal->name()), LoraDevSim::Profile::Bolus,
+    : LoraDevSim(isSimulation, QString("%1 bolus").arg(animal->name()), LoraDevSim::Profile::Bolus,
               BOLUS_UPDATE_INTERVAL, BOLUS_SEND_INTERVAL,
               devEUI, appKey ), mAnimal(animal)
 {

@@ -534,77 +534,81 @@ void DialogCollarSim::processSerialInput()
 
     bool isError = false;
 
-    if( mPort.isOpen() ) {
-        if( mPort.bytesAvailable() && mPort.canReadLine()) {
-
-            QByteArray out = mPort.readLine();
-            QString resp = QString::fromLatin1(out);
-            QString cmd = stripCmd(resp);
-
-            if( cmd.isEmpty() ) {
-                return;
-            }
-
-            resp = resp.right(resp.length() - resp.indexOf(SERIAL_CMD_TAIL) - 1);
-
-            if( cmpCmd(cmd, "dbg") ) {
-                if( !mMirror) {
-                    return;
-                }
-                GeoPoint pos;
-                int snr, rssi, bat, sat;
-
-                QStringList params = resp.split(SERIAL_CMD_PARAMS_DM);
-                for(QString param : params) {
-                    QStringList pair = param.split(SERIAL_CMD_EQUAL);
-                    if( pair.count() < 2 ) {
-                        addResponce(resp, RESPONCE_COLOR_RESPONCE);
-                        return;
-                    }
-                    QStringList args = pair[1].split(SERIAL_CMD_COMMA);
-                    if( pair.first() == "gps") {
-                        sat = args[0].toInt();
-                        pos.mLat = args[1].toFloat();
-                        pos.mLon = args[2].toFloat();
-                    }else
-                    if( pair.first() == "rssi") {
-                        rssi = args[0].toInt();
-                    }else
-                    if( pair.first() == "snr") {
-                        snr = args[0].toInt();
-                    }else
-                    if( pair.first() == "bat") {
-                        bat = args[1].remove("%").toInt();
-                    }else
-                    if( pair.first() == "btn" && pair[1] == "y") {
-                        on_btnMain_pressed();
-                    }
-                }
-                mMirror->inject(pos, sat, rssi, snr, bat);
-                return;
-            }else
-            if( cmpCmd(cmd, "info") ) {
-                QStringList args = resp.split("|");
-                ui->editAnimalName->setText(args[0]);
-                ui->btnSex->setIcon(args[1] == "m" ? mIconMale : mIconFemale );
-                ui->editEui->setText(args[2].toUpper());
-                ui->editAKey->setText(args[3].toUpper());
-                ui->editNKey->setText(args[4].toUpper());
-                ui->editAddr->setText(args[5].toUpper());
-                ui->btnReload->setEnabled(false);
-                ui->btnStore->setEnabled( ui->comboAnimals->currentIndex() >= 0 );
-                if( !mMirror ) {
-                    createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4], args[5]);
-                }
-            }else
-            if( cmpCmd(cmd, "error") )
-            {
-                isError = true;
-            }
-
-            addResponce(resp, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
-        }
+    if( !mPort.isOpen() ) {
+        return;
     }
+
+    if( !mPort.bytesAvailable() || !mPort.canReadLine()) {
+        return;
+    }
+
+    QByteArray out = mPort.readLine();
+    QString respFull = QString::fromLatin1(out);
+    QString cmd = stripCmd(respFull);
+
+    if( cmd.isEmpty() ) {
+        return;
+    }
+
+    QString resp = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
+    bool isFull = ui->checkUnstripped->isChecked();
+
+    if( cmpCmd(cmd, "dbg") ) {
+        if( !mMirror) {
+            return;
+        }
+        GeoPoint pos;
+        int snr, rssi, bat, sat;
+
+        QStringList params = resp.split(SERIAL_CMD_PARAMS_DM);
+        for(QString param : params) {
+            QStringList pair = param.split(SERIAL_CMD_EQUAL);
+            if( pair.count() < 2 ) {
+                addResponce(isFull ? respFull : resp, RESPONCE_COLOR_RESPONCE);
+                return;
+            }
+            QStringList args = pair[1].split(SERIAL_CMD_COMMA);
+            if( pair.first() == "gps") {
+                sat = args[0].toInt();
+                pos.mLat = args[1].toFloat();
+                pos.mLon = args[2].toFloat();
+            }else
+            if( pair.first() == "rssi") {
+                rssi = args[0].toInt();
+            }else
+            if( pair.first() == "snr") {
+                snr = args[0].toInt();
+            }else
+            if( pair.first() == "bat") {
+                bat = args[1].remove("%").toInt();
+            }else
+            if( pair.first() == "btn" && pair[1] == "y") {
+                on_btnMain_pressed();
+            }
+        }
+        mMirror->inject(pos, sat, rssi, snr, bat);
+        return;
+    }else
+    if( cmpCmd(cmd, "info") ) {
+        QStringList args = resp.split("|");
+        ui->editAnimalName->setText(args[0]);
+        ui->btnSex->setIcon(args[1] == "m" ? mIconMale : mIconFemale );
+        ui->editEui->setText(args[2].toUpper());
+        ui->editAKey->setText(args[3].toUpper());
+        ui->editNKey->setText(args[4].toUpper());
+        ui->editAddr->setText(args[5].toUpper());
+        ui->btnReload->setEnabled(false);
+        ui->btnStore->setEnabled( ui->comboAnimals->currentIndex() >= 0 );
+        if( !mMirror ) {
+            createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4], args[5]);
+        }
+    }else
+    if( cmpCmd(cmd, "error") )
+    {
+        isError = true;
+    }
+
+    addResponce(isFull ? respFull : resp, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
 }
 
 

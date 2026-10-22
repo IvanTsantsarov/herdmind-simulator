@@ -4,6 +4,10 @@
 #define COLLAR_VERSION "0.81"
 #define DBG(__str__) Serial.println(__str__); Serial.flush();
 
+#define LORA_FPORT 2
+
+#define LORA_FPORT_LEN 1
+#define LORA_FPORT_HEX_LEN 2
 #define LORA_EUI_LEN 8
 #define LORA_EUI_HEX_LEN 16
 #define LORA_KEY_LEN 16

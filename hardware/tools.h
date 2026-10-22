@@ -176,7 +176,7 @@ public:
     void enableUTF8Print(){ mIsUtf8 = true;}
 
     static void setFont(int fontId);
-    void drawStr(int x, int y, char *str);
+    void drawStr(int x, int y, const char *str);
     void drawFrame(int x, int y, int cx, int cy) ;
     void sendBuffer();
 
@@ -408,7 +408,7 @@ class Module {
 public:
     Module() {}
     Module(uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio) { }
-    int begin(ConfigLoRa_t& c) {}
+    int begin(ConfigLoRa_t& c) {return 0; }
 
 };
 
@@ -427,9 +427,9 @@ public:
     int beginABP(uint8_t addr, uint8_t* fNwkSIntKey, uint8_t* sNwkSIntKey, uint8_t* nwkSEncKey, uint8_t* appSKey) { return RADIOLIB_ERR_NONE; }
     int activateABP() {return RADIOLIB_ERR_NONE; }
 
-    int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ }
+    int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ return lenUp; }
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort,
-                    const uint8_t* dataDown, size_t* lenDown, bool isConfirmed){ }
+                    const uint8_t* dataDown, size_t* lenDown, bool isConfirmed){ return lenUp; }
 };
 
 

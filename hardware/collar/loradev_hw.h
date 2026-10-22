@@ -14,6 +14,7 @@
 
 class LoraDevHW
 {
+    uint8_t mFPort = LORA_FPORT;
     uint8_t mEui[LORA_EUI_LEN];
     uint8_t mNKey[LORA_KEY_LEN];
     uint8_t mAKey[LORA_KEY_LEN];
@@ -26,21 +27,9 @@ class LoraDevHW
     static void fromHex(const char* src, uint8_t *dst, int srcLen);
     static String toHex(uint8_t* a, int len);
 
-    enum struct State {
-        Init = 0,
-        Join,
-        Send,
-        Cycle,
-        Sleep
-    };
-
-    State mState = State::Init;
-
     void upplayParamsABP();
 
     bool mIsSent = false;
-    int64_t mSecSleep = 0;
-    int64_t mSendIntervalMsec = 15000;
 
     SX1262 mRadio = nullptr;
     LoRaWANNode* mNode = nullptr;
@@ -48,6 +37,9 @@ class LoraDevHW
 public:
 
     LoraDevHW();
+
+    inline uint8_t fport(){ return mFPort; }
+
     String euiHex(){ return toHex(mEui, LORA_EUI_LEN); }
 
     const uint8_t* nkey(){ return mNKey; }
@@ -57,7 +49,9 @@ public:
     String akeyHex(){ return toHex(mAKey, LORA_KEY_LEN); }
 
     String addrHex();
+    String fportHex();
 
+    void setFPortHex(const char* fp);
     void setEuiHex(const char* eui) { fromHex(eui, mEui, LORA_EUI_HEX_LEN); }
     void setNKeyHex(const char* key) { fromHex(key, mNKey, LORA_KEY_HEX_LEN); }
     void setAKeyHex(const char* key) { fromHex(key, mAKey, LORA_KEY_HEX_LEN); }
@@ -67,8 +61,9 @@ public:
     void setAKey(const uint8_t* key);
     void setNKey(const uint8_t* key);
     void setAddr(uint32_t a) { mAddr = a; }
+    void setFPort(uint8_t fp) { mFPort = fp; }
 
-    void sendPackage(void* data, int len);
+    void sendPackage(void* data, size_t len);
 
     virtual void onSetup();
     virtual void onUpdate();

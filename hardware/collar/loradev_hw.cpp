@@ -21,12 +21,24 @@ String LoraDevHW::addrHex()
     return toHex(ba, LORA_ADDR_LEN);
 }
 
+String LoraDevHW::fportHex()
+{
+    return toHex(&mFPort, LORA_FPORT_LEN);
+}
+
+void LoraDevHW::setFPortHex(const char *fp)
+{
+    fromHex(fp, &mFPort, LORA_FPORT_HEX_LEN );
+}
+
 void LoraDevHW::setAddrHex(const char *addr)
 {
     uint8_t dst[LORA_ADDR_LEN] = {0};
     fromHex(addr, dst, LORA_ADDR_HEX_LEN);
     mAddr = (uint32_t)(dst[3]) | ((uint32_t)(dst[2]) << 8) | ((uint32_t)(dst[1]) << 16) | ((uint32_t)(dst[0]) << 24);
 }
+
+
 
 void LoraDevHW::setAKey(const uint8_t *key)
 {
@@ -92,7 +104,7 @@ LoraDevHW::LoraDevHW() {
 }
 
 void LoraDevHW::onSetup() {
-    uint8_t mac[6];
+    uint8_t mac[6] = {0};
 
     // Get the base MAC address of the ESP32 (6 bytes unique)
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -148,7 +160,7 @@ void LoraDevHW::onSetup() {
     // ConfigLoRa_t config;
 }
 
-void LoraDevHW::sendPackage(void *data, int len)
+void LoraDevHW::sendPackage(void *data, size_t len)
 {
     const char* charPtr = ((char*)data);
     // memcpy(appData, data, static_cast<size_t>(len));
@@ -156,83 +168,38 @@ void LoraDevHW::sendPackage(void *data, int len)
     for( mBufferUpLen = 0; mBufferUpLen < len; mBufferUpLen ++) {
         mBufferUp[mBufferUpLen] = charPtr[mBufferUpLen];
     }
+
+    // Fires an unconfirmed uplink packet directly on specified fport
+    // int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort, false);
+    int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort,
+                                   mBufferDown, &mBufferDownLen,
+                                   false);
+
+    DBG(String("Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
+
+    if (state >= RADIOLIB_ERR_NONE) {
+        Serial.println( "Uplink done");
+
+        if( mBufferDownLen ) {
+            Serial.println( String("Buffer down is") + mBufferDownLen );
+            Serial.println( toHex(mBufferDown, mBufferDownLen) );
+        }
+
+        if (state > 0) {
+            Serial.println("Downlink received");
+            onReceive(mBufferDown, mBufferDownLen);
+        } else {
+            Serial.println("No downlink received");
+        }
+    } else {
+        Serial.println( String("LoRaWAN send failed:") + state);
+    }
+
 }
 
 void LoraDevHW::onUpdate()
 {
-    switch ( mState )
-    {
-    case State::Init:
-        {
-            //both set join DR and DR when ADR off
 
-            DBG("DEVICE_STATE_INIT passed" );
-            mState = State::Join;
-            break;
-        }
-    case State::Join:
-        {
-            DBG("DEVICE_STATE_JOIN passed" );
-            mState = State::Send;
-            break;
-        }
-    case State::Send:
-        {
-            // prepareTxFrame( appPort );
-            DBG("DEVICE_STATE_SEND entered." );
-
-            // Fires an unconfirmed uplink packet directly on port 2
-            int state = mNode->sendReceive( mBufferUp, mBufferUpLen, 2,
-                                            mBufferDown, &mBufferDownLen,
-                                           false);
-
-            if (state >= RADIOLIB_ERR_NONE) {
-                Serial.println( "Uplink done");
-
-                if (state > 0) {
-                    Serial.println("Downlink received");
-                    onReceive(mBufferDown, mBufferDownLen);
-                } else {
-                    Serial.println("No downlink received");
-                }
-            } else {
-                Serial.println( String("LoRaWAN send failed:") + state);
-            }
-            DBG("DEVICE_STATE_SEND passed" );
-            mState = State::Cycle;
-            mIsSent = true;
-            break;
-        }
-    case State::Cycle:
-        {
-            DBG("DEVICE_STATE_CYCLE passed" );
-            mState = State::Sleep;
-            break;
-        }
-    case State::Sleep:
-        {
-            if( mIsSent ) {
-                DBG("DEVICE_STATE_SLEEP entered" );
-                mIsSent = false;
-                mSecSleep = millis();
-            }else {
-                if( (millis() - mSecSleep) >  mSendIntervalMsec) {
-                    DBG("DEVICE_STATE_SLEEP passed" );
-                    mState = State::Send;
-                }else {
-                    // Sleep here
-                    // delay(1);
-                }
-            }
-            break;
-        }
-        default:
-        {
-            mState = State::Init;
-
-            break;
-        }
-    }
 }
 
 void LoraDevHW::onReceive(uint8_t *data, uint32_t size)

@@ -55,6 +55,7 @@ public:
             NKEY,   // Set/Get network key
             AKEY,   // Set/Get application key
             ADDR,    // Set/Get address
+            FPORT,  // Set/Get FPort
             FLASH,    // Store in memory
             RESTORE   // Restore from memory
 
@@ -78,6 +79,7 @@ public:
     Cmd mCmd;
 
 
+    void setup();
     void update();
     void clear();
 

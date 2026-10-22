@@ -46,6 +46,9 @@ class Collar : public LoraDevHW
         Sleep
     };
 
+    int64_t mSecSleep = 0;
+    int64_t mSendIntervalMsec = 15000;
+
     Stage mStage = Stage::None;
     String mAnimalName;
     bool mIsMale = false;
@@ -132,7 +135,7 @@ public:
 
 
 #ifdef ONPC
-    Collar(Animal* animal,
+    Collar( Animal* animal, bool isSimulation,
            const QByteArray &devEUI = QByteArray(),
            const QByteArray& appKey = QByteArray(),
            const QByteArray& nwkKey = QByteArray() );

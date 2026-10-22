@@ -109,5 +109,15 @@ bool Memory::readSex(bool &isMale)
     return true;
 }
 
+bool Memory::writeFPort(uint8_t fp)
+{
+    return write("fport", (const char*)&fp, 1 );
+}
+
+bool Memory::readFPort(uint8_t &fp)
+{
+    return read("fport", (char*) &fp, 1);
+}
+
 
 

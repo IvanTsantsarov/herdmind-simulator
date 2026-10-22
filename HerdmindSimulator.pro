@@ -10,6 +10,7 @@ LIBS += -lcrypto
 
 # Disable warnings
 # QMAKE_CXXFLAGS += -Wclazy-qstring-arg
+QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-parameter
 
 CONFIG(debug, debug|release) {
 # DEBUG

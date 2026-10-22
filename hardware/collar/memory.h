@@ -26,6 +26,8 @@ public:
 
     bool writeSex( bool isMale);
     bool readSex( bool& isMale);
+    bool writeFPort(uint8_t fp);
+    bool readFPort(uint8_t& fp);
 
 };
 

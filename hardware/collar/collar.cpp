@@ -26,8 +26,6 @@
 #define PIN_BTN_MAIN 0
 #define PIN_LED_MAIN 35
 
-#define SERIAL_TX_BUFFER_SIZE 1024
-
 #ifdef ONPC
 
 #include "../../animal.h"
@@ -36,11 +34,12 @@
 //////////////////////////////////////////////////////////////
 /// On PC
 //////////////////////////////////////////////////////////////
-Collar::Collar(Animal* animal,
+// Contructor called on simulation
+Collar::Collar(Animal* animal, bool isSimulation,
                const QByteArray &devEUI,
                const QByteArray& appKey,
                const QByteArray &nwkKey)
-    : LoraDevSim(QString("%1 collar").arg(animal->name()),
+    : LoraDevSim(isSimulation, QString("%1 collar").arg(animal->name()),
                 LoraDevSim::Profile::Collar,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
                 devEUI, appKey, nwkKey), mAnimal(animal)
@@ -52,12 +51,13 @@ Collar::Collar(Animal* animal,
     mIsMale = animal->isMale();
 }
 
+// Contructor called when NO simulation
 Collar::Collar(QString animalName, bool isMale,
                const QByteArray &devEUI,
                const QByteArray& appKey ,
                const QByteArray &nwkKey,
                const QByteArray &addrHex)
-    : LoraDevSim(QString("%1 collar").arg(animalName),
+    : LoraDevSim(false, QString("%1 collar").arg(animalName),
                 LoraDevSim::Profile::Collar,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
                 devEUI, appKey, nwkKey), mIsMale(isMale)
@@ -182,24 +182,14 @@ void Collar::sendDbg()
 
 #endif
 
-
-
-
-
-
 void Collar::onSetup()
 {
     mStage = Stage::Setup;
 
+    mSerialCmd->setup();
+
     // Bring back all the saved data
     restore();
-
-    // allocate TX buffer for non-blocking sends
-    Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
-
-    Serial.begin(SERIAL_BAUDRATE);
-    delay(100);
-    Serial.println("Setup collar...");
 
     mScreen->setup();
 
@@ -343,6 +333,10 @@ bool Collar::flash()
         return false;
     }
 
+    if( !mMemory->writeFPort(fport())) {
+        return false;
+    }
+
     return true;
 }
 
@@ -379,6 +373,13 @@ bool Collar::restore()
         return false;
     }
 
+    uint8_t fp = 0;
+    if( !mMemory->readFPort(fp)) {
+        return false;
+    }
+
+    setFPort(fp);
+
     return true;
 }
 
@@ -401,7 +402,7 @@ void Collar::updateScreenLoading(bool isFlush)
     // TODO: send animal name to the collar
     // mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
 
-    mScreen->drawText(44 + FONT_CX + 6, 32, "Loading..." );
+    mScreen->drawText(44 + FONT_CX + 6, 32, ("Loading...") );
 
     // Push the buffer contents to the physical screen hardware
     if( isFlush){
@@ -506,10 +507,6 @@ void Collar::onUpdate()
     }
 #endif
 
-    if( Stage::Sleep == mStage) {
-        return;
-    }
-
     if( Stage::Init == mStage) {
 
         updateScreenLoading();
@@ -521,9 +518,15 @@ void Collar::onUpdate()
         }
     }
 
-    if( Stage::Operate != mStage ) {
-        return;
+    if( Stage::Sleep == mStage) {
+
+        if( (msec - mSecSleep) < mSendIntervalMsec ) {
+            return;
+        }
+
+        mStage = Stage::Operate;
     }
+
 
     mBattery->update();
 
@@ -555,6 +558,13 @@ void Collar::onUpdate()
 
             updateTrajectory(mGPS->pos());
             mLed->updateOn(500, 1000);
+
+            #ifndef ONPC
+                onSend();
+            #endif
+
+            mSecSleep = msec;
+            mStage = Stage::Sleep;
         }else {
             // Serial.print("-");
             mLed->updateOn(50, 1000);
@@ -564,13 +574,6 @@ void Collar::onUpdate()
         mLed->updateOn(10, 500);
     }
 
-#ifndef ONPC
-    LoraDevHW::onUpdate();
-#else
-
-
-
-#endif
 }
 
 void Collar::onSend()

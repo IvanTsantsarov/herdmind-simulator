@@ -11,7 +11,8 @@
 
 uint32_t LoraDevSim::NODE_ADDR = 1000;
 
-LoraDevSim::LoraDevSim(const QString &name,
+LoraDevSim::LoraDevSim(bool isSimulation,
+                       const QString &name,
                        Profile profile,
                        int updateInterval,
                        int sendInterval,
@@ -19,10 +20,11 @@ LoraDevSim::LoraDevSim(const QString &name,
                        const QByteArray& aSKey,
                        const QByteArray& nSKey
                        )
-    : QObject(nullptr), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
+    : QObject(nullptr), mIsSimulation(isSimulation), mUpdateInterval(updateInterval), mSendInterval(sendInterval)
 {
     mName = name;
     mProfile = profile;
+    mFPort = LORA_FPORT;
     mDevEUI = devEui.size() ? devEui : QByteArray::fromHex( SimTools::genHex(EUI_BYTES_LEN) );
     mAppSKey = aSKey.size() ? aSKey : QByteArray::fromHex( SimTools::genAesKey() );
     mNwkSKey = nSKey.size() ? nSKey : QByteArray::fromHex( SimTools::genAesKey() );
@@ -115,7 +117,7 @@ void LoraDevSim::onTimerUpdate()
 
     mSendingDelay += mUpdateInterval;
 
-    if( mSendingDelay >= mSendInterval ) {
+    if( mIsSimulation && (mSendingDelay >= mSendInterval) ) {
         onSend();
         mSendingDelay = 0;
     }
@@ -528,6 +530,11 @@ void LoraDevSim::setAKey(const uint8_t *src)
 void LoraDevSim::setNKey(const uint8_t *src)
 {
     mNwkSKey = QByteArray((const char*) src, LORA_KEY_LEN);
+}
+
+void LoraDevSim::setFPortHex(const char *fp)
+{
+    mFPort = QByteArray(fp, LORA_FPORT_HEX_LEN).toInt();
 }
 
 void LoraDevSim::setEuiHex(const char *eui)

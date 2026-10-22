@@ -28,12 +28,15 @@ public:
     };
 private:
 
+    const bool mIsSimulation;
+
     QString mName;
     Profile mProfile = LoraDevSim::Profile::None;
     QElapsedTimer mLastSeen;
 
     static uint32_t NODE_ADDR;
 
+    uint8_t mFPort;
     QByteArray mDevEUI; // build-in unique 8 bytes like MAC address (ex:0x1234567890AAAAAA)
     QByteArray mNwkSKey;
     QByteArray mAppSKey;
@@ -101,11 +104,13 @@ public:
     void setAKey(const uint8_t *src);
     void setNKey(const uint8_t *src);
 
+    void setFPortHex(const char* fp);
     void setEuiHex(const char* eui);
     void setNKeyHex(const char *key);
     void setAKeyHex(const char *key);
     void setAddrHex(const char* eui);
     QString addrHex();
+    void setFPort(uint8_t fp){ mFPort = fp; }
 
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
@@ -114,10 +119,12 @@ public:
     void setAddress(const QByteArray& ba);
     void setGateway(Gateway* gw);
 
-    inline uint8_t fport(){ return (quint8)LORA_FPORT_START + (quint8)mProfile; }
+    inline uint8_t fport(){ return mFPort; }
+    inline QString fportHex(){ return QString("%1").arg(mFPort, 16); }
     /// inline uint8_t fport(){ return 1; }
 
-    LoraDevSim(const QString& name,
+    LoraDevSim(bool isSimulation,
+               const QString& name,
                Profile profile,
                int updateInterval, int sendInterval,
                const QByteArray &devEui = QByteArray(),

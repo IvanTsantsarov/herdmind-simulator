@@ -152,10 +152,12 @@ public:
     inline float rotationAngle(){ return mRotationAngle; }
     inline float rotationAngleTarget(){ return mRotationAngleTarget; }
 
-    Bolus *putBolus(const QByteArray &devEUI = QByteArray(),
+    Bolus *putBolus(bool isSimulation,
+                    const QByteArray &devEUI = QByteArray(),
                     const QByteArray& appKey = QByteArray());
 
-    Collar *putCollar(const QByteArray &devEUI = QByteArray(),
+    Collar *putCollar(bool isSimulation,
+                      const QByteArray &devEUI = QByteArray(),
                       const QByteArray& appKey = QByteArray(),
                       const QByteArray &nwkKey  = QByteArray());
     bool removeCollar();

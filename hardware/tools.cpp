@@ -213,7 +213,7 @@ void ScreenSim::drawFrame(int x, int y, int cx, int cy)
 }
 
 
-void ScreenSim::drawStr(int x, int y, char *str) {
+void ScreenSim::drawStr(int x, int y, const char *str) {
     const char* ptr = str;
     bool isUtf8Byte = false;
     while(*ptr) {

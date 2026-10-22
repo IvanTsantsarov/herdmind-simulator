@@ -94,12 +94,12 @@ bool Herd::load(const QString &jsonPath, int areaDimeter, float animalSize, floa
         Animal* animal = new Animal(this, jobj["male"].toBool(), jobj["name"].toString(), x, y, grazingCapacity );
 
         if( jobj.contains("bolus") ) {
-            animal->putBolus()->setFromJson(jobj["bolus"].toObject());
+            animal->putBolus(mIsSimulation)->setFromJson(jobj["bolus"].toObject());
         };
 
 
         if( jobj.contains("collar") ) {
-            animal->putCollar()->setFromJson(jobj["collar"].toObject());
+            animal->putCollar(mIsSimulation)->setFromJson(jobj["collar"].toObject());
             mCollars.append(animal);
         };
 
@@ -174,7 +174,7 @@ bool Herd::generate(int count,
 
         // Put boluses only ot specified percentage
         if( mIsSimulation && (i < bollusesCount) ) {
-            animal->putBolus();
+            animal->putBolus(mIsSimulation);
         }
 
         processCollision(animalSize * 2.0f);
@@ -194,7 +194,7 @@ bool Herd::generate(int count,
                 }
                 animal = mAnimals[indexCollar];
             }
-            animal->putCollar();
+            animal->putCollar(mIsSimulation);
             mCollars.append(animal);
         }
     }
