@@ -157,6 +157,7 @@ private slots:
 
     void on_checkAddr_stateChanged(int state);
 
+    void on_checkFPort_stateChanged(int state);
 
 private:
     Ui::DialogCollarSim *ui;

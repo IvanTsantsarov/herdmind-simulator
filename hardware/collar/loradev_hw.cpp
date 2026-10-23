@@ -55,7 +55,7 @@ void LoraDevHW::setNKey(const uint8_t *key)
 String LoraDevHW::toHex(uint8_t* a, int len)
 {
     String result;
-    char hex[3] = {0};
+    char hex[4] = {0};
     for( int i = 0; i < len; i ++) {
         if( a[i]  < 16) {
             std::sprintf(hex, "0%x", a[i]);
@@ -127,16 +127,16 @@ void LoraDevHW::onSetup() {
     config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
     //radio.tcxoVoltage = 1.6; // Some radio modules like SX126x often come with TCXO
 
-    Serial.println(String("=== Setup start ==="));
-    Serial.println(String("Addr:") + addrHex());
-    Serial.println(String("AKey:") + akeyHex());
-    Serial.println(String("NKey:") + nkeyHex());
-    Serial.println(String("=== Setup end ==="));
+    Serial.println(String("[LoraDevHW] === Setup start ==="));
+    Serial.println(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
+    Serial.println(String("[LoraDevHW] NKey:") + nkeyHex());
+    Serial.println(String("[LoraDevHW] AKey:") + akeyHex());
+    Serial.println(String("[LoraDevHW] === Setup end ==="));
 
 
     int state = mRadio.begin(config);
     if (state != RADIOLIB_ERR_NONE) {
-        Serial.println("Lora init failed!");
+        Serial.println("[LoraDevHW] ERROR:Lora init failed!");
         return;
     }
 
@@ -144,20 +144,20 @@ void LoraDevHW::onSetup() {
     state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
 
     if (state != RADIOLIB_ERR_NONE) {
-        Serial.println( String("beginABP failed: ") + state);
+        Serial.println( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
         return;
     }
-
 
     state = mNode->activateABP();
 
-    if (state != RADIOLIB_ERR_NONE) {
-        Serial.println(String("activateABP failed") + state);
+    if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
+        Serial.println("[LoraDevHW] ABP activated: new session");
+    } else if (state == RADIOLIB_LORAWAN_SESSION_RESTORED) {
+        Serial.println("[LoraDevHW] ABP activated: session restored");
+    } else if (state != RADIOLIB_ERR_NONE) {
+        Serial.println(String("[LoraDevHW] ERROR: activateABP failed:") + state);
         return;
     }
-
-
-    // ConfigLoRa_t config;
 }
 
 void LoraDevHW::sendPackage(void *data, size_t len)
@@ -175,24 +175,20 @@ void LoraDevHW::sendPackage(void *data, size_t len)
                                    mBufferDown, &mBufferDownLen,
                                    false);
 
-    DBG(String("Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
+    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
 
     if (state >= RADIOLIB_ERR_NONE) {
-        Serial.println( "Uplink done");
-
-        if( mBufferDownLen ) {
-            Serial.println( String("Buffer down is") + mBufferDownLen );
-            Serial.println( toHex(mBufferDown, mBufferDownLen) );
-        }
+        DBG( "[LoraDevHW] Uplink done");
 
         if (state > 0) {
-            Serial.println("Downlink received");
+            DBG("[LoraDevHW] Downlink received");
+            DBG( toHex(mBufferDown, mBufferDownLen) );
             onReceive(mBufferDown, mBufferDownLen);
         } else {
-            Serial.println("No downlink received");
+            Serial.println("[LoraDevHW] No downlink received");
         }
     } else {
-        Serial.println( String("LoRaWAN send failed:") + state);
+        Serial.println( String("[LoraDevHW] LoRaWAN send failed:") + state);
     }
 
 }
@@ -204,7 +200,7 @@ void LoraDevHW::onUpdate()
 
 void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
 {
-    Serial.println("Collar::onReceive() Not implemented!");
+    Serial.println("[LoraDevHW] Collar::onReceive() Not implemented!");
 }
 
 

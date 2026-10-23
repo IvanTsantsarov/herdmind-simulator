@@ -538,20 +538,29 @@ void DialogCollarSim::processSerialInput()
         return;
     }
 
-    if( !mPort.bytesAvailable() || !mPort.canReadLine()) {
+    if( !mPort.bytesAvailable() ) {
+        return;
+    }
+
+    if( !mPort.canReadLine() ) {
         return;
     }
 
     QByteArray out = mPort.readLine();
     QString respFull = QString::fromLatin1(out);
     QString cmd = stripCmd(respFull);
+    bool isFull = ui->checkUnstripped->isChecked();
+
+    if( isFull ) {
+        addResponce(respFull, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
+    }
 
     if( cmd.isEmpty() ) {
         return;
     }
 
     QString resp = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
-    bool isFull = ui->checkUnstripped->isChecked();
+
 
     if( cmpCmd(cmd, "dbg") ) {
         if( !mMirror) {
@@ -564,7 +573,9 @@ void DialogCollarSim::processSerialInput()
         for(QString param : params) {
             QStringList pair = param.split(SERIAL_CMD_EQUAL);
             if( pair.count() < 2 ) {
-                addResponce(isFull ? respFull : resp, RESPONCE_COLOR_RESPONCE);
+                if( !isFull ) {
+                    addResponce(resp, RESPONCE_COLOR_RESPONCE);
+                }
                 return;
             }
             QStringList args = pair[1].split(SERIAL_CMD_COMMA);
@@ -597,6 +608,7 @@ void DialogCollarSim::processSerialInput()
         ui->editAKey->setText(args[3].toUpper());
         ui->editNKey->setText(args[4].toUpper());
         ui->editAddr->setText(args[5].toUpper());
+        ui->editFPort->setText(args[6].toUpper());
         ui->btnReload->setEnabled(false);
         ui->btnStore->setEnabled( ui->comboAnimals->currentIndex() >= 0 );
         if( !mMirror ) {
@@ -608,13 +620,15 @@ void DialogCollarSim::processSerialInput()
         isError = true;
     }
 
-    addResponce(isFull ? respFull : resp, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
+    if( !isFull) {
+        addResponce(resp, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
+    }
 }
 
 
 void DialogCollarSim::on_btnReset_clicked()
 {
-    sendToSerial("reset");
+    sendToSerial("reboot");
 }
 
 void DialogCollarSim::on_btnCopyEui_clicked()
@@ -799,4 +813,8 @@ void DialogCollarSim::on_checkAddr_stateChanged(int state)
     ui->editAddr->setEnabled(state);
 }
 
+void DialogCollarSim::on_checkFPort_stateChanged(int state)
+{
+    ui->editFPort->setEnabled(state);
+}
 

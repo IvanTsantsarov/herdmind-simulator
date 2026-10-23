@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>414</width>
-    <height>573</height>
+    <height>598</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -471,21 +471,25 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="editAddr">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>NwkKey</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="editAKey">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>Network key</string>
-            </property>
-            <property name="readOnly">
-             <bool>false</bool>
+             <string>App key</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="3">
-           <widget class="QPushButton" name="btnCopyNKey">
+          <item row="0" column="2">
+           <widget class="QPushButton" name="btnSex">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -495,25 +499,24 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="toolTip">
-             <string>Copy NwkKey in the clipboard</string>
+             <string>Generate EUI</string>
             </property>
             <property name="text">
              <string/>
             </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-            </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="editNKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>Network key</string>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>AppKey</string>
             </property>
            </widget>
           </item>
@@ -540,22 +543,35 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="editAKey">
+          <item row="1" column="3">
+           <widget class="QPushButton" name="btnCopyEui">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Copy EUI in the clipboard</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="editEui">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>App key</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkFlashEui">
-            <property name="toolTip">
-             <string>Flash or not EUI</string>
-            </property>
-            <property name="text">
              <string>EUI</string>
             </property>
            </widget>
@@ -583,13 +599,33 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="editEui">
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="editAnimalName">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="toolTip">
              <string>EUI</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="editNKey">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string>Network key</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="checkAddr">
+            <property name="toolTip">
+             <string>Edit address</string>
+            </property>
+            <property name="text">
+             <string>Addr</string>
             </property>
            </widget>
           </item>
@@ -606,59 +642,6 @@
             </property>
             <property name="toolTip">
              <string>Copy AppKey in the clipboard</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="btnGenAKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Generate App Key</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>AppKey</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QPushButton" name="btnCopyEui">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Copy EUI in the clipboard</string>
             </property>
             <property name="text">
              <string/>
@@ -692,25 +675,18 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>NwkKey</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="editAnimalName">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkFlashEui">
             <property name="toolTip">
+             <string>Flash or not EUI</string>
+            </property>
+            <property name="text">
              <string>EUI</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="btnSex">
+          <item row="3" column="3">
+           <widget class="QPushButton" name="btnCopyNKey">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -720,17 +696,15 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>24</width>
-              <height>24</height>
-             </size>
-            </property>
             <property name="toolTip">
-             <string>Generate EUI</string>
+             <string>Copy NwkKey in the clipboard</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
             </property>
            </widget>
           </item>
@@ -741,15 +715,71 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="checkAddr">
+          <item row="2" column="2">
+           <widget class="QPushButton" name="btnGenAKey">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="toolTip">
-             <string>Edit address</string>
+             <string>Generate App Key</string>
             </property>
             <property name="text">
-             <string>Addr</string>
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
             </property>
            </widget>
+          </item>
+          <item row="4" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <widget class="QLineEdit" name="editAddr">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Network key</string>
+              </property>
+              <property name="readOnly">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkFPort">
+              <property name="text">
+               <string>FPort</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="editFPort">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>

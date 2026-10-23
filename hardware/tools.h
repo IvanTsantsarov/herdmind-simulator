@@ -398,6 +398,8 @@ public:
 extern ClassSPI SPI;
 
 #define RADIOLIB_ERR_NONE 0
+#define RADIOLIB_LORAWAN_NEW_SESSION -1118
+#define RADIOLIB_LORAWAN_SESSION_RESTORED -1117
 
 struct ConfigLoRa_t {
     int frequency;
@@ -425,7 +427,7 @@ class LoRaWANNode {
 public:
     LoRaWANNode(Module* radio, const int* standart) { }
     int beginABP(uint8_t addr, uint8_t* fNwkSIntKey, uint8_t* sNwkSIntKey, uint8_t* nwkSEncKey, uint8_t* appSKey) { return RADIOLIB_ERR_NONE; }
-    int activateABP() {return RADIOLIB_ERR_NONE; }
+    int activateABP() {return RADIOLIB_LORAWAN_NEW_SESSION; }
 
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ return lenUp; }
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort,

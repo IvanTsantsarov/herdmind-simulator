@@ -182,43 +182,6 @@ void Collar::sendDbg()
 
 #endif
 
-void Collar::onSetup()
-{
-    mStage = Stage::Setup;
-
-    mSerialCmd->setup();
-
-    // Bring back all the saved data
-    restore();
-
-    mScreen->setup();
-
-    mGPS->setup();
-
-    mBtnMain->setup();
-
-    mLed->setup(PIN_LED_MAIN);
-
-    mBattery->setup();
-
-#ifndef ONPC
-    attachInterrupt(
-        digitalPinToInterrupt(mBtnMain->pin()),
-        gMainButtonInterrupt,
-        FALLING
-        );
-    LoraDevHW::onSetup();
-#else
-    LoraDevSim::onSetup();
-#endif
-
-    mSetupMillis = millis();
-
-    Serial.println("Setup collar finished.");
-
-    mStage = Stage::Init;
-}
-
 void Collar::sleep()
 {
 #ifdef ONPC
@@ -388,6 +351,44 @@ void Collar::serialRespond(const String& msg)
     mSerialCmd->sendResponce(msg);
 }
 
+void Collar::onSetup()
+{
+    mStage = Stage::Setup;
+
+    mSerialCmd->setup();
+
+    // Bring back all the saved data
+    restore();
+
+    mScreen->setup();
+
+    mGPS->setup();
+
+    mBtnMain->setup();
+
+    mLed->setup(PIN_LED_MAIN);
+
+    mBattery->setup();
+
+#ifndef ONPC
+    attachInterrupt(
+        digitalPinToInterrupt(mBtnMain->pin()),
+        gMainButtonInterrupt,
+        FALLING
+        );
+    LoraDevHW::onSetup();
+#else
+    LoraDevSim::onSetup();
+#endif
+
+    mSetupMillis = millis();
+
+    Serial.println("Setup finished, entering init...");
+
+    mStage = Stage::Init;
+}
+
+
 void Collar::updateScreenLoading(bool isFlush)
 {
     // Clear the internal buffer
@@ -515,6 +516,7 @@ void Collar::onUpdate()
         if( SCREEN_LOADING_MSEC < (msec - mSetupMillis)  ) {
             mStage = Stage::Operate;
             mAwakeningMillisScreen = msec;
+            DBG("Time to change init with operate state...");
         }
     }
 
@@ -524,6 +526,7 @@ void Collar::onUpdate()
             return;
         }
 
+        DBG("Wake up and operate...");
         mStage = Stage::Operate;
     }
 
@@ -563,6 +566,7 @@ void Collar::onUpdate()
                 onSend();
             #endif
 
+            DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
             mSecSleep = msec;
             mStage = Stage::Sleep;
         }else {
