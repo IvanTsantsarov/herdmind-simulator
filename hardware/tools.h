@@ -428,6 +428,8 @@ public:
     LoRaWANNode(Module* radio, const int* standart) { }
     int beginABP(uint8_t addr, uint8_t* fNwkSIntKey, uint8_t* sNwkSIntKey, uint8_t* nwkSEncKey, uint8_t* appSKey) { return RADIOLIB_ERR_NONE; }
     int activateABP() {return RADIOLIB_LORAWAN_NEW_SESSION; }
+    int setRx2Dr(int interval){ return RADIOLIB_ERR_NONE; }
+    int setRxWindowDelayCorrection(int val){ return RADIOLIB_ERR_NONE; }
 
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ return lenUp; }
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort,

@@ -133,7 +133,6 @@ void LoraDevHW::onSetup() {
     Serial.println(String("[LoraDevHW] AKey:") + akeyHex());
     Serial.println(String("[LoraDevHW] === Setup end ==="));
 
-
     int state = mRadio.begin(config);
     if (state != RADIOLIB_ERR_NONE) {
         Serial.println("[LoraDevHW] ERROR:Lora init failed!");
@@ -141,12 +140,16 @@ void LoraDevHW::onSetup() {
     }
 
     // Pull in the ABP profiles natively
-    state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
+    state = mNode->beginABP(mAddr, mNKey, mNKey, mNKey, mAKey);
 
     if (state != RADIOLIB_ERR_NONE) {
         Serial.println( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
         return;
     }
+
+    // Configure RX2 before activating the session.
+    state = mNode->setRx2Dr(0);
+    Serial.println(String("[LoraDevHW] setRx2Dr(0):") + state);
 
     state = mNode->activateABP();
 
@@ -162,6 +165,10 @@ void LoraDevHW::onSetup() {
 
 void LoraDevHW::sendPackage(void *data, size_t len)
 {
+    if( len > LORAWAN_APP_DATA_MAX_SIZE ) {
+        Serial.println( String("[LoraDevHW] ERROR: send data > LORAWAN_APP_DATA_MAX_SIZE:") + len);
+        len = LORAWAN_APP_DATA_MAX_SIZE;
+    }
     const char* charPtr = ((char*)data);
     // memcpy(appData, data, static_cast<size_t>(len));
     // appDataSize = static_cast<uint8_t>(len);
@@ -169,27 +176,40 @@ void LoraDevHW::sendPackage(void *data, size_t len)
         mBufferUp[mBufferUpLen] = charPtr[mBufferUpLen];
     }
 
+    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
+
     // Fires an unconfirmed uplink packet directly on specified fport
     // int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort, false);
+    mBufferDownLen = LORAWAN_APP_DATA_MAX_SIZE;
     int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort,
                                    mBufferDown, &mBufferDownLen,
                                    false);
 
-    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
+
+    DBG(String("[LoraDevHW] Received downling size:") + mBufferDownLen);
 
     if (state >= RADIOLIB_ERR_NONE) {
-        DBG( "[LoraDevHW] Uplink done");
+        DBG( String("[LoraDevHW] Uplink done with state:") + state);
 
         if (state > 0) {
             DBG("[LoraDevHW] Downlink received");
             DBG( toHex(mBufferDown, mBufferDownLen) );
             onReceive(mBufferDown, mBufferDownLen);
         } else {
-            Serial.println("[LoraDevHW] No downlink received");
+            DBG("[LoraDevHW] No downlink received");
         }
     } else {
-        Serial.println( String("[LoraDevHW] LoRaWAN send failed:") + state);
+        DBG( String("[LoraDevHW] LoRaWAN send failed:") + state);
     }
+
+    /*
+    String str;
+    state = mRadio.readData(str);
+    if( str.length()) {
+        DBG("[LoraDevHW] dataaaaa" + str);
+    }
+*/
+
 
 }
 

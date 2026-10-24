@@ -5,3 +5,6 @@
 servers=["tcp://mosquitto:1883"]
 username=""
 password=""
+
+[general]
+log_level=5
