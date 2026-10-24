@@ -555,6 +555,7 @@ void Collar::onUpdate()
         if( mGPS->isReady() )
         {
             if( !mIsSignalGPS ) {
+                DBG("!");
                 DBG( String("GPS signal arrived in ") + msec + " msec" );
                 mIsSignalGPS = true;
             }
