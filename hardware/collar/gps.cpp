@@ -1,9 +1,13 @@
 #include "gps.h"
 
 #include "../arduino.h"
+#include "defines.h"
 
 
 TinyGPSPlus gGPS;
+
+#define EMULATE_GPS 1
+
 
 #define VGNSS_CTRL 34
 #define GPS_RX     39
@@ -23,6 +27,10 @@ void GPS::setup()
     Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
     Serial.println("GPS started");
 
+#ifdef EMULATE_GPS
+    DBG("*** GPS emulation is ON ***");
+#endif
+
 #ifdef ONPC
     gGPS.setupSimulation();
 #endif
@@ -31,6 +39,14 @@ void GPS::setup()
 
 void GPS::onUpdate()
 {
+#ifdef EMULATE_GPS
+    mIsConnection = true;
+    mIsReady = true;
+    mPos.mLat = 42.1392059326f;
+    mPos.mLon = 24.7586383820;
+    mPos.mAlt = 150;
+    mSatelites = 5;
+#else
     while( Serial1.available() ){
         gGPS.encode(Serial1.read());
     }
@@ -53,6 +69,7 @@ void GPS::onUpdate()
         mPos.mAlt = gGPS.altitude.meters();
         mSatelites = gGPS.satellites.value();
     }
+#endif
 }
 
 
