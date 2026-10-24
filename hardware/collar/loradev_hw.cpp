@@ -148,8 +148,8 @@ void LoraDevHW::onSetup() {
     }
 
     // Configure RX2 before activating the session.
-    state = mNode->setRx2Dr(0);
-    Serial.println(String("[LoraDevHW] setRx2Dr(0):") + state);
+    //state = mNode->setRx2Dr(0);
+    //Serial.println(String("[LoraDevHW] setRx2Dr(0):") + state);
 
     state = mNode->activateABP();
 
