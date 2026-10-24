@@ -562,7 +562,12 @@ void Collar::onUpdate()
             updateTrajectory(mGPS->pos());
             mLed->updateOn(500, 1000);
 
-            #ifndef ONPC
+            #ifdef ONPC
+            // Do not send information when there is no simulation
+            if( isSimulation() ) {
+                onSend();
+            }
+            #else
                 onSend();
             #endif
 
@@ -570,11 +575,11 @@ void Collar::onUpdate()
             mSecSleep = msec;
             mStage = Stage::Sleep;
         }else {
-            // Serial.print("-");
+            Serial.print("-");
             mLed->updateOn(50, 1000);
         }
     }else {
-        // Serial.print(".");
+        Serial.print(".");
         mLed->updateOn(10, 500);
     }
 
@@ -583,6 +588,8 @@ void Collar::onUpdate()
 void Collar::onSend()
 {
     Protocol::Collar package;
+
+    DBG("Collar::onSend()");
 
     package.mEvent = Protocol::Collar::Event::Package;
     GeoPoint coord = readGPS();

@@ -88,6 +88,8 @@ protected:
     bool uplink(const QByteArray& data);
 
 public:
+    inline bool isSimulation(){ return mIsSimulation; }
+
     inline QByteArray eui(){ return mDevEUI; };
     const char* euiHex();
     inline QByteArray addr(){ return mDevAddr; };
@@ -111,6 +113,7 @@ public:
     void setAddrHex(const char* eui);
     QString addrHex();
     void setFPort(uint8_t fp){ mFPort = fp; }
+
 
     inline bool isCollar(){ return Profile::Collar == mProfile; }
     inline bool isBolus(){ return Profile::Bolus == mProfile; }
