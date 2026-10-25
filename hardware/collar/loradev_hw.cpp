@@ -10,6 +10,234 @@
 #define PIN_NRST  12
 #define PIN_BUSY  13
 
+#if USING_LORA == LORA_RADIOLIB
+
+#elif USING_LORA == LORA_HELTEC
+uint8_t devEui[LORA_EUI_LEN] = {0};
+uint8_t appEui[LORA_EUI_LEN] = {0};
+uint8_t appKey[LORA_KEY_LEN] = {0};
+
+// ABP para
+uint8_t nwkSKey[LORA_KEY_LEN] = {0};
+uint8_t appSKey[LORA_KEY_LEN] = {0};
+uint32_t devAddr = 0;
+
+// LoraWan channelsmask, default channels 0-7
+uint16_t userChannelsMask[6]={ 0x00FF,0x0000,0x0000,0x0000,0x0000,0x0000 };
+
+// LoraWan region, select in arduino IDE tools
+LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
+
+// LoraWan Class, Class A and Class C are supported
+DeviceClass_t  loraWanClass = CLASS_A;
+
+// the application data transmission duty cycle.  value in [ms].
+uint32_t appTxDutyCycle = 15000;
+
+//OTAA or ABP
+bool overTheAirActivation = false;//OTAA security is better
+
+// ADR enable
+bool loraWanAdr = true;
+
+// Indicates if the node is sending confirmed or unconfirmed messages
+bool isTxConfirmed = false;
+
+// Application port
+uint8_t appPort;
+//!
+//* Number of trials to transmit the frame, if the LoRaMAC layer did not
+//* receive an acknowledgment. The MAC performs a datarate adaptation,
+//* according to the LoRaWAN Specification V1.0.2, chapter 18.4, according
+//* to the following table:
+//*
+//* Transmission nb | Data Rate
+//* ----------------|-----------
+//* 1 (first)       | DR
+//* 2               | DR
+//* 3               | max(DR-1,0)
+//* 4               | max(DR-1,0)
+//* 5               | max(DR-2,0)
+//* 6               | max(DR-2,0)
+//* 7               | max(DR-3,0)
+//* 8               | max(DR-3,0)
+//*
+//* Note, that if NbTrials is set to 1 or 2, the MAC will not decrease
+//* the datarate, in case the LoRaMAC layer did not receive an acknowledgment
+
+uint8_t confirmedNbTrials = 4;//
+
+
+#endif
+
+
+LoraDevHW::LoraDevHW() {
+}
+
+void LoraDevHW::onSetup() {
+    uint8_t mac[6] = {0};
+
+    // Get the base MAC address of the ESP32 (6 bytes unique)
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+
+    // Convert 6-byte MAC into an 8-byte LoRaWAN DevEUI
+    // Standard approach expands the middle with 0xFF, 0xFE or padding
+    mEui[0] = mac[0];
+    mEui[1] = mac[1];
+    mEui[2] = mac[2];
+    mEui[3] = 0xFF; // Padding byte
+    mEui[4] = 0xFE; // Padding byte
+    mEui[5] = mac[3];
+    mEui[6] = mac[4];
+    mEui[7] = mac[5];
+
+    Serial.println(String("[LoraDevHW] === Setup start ==="));
+    Serial.println(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
+    Serial.println(String("[LoraDevHW] NKey:") + nkeyHex());
+    Serial.println(String("[LoraDevHW] AKey:") + akeyHex());
+    Serial.println(String("[LoraDevHW] === Setup end ==="));
+
+#if USING_LORA == LORA_RADIOLIB
+    // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
+    // Pins for V4.3: NSS=8, DIO1=14, NRST=12, BUSY=13
+    mRadio = new Module(PIN_NSS, PIN_DIO1, PIN_NRST, PIN_BUSY);
+
+    // 2. Create the LoRaWAN Node Instance
+    mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
+
+    SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);
+
+    ConfigLoRa_t config{};
+    config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
+    //radio.tcxoVoltage = 1.6; // Some radio modules like SX126x often come with TCXO
+
+    int state = mRadio.begin(config);
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.println("[LoraDevHW] ERROR:Lora init failed!");
+        return;
+    }
+
+    // Pull in the ABP profiles natively
+    state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
+
+    if (state != RADIOLIB_ERR_NONE) {
+        Serial.println( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
+        return;
+    }
+
+    // Configure RX2 before activating the session.
+    //state = mNode->setRx2Dr(0);
+    //Serial.println(String("[LoraDevHW] setRx2Dr(0):") + state);
+
+    state = mNode->activateABP();
+
+    if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
+        Serial.println("[LoraDevHW] ABP activated: new session");
+    } else if (state == RADIOLIB_LORAWAN_SESSION_RESTORED) {
+        Serial.println("[LoraDevHW] ABP activated: session restored");
+    } else if (state != RADIOLIB_ERR_NONE) {
+        Serial.println(String("[LoraDevHW] ERROR: activateABP failed:") + state);
+        return;
+    }
+#elif USING_LORA == LORA_HELTEC
+    memcpy(devEui, mEui, LORA_EUI_LEN);
+    // uint8_t appEui[LORA_EUI_LEN];
+    memcpy( appKey, mAKey, LORA_KEY_LEN);
+
+    // ABP para
+    memcpy( nwkSKey, mNKey, LORA_KEY_LEN);
+    memcpy( appSKey, mAKey, LORA_KEY_LEN);
+    devAddr = mAddr;
+
+
+    Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
+    deviceState = DEVICE_STATE_INIT;
+#endif
+}
+
+void LoraDevHW::sendPackage(void *data, size_t len)
+{
+#if USING_LORA == LORA_RADIOLIB
+    if( len > LORAWAN_APP_DATA_MAX_SIZE ) {
+        Serial.println( String("[LoraDevHW] ERROR: send data > LORAWAN_APP_DATA_MAX_SIZE:") + len);
+        len = LORAWAN_APP_DATA_MAX_SIZE;
+    }
+    const char* charPtr = ((char*)data);
+    // memcpy(appData, data, static_cast<size_t>(len));
+    // appDataSize = static_cast<uint8_t>(len);
+    for( mBufferUpLen = 0; mBufferUpLen < len; mBufferUpLen ++) {
+        mBufferUp[mBufferUpLen] = charPtr[mBufferUpLen];
+    }
+
+    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
+
+    // Fires an unconfirmed uplink packet directly on specified fport
+    // int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort, false);
+    mBufferDownLen = LORAWAN_APP_DATA_MAX_SIZE;
+    int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort,
+                                   mBufferDown, &mBufferDownLen,
+                                   false);
+
+
+    DBG(String("[LoraDevHW] Received downling size:") + mBufferDownLen);
+
+    if (state >= RADIOLIB_ERR_NONE) {
+        DBG( String("[LoraDevHW] Uplink done with state:") + state);
+
+        if (state > 0) {
+            DBG("[LoraDevHW] Downlink received");
+            DBG( toHex(mBufferDown, mBufferDownLen) );
+            onReceive(mBufferDown, mBufferDownLen);
+        } else {
+            DBG("[LoraDevHW] No downlink received");
+        }
+    } else {
+        DBG( String("[LoraDevHW] LoRaWAN send failed:") + state);
+    }
+#elif USING_LORA == LORA_HELTEC
+    uint8_t* ptr = (uint8_t*)data;
+    for( appDataSize = 0; appDataSize < len; appDataSize ++) {
+        appData[appDataSize] = ptr[appDataSize];
+    }
+#endif
+}
+
+void LoraDevHW::onUpdate()
+{
+#if USING_LORA == LORA_HELTEC
+    switch(deviceState) {
+        case DEVICE_STATE_INIT:
+            LoRaWAN.init(loraWanClass,loraWanRegion);
+            break;
+        case DEVICE_STATE_JOIN:
+            LoRaWAN.join();
+            break;
+
+        case DEVICE_STATE_SEND:
+            Serial.println("Send motherfucker!");
+            LoRaWAN.send();
+            deviceState = DEVICE_STATE_CYCLE;
+            break;
+
+        case DEVICE_STATE_CYCLE:
+            // Schedule next packet transmission
+            LoRaWAN.cycle(appTxDutyCycle);
+            deviceState = DEVICE_STATE_SLEEP;
+            break;
+        case DEVICE_STATE_SLEEP:
+            LoRaWAN.sleep(loraWanClass);
+            break;
+        default:
+            deviceState = DEVICE_STATE_INIT;
+            break;
+    }
+#endif
+}
+
+void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
+{
+    Serial.println("[LoraDevHW] Collar::onReceive() Not implemented!");
+}
 
 String LoraDevHW::addrHex()
 {
@@ -75,9 +303,9 @@ void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
     auto x2b4 = [&](char b) {
         if( b >= '0' && b <= '9') b -= '0';
         else
-        if( b >= 'a' && b <= 'z') b = b - 'a' + 10;
-        else
-        if( b >= 'A' && b <= 'Z') b = b - 'A' + 10;
+            if( b >= 'a' && b <= 'z') b = b - 'a' + 10;
+            else
+                if( b >= 'A' && b <= 'Z') b = b - 'A' + 10;
         return (uint8_t)b;
     };
 
@@ -94,138 +322,10 @@ void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)
 }
 
 
-LoraDevHW::LoraDevHW() {
-    // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
-    // Pins for V4.3: NSS=8, DIO1=14, NRST=12, BUSY=13
-    mRadio = new Module(PIN_NSS, PIN_DIO1, PIN_NRST, PIN_BUSY);
-
-    // 2. Create the LoRaWAN Node Instance
-    mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
-}
-
-void LoraDevHW::onSetup() {
-    uint8_t mac[6] = {0};
-
-    // Get the base MAC address of the ESP32 (6 bytes unique)
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
-
-    // Convert 6-byte MAC into an 8-byte LoRaWAN DevEUI
-    // Standard approach expands the middle with 0xFF, 0xFE or padding
-    mEui[0] = mac[0];
-    mEui[1] = mac[1];
-    mEui[2] = mac[2];
-    mEui[3] = 0xFF; // Padding byte
-    mEui[4] = 0xFE; // Padding byte
-    mEui[5] = mac[3];
-    mEui[6] = mac[4];
-    mEui[7] = mac[5];
-
-
-    SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);
-
-    ConfigLoRa_t config{};
-    config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
-    //radio.tcxoVoltage = 1.6; // Some radio modules like SX126x often come with TCXO
-
-    Serial.println(String("[LoraDevHW] === Setup start ==="));
-    Serial.println(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
-    Serial.println(String("[LoraDevHW] NKey:") + nkeyHex());
-    Serial.println(String("[LoraDevHW] AKey:") + akeyHex());
-    Serial.println(String("[LoraDevHW] === Setup end ==="));
-
-    int state = mRadio.begin(config);
-    if (state != RADIOLIB_ERR_NONE) {
-        Serial.println("[LoraDevHW] ERROR:Lora init failed!");
-        return;
-    }
-
-    // Pull in the ABP profiles natively
-    state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
-
-    if (state != RADIOLIB_ERR_NONE) {
-        Serial.println( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
-        return;
-    }
-
-    // Configure RX2 before activating the session.
-    //state = mNode->setRx2Dr(0);
-    //Serial.println(String("[LoraDevHW] setRx2Dr(0):") + state);
-
-    state = mNode->activateABP();
-
-    if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
-        Serial.println("[LoraDevHW] ABP activated: new session");
-    } else if (state == RADIOLIB_LORAWAN_SESSION_RESTORED) {
-        Serial.println("[LoraDevHW] ABP activated: session restored");
-    } else if (state != RADIOLIB_ERR_NONE) {
-        Serial.println(String("[LoraDevHW] ERROR: activateABP failed:") + state);
-        return;
-    }
-}
-
-void LoraDevHW::sendPackage(void *data, size_t len)
-{
-    if( len > LORAWAN_APP_DATA_MAX_SIZE ) {
-        Serial.println( String("[LoraDevHW] ERROR: send data > LORAWAN_APP_DATA_MAX_SIZE:") + len);
-        len = LORAWAN_APP_DATA_MAX_SIZE;
-    }
-    const char* charPtr = ((char*)data);
-    // memcpy(appData, data, static_cast<size_t>(len));
-    // appDataSize = static_cast<uint8_t>(len);
-    for( mBufferUpLen = 0; mBufferUpLen < len; mBufferUpLen ++) {
-        mBufferUp[mBufferUpLen] = charPtr[mBufferUpLen];
-    }
-
-    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
-
-    // Fires an unconfirmed uplink packet directly on specified fport
-    // int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort, false);
-    mBufferDownLen = LORAWAN_APP_DATA_MAX_SIZE;
-    int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort,
-                                   mBufferDown, &mBufferDownLen,
-                                   false);
-
-
-    DBG(String("[LoraDevHW] Received downling size:") + mBufferDownLen);
-
-    if (state >= RADIOLIB_ERR_NONE) {
-        DBG( String("[LoraDevHW] Uplink done with state:") + state);
-
-        if (state > 0) {
-            DBG("[LoraDevHW] Downlink received");
-            DBG( toHex(mBufferDown, mBufferDownLen) );
-            onReceive(mBufferDown, mBufferDownLen);
-        } else {
-            DBG("[LoraDevHW] No downlink received");
-        }
-    } else {
-        DBG( String("[LoraDevHW] LoRaWAN send failed:") + state);
-    }
-
-    /*
-    String str;
-    state = mRadio.readData(str);
-    if( str.length()) {
-        DBG("[LoraDevHW] dataaaaa" + str);
-    }
-*/
-
-
-}
-
-void LoraDevHW::onUpdate()
-{
-
-}
-
-void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
-{
-    Serial.println("[LoraDevHW] Collar::onReceive() Not implemented!");
-}
-
 
 // #ifndef  ONPC
     LoraDevHW gLDC;
 // #endif
 
 // #endif
+

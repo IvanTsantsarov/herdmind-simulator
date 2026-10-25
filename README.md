@@ -270,3 +270,8 @@ Keep API tokens, network session keys, application keys and other credentials ou
 - `hardware/protocol.h` defines protocol helpers, including timestamps relative to 2000-01-01 and binary integer/coordinate encoding.
 - The project contains both simulated LoRa devices and hardware-oriented collar/bolus implementations. Keep simulator behavior, wire protocol and embedded firmware behavior aligned when changing packet formats.
 - When debugging LoRaWAN, distinguish radio-level transmission success from network-server acceptance and end-device downlink reception.
+- Clear Gateway HT-ML7603: 
+* ivants@ivants-home:~$ ssh -o KexAlgorithms=+diffie-hellman-group14-sha1 -o HostKeyAlgorithms=+ssh-rsa root@192.168.1.29
+* The default root password for Heltec devices is heltec.org
+* Then execute: root@HT-M7603:~#> /var/lora_pkt_fwd.log
+* with ">"

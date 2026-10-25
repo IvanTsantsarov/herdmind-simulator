@@ -10,6 +10,7 @@
 #include <QObject>
 
 #include "defines.h"
+#include "lora.h"
 
 #define LOW 0
 #define HIGH 1
@@ -48,7 +49,7 @@ enum INTERRUPT_TYPE
 };
 
 
-
+QDateTime fromTimestamp(uint32_t secFrom2K);
 
 typedef void (*InterruptCallback)();
 void attachInterrupt(byte interrupt, InterruptCallback func, INTERRUPT_TYPE type);
@@ -389,13 +390,20 @@ public:
 };
 
 
-
 class ClassSPI {
 public:
     void begin(int sck, int miso, int mosi, int nss) { }
 };
 
 extern ClassSPI SPI;
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Lora(WAN)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#if USING_LORA == LORA_RADIOLIB
 
 #define RADIOLIB_ERR_NONE 0
 #define RADIOLIB_LORAWAN_NEW_SESSION -1118
@@ -436,5 +444,46 @@ public:
                     const uint8_t* dataDown, size_t* lenDown, bool isConfirmed){ return lenUp; }
 };
 
+#elif USING_LORA == LORA_HELTEC
 
-QDateTime fromTimestamp(uint32_t secFrom2K);
+#define ACTIVE_REGION 0
+typedef int LoRaMacRegion_t ;
+
+#define CLASS_A 0
+typedef int DeviceClass_t;
+
+extern uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
+extern int appDataSize;
+
+#define DEVICE_STATE_INIT 1
+#define DEVICE_STATE_JOIN 2
+#define DEVICE_STATE_SEND 3
+#define DEVICE_STATE_CYCLE 4
+#define DEVICE_STATE_SLEEP 5
+
+extern int deviceState;
+
+class HeltecLoraWAN {
+public:
+    void generateDeveuiByChipID(){};
+    void init(int lClass, int lRegion){};
+    void join(){};
+    void send(){};
+    void cycle(int msec){};
+    void sleep(int lClass){};
+
+};
+
+extern HeltecLoraWAN LoRaWAN;
+
+#define HELTEC_BOARD 1
+#define SLOW_CLK_TPYE 2
+
+class HeltecMCU {
+public:
+    void begin(int board, int clk){}
+};
+
+extern HeltecMCU Mcu;
+
+#endif

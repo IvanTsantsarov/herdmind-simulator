@@ -31,8 +31,10 @@ class LoraDevHW
 
     bool mIsSent = false;
 
+#if USING_LORA == LORA_RADIOLIB
     SX1262 mRadio = nullptr;
     LoRaWANNode* mNode = nullptr;
+#endif
 
 public:
 
