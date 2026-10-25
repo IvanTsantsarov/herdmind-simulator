@@ -18,6 +18,8 @@ class DevManager : public QObject
     friend class ApiRest;
     friend class ApiMqtt;
 
+    const bool mIsSimulation;
+
     enum struct States {
         None = 0,
         GetDevicesCount,
@@ -82,7 +84,7 @@ protected:
     void onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray& msg);
 
 public:
-    DevManager( const QSettings& settings );
+    DevManager(const QSettings& settings , bool isSimulation);
     virtual ~DevManager();
     inline bool isReady(){ return mIsDevicesReady; }
     inline int collarsCount(){ return mCollarsCount; }

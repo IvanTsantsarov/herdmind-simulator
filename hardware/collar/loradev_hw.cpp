@@ -140,7 +140,7 @@ void LoraDevHW::onSetup() {
     }
 
     // Pull in the ABP profiles natively
-    state = mNode->beginABP(mAddr, mNKey, mNKey, mNKey, mAKey);
+    state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
 
     if (state != RADIOLIB_ERR_NONE) {
         Serial.println( String("[LoraDevHW] ERROR:beginABP failed: ") + state);

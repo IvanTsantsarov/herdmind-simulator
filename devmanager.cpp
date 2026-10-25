@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-DevManager::DevManager(const QSettings &settings)
+DevManager::DevManager(const QSettings &settings, bool isSimulation) : mIsSimulation(isSimulation)
 {
     // Create rest api object
     mApiRest = new ApiRest(settings, this);
@@ -339,7 +339,11 @@ void DevManager::onDevicesReady(bool isStore)
 
     mIsDevicesReady = true;
     gMainWindow->onDevicesReady(isStore);
-    mEdge->start();
+
+    if( mIsSimulation ) {
+        // Start gateway only if it's simulation mode
+        mEdge->start();
+    }
 
     if( mApiMqtt->isConnected() ) {
         subscribeToDevicesUp();

@@ -101,7 +101,7 @@ MainWindow::MainWindow(bool isSim, QSettings &env, QSettings &settings, QWidget 
         ui->btnLoad->setEnabled(false);
     }
 
-    mDevManager = new DevManager(settings);
+    mDevManager = new DevManager(settings, mIsSimulation);
 
     mDevMsg = new DialogDeviceMsg(mDevManager, this);
 

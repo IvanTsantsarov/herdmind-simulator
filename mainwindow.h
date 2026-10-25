@@ -31,7 +31,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    bool mIsSimulation = false;
+    const bool mIsSimulation;
 
     SimTools* mTools = nullptr;
     Scene* mScene = nullptr;
