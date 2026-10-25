@@ -152,6 +152,7 @@ void LoraDevHW::onSetup() {
 
     Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
     deviceState = DEVICE_STATE_INIT;
+    DBG(String("[LoraDev HT] DEVICE_STATE_INIT=") + deviceState);
 #endif
 }
 
@@ -195,40 +196,52 @@ void LoraDevHW::sendPackage(void *data, size_t len)
         DBG( String("[LoraDevHW] LoRaWAN send failed:") + state);
     }
 #elif USING_LORA == LORA_HELTEC
+
     uint8_t* ptr = (uint8_t*)data;
     for( appDataSize = 0; appDataSize < len; appDataSize ++) {
         appData[appDataSize] = ptr[appDataSize];
     }
+
+    DBG(String("[LoraDev HT] copy data for sending. Len=") + appDataSize);
+    deviceState = DEVICE_STATE_SEND;
 #endif
 }
 
 void LoraDevHW::onUpdate()
 {
 #if USING_LORA == LORA_HELTEC
+
+    DBG(String("[LoraDev HT] onUpdate state=") + deviceState);
+
     switch(deviceState) {
         case DEVICE_STATE_INIT:
+            DBG("[LoraDev HT] init...");
             LoRaWAN.init(loraWanClass,loraWanRegion);
+            deviceState = DEVICE_STATE_JOIN;
             break;
         case DEVICE_STATE_JOIN:
+            DBG("[LoraDev HT] join...");
             LoRaWAN.join();
             break;
 
         case DEVICE_STATE_SEND:
-            Serial.println("Send motherfucker!");
+            DBG("[LoraDev HT] send...");
             LoRaWAN.send();
             deviceState = DEVICE_STATE_CYCLE;
             break;
 
         case DEVICE_STATE_CYCLE:
+            DBG("[LoraDev HT] cycle...");
             // Schedule next packet transmission
             LoRaWAN.cycle(appTxDutyCycle);
             deviceState = DEVICE_STATE_SLEEP;
             break;
         case DEVICE_STATE_SLEEP:
+            DBG("[LoraDev HT] sleep...");
             LoRaWAN.sleep(loraWanClass);
             break;
         default:
-            deviceState = DEVICE_STATE_INIT;
+            // deviceState = DEVICE_STATE_INIT;
             break;
     }
 #endif

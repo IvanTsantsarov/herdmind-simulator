@@ -572,6 +572,8 @@ void Collar::onUpdate()
                 onSend();
             #endif
 
+
+
             DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
             mSecSleep = msec;
             mStage = Stage::Sleep;
@@ -583,6 +585,10 @@ void Collar::onUpdate()
         Serial.print(".");
         mLed->updateOn(10, 500);
     }
+
+    #ifndef ONPC
+        LoraDevHW::onUpdate();
+    #endif
 
 }
 

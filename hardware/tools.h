@@ -453,7 +453,7 @@ typedef int LoRaMacRegion_t ;
 typedef int DeviceClass_t;
 
 extern uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
-extern int appDataSize;
+extern size_t appDataSize;
 
 #define DEVICE_STATE_INIT 1
 #define DEVICE_STATE_JOIN 2

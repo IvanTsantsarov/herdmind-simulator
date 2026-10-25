@@ -539,7 +539,7 @@ ClassSPI SPI;
 #elif USING_LORA == LORA_HELTEC
 int deviceState = DEVICE_STATE_INIT;
 uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE] = {0};
-int appDataSize = 0;
+size_t appDataSize = 0;
 
 HeltecLoraWAN LoRaWAN;
 
