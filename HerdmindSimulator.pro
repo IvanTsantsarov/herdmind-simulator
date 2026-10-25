@@ -144,6 +144,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    README.md \
     bolus_chirpstack.js \
     collar_chirpstack.js \
     deploy.sh \
