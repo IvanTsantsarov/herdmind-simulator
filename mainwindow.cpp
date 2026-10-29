@@ -815,10 +815,9 @@ void MainWindow::on_actionSettings_triggered()
 
 bool MainWindow::registerCollar(Animal *animal, const QString &euiHex, const QString &akeyHex, const QString &nkeyHex)
 {
-
     mDevMsg->updateDevices();
-    syncDevices();
-    mHerd->storeAnimals();
+    bool result = syncDevices();
+    return mHerd->storeAnimals() && result;
 }
 
 void MainWindow::reload()

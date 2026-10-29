@@ -102,6 +102,7 @@ void LoraDevHW::onSetup() {
     // Pins for V4.3: NSS=8, DIO1=14, NRST=12, BUSY=13
     mRadio = new Module(PIN_NSS, PIN_DIO1, PIN_NRST, PIN_BUSY);
 
+
     // 2. Create the LoRaWAN Node Instance
     mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
 
@@ -109,7 +110,6 @@ void LoraDevHW::onSetup() {
 
     ConfigLoRa_t config{};
     config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
-    //radio.tcxoVoltage = 1.6; // Some radio modules like SX126x often come with TCXO
 
     int state = mRadio.begin(config);
     if (state != RADIOLIB_ERR_NONE) {

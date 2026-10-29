@@ -519,3 +519,21 @@ uint8_t appDataSize = 0;
 LoRaWanClass LoRaWAN;
 eDeviceState deviceState = eDeviceState::DEVICE_STATE_INIT;
 uint32_t txDutyCycleTime = 0;
+
+
+
+/*
+config.frequency = 869.525;       // Gateway's RX2 downlink frequency
+config.bandwidth = 125.0;
+config.spreadingFactor = 12;
+config.codingRate = 5;             // 4/5
+config.syncWord = 0x34;            // LoRaWAN public sync word
+config.preambleLength = 8;
+
+// mRadio.tcxoVoltage = 1.8f;
+int16_t tcxoState = mRadio.setTCXO(1.8f);
+if (tcxoState != RADIOLIB_ERR_NONE) {
+    Serial.println("TCXO configuration failed!");
+}
+
+*/

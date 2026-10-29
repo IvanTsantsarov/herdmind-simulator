@@ -410,7 +410,13 @@ extern ClassSPI SPI;
 #define RADIOLIB_LORAWAN_SESSION_RESTORED -1117
 
 struct ConfigLoRa_t {
-    int frequency;
+    float frequency = 0.0;
+    float bandwidth = 0.0;
+    float spreadingFactor = 0.0;
+    float codingRate = 0.0;
+    int syncWord = 0;
+    int preambleLength = 0;
+
 };
 
 
@@ -423,8 +429,11 @@ public:
 };
 
 class SX1262: public Module {
+
 public:
+    float tcxoVoltage = 1.6f;
     SX1262(Module* m){ }
+    int setTCXO(float v){ tcxoVoltage = v; return RADIOLIB_ERR_NONE; }
 
 };
 
