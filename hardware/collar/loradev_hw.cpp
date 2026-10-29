@@ -106,6 +106,12 @@ void LoraDevHW::onSetup() {
     // 2. Create the LoRaWAN Node Instance
     mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
 
+
+    //////////////////////////////////////////////////////
+    ///  IMPORTANT!!!! Without this downlink is impossible
+    mNode->scanGuard = 450;
+    ////////////////////////////////////////
+
     SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);
 
     ConfigLoRa_t config{};
@@ -170,7 +176,7 @@ void LoraDevHW::sendPackage(void *data, size_t len)
         mBufferUp[mBufferUpLen] = charPtr[mBufferUpLen];
     }
 
-    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + "on port:" + mFPort);
+    DBG(String("[LoraDevHW] Sending:") + toHex(mBufferUp, mBufferUpLen) + " on port:" + mFPort);
 
     // Fires an unconfirmed uplink packet directly on specified fport
     // int state = mNode->sendReceive( mBufferUp, mBufferUpLen, mFPort, false);
@@ -179,8 +185,7 @@ void LoraDevHW::sendPackage(void *data, size_t len)
                                    mBufferDown, &mBufferDownLen,
                                    false);
 
-
-    DBG(String("[LoraDevHW] Received downling size:") + mBufferDownLen);
+    DBG(String("[LoraDevHW] Downlink size:") + mBufferDownLen);
 
     if (state >= RADIOLIB_ERR_NONE) {
         DBG( String("[LoraDevHW] Uplink done with state:") + state);

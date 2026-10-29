@@ -178,6 +178,7 @@ void Collar::sendDbg()
                     + "|btn=" + (gMainButtonDown ? "y":"n");
 
     Serial.println(dbgStr);
+
 }
 
 #endif
@@ -508,6 +509,8 @@ void Collar::onUpdate()
     }
 #endif
 
+    mSerialCmd->update();
+
     if( Stage::Init == mStage) {
 
         updateScreenLoading();
@@ -532,8 +535,6 @@ void Collar::onUpdate()
 
 
     mBattery->update();
-
-    mSerialCmd->update();
 
     // Check screen if it's time to sleep
     uint32_t msecAwakenScreen = millis() - mAwakeningMillisScreen;

@@ -451,6 +451,8 @@ public:
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort, bool isConfirmed){ return lenUp; }
     int sendReceive(const uint8_t* dataUp, size_t lenUp, uint8_t fPort,
                     const uint8_t* dataDown, size_t* lenDown, bool isConfirmed){ return lenUp; }
+
+    int scanGuard = 0;
 };
 
 #elif USING_LORA == LORA_HELTEC

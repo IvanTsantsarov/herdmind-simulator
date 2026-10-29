@@ -58,7 +58,6 @@ public:
             FPORT,  // Set/Get FPort
             FLASH,    // Store in memory
             RESTORE   // Restore from memory
-
         };
 
         Cmd(){ mT = Type::NONE; }
