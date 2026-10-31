@@ -6,7 +6,6 @@
 #include "gps.h"
 #include "button.h"
 #include "led.h"
-#include "serialcmd.h"
 #include "memory.h"
 #include "lights.h"
 #include "sound.h"
@@ -350,6 +349,11 @@ bool Collar::restore()
 void Collar::serialRespond(const String& msg)
 {
     mSerialCmd->sendResponce(msg);
+}
+
+void Collar::serialCmd(SerialCmd::Cmd::Type t, const String& str)
+{
+    mSerialCmd->sendCmd(t, str);
 }
 
 void Collar::onSetup()

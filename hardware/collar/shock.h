@@ -9,6 +9,7 @@ public:
     Shock(Collar* c);
     virtual ~Shock(){ }
     const char* name() { return "Shock"; }
+    void execute();
 };
 
 #endif // SHOCK_H

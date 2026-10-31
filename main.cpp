@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
 {
     gOoriginalHandler = qInstallMessageHandler(gMessagehHandler);
 
+    SerialCmd::initCommands();
+
     // restore environemnt
     if( !SimTools::fileExists(ENVIRONMENT_INI) ) {
         if( !SimTools::fileRestoreResources(ENVIRONMENT_INI) ) {
@@ -115,5 +117,6 @@ int main(int argc, char *argv[])
 
     MainWindow w(dlgInit.isSimulation(),env,settings);
     w.show();
+
     return a.exec();
 }

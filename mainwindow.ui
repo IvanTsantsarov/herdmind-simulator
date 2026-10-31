@@ -1622,6 +1622,8 @@
     <addaction name="actionSave"/>
     <addaction name="actionLoad"/>
     <addaction name="separator"/>
+    <addaction name="actionGenerate_image_array"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1689,6 +1691,11 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionGenerate_image_array">
+   <property name="text">
+    <string>Generate image array</string>
    </property>
   </action>
  </widget>

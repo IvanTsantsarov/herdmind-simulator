@@ -10,8 +10,47 @@
 #define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
 #define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
+
+const char* SerialCmd::mCommands[] = { "" };
+
+void SerialCmd::initCommands() {
+    if( mCommands[0][0] ) {
+        return;
+    }
+
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NONE] = "none";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::DBG] = "dbg";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGL] = "sigl";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGS] = "sigs";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGE] = "sige";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::LED] = "led";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::HELP] = "help";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::REBOOT] = "reboot";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INFO] = "info";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::EUI] = "eui";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::GPS] = "gps";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SAT] = "sat";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::BAT] = "bat";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RSSI] = "rssi";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SNR] = "snr";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SS] = "ss";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NKEY] = "nkey";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::AKEY] = "akey";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::ADDR] = "addr";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::FLASH] = "flash";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RESTORE] = "restore";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NAME] = "name";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SEX] = "sex";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::VER] = "ver";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RSP] = "rsp";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::FPORT] = "fport";
+}
+
+
 SerialCmd::SerialCmd(Collar* c) : mStrChanged("->")
 {
+    SerialCmd::initCommands();
+
     mCollar = c;
 
     // Create the buffer
@@ -57,12 +96,13 @@ void SerialCmd::clear()
 
 }
 
-void SerialCmd::sendResponce(const String& rsp)
+void SerialCmd::sendCmd(Cmd::Type t, const String& str)
 {
-    Cmd cmd(Cmd::Type::RSP);
-    String r = String(SERIAL_CMD_BEGIN) + cmd.typeStr() + rsp + SERIAL_CMD_TAIL;
+    Cmd cmd(t);
+    String r = String(SERIAL_CMD_BEGIN) + cmd.typeStr() + (str.length() ? str : "") + SERIAL_CMD_TAIL;
     Serial.println(r);
 }
+
 
 #define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String(SERIAL_CMD_BEGIN) + "error" + SERIAL_CMD_TAIL + __err__); clear(); skipAvailable(); return;
 
@@ -122,40 +162,26 @@ void SerialCmd::update()
 }
 
 
-
 const char *SerialCmd::Cmd::typeStr()
 {
-    return SerialCmd::Cmd::typeStrStatic(this);
+    return SerialCmd::Cmd::type2StrStatic(this->mT);
 }
 
-const char *SerialCmd::Cmd::typeStrStatic(const Cmd* c)
+const char* SerialCmd::Cmd::type2StrStatic(Type t)
 {
-    switch(c->mT) {
-    case Type::NONE: return "none";
-    case Type::DBG: return "dbg";
-    case Type::LED: return "led";
-    case Type::HELP: return "help";
-    case Type::REBOOT: return "reboot";
-    case Type::INFO: return "info";
-    case Type::EUI: return "eui";
-    case Type::GPS: return "gps";
-    case Type::SAT: return "sat";
-    case Type::BAT: return "bat";
-    case Type::RSSI: return "rssi";
-    case Type::SNR: return "snr";
-    case Type::SS: return "ss";
-    case Type::NKEY: return "nkey";
-    case Type::AKEY: return "akey";
-    case Type::ADDR: return "addr";
-    case Type::FLASH: return "flash";
-    case Type::RESTORE: return "restore";
-    case Type::NAME: return "name";
-    case Type::SEX: return "sex";
-    case Type::VER: return "ver";
-    case Type::RSP: return "rsp"; break;
+    assert(t < SerialCmd::Cmd::Type::LAST);
+    return mCommands[(int)t];
+}
+
+SerialCmd::Cmd::Type SerialCmd::Cmd::str2TypeStatic(const char* str)
+{
+    for( auto t = Type::NONE; t < Type::LAST; t = Type((int)t + 1)) {
+        if( !strcmp(type2StrStatic(t), str) ) {
+            return t;
+        }
     }
 
-    return "";
+    return Type::NONE;
 }
 
 bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)

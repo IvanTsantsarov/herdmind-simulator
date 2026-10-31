@@ -140,6 +140,7 @@ private slots:
     void on_radioAnimalsCount_toggled(bool checked);
     void on_radioAnimalsPercentage_toggled(bool checked);
     void on_spinAnimalsCount_valueChanged(int count);
+    void on_actionGenerate_image_array_triggered();
 };
 
 extern MainWindow* gMainWindow;

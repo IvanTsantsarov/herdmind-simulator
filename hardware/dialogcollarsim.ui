@@ -97,6 +97,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -121,6 +124,9 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -147,6 +153,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -171,6 +180,9 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -197,6 +209,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -222,6 +237,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -246,6 +264,9 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -400,7 +421,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btnGenArray">
+          <widget class="QPushButton" name="btnShock">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -418,10 +439,6 @@
            </property>
            <property name="text">
             <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../res/res.qrc">
-             <normaloff>:/pixel_art.svg</normaloff>:/pixel_art.svg</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>

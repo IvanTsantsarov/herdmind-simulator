@@ -8,6 +8,7 @@
 #include "../defines.h"
 #include "../protocol.h"
 #include "geometry.h"
+#include "serialcmd.h"
 
 #define COLLAR_MAX_GPS_POINTS 500
 
@@ -164,23 +165,23 @@ public:
     ~Collar();
 
     void setAnimalName(const String& name);
-    void setIsMale(bool is){ mIsMale = is; }
+    void setIsMale(bool is);
 
-    String& animalName() { return mAnimalName; }
-    bool isMale(){ return mIsMale; }
+    String& animalName();
+    bool isMale();
     void onSetup();
     void onUpdate();
     void onSend();
     void onReceive(uint8_t* data, uint32_t size);
-    inline Button* btnMain(){ return mBtnMain; }
+    Button* btnMain();
 
-    bool isFence(){ return mFencePointsCount > 0; }
-    bool isInsideFence(){ return mIsInsideFence; }
-    bool isGoingAwayFromFence(){ return mFenceIsGoingAway; }
-    double fanceDistance(){ return mFenceDistance; }
-    bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
-    Screen *screen() { return mScreen; }
-    Led* led() { return mLed; }
+    bool isFence();
+    bool isInsideFence();
+    bool isGoingAwayFromFence();
+    double fanceDistance();
+    bool hasClosestFenceBorder();
+    Screen *screen();
+    Led* led();
 
     void reboot();
     void sleep();
@@ -201,11 +202,37 @@ public:
     bool flash();
     bool restore();
 
-    inline void setDebugInfo(bool is){ mIsDbgInfo = is; };
-    bool toggleDebugInfo(){ mIsDbgInfo = !mIsDbgInfo; return mIsDbgInfo; };
+    void setDebugInfo(bool is);;
+    bool toggleDebugInfo();;
     void serialRespond(const String &msg);
-
+    void serialCmd(SerialCmd::Cmd::Type t, const String &str = String());
 };
+
+inline void Collar::setIsMale(bool is){ mIsMale = is; }
+
+inline String &Collar::animalName() { return mAnimalName; }
+
+inline bool Collar::isMale(){ return mIsMale; }
+
+inline Button *Collar::btnMain(){ return mBtnMain; }
+
+inline bool Collar::isFence(){ return mFencePointsCount > 0; }
+
+inline bool Collar::isInsideFence(){ return mIsInsideFence; }
+
+inline bool Collar::isGoingAwayFromFence(){ return mFenceIsGoingAway; }
+
+inline double Collar::fanceDistance(){ return mFenceDistance; }
+
+inline bool Collar::hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
+
+inline Screen *Collar::screen() { return mScreen; }
+
+inline Led *Collar::led() { return mLed; }
+
+inline void Collar::setDebugInfo(bool is){ mIsDbgInfo = is; }
+
+inline bool Collar::toggleDebugInfo(){ mIsDbgInfo = !mIsDbgInfo; return mIsDbgInfo; }
 
 #ifndef ONPC
     extern Collar* gCollar;

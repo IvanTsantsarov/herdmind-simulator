@@ -38,6 +38,9 @@ public:
             NONE = 0,
             DBG,
             RSP,    // Responce - send back an aswer from action
+            SIGL,   // Signal light
+            SIGS,   // Signal sound
+            SIGE,   // Signal electicity
             LED,    // led on/off
             HELP,
             REBOOT,
@@ -57,17 +60,19 @@ public:
             ADDR,    // Set/Get address
             FPORT,  // Set/Get FPort
             FLASH,    // Store in memory
-            RESTORE   // Restore from memory
+            RESTORE,   // Restore from memory
+            LAST
         };
 
         Cmd(){ mT = Type::NONE; }
         Cmd(Type t){ mT = t; }
 
-
         inline Type type(){ return mT;}
         const char* typeStr();
-        static const char* typeStrStatic(const Cmd *c);
+        static const char* type2StrStatic(Type t);
+        static Type str2TypeStatic(const char* str);
         inline bool isNone(){ return Type::NONE == mT; }
+        inline operator int(){ return static_cast<int>(mT);}
 
         inline void clear(){ mT = Type::NONE; }
         bool parse(const char* buffer, int bufferLen);
@@ -76,6 +81,8 @@ public:
     };
 
     Cmd mCmd;
+    static const char* mCommands[(int)SerialCmd::Cmd::Type::LAST];
+    static void initCommands();
 
 
     void setup();
@@ -87,7 +94,8 @@ public:
     inline QByteArray readFromSerial() { return Serial.readOut(); }
 #endif
 
-    void sendResponce(const String &rsp);
+    void sendCmd(SerialCmd::Cmd::Type t, const String &str = String());
+    void sendResponce(const String &rsp) { sendCmd(Cmd::Type::RSP, rsp); }
 };
 
 #endif // SERIALCMD_H

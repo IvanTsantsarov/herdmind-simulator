@@ -5,3 +5,8 @@ Lights::Lights(Collar *c) : Signaling(c)
 {
 
 }
+
+void Lights::execute()
+{
+    respondCmd(SerialCmd::Cmd::Type::SIGL);
+}

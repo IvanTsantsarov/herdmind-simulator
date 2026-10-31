@@ -15,6 +15,11 @@
 #include "dialogcollarsim.h"
 #include "ui_dialogcollarsim.h"
 
+
+#define DLGCOLLARSIM_SIGNAL_DURATION 3000
+#define DLGCOLLARSIM_SIGL_ON QColor(255, 255, 255)
+#define DLGCOLLARSIM_SIGL_OFF QColor(50, 50, 50)
+
 #define DLGCOLLARSIM_MAX_COMMAND_STRINGS 10
 
 #define DLGCOLLARSIM_BACKCOL_OK QColor(255, 255, 255)
@@ -91,8 +96,11 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
 
     mIconSoundOn = QIcon("://icon-sound-on.svg");
     mIconSoundOff = QIcon("://icon-sound-off.svg");
-
     ui->btnBuzzer->setIcon(mIconSoundOff);
+
+    mIconShockOn = QIcon("://icon-shock-on.svg");
+    mIconShockOff = QIcon("://icon-shock-off.svg");
+    ui->btnShock->setIcon(mIconShockOff);
 
     ui->widgetScreen->configImage(SCREEN_CX, SCREEN_CY, SCREEN_COL_DARK);
 
@@ -120,7 +128,7 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
 
 
     // Hide for now LEDs
-    ui->groupLEDs->setVisible(false);
+    // ui->groupLEDs->setVisible(false);
 
     ui->widgetScreen->image() = mImageDisconnected;
 
@@ -229,6 +237,7 @@ void DialogCollarSim::update()
     }
 }
 
+
 void DialogCollarSim::on_comboAnimals_currentIndexChanged(int index)
 {
     if( mIsLoadingAnimals) {
@@ -244,69 +253,6 @@ void DialogCollarSim::on_comboAnimals_currentIndexChanged(int index)
 
     mAnimal = ui->comboAnimals->currentData().value<Animal*>();
     grabScreen();
-}
-
-
-void DialogCollarSim::on_btnGenArray_clicked()
-{
-    QString strSize = QString("%1x%2").arg(SCREEN_CX).arg(SCREEN_CY);
-    QString title = QString("Choose image %1 max => C++ array"),arg(strSize);
-
-    QString dirStr = mEnv.value("Collar/ArrayDir").toString();
-    if( dirStr.isEmpty() )  {
-        dirStr = "../../res";
-    }
-    QString imgPath = QFileDialog::getOpenFileName(this, title, dirStr, "*.png *.jpg *.jpeg *.bmp *.xpm" );
-
-    if( imgPath.isEmpty()) {
-        return;
-    }
-
-    mEnv.setValue("Collar/ArrayDir", dirStr);
-
-    QImage img(imgPath);
-
-    if( img.isNull() ) {
-        gMainWindow->errorMsgBox("Image is invalid!");
-        return;
-    }
-
-    QString imgSizeStr = QString("%1x%2").arg(img.width()).arg(img.height());
-
-    if( img.width() > SCREEN_CX || img.height() > SCREEN_CY) {
-        gMainWindow->errorMsgBox( QString("Image is bigger then %1 (%2)").arg(strSize).arg(imgSizeStr) );
-        return;
-    }
-
-    QFileInfo fi(imgPath);
-
-    QString varName = QString("uint8_t %1_%2[] = { ")
-                          .arg(fi.baseName())
-                          .arg(imgSizeStr);
-
-    QString result = varName;
-
-    for( int y = 0; y < img.height(); y ++) {
-        for( int x = 0; x < img.width(); x ++) {
-
-            if( img.hasAlphaChannel() ) {
-                int alpha = qAlpha( img.pixel(x, y) );
-                result.append(alpha ? "1," : "0,");
-            }else {
-                int col = qGray( img.pixel(x, y) );
-                result.append(col ? "1," : "0,");
-            }
-
-        }
-    }
-
-    result.removeLast();
-    result.append(" };");
-
-    SimTools::clipboardCopy(result);
-
-    gMainWindow->infoMsgBox( QString("C++ array definition of \"%1\" is in the clipboard! You can paste it in the cpp file and mention it as \"external\" in the Header file.").arg(varName) );
-
 }
 
 
@@ -528,10 +474,6 @@ void DialogCollarSim::processSerialInput()
         return resp.mid(1, dmPos-1);
     };
 
-    auto cmpCmd = [&](QString& cmdResponce, const QString& cmd) {
-        return cmd == cmdResponce;
-    };
-
     bool isError = false;
 
     if( !mPort.isOpen() ) {
@@ -548,21 +490,27 @@ void DialogCollarSim::processSerialInput()
 
     QByteArray out = mPort.readLine();
     QString respFull = QString::fromLatin1(out);
-    QString cmd = stripCmd(respFull);
     bool isFull = ui->checkUnstripped->isChecked();
-
     if( isFull ) {
         addResponce(respFull, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
     }
 
-    if( cmd.isEmpty() ) {
+    QString cmdStr = stripCmd(respFull);
+
+    if( cmdStr.isEmpty()) {
         return;
     }
 
+    if( cmdStr.isEmpty() ) {
+        return;
+    }
+
+    SerialCmd::Cmd::Type cmd = SerialCmd::Cmd::str2TypeStatic(cmdStr.toLatin1().data());
+
     QString resp = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
 
-
-    if( cmpCmd(cmd, "dbg") ) {
+    switch(cmd) {
+    case SerialCmd::Cmd::Type::DBG: {
         if( !mMirror) {
             return;
         }
@@ -599,8 +547,9 @@ void DialogCollarSim::processSerialInput()
         }
         mMirror->inject(pos, sat, rssi, snr, bat);
         return;
-    }else
-    if( cmpCmd(cmd, "info") ) {
+    }
+    case SerialCmd::Cmd::Type::INFO:
+    {
         QStringList args = resp.split("|");
         ui->editAnimalName->setText(args[0]);
         ui->btnSex->setIcon(args[1] == "m" ? mIconMale : mIconFemale );
@@ -614,10 +563,22 @@ void DialogCollarSim::processSerialInput()
         if( !mMirror ) {
             createMirror( args[0], args[1] == "m" ? true :  false, args[2], args[3], args[4], args[5]);
         }
-    }else
-    if( cmpCmd(cmd, "error") )
+        break;
+    }
+    case SerialCmd::Cmd::Type::RSP:
     {
         isError = true;
+        break;
+    }
+    case SerialCmd::Cmd::Type::SIGL:
+        signalL();
+    break;
+    case SerialCmd::Cmd::Type::SIGS:
+        signalS();
+        break;
+    case SerialCmd::Cmd::Type::SIGE:
+        signalE();
+        break;
     }
 
     if( !isFull) {
@@ -816,5 +777,40 @@ void DialogCollarSim::on_checkAddr_stateChanged(int state)
 void DialogCollarSim::on_checkFPort_stateChanged(int state)
 {
     ui->editFPort->setEnabled(state);
+}
+
+void DialogCollarSim::signalL()
+{
+    setLightsColor(DLGCOLLARSIM_SIGL_ON);
+    QTimer::singleShot(DLGCOLLARSIM_SIGNAL_DURATION, this, &DialogCollarSim::on_timerStopSignalL);
+}
+
+void DialogCollarSim::signalS()
+{
+    ui->btnBuzzer->setIcon(mIconSoundOn);
+    QTimer::singleShot(DLGCOLLARSIM_SIGNAL_DURATION, this, &DialogCollarSim::on_timerStopSignalS);
+}
+
+void DialogCollarSim::signalE()
+{
+    ui->btnShock->setIcon(mIconShockOn);
+    QTimer::singleShot(DLGCOLLARSIM_SIGNAL_DURATION, this, &DialogCollarSim::on_timerStopSignalE);
+}
+
+
+void DialogCollarSim::on_timerStopSignalL()
+{
+    setLightsColor(DLGCOLLARSIM_SIGL_OFF);
+
+}
+
+void DialogCollarSim::on_timerStopSignalS()
+{
+    ui->btnBuzzer->setIcon(mIconSoundOff);
+}
+
+void DialogCollarSim::on_timerStopSignalE()
+{
+    ui->btnShock->setIcon(mIconShockOff);
 }
 

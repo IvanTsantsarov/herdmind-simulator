@@ -1,17 +1,6 @@
 /*
   RadioLib SX126x Receive with Interrupts Example
 
-  This example listens for LoRa transmissions and tries to
-  receive them. Once a packet is received, an interrupt is
-  triggered. To successfully receive data, the following
-  settings have to be the same on both transmitter
-  and receiver:
-  - carrier frequency
-  - bandwidth
-  - spreading factor
-  - coding rate
-  - sync word
-
   Other modules from SX126x family can also be used.
 
   For default module settings, see the wiki page
@@ -20,6 +9,8 @@
   For full API reference, see the GitHub Pages
   https://jgromes.github.io/RadioLib/
 */
+
+// #define SETTINGS_RX1 1
 
 // include the library
 #include <RadioLib.h>
@@ -54,12 +45,22 @@ void setup() {
     radio.tcxoVoltage = 1.8f;
 
     ConfigLoRa_t config;
-    config.frequency = 869.525;       // Gateway's RX2 downlink frequency
-    config.bandwidth = 125.0;
-    config.spreadingFactor = 12;
-    config.codingRate = 5;             // 4/5
+
     config.syncWord = 0x34;            // LoRaWAN public sync word
+    radio.invertIQ(true);
+    radio.setCRC(0);
+    config.codingRate = 5;             // 4/5
     config.preambleLength = 8;
+    config.bandwidth = 125.0;
+
+#ifdef SETTINGS_RX1
+    config.frequency = 868.5;       // Gateway's RX2 downlink frequency
+    config.spreadingFactor = 9;
+#else
+    config.frequency = 869.525;       // Gateway's RX2 downlink frequency
+    config.spreadingFactor = 12;
+#endif
+    
 
     int state = radio.begin(config);
     Serial.println("*******************************");

@@ -975,3 +975,66 @@ void MainWindow::on_radioAnimalsPercentage_toggled(bool checked)
 
 
 
+
+void MainWindow::on_actionGenerate_image_array_triggered()
+{
+    QString strSize = QString("%1x%2").arg(SCREEN_CX).arg(SCREEN_CY);
+    QString title = QString("Choose image %1 max => C++ array"),arg(strSize);
+
+    QString dirStr = mEnv.value("Collar/ArrayDir").toString();
+    if( dirStr.isEmpty() )  {
+        dirStr = "../../res";
+    }
+    QString imgPath = QFileDialog::getOpenFileName(this, title, dirStr, "*.png *.jpg *.jpeg *.bmp *.xpm" );
+
+    if( imgPath.isEmpty()) {
+        return;
+    }
+
+    mEnv.setValue("Collar/ArrayDir", dirStr);
+
+    QImage img(imgPath);
+
+    if( img.isNull() ) {
+        gMainWindow->errorMsgBox("Image is invalid!");
+        return;
+    }
+
+    QString imgSizeStr = QString("%1x%2").arg(img.width()).arg(img.height());
+
+    if( img.width() > SCREEN_CX || img.height() > SCREEN_CY) {
+        gMainWindow->errorMsgBox( QString("Image is bigger then %1 (%2)").arg(strSize).arg(imgSizeStr) );
+        return;
+    }
+
+    QFileInfo fi(imgPath);
+
+    QString varName = QString("uint8_t %1_%2[] = { ")
+                          .arg(fi.baseName())
+                          .arg(imgSizeStr);
+
+    QString result = varName;
+
+    for( int y = 0; y < img.height(); y ++) {
+        for( int x = 0; x < img.width(); x ++) {
+
+            if( img.hasAlphaChannel() ) {
+                int alpha = qAlpha( img.pixel(x, y) );
+                result.append(alpha ? "1," : "0,");
+            }else {
+                int col = qGray( img.pixel(x, y) );
+                result.append(col ? "1," : "0,");
+            }
+
+        }
+    }
+
+    result.removeLast();
+    result.append(" };");
+
+    SimTools::clipboardCopy(result);
+
+    gMainWindow->infoMsgBox( QString("C++ array definition of \"%1\" is in the clipboard! You can paste it in the cpp file and mention it as \"external\" in the Header file.").arg(varName) );
+
+}
+

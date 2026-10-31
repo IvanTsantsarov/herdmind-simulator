@@ -11,6 +11,9 @@
 #define PIN_BUSY  13
 
 
+// Msec to wait additionaly for the RX window
+#define LORAWAN_RX_WINDOW 450
+
 LoraDevHW::LoraDevHW() {
 }
 
@@ -46,7 +49,7 @@ void LoraDevHW::onSetup() {
 
     //////////////////////////////////////////////////////
     ///  IMPORTANT!!!! Without this downlink is impossible
-    mNode->scanGuard = 450;
+    mNode->scanGuard = LORAWAN_RX_WINDOW;
     ////////////////////////////////////////
 
     SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);

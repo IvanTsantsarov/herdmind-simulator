@@ -1,6 +1,7 @@
 #ifndef DEFINES_SETTINGS_H
 #define DEFINES_SETTINGS_H
 
+#define SETTINGS_DIR "../../settings/current/"
 #define SETTINGS_NAME "settings.ini"
 #define SETTINGS_NAME_EXTERNAL "settings_external.ini"
 #define CHIRPSTACK_SECTION "Chirpstack"

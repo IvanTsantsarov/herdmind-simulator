@@ -53,6 +53,8 @@ class DialogCollarSim : public QDialog
     QSettings& mEnv;
     QIcon mIconMale, mIconFemale, mIconMaleCollar, mIconFemaleCollar;
     QIcon mIconSoundOff, mIconSoundOn;
+    QIcon mIconShockOff, mIconShockOn;
+
     Collar* mMirror = nullptr;
     void createMirror(const QString &animalName,
                       bool isMale,
@@ -104,10 +106,12 @@ public:
 
     void update();
 
+    void signalL();
+    void signalS();
+    void signalE();
+
 private slots:
     void on_comboAnimals_currentIndexChanged(int index);
-
-    void on_btnGenArray_clicked();
 
     void on_btnMain_pressed();
 
@@ -158,6 +162,10 @@ private slots:
     void on_checkAddr_stateChanged(int state);
 
     void on_checkFPort_stateChanged(int state);
+
+    void on_timerStopSignalL();
+    void on_timerStopSignalS();
+    void on_timerStopSignalE();
 
 private:
     Ui::DialogCollarSim *ui;

@@ -9,6 +9,7 @@ public:
     Sound(Collar* c);
     virtual ~Sound() { }
     const char* name() { return "Sound"; }
+    void execute();
 };
 
 #endif // SOUND_H

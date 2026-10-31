@@ -2,6 +2,7 @@
 #define SIGNALING_H
 
 #include "../arduino.h"
+#include "serialcmd.h"
 
 
 
@@ -17,9 +18,10 @@ class Signaling
     Collar* mCollar = nullptr;
 public:
     Signaling(Collar* c);
-    virtual void execute();
+    virtual void execute() = 0;
     virtual const char* name() = 0;
     void respond(const String& msg);
+    void respondCmd(SerialCmd::Cmd::Type t);
 };
 
 #endif // SIGNALING_H

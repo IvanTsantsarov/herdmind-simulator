@@ -8,13 +8,12 @@ Signaling::Signaling(Collar* c) : mCollar(c)
 
 }
 
-void Signaling::execute()
-{
-    respond(String(name()) + " not implemented.");
-}
-
-
 void Signaling::respond(const String &msg)
 {
     mCollar->serialRespond(msg);
+}
+
+void Signaling::respondCmd(SerialCmd::Cmd::Type t)
+{
+    mCollar->serialCmd(t);
 }

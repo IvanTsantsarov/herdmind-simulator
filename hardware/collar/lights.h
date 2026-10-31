@@ -9,6 +9,7 @@ public:
     Lights(Collar* c);
     virtual ~Lights(){}
     const char* name() { return "Lights"; }
+    void execute();
 
 };
 
