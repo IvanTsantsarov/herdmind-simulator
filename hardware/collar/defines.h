@@ -1,8 +1,7 @@
-#ifndef DEFINES_H
-#define DEFINES_H
+#ifndef COLLAR_DEFINES_H
+#define COLLAR_DEFINES_H
 
 #define COLLAR_VERSION "0.81"
-#define DBG(__str__) Serial.println(__str__); Serial.flush();
 
 #define LORA_FPORT 2
 
@@ -19,4 +18,4 @@
 #define SERIAL_CMD_SIZE 7
 #define SERIAL_CMD_MIN_SIZE 2
 
-#endif // DEFINES_H
+#endif // COLLAR_DEFINES_H

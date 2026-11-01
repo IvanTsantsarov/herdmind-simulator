@@ -6,6 +6,7 @@
 
 #include "../arduino.h"
 #include "../defines.h"
+#include "defines.h"
 #include "../protocol.h"
 #include "geometry.h"
 #include "serialcmd.h"
@@ -63,11 +64,11 @@ class Collar : public LoraDevHW
     int mInjectedBat = 0;
     bool mEnableRestore = false;
 #else
-    int64_t mDbgMsec = 0;
+    int64_t mStatsMsec = 0;
     bool mEnableRestore = true;
 #endif
 
-    bool mIsDbgInfo = true;
+    bool mIsStats = true;
 
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
@@ -152,36 +153,35 @@ public:
     QList<Protocol::Collar> getBoluses();
     QLine fenceClosestBorder();
     QPointF fenceClosestPoint();
-    const Animal* animal() const;
+    inline const Animal* animal() const { return mAnimal; }
     void sendToSerial(const char* str);
     QByteArray readFromSerial();
     void inject(GeoPoint _pos, int _sat, int _rssi, int _snr, int _bat);
 #else
     Collar();
-    void sendDbg();
+    void sendStats();
 #endif
-
 
     ~Collar();
 
     void setAnimalName(const String& name);
-    void setIsMale(bool is);
+    inline void setIsMale(bool is){ mIsMale = is; }
 
-    String& animalName();
-    bool isMale();
+    inline String& animalName() { return mAnimalName; }
+    inline bool isMale(){ return mIsMale; }
     void onSetup();
     void onUpdate();
     void onSend();
     void onReceive(uint8_t* data, uint32_t size);
-    Button* btnMain();
+    inline Button* btnMain(){ return mBtnMain; }
 
-    bool isFence();
-    bool isInsideFence();
-    bool isGoingAwayFromFence();
-    double fanceDistance();
-    bool hasClosestFenceBorder();
-    Screen *screen();
-    Led* led();
+    inline bool isFence(){ return mFencePointsCount > 0; }
+    inline bool isInsideFence(){ return mIsInsideFence; }
+    inline bool isGoingAwayFromFence(){ return mFenceIsGoingAway; }
+    inline double fanceDistance(){ return mFenceDistance; }
+    inline bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
+    inline Screen *screen() { return mScreen; }
+    inline Led* led() { return mLed; }
 
     void reboot();
     void sleep();
@@ -202,37 +202,25 @@ public:
     bool flash();
     bool restore();
 
-    void setDebugInfo(bool is);;
-    bool toggleDebugInfo();;
     void serialRespond(const String &msg);
     void serialCmd(SerialCmd::Cmd::Type t, const String &str = String());
+
+    inline void setStats(bool is){ mIsStats = is; }
+    inline bool toggleStats(){ mIsStats = !mIsStats; return mIsStats; }
+
+    inline void setDbg(bool is){ gIsDbg = is; }
+    inline bool toggleDbg(){ gIsDbg = !gIsDbg; return gIsDbg; }
+
+    enum struct SignalType {
+        Light = 0,
+        Sound,
+        Shock
+    };
+
+    void execSignal(SignalType t);
+
 };
 
-inline void Collar::setIsMale(bool is){ mIsMale = is; }
-
-inline String &Collar::animalName() { return mAnimalName; }
-
-inline bool Collar::isMale(){ return mIsMale; }
-
-inline Button *Collar::btnMain(){ return mBtnMain; }
-
-inline bool Collar::isFence(){ return mFencePointsCount > 0; }
-
-inline bool Collar::isInsideFence(){ return mIsInsideFence; }
-
-inline bool Collar::isGoingAwayFromFence(){ return mFenceIsGoingAway; }
-
-inline double Collar::fanceDistance(){ return mFenceDistance; }
-
-inline bool Collar::hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
-
-inline Screen *Collar::screen() { return mScreen; }
-
-inline Led *Collar::led() { return mLed; }
-
-inline void Collar::setDebugInfo(bool is){ mIsDbgInfo = is; }
-
-inline bool Collar::toggleDebugInfo(){ mIsDbgInfo = !mIsDbgInfo; return mIsDbgInfo; }
 
 #ifndef ONPC
     extern Collar* gCollar;

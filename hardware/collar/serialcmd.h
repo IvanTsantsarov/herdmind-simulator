@@ -8,6 +8,7 @@
 #define SERIAL_CMD_COMMA ','
 #define SERIAL_CMD_TAIL ':'
 #define SERIAL_CMD_EQUAL '='
+#define SERIAL_CMD_ERROR "Error:"
 
 
 class Collar;
@@ -20,8 +21,6 @@ class SerialCmd
     char* mArgument = nullptr;
     int mArgumentLen = 0;
     bool mIsArgument = false;
-    const char* mErrStr = nullptr;
-    String mStrChanged;
 
     void parse();
     bool execute();
@@ -36,7 +35,8 @@ public:
 
         enum struct Type {
             NONE = 0,
-            DBG,
+            STATS,   // Statistics
+            DBG,    // Debug info
             RSP,    // Responce - send back an aswer from action
             SIGL,   // Signal light
             SIGS,   // Signal sound
@@ -94,7 +94,7 @@ public:
     inline QByteArray readFromSerial() { return Serial.readOut(); }
 #endif
 
-    void sendCmd(SerialCmd::Cmd::Type t, const String &str = String());
+    static void sendCmd(SerialCmd::Cmd::Type t, const String &str = String());
     void sendResponce(const String &rsp) { sendCmd(Cmd::Type::RSP, rsp); }
 };
 

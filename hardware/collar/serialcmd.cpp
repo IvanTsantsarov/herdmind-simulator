@@ -10,6 +10,7 @@
 #define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
 #define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
+#define SERIAL_CMD_STRING_CHANGED "->"
 
 const char* SerialCmd::mCommands[] = { "" };
 
@@ -20,6 +21,7 @@ void SerialCmd::initCommands() {
 
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NONE] = "none";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::DBG] = "dbg";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::STATS] = "stats";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGL] = "sigl";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGS] = "sigs";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGE] = "sige";
@@ -47,7 +49,7 @@ void SerialCmd::initCommands() {
 }
 
 
-SerialCmd::SerialCmd(Collar* c) : mStrChanged("->")
+SerialCmd::SerialCmd(Collar* c)
 {
     SerialCmd::initCommands();
 
@@ -82,7 +84,7 @@ void SerialCmd::setup()
     Serial.begin(SERIAL_BAUDRATE);
     while(!Serial);
     delay(100);
-    Serial.println("Setup collar...");
+    DBG("Setup collar...");
 }
 
 void SerialCmd::clear()
@@ -99,12 +101,12 @@ void SerialCmd::clear()
 void SerialCmd::sendCmd(Cmd::Type t, const String& str)
 {
     Cmd cmd(t);
-    String r = String(SERIAL_CMD_BEGIN) + cmd.typeStr() + (str.length() ? str : "") + SERIAL_CMD_TAIL;
+    String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + (str.length() ? str : "");
     Serial.println(r);
 }
 
 
-#define SERIAL_UPDATE_ERROR(__err__)  Serial.println(String(SERIAL_CMD_BEGIN) + "error" + SERIAL_CMD_TAIL + __err__); clear(); skipAvailable(); return;
+#define SERIAL_ERROR_RETURN(__err__)  sendCmd(Cmd::Type::RSP, String("Error") + __err__); clear(); skipAvailable(); return;
 
 void SerialCmd::update()
 {
@@ -119,7 +121,7 @@ void SerialCmd::update()
 
         if( SERIAL_CMD_DELIMETER(ch)) {
             if( mIsArgument ) {
-                SERIAL_UPDATE_ERROR("Second delimeter!");
+                SERIAL_ERROR_RETURN("Second delimeter!");
             }
 
             mIsArgument = true;
@@ -128,23 +130,21 @@ void SerialCmd::update()
 
         if( SERIAL_CMD_END(ch) ) {
             if( !mCmd.parse(mCommand, mCommandLen) ) {
-                SERIAL_UPDATE_ERROR("Unknown command!");
+                SERIAL_ERROR_RETURN("Unknown command!");
             }
 
             if( mIsArgument && !hasArgumentString() ) {
-                SERIAL_UPDATE_ERROR("Missing argument!");
+                SERIAL_ERROR_RETURN("Missing argument!");
             }
 
-            if( !execute() ) {
-                SERIAL_UPDATE_ERROR(mErrStr);
-            }
+            execute();
             clear();
             return;
         }else {
             if( mIsArgument ) {
 
                 if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
-                    SERIAL_UPDATE_ERROR("Argument too long!");
+                    SERIAL_ERROR_RETURN("Argument too long!");
                 }
 
                 mArgument[mArgumentLen++] = ch;
@@ -152,7 +152,7 @@ void SerialCmd::update()
 
             }else {
                 if( mCommandLen >= SERIAL_CMD_SIZE ) {
-                    SERIAL_UPDATE_ERROR("Command too long!");
+                    SERIAL_ERROR_RETURN("Command too long!");
                 }
                 mCommand[mCommandLen++] = ch;
                 mCommand[mCommandLen] = 0;
@@ -186,118 +186,67 @@ SerialCmd::Cmd::Type SerialCmd::Cmd::str2TypeStatic(const char* str)
 
 bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
  {
-    auto cmp = [&](const char* str){
-        int len = 0;
-        char ch = str[len];
+    int len = 0;
+    char ch = buffer[len];
 
-        // make it lowercase
-        if( ch >= 'A' && ch <= 'Z') {
-            ch += ('a' - 'A');
-        }
-
-        while( ch && len < bufferLen)         {
-            if( ch != buffer[len]){
-                return false;
-            }
-            ch = str[++len];
-        }
-        return true;
-    };
-
-    if( cmp("help") ) {
-         mT = Type::HELP;
-    }else
-    if( cmp("dbg") ) {
-        mT = Type::DBG;
-    }else
-    if( cmp("led") ) {
-        mT = Type::LED;
-    }else
-    if( cmp("reboot") ) {
-        mT = Type::REBOOT;
-    }else
-    if( cmp("info") ) {
-        mT = Type::INFO;
-    }else
-    if( cmp("ver") ) {
-        mT = Type::VER;
-    }else
-    if( cmp("eui") ) {
-        mT = Type::EUI;
-    }else
-    if( cmp("gps") ) {
-        mT = Type::GPS;
-    }else
-    if( cmp("sat") ) {
-        mT = Type::SAT;
-    }else
-    if( cmp("bat") ) {
-        mT = Type::BAT;
-    }else
-    if( cmp("rssi") ) {
-        mT = Type::RSSI;
-    }else
-    if( cmp("ss") ) {
-        mT = Type::SS;
-    }else
-    if( cmp("snr") ) {
-        mT = Type::SNR;
-    }else
-    if( cmp("nkey") ) {
-        mT = Type::NKEY;
-    }else
-    if( cmp("akey") ) {
-        mT = Type::AKEY;
-    }else
-    if( cmp("addr") ) {
-        mT = Type::ADDR;
-    }else
-    if( cmp("fport") ) {
-        mT = Type::FPORT;
-    }else
-    if( cmp("flash") ) {
-        mT = Type::FLASH;
-    }else
-    if( cmp("restore") ) {
-        mT = Type::RESTORE;
-    }else
-    if( cmp("name") ) {
-        mT = Type::NAME;
-    }else
-    if( cmp("sex") ) {
-        mT = Type::SEX;
-    }
-    else {
-        mT = Type::NONE;
-        return false;
+    // make it lowercase
+    if( ch >= 'A' && ch <= 'Z') {
+        ch += ('a' - 'A');
     }
 
-    return true;
+    while( ch && len < bufferLen) {
+        if( ch != buffer[len]){
+            return false;
+        }
+        ch = buffer[++len];
+    }
+
+    mT = Cmd::str2TypeStatic(buffer);
+    return Cmd::Type::NONE != mT;
 }
 
 
 bool SerialCmd::execute()
 {
     auto printChanged = [&]() {
-        Serial.println(mStrChanged + mArgument) ;
+        Serial.println(String(SERIAL_CMD_STRING_CHANGED) + mArgument) ;
     };
 
-    String head = String(SERIAL_CMD_BEGIN) + mCmd.typeStr() + SERIAL_CMD_TAIL;
-    Serial.print(head);
+    auto printError = [&](const String& str) {
+        Serial.println(String(SERIAL_CMD_ERROR) + str) ;
+    };
+
+    auto printHead = [&](bool isResponce = true) {
+        String head = String(SERIAL_CMD_BEGIN)
+                    + ( isResponce ? Cmd::type2StrStatic(Cmd::Type::RSP) : Cmd::type2StrStatic(mCmd.type()) )
+                    + SERIAL_CMD_TAIL;
+
+        Serial.print(head);
+    };
+
     switch( mCmd.type() ) {
     case Cmd::Type::NONE:
         return false;
         break;
     case Cmd::Type::DBG:
-        Serial.println(mCollar->toggleDebugInfo() ? "On" : "Off");
+        printHead();
+        Serial.println(mCollar->toggleDbg() ? "Debug On" : "Debug Off");
+        break;
+    case Cmd::Type::STATS:
+        printHead();
+        Serial.println(mCollar->toggleStats() ? "Stats On" : "Stats Off");
         break;
     case Cmd::Type::LED:
-        Serial.println(mCollar->led()->toggle() ? "On" : "Off");
+        printHead();
+        Serial.println(mCollar->led()->toggle() ? "LED On" : "LED Off");
         break;
     case Cmd::Type::REBOOT:
+        printHead();
+        Serial.println("Rebooting...");
         mCollar->reboot();
         break;
     case Cmd::Type::INFO:
+        printHead(false);
         Serial.println( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
                        (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
                         mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
@@ -308,123 +257,148 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::GPS: {
+        printHead();
         Serial.println( mCollar->gpsStr() );
     }
     break;
 
     case Cmd::Type::SAT:
-        Serial.println( mCollar->satellites() );
+        printHead(false);
+        Serial.println(mCollar->satellites() );
         break;
 
     case Cmd::Type::BAT:
+        printHead(false);
         Serial.println( mCollar->batteryInfo() );
         break;
 
     case Cmd::Type::RSSI:
-        Serial.println( mCollar->rssi() );
+        printHead(false);
+        Serial.println( String("RSSI=") + mCollar->rssi() );
         break;
     case Cmd::Type::SNR:
+        printHead(false);
         Serial.println( mCollar->snr() );
         break;
     case Cmd::Type::SS:
+        printHead(false);
         Serial.println( mCollar->signalStrength() );
         break;
 
     case Cmd::Type::NKEY:
+
         if( mIsArgument ) {
+            printHead();
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
-                mErrStr = "Wrong netkey length!";
+                printError( "Wrong netkey length!" );
                 return false;
             }
             mCollar->setNKeyHex(mArgument);
             printChanged();
         }else {
+            printHead(false);
             Serial.println(mCollar->nkeyHex());
         }
         break;
 
     case Cmd::Type::AKEY:
         if( mIsArgument ) {
+            printHead();
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
-                mErrStr = "Wrong AppKey lenght!";
+                printError("Wrong AppKey lenght!");
                 return false;
             }
             mCollar->setAKeyHex(mArgument);
             printChanged();
         }else {
+            printHead(false);
             Serial.println(mCollar->akeyHex());
         }
         break;
 
     case Cmd::Type::NAME:
+        printHead();
         if( mIsArgument ) {
             if( mArgumentLen < 3) {
-                mErrStr = "Wrong name lenght!";
+                printError("Wrong name lenght!");
                 return false;
             }
             mCollar->setAnimalName(mArgument);
             printChanged();
         }else {
+            printHead(false);
             Serial.println(mCollar->animalName());
         }
         break;
 
     case Cmd::Type::SEX:
         if( mIsArgument ) {
+            printHead();
             if( mArgumentLen != 1) {
-                mErrStr = "Wrong sex lenght!";
+                printError("Wrong sex lenght!");
                 return false;
             }
             mCollar->setIsMale(strcmp(mArgument,"m") == 0 ? true : false);
-            Serial.println(mStrChanged + (mCollar->isMale() ? "male" : "female") );
+            printChanged();
         }else {
-            Serial.println(mCollar->isMale() ? "male" : "female");
+            printHead(false);
+            Serial.println(mCollar->isMale() ? "m" : "f");
         }
         break;
 
     case Cmd::Type::EUI:
         if( mIsArgument ) {
+            printHead();
             if( mArgumentLen != LORA_EUI_HEX_LEN) {
-                mErrStr = "Wrong EUI lenght!";
+                printError("Wrong EUI lenght!");
                 return false;
             }
             mCollar->setEuiHex(mArgument);
             printChanged();
         }else {
+            printHead(false);
             Serial.println(mCollar->euiHex());
         }
         break;
 
     case Cmd::Type::ADDR:
         if( mIsArgument ) {
+            printHead();
             if( mArgumentLen != LORA_ADDR_HEX_LEN) {
-                mErrStr = "Wrong Address lenght!";
+                printError("Wrong Address lenght!");
                 return false;
             }
             mCollar->setAddrHex(mArgument);
             printChanged();
         }else {
+            printHead(false);
             Serial.println(mCollar->addrHex());
         }
         break;
 
     case Cmd::Type::FPORT:
         if( mIsArgument ) {
+            printHead();
             if( mArgumentLen != LORA_FPORT_HEX_LEN) {
-                mErrStr = "Wrong FPort lenght!";
+                printError("Wrong FPort lenght!");
                 return false;
             }
             mCollar->setFPortHex(mArgument);
             printChanged();
         }else {
+            printHead(false);
             Serial.println(String("0x") + mCollar->fportHex());
         }
         break;
 
     case Cmd::Type::HELP:
+        printHead();
         Serial.print("reset: Restarts the ESP32\r");
-        Serial.print("dbg: Toggle debug info\r");
+        Serial.print("stats: Toggle statistics\r");
         Serial.print("led: enable/disable board LED\r");
+        Serial.print("sigl: execute signal Lights\r");
+        Serial.print("sigs: execute signal Sound\r");
+        Serial.print("sige: execute signal Electrick shock\r");
         Serial.print("help: This help\r");
         Serial.print("info: Common info\r");
         Serial.print("gps: Current geo position\r");
@@ -445,26 +419,48 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::FLASH:
+        printHead();
         if( !mCollar->flash() ) {
-            Serial.println("Error!");
+            printError("Flashing.");
         }else {
-            Serial.println("Done.");
+            Serial.println("Flashing done.");
         }
         break;
     case Cmd::Type::RESTORE:
+        printHead();
         if( !mCollar->restore() ) {
-            Serial.println("Error!");
+            printError("Restoring.");
         }else {
-            Serial.println("Done.");
+            Serial.println("Restoring done.");
         }
         break;
 
     case Cmd::Type::VER:
+        printHead(false);
         Serial.println(COLLAR_VERSION);
         break;
     case Cmd::Type::RSP:
         // not receiving - just sending. Here because of the warning
         break;
+    case Cmd::Type::SIGL:
+        printHead();
+        Serial.println("Executing lights...");
+        mCollar->execSignal(Collar::SignalType::Light);
+        break;
+    case Cmd::Type::SIGS:
+        printHead();
+        Serial.println("Executing sound...");
+        mCollar->execSignal(Collar::SignalType::Sound);
+        break;
+    case Cmd::Type::SIGE:
+        printHead();
+        Serial.println("Executing electric shock...");
+        mCollar->execSignal(Collar::SignalType::Shock);
+        break;
+    default:
+        printHead();
+        printError( String("Wrong command:") + mCmd.typeStr() );
+        return false;
     }
 
     return true;
@@ -478,3 +474,16 @@ void SerialCmd::skipAvailable()
     }
 }
 
+// Static debug info flag
+bool gIsDbg = true;
+
+void gPrintDbg(const String &str) {
+    if(gIsDbg)    {
+        SerialCmd::sendCmd(SerialCmd::Cmd::Type::DBG, str);
+        Serial.flush();
+    }
+}
+
+void gPrintDbg(const char* chars) {
+    gPrintDbg(String(chars));
+}

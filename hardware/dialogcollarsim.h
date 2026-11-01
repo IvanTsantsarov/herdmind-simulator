@@ -5,22 +5,26 @@
 #include <QSettings>
 #include <QSerialPort>
 
-#define RESPONCE_COLOR_NORMAL QColor(0, 0, 0)
-#define RESPONCE_COLOR_ERROR QColor(150, 0, 0)
-#define RESPONCE_COLOR_WARNING QColor(150, 150, 0)
-#define RESPONCE_COLOR_SUCESS QColor(0, 150, 0)
-#define RESPONCE_COLOR_COMMAND QColor(128, 64, 128)
-#define RESPONCE_COLOR_RESPONCE QColor(110, 99, 184)
-#define RESPONCE_COLOR_RESPONCE_ERROR QColor(220, 99, 184)
-#define RESPONCE_COLOR_INFO QColor(100, 100, 100)
-
-
 class Animal;
 class Collar;
 class QSerialPort;
 class DevManager;
 class LoraDevSim;
 class QLineEdit;
+
+#define RESPONCE_COLOR_NORMAL QColor(0, 0, 0)
+#define RESPONCE_COLOR_ERROR QColor(150, 0, 0)
+#define RESPONCE_COLOR_WARNING QColor(150, 150, 0)
+#define RESPONCE_COLOR_SUCESS QColor(0, 150, 0)
+#define RESPONCE_COLOR_COMMAND QColor(128, 64, 128)
+#define RESPONCE_COLOR_RESPONCE QColor(110, 99, 184)
+#define RESPONCE_COLOR_RESPONCE_ERROR QColor(220, 50, 50)
+#define RESPONCE_COLOR_INFO QColor(100, 100, 100)
+#define RESPONCE_COLOR_STATS QColor(110, 184, 99)
+#define RESPONCE_COLOR_DBG QColor(100, 120, 120)
+#define RESPONCE_COLOR_CMD QColor(0, 150, 80)
+
+
 
 namespace Ui {
 class DialogCollarSim;
@@ -77,7 +81,7 @@ class DialogCollarSim : public QDialog
 
     static uint32_t mBaudrates[];
 
-    void addResponce(const QString& txt, const QColor& c = RESPONCE_COLOR_NORMAL);
+    void addOutput(const QString& txt, const QColor& c = RESPONCE_COLOR_NORMAL);
     QMap<QString, int> mRequests;
 
     QStringList mCmds;
@@ -166,6 +170,8 @@ private slots:
     void on_timerStopSignalL();
     void on_timerStopSignalS();
     void on_timerStopSignalE();
+
+    void on_checkFull_toggled(bool checked);
 
 private:
     Ui::DialogCollarSim *ui;

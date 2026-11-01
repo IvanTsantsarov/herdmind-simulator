@@ -19,3 +19,9 @@
 
     #include <esp_mac.h> // Required for ESP32 MAC/ChipID functions
 #endif
+
+
+extern bool gIsDbg;
+extern void gPrintDbg(const String &str);
+extern void gPrintDbg(const char* str);
+#define DBG(__str__) gPrintDbg(__str__)

@@ -1,5 +1,4 @@
 #include "collar.h"
-#include "defines.h"
 #include "battery.h"
 #include "res.h"
 #include "screen.h"
@@ -88,8 +87,6 @@ QPointF Collar::fenceClosestPoint() {
     return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
 }
 
-const Animal *Collar::animal() const { return mAnimal; }
-
 void Collar::sendToSerial(const char *str)
 {
     mSerialCmd->writeToSerial(str);
@@ -164,19 +161,19 @@ void gMainButtonInterrupt() {
     gMainButtonDown = true;
 }
 
-void Collar::sendDbg()
+void Collar::sendStats()
 {
-    if( !mIsDbgInfo ) {
+    if( !mIsStats ) {
         return;
     }
 
-    String dbgStr = String(SERIAL_CMD_BEGIN) + "dbg:gps=" + satellites() + SERIAL_CMD_COMMA + gpsStr()
+    String statsStr = String(SERIAL_CMD_BEGIN) + "stats:gps=" + satellites() + SERIAL_CMD_COMMA + gpsStr()
                     + "|rssi=" + rssi()
                     + "|snr=" + snr()
                     + "|bat=" + batteryInfo()
                     + "|btn=" + (gMainButtonDown ? "y":"n");
 
-    Serial.println(dbgStr);
+    Serial.println(statsStr);
 
 }
 
@@ -356,6 +353,15 @@ void Collar::serialCmd(SerialCmd::Cmd::Type t, const String& str)
     mSerialCmd->sendCmd(t, str);
 }
 
+void Collar::execSignal(SignalType t)
+{
+    switch(t) {
+    case SignalType::Light: mLights->execute(); break;
+    case SignalType::Sound: mSound->execute(); break;
+    case SignalType::Shock: mShock->execute(); break;
+    }
+}
+
 void Collar::onSetup()
 {
     mStage = Stage::Setup;
@@ -503,13 +509,13 @@ void Collar::onUpdate()
     // after waking up
     if( gMainButtonDown ) {
         onMainBtn();
-        sendDbg();
+        sendStats();
         gMainButtonDown = false;
-        mDbgMsec = msec;
+        mStatsMsec = msec;
     }else
-    if( COLLAR_DBG_INTERVAL < (msec - mDbgMsec) ) {
-        sendDbg();
-        mDbgMsec = msec;
+    if( COLLAR_DBG_INTERVAL < (msec - mStatsMsec) ) {
+        sendStats();
+        mStatsMsec = msec;
     }
 #endif
 
@@ -576,7 +582,6 @@ void Collar::onUpdate()
             #else
                 onSend();
             #endif
-
 
 
             DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
@@ -646,7 +651,6 @@ void Collar::onReceive(uint8_t *data, uint32_t size)
 
 void Collar::reboot()
 {
-    Serial.println("Restarting...");
     Serial.flush();
     delay(500);
 

@@ -25,7 +25,6 @@
 #define DLGCOLLARSIM_BACKCOL_OK QColor(255, 255, 255)
 #define DLGCOLLARSIM_BACKCOL_ERROR QColor(235, 192, 188)
 
-
 const QRegularExpression DialogCollarSim::mRegexEuiHex =
     QRegularExpression(R"(^[0-9a-fA-F]{16})");
 const QRegularExpression DialogCollarSim::mRegexKeyHex =
@@ -232,7 +231,7 @@ void DialogCollarSim::update()
 
         QByteArray out = mAnimal->collar()->readFromSerial();
         if( out.length() ) {
-            addResponce(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
+            addOutput(QString::fromLatin1(out), RESPONCE_COLOR_RESPONCE);
         }
     }
 }
@@ -319,14 +318,14 @@ void DialogCollarSim::sendToSerial(const QString& msg, bool isRequest)
 
     if( gMainWindow->isSimulation() ) {
         if( !mAnimal) {
-            addResponce("Error:No animal selected.", RESPONCE_COLOR_ERROR);
+            addOutput("Error:No animal selected.", RESPONCE_COLOR_ERROR);
             return;
         }
 
         mAnimal->collar()->sendToSerial(txtTerm.toLocal8Bit().data());
     }else {
         if( !mPort.isOpen() ) {
-            addResponce("Error:Port not opened.", RESPONCE_COLOR_ERROR);
+            addOutput("Error:Port not opened.", RESPONCE_COLOR_ERROR);
             return;
         }
 
@@ -335,13 +334,18 @@ void DialogCollarSim::sendToSerial(const QString& msg, bool isRequest)
     }
 
     ui->editSerialCmd->clear();
-    addResponce(">" + txt, RESPONCE_COLOR_COMMAND);
+    addOutput(">" + txt, RESPONCE_COLOR_COMMAND);
 }
 
-void DialogCollarSim::addResponce(const QString &txt, const QColor &c)
+void DialogCollarSim::addOutput(const QString &txt, const QColor &c)
 {
-    ui->editResponce->setTextColor(c);
-    ui->editResponce->append(txt);
+    if( txt.startsWith("Error") ) {
+        ui->editOutput->setTextColor(RESPONCE_COLOR_ERROR);
+    } else {
+        ui->editOutput->setTextColor(c);
+    }
+
+    ui->editOutput->append(txt);
 }
 
 
@@ -357,21 +361,21 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
 
         QString log = QString("Opening serial port %1 @ %2 ..").arg(portName).arg(baudrate);
         qInfo() << log;
-        addResponce(log, RESPONCE_COLOR_INFO);
+        addOutput(log, RESPONCE_COLOR_INFO);
 
         mIsOpeningPort = true;
         mPort.setPortName(portName);
         mPort.setBaudRate(baudrate);
 
         if( !mPort.open(QIODevice::ReadWrite) ) {
-            addResponce( QString("Opening %1 port").arg(portName), RESPONCE_COLOR_ERROR );
+            addOutput( QString("Opening %1 port").arg(portName), RESPONCE_COLOR_ERROR );
             ui->checkConnect->setChecked(false);
             mIsOpeningPort = false;
             return;
         }
 
         log = QString("Port %1 open").arg(portName);
-        addResponce( log, RESPONCE_COLOR_SUCESS );
+        addOutput( log, RESPONCE_COLOR_SUCESS );
         sendToSerial("info", true);
 
     }else {
@@ -384,7 +388,7 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
 
         QString log = QString("Closing serial port %1 @ %2 ..").arg(mPort.portName()).arg(mPort.baudRate());
         qInfo() << log;
-        addResponce( log, RESPONCE_COLOR_INFO);
+        addOutput( log, RESPONCE_COLOR_INFO);
 
         mPort.close();
         mIsOpeningPort = false;
@@ -441,14 +445,14 @@ void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
     }
 
     QString log = QString("Serial port error:(%1) %2").arg(err).arg(mPort.errorString());
-    addResponce(log, RESPONCE_COLOR_ERROR);
+    addOutput(log, RESPONCE_COLOR_ERROR);
     qWarning() << log;
 }
 
 
 void DialogCollarSim::on_btnClear_clicked()
 {
-    ui->editResponce->clear();
+    ui->editOutput->clear();
 }
 
 
@@ -474,8 +478,6 @@ void DialogCollarSim::processSerialInput()
         return resp.mid(1, dmPos-1);
     };
 
-    bool isError = false;
-
     if( !mPort.isOpen() ) {
         return;
     }
@@ -490,9 +492,17 @@ void DialogCollarSim::processSerialInput()
 
     QByteArray out = mPort.readLine();
     QString respFull = QString::fromLatin1(out);
-    bool isFull = ui->checkUnstripped->isChecked();
+    bool isDbg = false;
+    bool isStats = false;
+    bool isResp = false;
+    bool isFull = ui->checkFull->isChecked();
+
     if( isFull ) {
-        addResponce(respFull, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
+        addOutput(respFull);
+    }else {
+        isDbg = ui->checkDbg->isChecked();
+        isStats = ui->checkStats->isChecked();
+        isResp = ui->checkRsp->isChecked();
     }
 
     QString cmdStr = stripCmd(respFull);
@@ -507,50 +517,53 @@ void DialogCollarSim::processSerialInput()
 
     SerialCmd::Cmd::Type cmd = SerialCmd::Cmd::str2TypeStatic(cmdStr.toLatin1().data());
 
-    QString resp = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
+    QString tail = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
 
     switch(cmd) {
-    case SerialCmd::Cmd::Type::DBG: {
+    case SerialCmd::Cmd::Type::STATS: {
+
+        if( isStats ) {
+            addOutput(tail, RESPONCE_COLOR_STATS);
+        }
+
         if( !mMirror) {
             return;
         }
         GeoPoint pos;
         int snr, rssi, bat, sat;
 
-        QStringList params = resp.split(SERIAL_CMD_PARAMS_DM);
+        QStringList params = tail.split(SERIAL_CMD_PARAMS_DM);
         for(QString param : params) {
             QStringList pair = param.split(SERIAL_CMD_EQUAL);
-            if( pair.count() < 2 ) {
-                if( !isFull ) {
-                    addResponce(resp, RESPONCE_COLOR_RESPONCE);
+            if( pair.count() >= 2 ) {
+                QStringList args = pair[1].split(SERIAL_CMD_COMMA);
+                if( pair.first() == "gps") {
+                    sat = args[0].toInt();
+                    pos.mLat = args[1].toFloat();
+                    pos.mLon = args[2].toFloat();
+                }else
+                if( pair.first() == "rssi") {
+                    rssi = args[0].toInt();
+                }else
+                if( pair.first() == "snr") {
+                    snr = args[0].toInt();
+                }else
+                if( pair.first() == "bat") {
+                    bat = args[1].remove("%").toInt();
+                }else
+                if( pair.first() == "btn" && pair[1] == "y") {
+                    on_btnMain_pressed();
                 }
-                return;
-            }
-            QStringList args = pair[1].split(SERIAL_CMD_COMMA);
-            if( pair.first() == "gps") {
-                sat = args[0].toInt();
-                pos.mLat = args[1].toFloat();
-                pos.mLon = args[2].toFloat();
-            }else
-            if( pair.first() == "rssi") {
-                rssi = args[0].toInt();
-            }else
-            if( pair.first() == "snr") {
-                snr = args[0].toInt();
-            }else
-            if( pair.first() == "bat") {
-                bat = args[1].remove("%").toInt();
-            }else
-            if( pair.first() == "btn" && pair[1] == "y") {
-                on_btnMain_pressed();
             }
         }
+
         mMirror->inject(pos, sat, rssi, snr, bat);
+
         return;
     }
     case SerialCmd::Cmd::Type::INFO:
     {
-        QStringList args = resp.split("|");
+        QStringList args = tail.split("|");
         ui->editAnimalName->setText(args[0]);
         ui->btnSex->setIcon(args[1] == "m" ? mIconMale : mIconFemale );
         ui->editEui->setText(args[2].toUpper());
@@ -565,11 +578,16 @@ void DialogCollarSim::processSerialInput()
         }
         break;
     }
-    case SerialCmd::Cmd::Type::RSP:
-    {
-        isError = true;
+    case SerialCmd::Cmd::Type::DBG:
+        if( isDbg ) {
+            addOutput(tail, RESPONCE_COLOR_DBG);
+        }
         break;
-    }
+    case SerialCmd::Cmd::Type::RSP:
+        if( isResp ) {
+            addOutput(tail);
+        }
+        break;
     case SerialCmd::Cmd::Type::SIGL:
         signalL();
     break;
@@ -579,10 +597,8 @@ void DialogCollarSim::processSerialInput()
     case SerialCmd::Cmd::Type::SIGE:
         signalE();
         break;
-    }
-
-    if( !isFull) {
-        addResponce(resp, isError ? RESPONCE_COLOR_RESPONCE_ERROR : RESPONCE_COLOR_RESPONCE);
+    default:
+        addOutput(tail, RESPONCE_COLOR_CMD);
     }
 }
 
@@ -812,5 +828,13 @@ void DialogCollarSim::on_timerStopSignalS()
 void DialogCollarSim::on_timerStopSignalE()
 {
     ui->btnShock->setIcon(mIconShockOff);
+}
+
+
+void DialogCollarSim::on_checkFull_toggled(bool checked)
+{
+    ui->checkDbg->setEnabled(!checked);
+    ui->checkStats->setEnabled(!checked);
+    ui->checkRsp->setEnabled(!checked);
 }
 
