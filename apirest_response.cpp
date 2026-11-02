@@ -46,6 +46,7 @@ void ApiRest::onResponse()
         case RequestType::SendDeviceMessage: onDeviceMessageResponse(json); break;
         case RequestType::GetGateways: onGetGatewaysResponse(json); break;
         case RequestType::SetDeviceName: onSetDeviceName(json); break;
+        case RequestType::GetDeviceActivation: onGetDeviceActivationStatus(200 == status);
         }
 }
 
@@ -107,4 +108,11 @@ void ApiRest::onGetGatewaysResponse(QJsonObject& jobj)
     Q_UNUSED(jobj);
     // tell manager / gateway layer that the gateway exists
     mDevManager->onGateways(jobj);
+}
+
+void ApiRest::onGetDeviceActivationStatus(bool isActivated)
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QString devEUI = reply->property("devEUI").toString();
+    mDevManager->onDeviceActivationStatus(devEUI, isActivated);
 }

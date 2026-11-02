@@ -62,6 +62,9 @@ void LoraDevHW::onSetup() {
     // 2. Create the LoRaWAN Node Instance
     mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
 
+    // disable frame counter check to stop MIC error
+    // mNode->frameCounterCheck = false;
+
 
     //////////////////////////////////////////////////////
     ///  IMPORTANT!!!! Without this downlink is impossible

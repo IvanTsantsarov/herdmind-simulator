@@ -78,6 +78,7 @@ protected:
     void onDeviceDel(const QString& devEUI);
     void onDeviceActivated(const QString& devEUI);
     void onDeviceAddress(const QString& devEUI, const QString& devAddr);
+    void onDeviceActivationStatus(const QString& devEUI, bool isActivated);
 
     void onDevicesReady(bool isStore);
     void onGateways(const QJsonObject &jobj);

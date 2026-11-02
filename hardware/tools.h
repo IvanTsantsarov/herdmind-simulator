@@ -453,6 +453,7 @@ public:
                     const uint8_t* dataDown, size_t* lenDown, bool isConfirmed){ return lenUp; }
 
     int scanGuard = 0;
+    bool frameCounterCheck = false;
 };
 
 #elif USING_LORA == LORA_HELTEC

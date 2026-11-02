@@ -141,8 +141,8 @@ void DevManager::onDevices(const QJsonObject &jobj)
             // obtain new address if not available
             mApiRest->getDeviceAddress(eui);
         }else {
-            // activate device if address available
-            mApiRest->activateDevice(eui, addr, akey, nkey);
+            // reqeust device activation status
+            mApiRest->requestDeviceActivationStatus(eui);
         }
     }
 
@@ -195,6 +195,18 @@ void DevManager::onDeviceAddress(const QString &devEUI, const QString &devAddr)
     qInfo() << "Device" << devEUI << " address obtained:" << devAddr;
 
     mApiRest->activateDevice(devEUI, devAddr, dev->appSKey().toHex(), dev->nwkSKey().toHex());
+}
+
+void DevManager::onDeviceActivationStatus(const QString &devEUI, bool isActivated)
+{
+    if( isActivated ) {
+        qInfo() << "Device" << devEUI << " already active";
+        onDeviceActivated(devEUI);
+    }else {
+        LoraDevSim* dev = device(devEUI);
+        qInfo() << "Device not active" << devEUI << ". Activating...";
+        mApiRest->activateDevice(devEUI, dev->addrHex(), dev->akeyHex(), dev->nkeyHex());
+    }
 }
 
 void DevManager::onDeviceActivated(const QString &devEUI)

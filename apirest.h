@@ -29,7 +29,8 @@ class ApiRest : public QObject
         ActivateDevice,
         GetDeviceAddress,
         SendDeviceMessage,
-        GetGateways
+        GetGateways,
+        GetDeviceActivation
     };
 
     QString mApiUrl, mApiKey, mAppId;
@@ -75,6 +76,7 @@ class ApiRest : public QObject
     void onGetDeviceAddress(QJsonObject& jobj);
     void onDeviceMessageResponse(QJsonObject& jobj);
     void onGetGatewaysResponse(QJsonObject& jobj);
+    void onGetDeviceActivationStatus(bool isActivated);
 
 
 private slots:
@@ -98,6 +100,8 @@ public:
                        const QString &newName,
                        const QString &newDesc = QString(),
                        bool isSkipFrameCheck = true);
+
+    void requestDeviceActivationStatus(const QString &devEUI);
 
     void activateDevice(const QString &devEUI,
                         const QString &devAddr,

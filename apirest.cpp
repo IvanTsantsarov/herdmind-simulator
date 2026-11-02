@@ -154,6 +154,12 @@ void ApiRest::setDeviceName(const QString &devEUI,
     reply->setProperty("devEUI", devEUI);
 }
 
+void ApiRest::requestDeviceActivationStatus(const QString &devEUI)
+{
+    QNetworkReply* reply = get(TENANT_REQUEST, QString("devices/%1/activation").arg(devEUI), RequestType::GetDeviceActivation );
+    reply->setProperty("devEUI", devEUI);
+}
+
 
 // Activation By Personalization (static)
 void ApiRest::activateDevice(const QString &devEUI,
