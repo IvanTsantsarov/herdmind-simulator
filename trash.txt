@@ -537,3 +537,39 @@ if (tcxoState != RADIOLIB_ERR_NONE) {
 }
 
 */
+
+
+String gRadioLibErrStr(int16_t errorCode) {
+
+#ifndef ONPC
+    switch(errorCode) {
+    case RADIOLIB_ERR_NONE:
+        return "RADIOLIB_ERR_NONE: No error, method executed successfully.";
+    case RADIOLIB_ERR_UNKNOWN:
+        return "RADIOLIB_ERR_UNKNOWN: Unexpected, unknown error.";
+    case RADIOLIB_ERR_CHIP_NOT_FOUND:
+        return "RADIOLIB_ERR_CHIP_NOT_FOUND: Radio chip not found. Check your wiring or constructor pins!";
+    case RADIOLIB_ERR_MEMORY_ALLOCATION_FAILED:
+        return "RADIOLIB_ERR_MEMORY_ALLOCATION_FAILED: Failed to allocate memory for temporary buffer.";
+    case RADIOLIB_ERR_PACKET_TOO_LONG:
+        return "RADIOLIB_ERR_PACKET_TOO_LONG: Supplied packet was longer than the limit.";
+    case RADIOLIB_ERR_TX_TIMEOUT:
+        return "RADIOLIB_ERR_TX_TIMEOUT: Timed out waiting for transmission finish. Check your interrupt pins.";
+    case RADIOLIB_ERR_RX_TIMEOUT:
+        return "RADIOLIB_ERR_RX_TIMEOUT: Timed out waiting for incoming packet (Expected for blocking receive).";
+    case RADIOLIB_ERR_SPI_CMD_TIMEOUT:
+        return "RADIOLIB_ERR_SPI_CMD_TIMEOUT: SPI command timed out.";
+    case RADIOLIB_ERR_SPI_CMD_INVALID:
+        return "RADIOLIB_ERR_SPI_CMD_INVALID: Radio received an invalid SPI command.";
+    case RADIOLIB_ERR_SPI_CMD_FAILED:
+        return "RADIOLIB_ERR_SPI_CMD_FAILED: SPI command failed. Verify your TCXO/crystal oscillator hardware configuration.";
+    case RADIOLIB_ERR_NETWORK_NOT_JOINED:
+        return "RADIOLIB_ERR_NETWORK_NOT_JOINED: LoRaWAN network not joined.";
+    // Catch-all for less common error codes
+    default:
+        return "Unknown Error Code (" + String(errorCode) + ")";
+    }
+#else
+    return "RadioLib error";
+#endif
+}

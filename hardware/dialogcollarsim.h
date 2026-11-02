@@ -102,6 +102,7 @@ class DialogCollarSim : public QDialog
     // flash only on request, not on each mirror device activation
     bool mIsRequestToFlash = false;
 
+    void refreshPorts();
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
     void loadAnimals(QList<Animal*> animals);
@@ -172,6 +173,8 @@ private slots:
     void on_timerStopSignalE();
 
     void on_checkFull_toggled(bool checked);
+
+    void on_btnPortsRefresh_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

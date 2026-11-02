@@ -23,6 +23,7 @@ Data Rate (DR)	Configuration	Bit Rate	Typical Use / Characteristics
 #define PIN_NRST  12
 #define PIN_BUSY  13
 
+extern String gRadioLibErrStr(int16_t errorCode);
 
 // Msec to wait additionaly for the RX window
 #define LORAWAN_RX_WINDOW 250
@@ -77,7 +78,7 @@ void LoraDevHW::onSetup() {
 
     int state = mRadio.begin(config);
     if (state != RADIOLIB_ERR_NONE) {
-        DBG("[LoraDevHW] ERROR:Lora init failed!");
+        DBG( String("[LoraDevHW] ERROR:Lora init failed!") + gRadioLibErrStr(state));
         return;
     }
 
@@ -85,7 +86,7 @@ void LoraDevHW::onSetup() {
     state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
 
     if (state != RADIOLIB_ERR_NONE) {
-        DBG( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
+        DBG( String("[LoraDevHW] ERROR:beginABP failed: ") + gRadioLibErrStr(state));
         return;
     }
 
@@ -100,7 +101,7 @@ void LoraDevHW::onSetup() {
     } else if (state == RADIOLIB_LORAWAN_SESSION_RESTORED) {
         DBG("[LoraDevHW] ABP activated: session restored");
     } else if (state != RADIOLIB_ERR_NONE) {
-        DBG(String("[LoraDevHW] ERROR: activateABP failed:") + state);
+        DBG(String("[LoraDevHW] ERROR: activateABP failed:") + gRadioLibErrStr(state) );
         return;
     }
 
@@ -133,7 +134,7 @@ void LoraDevHW::sendPackage(void *data, size_t len)
     DBG(String("[LoraDevHW] Downlink size:") + mBufferDownLen);
 
     if (state >= RADIOLIB_ERR_NONE) {
-        DBG( String("[LoraDevHW] Uplink done with state:") + state);
+        DBG( String("[LoraDevHW] Uplink done with state:") + gRadioLibErrStr(state));
 
         if (state > 0) {
             DBG("[LoraDevHW] Downlink received");
@@ -143,7 +144,7 @@ void LoraDevHW::sendPackage(void *data, size_t len)
             DBG("[LoraDevHW] No downlink received");
         }
     } else {
-        DBG( String("[LoraDevHW] LoRaWAN send failed:") + state);
+        DBG( String("[LoraDevHW] LoRaWAN send failed:") + gRadioLibErrStr(state));
     }
 }
 

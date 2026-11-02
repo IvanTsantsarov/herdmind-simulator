@@ -50,6 +50,7 @@ SOURCES += \
     hardware/collar/lights.cpp \
     hardware/collar/loradev_hw.cpp \
     hardware/collar/memory.cpp \
+    hardware/collar/radiolib_erros.cpp \
     hardware/collar/res.cpp \
     hardware/collar/serialcmd.cpp \
     hardware/collar/shock.cpp \

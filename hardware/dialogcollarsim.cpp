@@ -17,7 +17,7 @@
 
 
 #define DLGCOLLARSIM_SIGNAL_DURATION 3000
-#define DLGCOLLARSIM_SIGL_ON QColor(255, 255, 255)
+#define DLGCOLLARSIM_SIGL_ON QColor(255, 255, 200)
 #define DLGCOLLARSIM_SIGL_OFF QColor(50, 50, 50)
 
 #define DLGCOLLARSIM_MAX_COMMAND_STRINGS 10
@@ -108,30 +108,36 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
 
     // In simulation mode SerialPort is not used
     ui->groupPorts->setVisible(!gMainWindow->isSimulation());
+
     if( !gMainWindow->isSimulation() ) {
-
-        // Fill with all ports
-        QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
-        for( QSerialPortInfo& info:ports ) {
-            ui->comboPorts->addItem(info.portName());
-        }
-
         int baudratesCount = sizeof(mBaudrates)/sizeof(uint32_t);
         for( auto i = 0; i < baudratesCount; i ++) {
             ui->comboBaudrate->addItem(QString("%1").arg(mBaudrates[i]));
         }
 
+        refreshPorts();
+
         connect(&mPort, &QSerialPort::errorOccurred, this, &DialogCollarSim::on_serialPortError);
         connect(mDM, &DevManager::deviceActivated, this, &DialogCollarSim::on_deviceActivated );
     }
-
 
     // Hide for now LEDs
     // ui->groupLEDs->setVisible(false);
 
     ui->widgetScreen->image() = mImageDisconnected;
-
 }
+
+void DialogCollarSim::refreshPorts()
+{
+    ui->comboPorts->clear();
+
+    // Fill with all ports
+    QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    for( QSerialPortInfo& info:ports ) {
+        ui->comboPorts->addItem(info.portName());
+    }
+}
+
 
 void DialogCollarSim::loadAnimals(QList<Animal *> animals)
 {
@@ -650,6 +656,7 @@ bool DialogCollarSim::isFlashDataValid()
             mRegexAddrHex.match(ui->editAddr->text()).hasMatch();
 }
 
+
 void DialogCollarSim::on_editEui_textChanged(const QString &newEui)
 {
     ui->btnReload->setEnabled(true);
@@ -836,5 +843,11 @@ void DialogCollarSim::on_checkFull_toggled(bool checked)
     ui->checkDbg->setEnabled(!checked);
     ui->checkStats->setEnabled(!checked);
     ui->checkRsp->setEnabled(!checked);
+}
+
+
+void DialogCollarSim::on_btnPortsRefresh_clicked()
+{
+    refreshPorts();
 }
 

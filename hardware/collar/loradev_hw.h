@@ -12,6 +12,7 @@
 
 #define LORAWAN_APP_DATA_MAX_SIZE 64
 
+
 class LoraDevHW
 {
     uint8_t mFPort = LORA_FPORT;
