@@ -93,10 +93,11 @@ public:
 
     void getDeviceAddress(const QString& devEUI);
 
-    void setDeviceName( const QString &devEUI,
+    void setDeviceName(const QString &devEUI,
                        const QString &profileId,
                        const QString &newName,
-                       const QString &newDesc = QString() );
+                       const QString &newDesc = QString(),
+                       bool isSkipFrameCheck = true);
 
     void activateDevice(const QString &devEUI,
                         const QString &devAddr,

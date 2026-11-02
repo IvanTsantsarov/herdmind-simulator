@@ -2,6 +2,19 @@
 
 #include <cstdio>
 
+/*
+// EU868
+Data Rate (DR)	Configuration	Bit Rate	Typical Use / Characteristics
+    DR0         SF12 / 125 kHz	250 bit/s	Longest range, slowest speed
+    DR1         SF11 / 125 kHz	440 bit/s	High range
+    DR2         SF10 / 125 kHz	980 bit/s	Medium-high range
+    DR3         SF9 / 125 kHz	1,760 bit/s	Medium range
+    DR4         SF8 / 125 kHz	3,125 bit/s	Shorter range
+    DR5         SF7 / 125 kHz	5,470 bit/s	Short range, fast
+    DR6         SF7 / 250 kHz	11,000 bit/s	High speed, wide band
+    DR7         FSK / 50 kbps	50,000 bit/s	Frequency Shift Keying (rarely used)
+*/
+
 #define PIN_NSS   8
 #define PIN_SCK   9
 #define PIN_MOSI  10
@@ -12,7 +25,7 @@
 
 
 // Msec to wait additionaly for the RX window
-#define LORAWAN_RX_WINDOW 450
+#define LORAWAN_RX_WINDOW 250
 
 LoraDevHW::LoraDevHW() {
 }
@@ -34,11 +47,12 @@ void LoraDevHW::onSetup() {
     mEui[6] = mac[4];
     mEui[7] = mac[5];
 
-    Serial.println(String("[LoraDevHW] === Setup start ==="));
-    Serial.println(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
-    Serial.println(String("[LoraDevHW] NKey:") + nkeyHex());
-    Serial.println(String("[LoraDevHW] AKey:") + akeyHex());
-    Serial.println(String("[LoraDevHW] === Setup end ==="));
+    DBG(String("[LoraDevHW] === Setup start ==="));
+    DBG(String("[LoraDevHW] Build:") + __TIME__ + "," + __DATE__);
+    DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
+    DBG(String("[LoraDevHW] NKey:") + nkeyHex());
+    DBG(String("[LoraDevHW] AKey:") + akeyHex());
+
 
     // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
     // Pins for V4.3: NSS=8, DIO1=14, NRST=12, BUSY=13
@@ -47,9 +61,13 @@ void LoraDevHW::onSetup() {
     // 2. Create the LoRaWAN Node Instance
     mNode = new LoRaWANNode(&mRadio, &EU868); // Automatically sets up EU868 frequencies
 
+
     //////////////////////////////////////////////////////
     ///  IMPORTANT!!!! Without this downlink is impossible
-    mNode->scanGuard = LORAWAN_RX_WINDOW;
+    if( LORAWAN_RX_WINDOW ) {
+        mNode->scanGuard = LORAWAN_RX_WINDOW;
+    }
+    DBG(String("[LoraDevHW] scanGuard=") + mNode->scanGuard);
     ////////////////////////////////////////
 
     SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);
@@ -59,7 +77,7 @@ void LoraDevHW::onSetup() {
 
     int state = mRadio.begin(config);
     if (state != RADIOLIB_ERR_NONE) {
-        Serial.println("[LoraDevHW] ERROR:Lora init failed!");
+        DBG("[LoraDevHW] ERROR:Lora init failed!");
         return;
     }
 
@@ -67,31 +85,33 @@ void LoraDevHW::onSetup() {
     state = mNode->beginABP(mAddr, nullptr, nullptr, mNKey, mAKey);
 
     if (state != RADIOLIB_ERR_NONE) {
-        Serial.println( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
+        DBG( String("[LoraDevHW] ERROR:beginABP failed: ") + state);
         return;
     }
 
     // Configure RX2 before activating the session.
     //state = mNode->setRx2Dr(0);
-    //Serial.println(String("[LoraDevHW] setRx2Dr(0):") + state);
+    //DBG(String("[LoraDevHW] setRx2Dr(0):") + state);
 
     state = mNode->activateABP();
 
     if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
-        Serial.println("[LoraDevHW] ABP activated: new session");
+        DBG("[LoraDevHW] ABP activated: new session");
     } else if (state == RADIOLIB_LORAWAN_SESSION_RESTORED) {
-        Serial.println("[LoraDevHW] ABP activated: session restored");
+        DBG("[LoraDevHW] ABP activated: session restored");
     } else if (state != RADIOLIB_ERR_NONE) {
-        Serial.println(String("[LoraDevHW] ERROR: activateABP failed:") + state);
+        DBG(String("[LoraDevHW] ERROR: activateABP failed:") + state);
         return;
     }
+
+    DBG(String("[LoraDevHW] === Setup end ==="));
 }
 
 void LoraDevHW::sendPackage(void *data, size_t len)
 {
 
     if( len > LORAWAN_APP_DATA_MAX_SIZE ) {
-        Serial.println( String("[LoraDevHW] ERROR: send data > LORAWAN_APP_DATA_MAX_SIZE:") + len);
+        DBG( String("[LoraDevHW] ERROR: send data > LORAWAN_APP_DATA_MAX_SIZE:") + len);
         len = LORAWAN_APP_DATA_MAX_SIZE;
     }
     const char* charPtr = ((char*)data);
@@ -133,7 +153,7 @@ void LoraDevHW::onUpdate()
 
 void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
 {
-    Serial.println("[LoraDevHW] Collar::onReceive() Not implemented!");
+    DBG("[LoraDevHW] Collar::onReceive() Not implemented!");
 }
 
 String LoraDevHW::addrHex()

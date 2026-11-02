@@ -54,17 +54,27 @@ void setup() {
     config.bandwidth = 125.0;
 
 #ifdef SETTINGS_RX1
-    config.frequency = 868.5;       // Gateway's RX2 downlink frequency
+    config.frequency = 868.5;       // Gateway's RX1 downlink frequency
     config.spreadingFactor = 9;
+    Serial.printf("Using RX1 freq:%f\n", config.frequency);
 #else
     config.frequency = 869.525;       // Gateway's RX2 downlink frequency
     config.spreadingFactor = 12;
+    Serial.printf("Using RX2 freq:%f\n", config.frequency);
 #endif
     
-
+    
     int state = radio.begin(config);
+
+    
     Serial.println("*******************************");
     Serial.printf("*** BEGIN: state = %d\n", state);
+#ifdef SETTINGS_RX1
+    Serial.printf("Using RX1 freq:%f\n", config.frequency);
+#else
+    Serial.printf("Using RX2 freq:%f\n", config.frequency);
+#endif
+
     Serial.println("*******************************");
     if (state != RADIOLIB_ERR_NONE) {
         Serial.println("Failed!");

@@ -129,7 +129,8 @@ void ApiRest::addDevice(const QString& name,
 void ApiRest::setDeviceName(const QString &devEUI,
                             const QString &profileId,
                             const QString &newName,
-                            const QString &newDesc)
+                            const QString &newDesc,
+                            bool isSkipFrameCheck)
 {
     QString data = QString(
                        "{"
@@ -138,14 +139,16 @@ void ApiRest::setDeviceName(const QString &devEUI,
                        "\"devEui\": \"%2\","
                        "\"name\": \"%3\","
                        "\"description\": \"%4\","
-                       "\"deviceProfileId\": \"%5\""
+                       "\"deviceProfileId\": \"%5\","
+                       "\"skipFcntCheck\": %6"
                        "}"
                        "}")
                        .arg(gSimTools->appId())
                        .arg(devEUI)
                        .arg(newName.toUtf8())
                        .arg(newDesc.toUtf8())
-                       .arg(profileId);
+                       .arg(profileId)
+                       .arg(isSkipFrameCheck ? "true" : "false");
 
     QNetworkReply* reply = put(TENANT_REQUEST, QString("devices/%1").arg(devEUI), RequestType::SetDeviceName, data.toUtf8() );
     reply->setProperty("devEUI", devEUI);

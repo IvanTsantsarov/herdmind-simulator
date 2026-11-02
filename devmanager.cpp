@@ -335,7 +335,9 @@ bool DevManager::sendMessageMqtt(const QString &eui, const QByteArray &msg)
 
 void DevManager::onDevicesReady(bool isStore)
 {
-    Q_ASSERT(mEdge);
+    if( mIsSimulation ) {
+        Q_ASSERT(mEdge);
+    }
 
     mIsDevicesReady = true;
     gMainWindow->onDevicesReady(isStore);
@@ -353,7 +355,9 @@ void DevManager::onDevicesReady(bool isStore)
 
 void DevManager::onGateways(const QJsonObject &jobj)
 {
-    Q_ASSERT(mEdge);
+    if( mIsSimulation ) {
+        Q_ASSERT(mEdge);
+    }
 
      int count = jobj["totalCount"].toInt();
 
@@ -374,22 +378,24 @@ void DevManager::onGateways(const QJsonObject &jobj)
 
     qDebug() << "Gateways from chirpstack count:" << count;
 
-    bool hasGateway = false;
-    for( const auto& jsonElement: array ) {
-        QJsonObject jobj = jsonElement.toObject();
-        QString gatewayId = jobj["gatewayId"].toString();
-        qDebug() << jobj["name"].toString() << gatewayId;
-        if( mEdge->id() == gatewayId ) {
-            hasGateway = true;
+    if( mIsSimulation ) {
+        bool hasGateway = false;
+        for( const auto& jsonElement: array ) {
+            QJsonObject jobj = jsonElement.toObject();
+            QString gatewayId = jobj["gatewayId"].toString();
+            qDebug() << jobj["name"].toString() << gatewayId;
+            if( mEdge->id() == gatewayId ) {
+                hasGateway = true;
+            }
         }
-    }
 
-    if( !hasGateway) {
-        qCritical() << "*** Gateway" << mEdge->id()
-                    <<" not registered for tenant" << mApiRest->tenantId()
-                    << "Please add it to Chirpstack UI!";
-    }else {
-        qDebug() << "Proper Gateway found!" << mEdge->id();
+        if( !hasGateway) {
+            qCritical() << "*** Gateway" << mEdge->id()
+                        <<" not registered for tenant" << mApiRest->tenantId()
+                        << "Please add it to Chirpstack UI!";
+        }else {
+            qDebug() << "Proper Gateway found!" << mEdge->id();
+        }
     }
 }
 

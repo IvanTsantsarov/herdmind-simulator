@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     qInfo() << "Gegga herdmind simulator v. " << VERSION;
+    qInfo() << "Compilation time:" << QString("%1T%2").arg(__DATE__).arg(__TIME__);
     qInfo() << "by Ivan Tsantsarov " << 2025;
     qInfo() << "Qt version:" << qVersion();
     qInfo() << "Current dir:" << QDir::current().absolutePath();
