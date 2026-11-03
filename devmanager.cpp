@@ -135,7 +135,7 @@ void DevManager::onDevices(const QJsonObject &jobj)
 
         // If device is not missing - set it's name again
         // description currently not used
-        mApiRest->setDeviceName(eui, profileId, name);
+        mApiRest->setDeviceName(eui, profileId, name, QString(), mIsSkipDevicesFrameCheck );
 
         if( !addrInt ) {
             // obtain new address if not available

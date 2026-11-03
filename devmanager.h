@@ -37,6 +37,9 @@ class DevManager : public QObject
     QList<LoraDevSim*> mDevicesList;
     QMap<QString, LoraDevSim*> mDevicesMap;
 
+    // TODO: put this option in the settings file
+    bool mIsSkipDevicesFrameCheck = true;
+
     // array of saved devices in the device.json
     // from previous generation here in the simulator
     QJsonArray mDevicesJson;
