@@ -160,7 +160,7 @@ void DevManager::onDeviceAdd(const QString &devEUI)
     qInfo() << "Device" << devEUI << device(devEUI)->name() << "added to Chirpstack.";
     mAddedDevicesCount ++;
     if( mAddedDevicesCount == mAddingDevicesCount ) {
-        qInfo() << "Adding (ABP)" << mAddedDevicesCount << "devices done!";
+        qInfo() << "Added (ABP)" << mAddedDevicesCount << "devices done!";
     }
 
     mApiRest->getDeviceAddress(devEUI);
@@ -212,7 +212,7 @@ void DevManager::onDeviceActivationStatus(const QString &devEUI, bool isActivate
 void DevManager::onDeviceActivated(const QString &devEUI)
 {
     LoraDevSim* dev = device(devEUI);
-    qInfo() << "Device" << devEUI << dev->name() << "activated with address:" << dev->addr().toHex();
+    qInfo() << "Device" << devEUI << dev->name() << "activate with address:" << dev->addr().toHex();
 
     dev->activate();
 
@@ -221,7 +221,7 @@ void DevManager::onDeviceActivated(const QString &devEUI)
 
     mActivatedDevicesCount++;
     if( mDevsMapJson.count() == mActivatedDevicesCount ) {
-        qInfo() << "Activated" << mActivatedDevicesCount << "devices done!";
+        qInfo() << "Active" << mActivatedDevicesCount << "devices done!";
         onDevicesReady(true);
     }
 }
@@ -232,7 +232,7 @@ void DevManager::onDeviceDel(const QString &devEUI)
 
     mDeletedDevicesCount++;
     if( mDeletedDevicesCount == mDeletingDevicesCount ) {
-        qInfo() << "Deleting" << mDeletingDevicesCount << "devices done!";
+        qInfo() << "Deleted" << mDeletingDevicesCount << "devices done!";
     }
 
 }
