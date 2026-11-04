@@ -160,6 +160,16 @@ void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
     DBG("[LoraDevHW] Collar::onReceive() Not implemented!");
 }
 
+float LoraDevHW::rssi()
+{
+    return mRadio.getRSSI();
+}
+
+float LoraDevHW::snr()
+{
+    return mRadio.getSNR();
+}
+
 String LoraDevHW::addrHex()
 {
     uint8_t ba[LORA_ADDR_LEN] = {0};

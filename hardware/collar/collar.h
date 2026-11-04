@@ -186,11 +186,12 @@ public:
     void reboot();
     void sleep();
 
-    int rssi(); // RSSI (Received Signal Strength Indicator) in dBm
+#ifdef ONPC
+    virtual int rssi(); // RSSI (Received Signal Strength Indicator) in dBm
+    virtual int snr(); // SNR (Signal-to-Noise Ratio)
+#endif
 
-    // SNR (Signal-to-Noise Ratio)
-    int snr();
-
+    char gpsStatus(); // y - has gps hardware, n - doesn't have gps harware, e - emulated gps
     GeoPoint gps();
     String gpsStr();
     int satellites();

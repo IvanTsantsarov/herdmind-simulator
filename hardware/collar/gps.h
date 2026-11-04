@@ -10,6 +10,7 @@ class GPS
     int mSatelites = 0;
     bool mIsConnection = false;
     bool mIsPowered = true;
+    bool mIsHardware = false;
 
 public:
     GPS();
@@ -26,8 +27,12 @@ public:
 
     #ifdef ONPC
         void inject(GeoPoint gp, int sat);
+
     #endif
 
+    bool isHardware(){ return mIsHardware; }
+
+    bool isEmulated();
 };
 
 #endif // GPS_H

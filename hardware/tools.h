@@ -434,6 +434,8 @@ public:
     float tcxoVoltage = 1.6f;
     SX1262(Module* m){ }
     int setTCXO(float v){ tcxoVoltage = v; return RADIOLIB_ERR_NONE; }
+    float getRSSI(){ return -30; };
+    float getSNR(){ return -80; };
 
 };
 

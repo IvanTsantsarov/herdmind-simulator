@@ -32,10 +32,8 @@ class LoraDevHW
 
     bool mIsSent = false;
 
-#if USING_LORA == LORA_RADIOLIB
     SX1262 mRadio = nullptr;
     LoRaWANNode* mNode = nullptr;
-#endif
 
 public:
 
@@ -71,5 +69,8 @@ public:
     virtual void onSetup();
     virtual void onUpdate();
     virtual void onReceive(uint8_t* data, uint32_t size); // data receiving
+
+    virtual float rssi();
+    virtual float snr();
 };
  // #endif

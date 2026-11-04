@@ -204,17 +204,14 @@ int Collar::snr()
 {
     return mInjectedSNR;
 }
-#else
-int Collar::rssi()
+#endif
+
+char Collar::gpsStatus()
 {
-    return -30;
+    if( mGPS->isEmulated() ) return 'e';
+    return mGPS->isHardware() ? 'y' : 'n';
 }
 
-int Collar::snr()
-{
-    return -80;
-}
-#endif
 
 
 GeoPoint Collar::gps()

@@ -47,12 +47,9 @@ public:
             INFO,
             VER,    // Give software version
             EUI,
-            GPS,    // Get current position
-            SAT,    // Get number of GPS sattelites
+            GPS,    // Get gps hardware availability, current position and satelites count
             BAT,
-            RSSI,   // Get Received Signal Strength Indicator
-            SNR,    // Get SNR (Signal-to-Noise Ratio
-            SS,     // Get Signal Strength
+            RADIO,   // Get LoRa RSSI( Received Signal Strength Indicator), SNR(Signal-to-Noise Ratio) and SS (Signal Strength)
             NAME,   // Get/Set animal name
             SEX,    // m or f
             NKEY,   // Set/Get network key

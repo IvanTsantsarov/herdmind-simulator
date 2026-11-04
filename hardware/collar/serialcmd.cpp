@@ -7,7 +7,7 @@
 #define SERIAL_TX_BUFFER_SIZE 1024
 #define SERIAL_ARGUMENT_SIZE 32
 
-#define SERIAL_CMD_DELIMETER(__char__) (__char__ == ' ')
+#define SERIAL_CMD_IS_SPACE(__char__) (__char__ == ' ')
 #define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
 #define SERIAL_CMD_STRING_CHANGED "->"
@@ -31,11 +31,8 @@ void SerialCmd::initCommands() {
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INFO] = "info";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::EUI] = "eui";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::GPS] = "gps";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SAT] = "sat";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::BAT] = "bat";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RSSI] = "rssi";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SNR] = "snr";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SS] = "ss";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RADIO] = "radio";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NKEY] = "nkey";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::AKEY] = "akey";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::ADDR] = "addr";
@@ -84,7 +81,7 @@ void SerialCmd::setup()
     Serial.begin(SERIAL_BAUDRATE);
     while(!Serial);
     delay(100);
-    DBG("Setup collar...");
+    DBG("Print \"help\" for more info...");
 }
 
 void SerialCmd::clear()
@@ -119,7 +116,7 @@ void SerialCmd::update()
         // Read and tap the buffer
         char ch = Serial.read();
 
-        if( SERIAL_CMD_DELIMETER(ch)) {
+        if( SERIAL_CMD_IS_SPACE(ch)) {
             if( mIsArgument ) {
                 SERIAL_ERROR_RETURN("Second delimeter!");
             }
@@ -258,31 +255,24 @@ bool SerialCmd::execute()
 
     case Cmd::Type::GPS: {
         printHead();
-        Serial.println( mCollar->gpsStr() );
+        Serial.println( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
+                        "lat=" + String(mCollar->gps().mLat, 10) + SERIAL_CMD_PARAMS_DM +
+                        "lon=" + String(mCollar->gps().mLon, 10) + SERIAL_CMD_PARAMS_DM +
+                        "sat=" + mCollar->satellites() );
     }
     break;
 
-    case Cmd::Type::SAT:
-        printHead(false);
-        Serial.println(mCollar->satellites() );
-        break;
 
     case Cmd::Type::BAT:
         printHead(false);
         Serial.println( mCollar->batteryInfo() );
         break;
 
-    case Cmd::Type::RSSI:
+    case Cmd::Type::RADIO:
         printHead(false);
-        Serial.println( String("RSSI=") + mCollar->rssi() );
-        break;
-    case Cmd::Type::SNR:
-        printHead(false);
-        Serial.println( mCollar->snr() );
-        break;
-    case Cmd::Type::SS:
-        printHead(false);
-        Serial.println( mCollar->signalStrength() );
+        Serial.println( String("RSSI=") + mCollar->rssi() + SERIAL_CMD_PARAMS_DM
+                       + "SNR=" + mCollar->snr() + SERIAL_CMD_PARAMS_DM
+                       + "SS=" + mCollar->signalStrength());
         break;
 
     case Cmd::Type::NKEY:
@@ -391,33 +381,6 @@ bool SerialCmd::execute()
         }
         break;
 
-    case Cmd::Type::HELP:
-        printHead();
-        Serial.print("reset: Restarts the ESP32\r");
-        Serial.print("stats: Toggle statistics\r");
-        Serial.print("led: enable/disable board LED\r");
-        Serial.print("sigl: execute signal Lights\r");
-        Serial.print("sigs: execute signal Sound\r");
-        Serial.print("sige: execute signal Electrick shock\r");
-        Serial.print("help: This help\r");
-        Serial.print("info: Common info\r");
-        Serial.print("gps: Current geo position\r");
-        Serial.print("sat: Count of available GPS sattelites\r");
-        Serial.print("bat: Battery status\r");
-        Serial.print("rssi: Received Signal Strenght Indicator in dB\r");
-        Serial.print("snr: Signal to Noise Ratio in dB\r");
-        Serial.print("ss: Signal Strength in percents\r");
-        Serial.print("name: Set/Get animal's name\r");
-        Serial.print("sex: Set/Get gender: f or m\r");
-        Serial.print("eui: Set/Get EUI of the LoraWAN module\r");
-        Serial.print("nkey: Set/Get network key (only OTA supported)\r");
-        Serial.print("akey: Set/Get app key (only OTA supported)\r");
-        Serial.print("flash: Flash values into peristent memory\r");
-        Serial.print("restore: Restore values from peristent memory\r");
-        Serial.print("reboot: Restart the device\r");
-        Serial.println("");
-        break;
-
     case Cmd::Type::FLASH:
         printHead();
         if( !mCollar->flash() ) {
@@ -457,6 +420,39 @@ bool SerialCmd::execute()
         Serial.println("Executing electric shock...");
         mCollar->execSignal(Collar::SignalType::Shock);
         break;
+    case Cmd::Type::HELP:
+        printHead(false);
+        Serial.print("---------- HELP ----------\r");
+        Serial.print("stats: Toggle statistics\r");
+        Serial.print("info: Common info\r");
+        Serial.print( "--- Animal\r");
+        Serial.print("name: Set/Get animal's name\r");
+        Serial.print("sex: Set/Get gender: f or m\r");
+        Serial.print( "--- LoraWAN\r");
+        Serial.print("eui: Set/Get EUI of the LoraWAN module\r");
+        Serial.print("nkey: Set/Get network key (only OTA supported)\r");
+        Serial.print("akey: Set/Get app key (only OTA supported)\r");
+        Serial.print( "--- Signals\r");
+        Serial.print("sigl: execute signal Lights\r");
+        Serial.print("sigs: execute signal Sound\r");
+        Serial.print("sige: execute signal Electrick shock\r");
+        Serial.print( "--- Hardware\r");
+        Serial.print("led: enable/disable board LED\r");
+        Serial.print("gps: status(e-emulated, y-hardware present, n-no hardware), current position, sattelites count\r");
+        Serial.print("bat: Battery status\r");
+        Serial.print("radio: Get LoRa RSSI, SNR and SS\r");
+        Serial.print( "--- Program\r");
+        Serial.print("flash: Flash values into peristent memory\r");
+        Serial.print("restore: Restore values from peristent memory\r");
+        Serial.print("reboot: Restart the device\r");
+        Serial.print( "--- Legend\r");
+        Serial.print( "* EUI - LoRa device unique number\r");
+        Serial.print( "* RSSI - Received Signal Strength Indicator\r");
+        Serial.print( "* SNR - Signal-to-Noise Ratio\r");
+        Serial.print( "* SS - Signal Strength\r" );
+        Serial.print("--------------------------\r\n");
+        break;
+
     default:
         printHead();
         printError( String("Wrong command:") + mCmd.typeStr() );

@@ -34,6 +34,7 @@ void GPS::setup()
 #ifdef ONPC
     gGPS.setupSimulation();
 #endif
+
 }
 
 
@@ -49,6 +50,7 @@ void GPS::onUpdate()
 #else
     while( Serial1.available() ){
         gGPS.encode(Serial1.read());
+        mIsHardware = true;
     }
 
     if( !gGPS.location.isValid() ) {
@@ -92,4 +94,14 @@ void GPS::inject(GeoPoint gp, int sat)
     gGPS.inject(gp.mLat, gp.mLon, gp.mAlt, sat);
 }
 #endif
+
+bool GPS::isEmulated()
+{
+#ifdef EMULATE_GPS
+    return true;
+#else
+    return false;
+#endif
+}
+
 

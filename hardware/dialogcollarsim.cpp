@@ -603,6 +603,24 @@ void DialogCollarSim::processSerialInput()
     case SerialCmd::Cmd::Type::SIGE:
         signalE();
         break;
+    case SerialCmd::Cmd::Type::HELP:
+    {
+        QStringList lines = tail.split('\r');
+        for(QString line: lines) {
+            if( line.startsWith("---")) {
+                addOutput(line, RESPONCE_COLOR_INFO);
+            }else {
+                int cmdEnd = line.indexOf(SERIAL_CMD_TAIL);
+                if( cmdEnd >= 0) {
+                    QString cmdName = line.left(cmdEnd);
+                    QString cmdInfo = line.mid(cmdEnd);
+                    addOutput( QString("<b>%1</b>%2").arg(cmdName, cmdInfo), RESPONCE_COLOR_CMD);
+                }
+            }
+        }
+
+        break;
+    }
     default:
         addOutput(tail, RESPONCE_COLOR_CMD);
     }
