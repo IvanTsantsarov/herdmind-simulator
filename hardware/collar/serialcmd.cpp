@@ -446,10 +446,10 @@ bool SerialCmd::execute()
         Serial.print("restore: Restore values from peristent memory\r");
         Serial.print("reboot: Restart the device\r");
         Serial.print( "--- Legend\r");
-        Serial.print( "* EUI - LoRa device unique number\r");
-        Serial.print( "* RSSI - Received Signal Strength Indicator\r");
-        Serial.print( "* SNR - Signal-to-Noise Ratio\r");
-        Serial.print( "* SS - Signal Strength\r" );
+        Serial.print( "EUI: LoRa device unique number\r");
+        Serial.print( "RSSI: Received Signal Strength Indicator\r");
+        Serial.print( "SNR: Signal-to-Noise Ratio\r");
+        Serial.print( "SS: Signal Strength\r" );
         Serial.print("--------------------------\r\n");
         break;
 
