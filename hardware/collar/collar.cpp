@@ -562,6 +562,8 @@ void Collar::onUpdate()
     {
         if( mGPS->isReady() )
         {
+            mLed->on();
+
             if( !mIsSignalGPS ) {
                 DBG("!");
                 DBG( String("GPS signal arrived in ") + msec + " msec" );
@@ -569,7 +571,7 @@ void Collar::onUpdate()
             }
 
             updateTrajectory(mGPS->pos());
-            mLed->updateOn(500, 1000);
+
 
             #ifdef ONPC
             // Do not send information when there is no simulation
@@ -581,6 +583,7 @@ void Collar::onUpdate()
             #endif
 
 
+            mLed->off();
             DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
             mSecSleep = msec;
             mStage = Stage::Sleep;

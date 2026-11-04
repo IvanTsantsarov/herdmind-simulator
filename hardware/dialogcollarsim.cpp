@@ -125,6 +125,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
     // ui->groupLEDs->setVisible(false);
 
     ui->widgetScreen->image() = mImageDisconnected;
+
+    ui->btnGenEui->setVisible(false);
 }
 
 void DialogCollarSim::refreshPorts()
@@ -435,7 +437,7 @@ void DialogCollarSim::on_btnGenNKey_clicked()
 void DialogCollarSim::on_btnGenEui_clicked()
 {
     QByteArray ba = SimTools::genHex(LORA_EUI_LEN);
-    ui->editNKey->setText(ba.toUpper());
+    ui->editEui->setText(ba.toUpper());
 }
 
 
@@ -784,11 +786,11 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
         ui->editAddr->setText( addr );
         ui->editAnimalName->setText( mMirror->animalName().toQString() );
         mMirror->setAddrHex(addr.toLatin1());
-
+/*
         if( ui->checkFlashEui->isChecked() ) {
             sendToSerial(QString("eui %1").arg(ui->editEui->text()));
         }
-
+*/
         sendToSerial(QString("name %1").arg(mMirror->animalName().toQString()) );
         sendToSerial(QString("sex %1").arg(mMirror->isMale() ? "m" : "f"));
         sendToSerial(QString("akey %1").arg(ui->editAKey->text()));

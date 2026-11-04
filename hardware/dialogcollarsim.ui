@@ -594,16 +594,6 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkFlashEui">
-            <property name="toolTip">
-             <string>Flash or not EUI</string>
-            </property>
-            <property name="text">
-             <string>EUI</string>
-            </property>
-           </widget>
-          </item>
           <item row="5" column="3">
            <widget class="QPushButton" name="btnCopyAddr">
             <property name="enabled">
@@ -634,6 +624,9 @@
             </property>
             <property name="toolTip">
              <string>EUI</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -718,7 +711,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>Generate EUI</string>
+             <string>Animal gender</string>
             </property>
             <property name="text">
              <string/>
@@ -729,29 +722,6 @@
            <widget class="QLabel" name="label_4">
             <property name="text">
              <string>Animal</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="btnGenEui">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Generate EUI</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
             </property>
            </widget>
           </item>
@@ -815,6 +785,36 @@
             <property name="icon">
              <iconset resource="../res/res.qrc">
               <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>EUI</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="btnGenEui">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Generate EUI</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
             </property>
            </widget>
           </item>
