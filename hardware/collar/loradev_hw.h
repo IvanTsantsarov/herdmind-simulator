@@ -12,14 +12,17 @@
 
 #define LORAWAN_APP_DATA_MAX_SIZE 64
 
-
 class LoraDevHW
 {
-    uint8_t mFPort = LORA_FPORT;
-    uint8_t mEui[LORA_EUI_LEN];
-    uint8_t mNKey[LORA_KEY_LEN];
-    uint8_t mAKey[LORA_KEY_LEN];
-    uint32_t mAddr;
+    static RTC_DATA_ATTR uint32_t mBootCount;
+    static RTC_DATA_ATTR uint8_t mFPort;
+    static RTC_DATA_ATTR uint8_t mEui[LORA_EUI_LEN];
+    static RTC_DATA_ATTR uint8_t mNKey[LORA_KEY_LEN];
+    static RTC_DATA_ATTR uint8_t mAKey[LORA_KEY_LEN];
+    static RTC_DATA_ATTR uint32_t mAddr;
+    static RTC_DATA_ATTR uint8_t mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
+    static RTC_DATA_ATTR bool mLoraSessionValid;
+
     uint8_t mBufferUp[LORAWAN_APP_DATA_MAX_SIZE];
     size_t mBufferUpLen = 0;
     uint8_t mBufferDown[LORAWAN_APP_DATA_MAX_SIZE];
@@ -72,5 +75,8 @@ public:
 
     virtual float rssi();
     virtual float snr();
+    inline bool isWakingUp(){ return mBootCount; };
+
+    virtual bool sleep(uint64_t interval, int pinBtnWake);
 };
  // #endif

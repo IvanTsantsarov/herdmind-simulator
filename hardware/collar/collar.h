@@ -184,7 +184,7 @@ public:
     inline Led* led() { return mLed; }
 
     void reboot();
-    void sleep();
+    void prepareToSleep();
 
 #ifdef ONPC
     virtual int rssi(); // RSSI (Received Signal Strength Indicator) in dBm

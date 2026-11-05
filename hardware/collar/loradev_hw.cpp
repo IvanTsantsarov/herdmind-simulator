@@ -28,31 +28,48 @@ extern String gRadioLibErrStr(int16_t errorCode);
 // Msec to wait additionaly for the RX window
 #define LORAWAN_RX_WINDOW 250
 
+RTC_DATA_ATTR uint32_t LoraDevHW::mBootCount = 0;
+RTC_DATA_ATTR uint8_t LoraDevHW::mFPort = LORA_FPORT;
+RTC_DATA_ATTR uint8_t LoraDevHW::mEui[LORA_EUI_LEN] = {0};
+RTC_DATA_ATTR uint8_t LoraDevHW::mNKey[LORA_KEY_LEN] = {0};
+RTC_DATA_ATTR uint8_t LoraDevHW::mAKey[LORA_KEY_LEN] = {0};
+RTC_DATA_ATTR uint32_t LoraDevHW::mAddr = 0;
+
+RTC_DATA_ATTR uint8_t LoraDevHW::mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
+RTC_DATA_ATTR bool LoraDevHW::mLoraSessionValid = false;
+
 LoraDevHW::LoraDevHW() {
+    // Only one instance is allowed of this type
+    DBG("[LoraDevHD] Checking for single instance...");
+    assert(0 == mAddr);
 }
 
 void LoraDevHW::onSetup() {
     uint8_t mac[6] = {0};
 
-    // Get the base MAC address of the ESP32 (6 bytes unique)
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    if( isWakingUp() ) {
+        DBG(String("[LoraDevHW] Wake up:") + mBootCount);
+    }else {
+        // Get the base MAC address of the ESP32 (6 bytes unique)
+        esp_read_mac(mac, ESP_MAC_WIFI_STA);
 
-    // Convert 6-byte MAC into an 8-byte LoRaWAN DevEUI
-    // Standard approach expands the middle with 0xFF, 0xFE or padding
-    mEui[0] = mac[0];
-    mEui[1] = mac[1];
-    mEui[2] = mac[2];
-    mEui[3] = 0xFF; // Padding byte
-    mEui[4] = 0xFE; // Padding byte
-    mEui[5] = mac[3];
-    mEui[6] = mac[4];
-    mEui[7] = mac[5];
+        // Convert 6-byte MAC into an 8-byte LoRaWAN DevEUI
+        // Standard approach expands the middle with 0xFF, 0xFE or padding
+        mEui[0] = mac[0];
+        mEui[1] = mac[1];
+        mEui[2] = mac[2];
+        mEui[3] = 0xFF; // Padding byte
+        mEui[4] = 0xFE; // Padding byte
+        mEui[5] = mac[3];
+        mEui[6] = mac[4];
+        mEui[7] = mac[5];
 
-    DBG(String("[LoraDevHW] === Setup start ==="));
-    DBG(String("[LoraDevHW] Build:") + __TIME__ + "," + __DATE__);
-    DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
-    DBG(String("[LoraDevHW] NKey:") + nkeyHex());
-    DBG(String("[LoraDevHW] AKey:") + akeyHex());
+        DBG(String("[LoraDevHW] === Setup start ==="));
+        DBG(String("[LoraDevHW] Build:") + __TIME__ + "," + __DATE__);
+        DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
+        DBG(String("[LoraDevHW] NKey:") + nkeyHex());
+        DBG(String("[LoraDevHW] AKey:") + akeyHex());
+    };
 
 
     // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
@@ -93,11 +110,21 @@ void LoraDevHW::onSetup() {
         return;
     }
 
-    // Configure RX2 before activating the session.
-    //state = mNode->setRx2Dr(0);
-    //DBG(String("[LoraDevHW] setRx2Dr(0):") + state);
+    // Activate session
+    if (mLoraSessionValid) {
+        // After sleeping load from the buffer
+        state = mNode->setBufferSession(mLoraSession);
 
-    state = mNode->activateABP();
+        if (state == RADIOLIB_ERR_NONE) {
+            state = mNode->activateABP();
+        }else {
+            DBG(String("[LoraDevHW] ERROR: setBufferSession failed: ") + gRadioLibErrStr(state));
+            // Fallback to fresh activation if configuration was corrupted
+            state = mNode->activateABP();
+        }
+    } else {
+        state = mNode->activateABP();
+    }
 
     if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
         DBG("[LoraDevHW] ABP activated: new session");
@@ -113,7 +140,6 @@ void LoraDevHW::onSetup() {
 
 void LoraDevHW::sendPackage(void *data, size_t len)
 {
-
     if( len > LORAWAN_APP_DATA_MAX_SIZE ) {
         DBG( String("[LoraDevHW] ERROR: send data > LORAWAN_APP_DATA_MAX_SIZE:") + len);
         len = LORAWAN_APP_DATA_MAX_SIZE;
@@ -149,6 +175,18 @@ void LoraDevHW::sendPackage(void *data, size_t len)
     } else {
         DBG( String("[LoraDevHW] LoRaWAN send failed:") + gRadioLibErrStr(state));
     }
+
+
+    uint8_t* currentSessionPtr = mNode->getBufferSession();
+
+    if (currentSessionPtr != nullptr) {
+        // Copy RadioLib's memory configuration straight to the persistent RTC block
+        memcpy(mLoraSession, currentSessionPtr, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
+        mLoraSessionValid = true;
+        DBG("[LoraDevHW] Current LoRaWAN session serialized to RTC RAM.");
+    } else {
+        DBG("[LoraDevHW] ERROR: Could not fetch active buffer session pointer from RadioLib.");
+    }
 }
 
 void LoraDevHW::onUpdate()
@@ -168,6 +206,22 @@ float LoraDevHW::rssi()
 float LoraDevHW::snr()
 {
     return mRadio.getSNR();
+}
+
+bool LoraDevHW::sleep(uint64_t msec, int pinBtnWake)
+{
+    mRadio.sleep(true);
+
+    esp_sleep_enable_timer_wakeup(1000ULL * msec);
+
+    esp_sleep_enable_ext1_wakeup(
+        1ULL << pinBtnWake,
+        ESP_EXT1_WAKEUP_ANY_LOW
+        );
+
+    esp_deep_sleep_start();
+
+    return false;
 }
 
 String LoraDevHW::addrHex()

@@ -17,8 +17,12 @@ TinyGPSPlus gGPS;
 
 GPS::GPS() {}
 
-void GPS::setup()
+void GPS::setup(bool isWakeup)
 {
+    if( isWakeup ) {
+        powerOn();
+    }
+
     // Enable GNSS power
     pinMode(VGNSS_CTRL, OUTPUT);
     digitalWrite(VGNSS_CTRL, LOW);
@@ -79,12 +83,14 @@ void GPS::powerOff()
 {
     Serial1.end();
     digitalWrite(VGNSS_CTRL, HIGH);
+    gpio_hold_en((gpio_num_t)VGNSS_CTRL); // hold high state on this pin
     mIsPowered = false;
 }
 
 void GPS::powerOn()
 {
-
+    // 1. Release the physical hardware hold lock so the ESP32 can control the pin again
+    gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
     mIsPowered = true;
 }
 

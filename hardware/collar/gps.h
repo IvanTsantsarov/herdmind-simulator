@@ -14,7 +14,7 @@ class GPS
 
 public:
     GPS();
-    void setup();
+    void setup(bool isWakeup);
     void onUpdate();
 
     inline bool isReady(){ return mIsReady; }

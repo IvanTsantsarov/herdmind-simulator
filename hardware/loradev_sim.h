@@ -151,11 +151,14 @@ public:
 
     bool isSending() { return mSendingMsec > 0; }
 
+    bool isWakingUp(){ return false; }
+
     virtual void onSetup(){}; // On regular sensors setup
     virtual void onUpdate() = 0; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
     virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
     void updateLastSeen();
+    virtual bool sleep(uint64_t interval, int pinBtnWake);
 
     struct LastSeenStruct {
         int hours = -1;

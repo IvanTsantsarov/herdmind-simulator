@@ -1,5 +1,9 @@
 #include "led.h"
 
+
+
+
+
 void Led::setup(int pinNum)
 {
     mPin = pinNum;
@@ -17,7 +21,7 @@ void Led::on(uint32_t duration, uint32_t durationAfter)
     mMSec = millis();
     mDurationAfter = duration + durationAfter;
     mIsPhase2 = false;
-    digitalWrite(mPin, HIGH);   // Turn the LED on
+    hwOn();
 }
 
 void Led::updateOn(uint32_t duration, uint32_t durationAfter)
@@ -32,7 +36,7 @@ void Led::off()
     }
 
     mIsOn = false;
-    digitalWrite(mPin, LOW);   // Turn the LED off
+    hwOff();
 }
 
 void Led::enable(bool is)
@@ -48,6 +52,13 @@ bool Led::toggle()
 {
     enable(!mIsEnabled);
     return mIsEnabled;
+}
+
+void Led::blink(uint32_t duration)
+{
+    hwOn();
+    delay(duration);
+    hwOff();
 }
 
 

@@ -26,6 +26,8 @@
 
 #define LORAWAN_APP_DATA_MAX_SIZE 64
 
+#define RTC_DATA_ATTR
+
 inline void esp_read_mac(uint8_t mac[], int arg1) {
     (void) mac, (void) arg1;
 };
@@ -402,9 +404,6 @@ extern ClassSPI SPI;
 /// Lora(WAN)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-#if USING_LORA == LORA_RADIOLIB
-
 #define RADIOLIB_ERR_NONE 0
 #define RADIOLIB_LORAWAN_NEW_SESSION -1118
 #define RADIOLIB_LORAWAN_SESSION_RESTORED -1117
@@ -436,17 +435,26 @@ public:
     int setTCXO(float v){ tcxoVoltage = v; return RADIOLIB_ERR_NONE; }
     float getRSSI(){ return -30; };
     float getSNR(){ return -80; };
+    void sleep(bool is){}
 
 };
 
 extern const int EU868;
 
+typedef int gpio_num_t;
+void gpio_hold_en( gpio_num_t num );
+void gpio_hold_dis( gpio_num_t num );
+
+#define RADIOLIB_LORAWAN_SESSION_BUF_SIZE 64
 
 class LoRaWANNode {
+    uint8_t mBufferSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
 public:
     LoRaWANNode(Module* radio, const int* standart) { }
     int beginABP(uint8_t addr, uint8_t* fNwkSIntKey, uint8_t* sNwkSIntKey, uint8_t* nwkSEncKey, uint8_t* appSKey) { return RADIOLIB_ERR_NONE; }
     int activateABP() {return RADIOLIB_LORAWAN_NEW_SESSION; }
+    int setBufferSession(uint8_t* buffer){ return RADIOLIB_ERR_NONE; }
+    uint8_t* getBufferSession(){ return mBufferSession; }
     int setRx2Dr(int interval){ return RADIOLIB_ERR_NONE; }
     int setRxWindowDelayCorrection(int val){ return RADIOLIB_ERR_NONE; }
 
@@ -458,46 +466,8 @@ public:
     bool frameCounterCheck = false;
 };
 
-#elif USING_LORA == LORA_HELTEC
-
-#define ACTIVE_REGION 0
-typedef int LoRaMacRegion_t ;
-
-#define CLASS_A 0
-typedef int DeviceClass_t;
-
-extern uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE];
-extern size_t appDataSize;
-
-#define DEVICE_STATE_INIT 1
-#define DEVICE_STATE_JOIN 2
-#define DEVICE_STATE_SEND 3
-#define DEVICE_STATE_CYCLE 4
-#define DEVICE_STATE_SLEEP 5
-
-extern int deviceState;
-
-class HeltecLoraWAN {
-public:
-    void generateDeveuiByChipID(){};
-    void init(int lClass, int lRegion){};
-    void join(){};
-    void send(){};
-    void cycle(int msec){};
-    void sleep(int lClass){};
-
-};
-
-extern HeltecLoraWAN LoRaWAN;
-
-#define HELTEC_BOARD 1
-#define SLOW_CLK_TPYE 2
-
-class HeltecMCU {
-public:
-    void begin(int board, int clk){}
-};
-
-extern HeltecMCU Mcu;
-
-#endif
+#define PIN_BTN_MAIN 0
+#define ESP_EXT1_WAKEUP_ANY_LOW 1
+void esp_sleep_enable_ext1_wakeup( int pin, int value);
+void esp_sleep_enable_timer_wakeup(uint64_t microSec);
+void esp_deep_sleep_start();

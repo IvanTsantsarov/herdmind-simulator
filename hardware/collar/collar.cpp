@@ -179,18 +179,14 @@ void Collar::sendStats()
 
 #endif
 
-void Collar::sleep()
+void Collar::prepareToSleep()
 {
-#ifdef ONPC
+    DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
+    mSecSleep = millis();
     mStage = Stage::Sleep;
-#else
-    esp_sleep_enable_ext1_wakeup(
-        1ULL << PIN_BTN_MAIN,
-        ESP_EXT1_WAKEUP_ANY_LOW
-        );
-
-    esp_deep_sleep_start();
-#endif
+    mScreen->sleep();
+    mGPS->powerOff();
+    sleep(mSendIntervalMsec, PIN_BTN_MAIN);
 }
 
 
@@ -370,7 +366,7 @@ void Collar::onSetup()
 
     mScreen->setup();
 
-    mGPS->setup();
+    mGPS->setup(isWakingUp());
 
     mBtnMain->setup();
 
@@ -540,7 +536,6 @@ void Collar::onUpdate()
         mStage = Stage::Operate;
     }
 
-
     mBattery->update();
 
     // Check screen if it's time to sleep
@@ -562,7 +557,7 @@ void Collar::onUpdate()
     {
         if( mGPS->isReady() )
         {
-            mLed->on();
+            mLed->blink(10);
 
             if( !mIsSignalGPS ) {
                 DBG("!");
@@ -582,11 +577,9 @@ void Collar::onUpdate()
                 onSend();
             #endif
 
+            mLed->blink(50);
 
-            mLed->off();
-            DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
-            mSecSleep = msec;
-            mStage = Stage::Sleep;
+            prepareToSleep();
         }else {
             Serial.print("-");
             mLed->updateOn(50, 1000);

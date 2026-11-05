@@ -533,15 +533,28 @@ QDateTime fromTimestamp(uint32_t secFrom2K) {
 const int EU868 = 868;
 ClassSPI SPI;
 
-#if USING_LORA == LORA_RADIOLIB
+void esp_sleep_enable_timer_wakeup(uint64_t microSec)
+{
+
+}
+
+void esp_deep_sleep_start()
+{
+
+}
 
 
-#elif USING_LORA == LORA_HELTEC
-int deviceState = DEVICE_STATE_INIT;
-uint8_t appData[LORAWAN_APP_DATA_MAX_SIZE] = {0};
-size_t appDataSize = 0;
+void esp_sleep_enable_ext1_wakeup(int pin, int value)
+{
 
-HeltecLoraWAN LoRaWAN;
+}
 
-HeltecMCU Mcu;
-#endif
+void gpio_hold_en(gpio_num_t num)
+{
+
+}
+
+void gpio_hold_dis(gpio_num_t num)
+{
+
+}

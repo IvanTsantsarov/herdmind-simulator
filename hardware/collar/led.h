@@ -16,6 +16,10 @@ class Led
     int mBufferLen = 0;
     bool mIsEnabled = true;
 
+
+    inline void hwOn() { digitalWrite(mPin, HIGH); } // Turn the LED On
+    inline void hwOff() { digitalWrite(mPin, LOW); }   // Turn the LED off
+
 public:
     void setup(int pinNum);
     bool update();
@@ -26,6 +30,7 @@ public:
     inline bool isEnabled(){ return mIsEnabled; }
     void enable(bool is);
     bool toggle();
+    void blink(uint32_t duration);
 };
 
 #endif // LED_H
