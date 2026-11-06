@@ -41,6 +41,7 @@ public:
 
     void sleep();
     void wakeup();
+    void off();
     inline bool isSleeping(){ return mIsSleeping; }
 
     ScreenLib& lib(){ return mLib;}

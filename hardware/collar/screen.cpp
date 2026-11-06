@@ -109,3 +109,10 @@ void Screen::wakeup()
         // DBG("SCR WAKE");
     }
 }
+
+void Screen::off()
+{
+    // Standard V4 only; verify your board revision and Vext polarity.
+    pinMode(VEXT, OUTPUT);
+    digitalWrite(VEXT, HIGH);  // Vext off before deep sleep
+}

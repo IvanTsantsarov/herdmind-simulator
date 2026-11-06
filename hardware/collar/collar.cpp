@@ -187,7 +187,7 @@ void Collar::prepareToSleep()
     DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
     mSecSleep = millis();
     mStage = Stage::Sleep;
-    mScreen->sleep();
+    mScreen->off();
     mGPS->powerOff();
     sleep(mSendIntervalMsec, PIN_BTN_MAIN);
 }
