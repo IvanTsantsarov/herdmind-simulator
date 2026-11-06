@@ -36,19 +36,20 @@ RTC_DATA_ATTR uint8_t LoraDevHW::mAKey[LORA_KEY_LEN] = {0};
 RTC_DATA_ATTR uint32_t LoraDevHW::mAddr = 0;
 
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
+RTC_DATA_ATTR uint8_t LoraDevHW::mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE] = {0};
 RTC_DATA_ATTR bool LoraDevHW::mLoraSessionValid = false;
 
 LoraDevHW::LoraDevHW() {
     // Only one instance is allowed of this type
     DBG("[LoraDevHD] Checking for single instance...");
-    assert(0 == mAddr);
+    // assert(0 == mAddr);
 }
 
 void LoraDevHW::onSetup() {
     uint8_t mac[6] = {0};
 
     if( isWakingUp() ) {
-        DBG(String("[LoraDevHW] Wake up:") + mBootCount);
+        DBG(String("[LoraDevHW] --- Wake up ---") + mBootCount);
     }else {
         // Get the base MAC address of the ESP32 (6 bytes unique)
         esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -66,10 +67,15 @@ void LoraDevHW::onSetup() {
 
         DBG(String("[LoraDevHW] === Setup start ==="));
         DBG(String("[LoraDevHW] Build:") + __TIME__ + "," + __DATE__);
-        DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
-        DBG(String("[LoraDevHW] NKey:") + nkeyHex());
-        DBG(String("[LoraDevHW] AKey:") + akeyHex());
     };
+
+    DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
+    DBG(String("[LoraDevHW] NKey:") + nkeyHex());
+    DBG(String("[LoraDevHW] AKey:") + akeyHex());
+    DBG(String("[LoraDevHW] Boot count:") + bootCount());
+    DBG(String("[LoraDevHW] Reset reason: ") + (int)esp_reset_reason());
+    DBG(String("[LoraDevHW] Wake cause: ") + (int)esp_sleep_get_wakeup_cause());
+
 
 
     // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
@@ -112,8 +118,14 @@ void LoraDevHW::onSetup() {
 
     // Activate session
     if (mLoraSessionValid) {
-        // After sleeping load from the buffer
-        state = mNode->setBufferSession(mLoraSession);
+
+        state = mNode->setBufferNonces(mLoraNonces);
+        DBG(String("[LoraDevHW] setBufferNonces: ") + gRadioLibErrStr(state));
+
+        if (state == RADIOLIB_ERR_NONE) {
+            state = mNode->setBufferSession(mLoraSession);
+            DBG(String("[LoraDevHW] setBufferSession: ") + gRadioLibErrStr(state));
+        }
 
         if (state == RADIOLIB_ERR_NONE) {
             state = mNode->activateABP();
@@ -135,7 +147,12 @@ void LoraDevHW::onSetup() {
         return;
     }
 
-    DBG(String("[LoraDevHW] === Setup end ==="));
+    if( isWakingUp() ) {
+        DBG(String("[LoraDevHW] -----------------"));
+    }else {
+        DBG(String("[LoraDevHW] === Setup end ==="));
+    }
+
 }
 
 void LoraDevHW::sendPackage(void *data, size_t len)
@@ -176,16 +193,17 @@ void LoraDevHW::sendPackage(void *data, size_t len)
         DBG( String("[LoraDevHW] LoRaWAN send failed:") + gRadioLibErrStr(state));
     }
 
-
     uint8_t* currentSessionPtr = mNode->getBufferSession();
+    uint8_t* currentNoncesPtr = mNode->getBufferNonces();
 
-    if (currentSessionPtr != nullptr) {
+    if (currentSessionPtr && currentNoncesPtr) {
         // Copy RadioLib's memory configuration straight to the persistent RTC block
         memcpy(mLoraSession, currentSessionPtr, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
+        memcpy(mLoraNonces, currentNoncesPtr, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
         mLoraSessionValid = true;
         DBG("[LoraDevHW] Current LoRaWAN session serialized to RTC RAM.");
     } else {
-        DBG("[LoraDevHW] ERROR: Could not fetch active buffer session pointer from RadioLib.");
+        DBG("[LoraDevHW] Error: Could not fetch active buffers session and nonces from RadioLib.");
     }
 }
 
@@ -210,16 +228,24 @@ float LoraDevHW::snr()
 
 bool LoraDevHW::sleep(uint64_t msec, int pinBtnWake)
 {
+    // Increment boot count
+    LoraDevHW::incBootCount();
+
     mRadio.sleep(true);
+    delay(100);
 
-    esp_sleep_enable_timer_wakeup(1000ULL * msec);
+    esp_err_t err = esp_sleep_enable_timer_wakeup(1000ULL * msec);
+    DBG(String("[LoraDevHW] Timer config: ") + esp_err_to_name(err));
 
-    esp_sleep_enable_ext1_wakeup(
+    err = esp_sleep_enable_ext1_wakeup(
         1ULL << pinBtnWake,
         ESP_EXT1_WAKEUP_ANY_LOW
         );
+    DBG(String("[LoraDevHW] EXT1 config: ") + esp_err_to_name(err));
 
     esp_deep_sleep_start();
+
+    DBG("[LoraDevHW]Error: should not be here on a deep sleep!");
 
     return false;
 }

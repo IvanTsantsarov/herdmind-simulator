@@ -21,6 +21,7 @@ class LoraDevHW
     static RTC_DATA_ATTR uint8_t mAKey[LORA_KEY_LEN];
     static RTC_DATA_ATTR uint32_t mAddr;
     static RTC_DATA_ATTR uint8_t mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
+    static RTC_DATA_ATTR uint8_t mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
     static RTC_DATA_ATTR bool mLoraSessionValid;
 
     uint8_t mBufferUp[LORAWAN_APP_DATA_MAX_SIZE];
@@ -75,7 +76,9 @@ public:
 
     virtual float rssi();
     virtual float snr();
-    inline bool isWakingUp(){ return mBootCount; };
+    static inline bool isWakingUp(){ return LoraDevHW::mBootCount > 0; };
+    static inline int bootCount(){ return LoraDevHW::mBootCount; }
+    static void incBootCount(){ LoraDevHW::mBootCount++; }
 
     virtual bool sleep(uint64_t interval, int pinBtnWake);
 };

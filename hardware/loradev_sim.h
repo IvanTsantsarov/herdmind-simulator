@@ -152,6 +152,7 @@ public:
     bool isSending() { return mSendingMsec > 0; }
 
     bool isWakingUp(){ return false; }
+    static inline int bootCount(){ return 0; }
 
     virtual void onSetup(){}; // On regular sensors setup
     virtual void onUpdate() = 0; // On regular sensors update

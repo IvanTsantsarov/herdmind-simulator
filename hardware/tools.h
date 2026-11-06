@@ -446,15 +446,19 @@ void gpio_hold_en( gpio_num_t num );
 void gpio_hold_dis( gpio_num_t num );
 
 #define RADIOLIB_LORAWAN_SESSION_BUF_SIZE 64
+#define RADIOLIB_LORAWAN_NONCES_BUF_SIZE 64
 
 class LoRaWANNode {
     uint8_t mBufferSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
+    uint8_t mBufferNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE] = {0};
 public:
     LoRaWANNode(Module* radio, const int* standart) { }
     int beginABP(uint8_t addr, uint8_t* fNwkSIntKey, uint8_t* sNwkSIntKey, uint8_t* nwkSEncKey, uint8_t* appSKey) { return RADIOLIB_ERR_NONE; }
     int activateABP() {return RADIOLIB_LORAWAN_NEW_SESSION; }
     int setBufferSession(uint8_t* buffer){ return RADIOLIB_ERR_NONE; }
+    int setBufferNonces(uint8_t* buffer){ return RADIOLIB_ERR_NONE; }
     uint8_t* getBufferSession(){ return mBufferSession; }
+    uint8_t* getBufferNonces(){ return mBufferNonces; }
     int setRx2Dr(int interval){ return RADIOLIB_ERR_NONE; }
     int setRxWindowDelayCorrection(int val){ return RADIOLIB_ERR_NONE; }
 
@@ -466,8 +470,16 @@ public:
     bool frameCounterCheck = false;
 };
 
+
+typedef int esp_err_t;
 #define PIN_BTN_MAIN 0
 #define ESP_EXT1_WAKEUP_ANY_LOW 1
-void esp_sleep_enable_ext1_wakeup( int pin, int value);
-void esp_sleep_enable_timer_wakeup(uint64_t microSec);
+esp_err_t esp_sleep_enable_ext1_wakeup( int pin, int value);
+esp_err_t esp_sleep_enable_timer_wakeup(uint64_t microSec);
+const char* esp_err_to_name(esp_err_t err);
 void esp_deep_sleep_start();
+
+int esp_reset_reason();
+const char* esp_reset_reason_to_name(int reason);
+int esp_sleep_get_wakeup_cause();
+

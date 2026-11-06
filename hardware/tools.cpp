@@ -533,7 +533,12 @@ QDateTime fromTimestamp(uint32_t secFrom2K) {
 const int EU868 = 868;
 ClassSPI SPI;
 
-void esp_sleep_enable_timer_wakeup(uint64_t microSec)
+esp_err_t esp_sleep_enable_timer_wakeup(uint64_t microSec)
+{
+
+}
+
+esp_err_t esp_sleep_enable_ext1_wakeup(int pin, int value)
 {
 
 }
@@ -544,11 +549,6 @@ void esp_deep_sleep_start()
 }
 
 
-void esp_sleep_enable_ext1_wakeup(int pin, int value)
-{
-
-}
-
 void gpio_hold_en(gpio_num_t num)
 {
 
@@ -557,4 +557,24 @@ void gpio_hold_en(gpio_num_t num)
 void gpio_hold_dis(gpio_num_t num)
 {
 
+}
+
+int esp_reset_reason()
+{
+    return 0;
+}
+
+int esp_sleep_get_wakeup_cause()
+{
+    return 0;
+}
+
+const char *esp_err_to_name(esp_err_t err)
+{
+    return "No error on PC";
+}
+
+const char *esp_reset_reason_to_name(int reason)
+{
+    return "No reason on PC";
 }

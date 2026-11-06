@@ -5,4 +5,5 @@ Sound::Sound(Collar *c) : Signaling(c) {}
 void Sound::execute()
 {
     respondCmd(SerialCmd::Cmd::Type::SIGS);
+    // delay(3000);
 }

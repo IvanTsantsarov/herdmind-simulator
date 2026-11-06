@@ -10,10 +10,13 @@
 #include "sound.h"
 #include "shock.h"
 
+
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 100
 
 #define COLLAR_DBG_INTERVAL 2000
+
+#define COLLAR_WAKE_TIMEOUT 2000
 
 // interval for sending data to collars/gateways
 #define COLLAR_SEND_INTERVAL 100
@@ -366,6 +369,10 @@ void Collar::onSetup()
 
     mScreen->setup();
 
+    if( isWakingUp() ) {
+        mScreen->sleep();
+    }
+
     mGPS->setup(isWakingUp());
 
     mBtnMain->setup();
@@ -576,6 +583,8 @@ void Collar::onUpdate()
             #else
                 onSend();
             #endif
+
+            delay(COLLAR_WAKE_TIMEOUT);
 
             mLed->blink(50);
 
