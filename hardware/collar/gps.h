@@ -12,6 +12,9 @@ class GPS
     bool mIsPowered = true;
     bool mIsHardware = false;
 
+    void powerOff();
+    void powerOn();
+
 public:
     GPS();
     void setup(bool isWakeup);
@@ -22,8 +25,7 @@ public:
     inline bool isConnection() { return mIsConnection; };
     inline int satelites() { return mSatelites; }
 
-    void powerOff();
-    void powerOn();
+    void sleep();
 
     #ifdef ONPC
         void inject(GeoPoint gp, int sat);

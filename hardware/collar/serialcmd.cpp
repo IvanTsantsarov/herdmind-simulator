@@ -79,7 +79,12 @@ void SerialCmd::setup()
     Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
 
     Serial.begin(SERIAL_BAUDRATE);
-    while(!Serial);
+
+    /////////////////////////////////////////////////
+    // Do not block here, because if it's disconected
+    // from USB it will never start !
+    // while(!Serial);
+
     delay(100);
     DBG("Print \"help\" for more info...");
 }

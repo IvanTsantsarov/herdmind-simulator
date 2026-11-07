@@ -13,26 +13,19 @@ TinyGPSPlus gGPS;
 #define GPS_RX     39
 #define GPS_TX     38
 #define GNSS_RST   42
+#define GNSS_WAKE  40  // Wakeup pin
 
 
 GPS::GPS() {}
 
 void GPS::setup(bool isWakeup)
 {
-    if( isWakeup ) {
-        powerOn();
-    }
-
-    // Enable GNSS power
-    pinMode(VGNSS_CTRL, OUTPUT);
-    digitalWrite(VGNSS_CTRL, LOW);
-
-    // L76K UART
-    Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
-    Serial.println("GPS started");
 
 #ifdef EMULATE_GPS
     DBG("*** GPS emulation is ON ***");
+#else
+    // Enable GNSS power
+    powerOn();
 #endif
 
 #ifdef ONPC
@@ -78,21 +71,69 @@ void GPS::onUpdate()
 #endif
 }
 
+void GPS::sleep() {
 
-void GPS::powerOff()
-{
-    Serial1.end();
-    digitalWrite(VGNSS_CTRL, HIGH);
-    gpio_hold_en((gpio_num_t)VGNSS_CTRL); // hold high state on this pin
-    mIsPowered = false;
+    DBG("GPS going to sleep..");
+
+#ifndef EMULATE_GPS
+    powerOff();
+#endif
 }
 
 void GPS::powerOn()
 {
-    // 1. Release the physical hardware hold lock so the ESP32 can control the pin again
+    DBG("GPS power ON");
+
+    // Release pin locks
     gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
+    gpio_hold_dis((gpio_num_t)GNSS_RST);
+    gpio_hold_dis((gpio_num_t)GNSS_WAKE);
+
+    // Power ON the white GNSS port
+    pinMode(VGNSS_CTRL, OUTPUT);
+    digitalWrite(VGNSS_CTRL, LOW);
+
+    pinMode(GNSS_RST, OUTPUT);
+    digitalWrite(GNSS_RST, HIGH);
+    pinMode(GNSS_WAKE, OUTPUT);
+    digitalWrite(GNSS_WAKE, HIGH);
+
+    Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
+    DBG("GPS On");
     mIsPowered = true;
 }
+
+
+void GPS::powerOff()
+{
+    DBG("GPS power OFF");
+
+    // 1. Terminate the UART connection to release internal pullups/hardware blocks
+    Serial1.end();
+
+    // 2. Isolate UART pins to prevent current leakage through the traces
+    pinMode(GPS_RX, INPUT);
+    pinMode(GPS_TX, INPUT);
+
+    // 3. Drive GNSS control lines low and lock them
+    pinMode(GNSS_RST, OUTPUT);
+    digitalWrite(GNSS_RST, LOW);
+    gpio_hold_en((gpio_num_t)GNSS_RST);
+
+    pinMode(GNSS_WAKE, OUTPUT);
+    digitalWrite(GNSS_WAKE, LOW);
+    gpio_hold_en((gpio_num_t)GNSS_WAKE);
+
+    // 4. Cut power to the white GNSS port
+    pinMode(VGNSS_CTRL, OUTPUT);
+    digitalWrite(VGNSS_CTRL, HIGH);
+    gpio_hold_en((gpio_num_t)VGNSS_CTRL);
+
+    DBG("GPS Off");
+
+    mIsPowered = false;
+}
+
 
 #ifdef ONPC
 void GPS::inject(GeoPoint gp, int sat)
