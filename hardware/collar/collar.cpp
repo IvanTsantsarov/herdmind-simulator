@@ -9,6 +9,7 @@
 #include "lights.h"
 #include "sound.h"
 #include "shock.h"
+#include "timer.h"
 
 
 // interval for reading the sensors
@@ -120,6 +121,7 @@ Collar::Collar()
 
 void Collar::commonConstructor()
 {
+    mTimer = new Timer();
     mScreen = new Screen(this);
     mGPS = new GPS;
     mBtnMain = new Button(PIN_BTN_MAIN);
@@ -182,7 +184,7 @@ void Collar::sendStats()
 
 #endif
 
-void Collar::prepareToSleep()
+bool Collar::gotoBed()
 {
     mStage = Stage::Sleep;
 
@@ -191,7 +193,9 @@ void Collar::prepareToSleep()
     mScreen->off();
     mGPS->sleep();
 
-    sleep(mSendIntervalMsec, PIN_BTN_MAIN);
+    prepareToSleep(mSendIntervalMsec, PIN_BTN_MAIN);
+    mTimer->sleep(mSendIntervalMsec);
+    return sleep();
 }
 
 
@@ -360,9 +364,34 @@ void Collar::execSignal(SignalType t)
     }
 }
 
+void Collar::setEpoch(uint64_t secs)
+{
+    mTimer->setEpoch(secs);
+}
+
+uint64_t Collar::epoch()
+{
+    return mTimer->epoch();
+}
+
+String Collar::dateTime()
+{
+    return mTimer->dateTimeStr();
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief Setup
+///
+////////////////////////////////////////////////////////////////////////
+
+
 void Collar::onSetup()
 {
     mStage = Stage::Setup;
+
+    if( isWakingUp() ) {
+        mTimer->wakeup();
+    }
 
     mSerialCmd->setup();
 
@@ -371,7 +400,7 @@ void Collar::onSetup()
 
     mScreen->setup();
 
-    if( isWakingUp() ) {
+    if( isWakingUp() && !isWakeBtn() ) {
         mScreen->sleep();
     }
 
@@ -396,7 +425,7 @@ void Collar::onSetup()
 
     mSetupMillis = millis();
 
-    Serial.println("Setup finished, entering init...");
+    Serial.println( String("Setup finished:") + mTimer->dateTimeStr() );
 
     mStage = Stage::Init;
 }
@@ -502,6 +531,11 @@ void Collar::onMainBtn() {
     DBG("Main button press!");
 }
 
+////////////////////////////////////////////////////////////////////////
+/// \brief Update
+///
+////////////////////////////////////////////////////////////////////////
+
 
 void Collar::onUpdate()
 {
@@ -576,7 +610,6 @@ void Collar::onUpdate()
 
             updateTrajectory(mGPS->pos());
 
-
             #ifdef ONPC
             // Do not send information when there is no simulation
             if( isSimulation() ) {
@@ -588,9 +621,14 @@ void Collar::onUpdate()
 
             delay(COLLAR_WAKE_TIMEOUT);
 
-            mLed->blink(50);
+            mLed->blink(10);
+            delay(80);
+            mLed->blink(10);
 
-            prepareToSleep();
+            // once again
+            mSerialCmd->update();
+
+            gotoBed();
         }else {
             Serial.print("-");
             mLed->updateOn(50, 1000);
@@ -606,11 +644,17 @@ void Collar::onUpdate()
 
 }
 
+////////////////////////////////////////////////////////////////////////
+/// \brief Send/Receive
+///
+////////////////////////////////////////////////////////////////////////
+
+
 void Collar::onSend()
 {
     Protocol::Collar package;
 
-    DBG("Collar::onSend()");
+    // DBG("Collar::onSend()");
 
     package.mEvent = Protocol::Collar::Event::Package;
     GeoPoint coord = readGPS();

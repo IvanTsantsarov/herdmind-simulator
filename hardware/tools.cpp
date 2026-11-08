@@ -128,7 +128,7 @@ float Tools::rnd(float minv, float maxv)
 
 
 void delay(int msec) {
-    QThread::msleep(msec);
+    // QThread::msleep(msec);
 }
 
 
@@ -535,12 +535,12 @@ ClassSPI SPI;
 
 esp_err_t esp_sleep_enable_timer_wakeup(uint64_t microSec)
 {
-
+    return 0;
 }
 
 esp_err_t esp_sleep_enable_ext1_wakeup(int pin, int value)
 {
-
+    return 0;
 }
 
 void esp_deep_sleep_start()
@@ -578,3 +578,4 @@ const char *esp_reset_reason_to_name(int reason)
 {
     return "No reason on PC";
 }
+

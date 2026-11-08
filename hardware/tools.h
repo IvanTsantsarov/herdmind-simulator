@@ -470,6 +470,34 @@ public:
     bool frameCounterCheck = false;
 };
 
+typedef int esp_sleep_wakeup_cause_t;
+
+#define ESP_SLEEP_WAKEUP_UNDEFINED	0
+#define ESP_SLEEP_WAKEUP_ALL	1
+#define ESP_SLEEP_WAKEUP_EXT0 2
+#define ESP_SLEEP_WAKEUP_EXT1 3
+#define ESP_SLEEP_WAKEUP_TIMER 4
+#define ESP_SLEEP_WAKEUP_TOUCHPAD 5
+#define ESP_SLEEP_WAKEUP_ULP 6
+#define ESP_SLEEP_WAKEUP_GPIO 7
+#define ESP_SLEEP_WAKEUP_UART 8
+#define ESP_SLEEP_WAKEUP_WIFI 9
+#define ESP_SLEEP_WAKEUP_COCPU 10
+
+
+
+typedef int esp_reset_reason_t;
+#define ESP_RST_UNKNOWN	0
+#define ESP_RST_POWERON	1
+#define ESP_RST_EXT	2
+#define ESP_RST_SW	3
+#define ESP_RST_PANIC 4
+#define ESP_RST_INT_WDT	5
+#define ESP_RST_TASK_WDT 6
+#define ESP_RST_WDT	7
+#define ESP_RST_DEEPSLEEP 8
+#define ESP_RST_BROWNOUT 9
+#define ESP_RST_SDIO 10
 
 typedef int esp_err_t;
 #define PIN_BTN_MAIN 0

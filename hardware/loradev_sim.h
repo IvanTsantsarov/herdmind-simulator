@@ -87,6 +87,9 @@ protected:
     // send to the chirpstack
     bool uplink(const QByteArray& data);
 
+    bool prepareToSleep(uint64_t interval, int pinBtnWake);
+    bool sleep();
+
 public:
     inline bool isSimulation(){ return mIsSimulation; }
 
@@ -152,6 +155,9 @@ public:
     bool isSending() { return mSendingMsec > 0; }
 
     bool isWakingUp(){ return false; }
+    bool isWakeBtn(){ return false;}
+    bool isWakeTimer(){ return false;}
+
     static inline int bootCount(){ return 0; }
 
     virtual void onSetup(){}; // On regular sensors setup
@@ -159,7 +165,6 @@ public:
     virtual void onSend() = 0; // On timeout for sending
     virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
     void updateLastSeen();
-    virtual bool sleep(uint64_t interval, int pinBtnWake);
 
     struct LastSeenStruct {
         int hours = -1;
@@ -176,8 +181,12 @@ public:
 
     // if animal name is specified - returns full info for chirpstack device registration
     QString jsonInfo(const QString &animalName = QString());
+
+    static void enableDeepSleep(bool is){ }
+
 signals:
     void messageReceivedAndDecrypted(const QByteArray& addr, const QByteArray& msg);
+
 
 private slots:
     void onTimerStart();

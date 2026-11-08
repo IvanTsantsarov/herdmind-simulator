@@ -40,5 +40,6 @@
         <file>flash.svg</file>
         <file>reload.svg</file>
         <file>disconnected.png</file>
+        <file>set-clock.svg</file>
     </qresource>
 </RCC>

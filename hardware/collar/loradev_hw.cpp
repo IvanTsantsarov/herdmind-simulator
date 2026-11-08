@@ -38,6 +38,7 @@ RTC_DATA_ATTR uint32_t LoraDevHW::mAddr = 0;
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE] = {0};
 RTC_DATA_ATTR bool LoraDevHW::mLoraSessionValid = false;
+RTC_DATA_ATTR bool LoraDevHW::mIsDeepSleepEnabled = false;
 
 LoraDevHW::LoraDevHW() {
     // Only one instance is allowed of this type
@@ -45,11 +46,66 @@ LoraDevHW::LoraDevHW() {
     // assert(0 == mAddr);
 }
 
+String wakeup_reason_string(esp_sleep_wakeup_cause_t wakeup_reason){
+
+    wakeup_reason = esp_sleep_get_wakeup_cause();
+
+    switch(wakeup_reason)
+    {
+    case ESP_SLEEP_WAKEUP_UNDEFINED: return String("exiting sleep (e.g., standard power-on reset, manual reset button, or a serial monitor connection toggling DTR/RTS).");
+    case ESP_SLEEP_WAKEUP_ALL: return String("internally to disable all wakeup sources.");
+    case ESP_SLEEP_WAKEUP_EXT0 : return String("externa RTC_IO");
+    case ESP_SLEEP_WAKEUP_EXT1 : return String("external RTC_CNTL");
+    case ESP_SLEEP_WAKEUP_TIMER : return String("timer"); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD : return String("touchpad");
+    case ESP_SLEEP_WAKEUP_ULP : return String("ULP program");
+    case ESP_SLEEP_WAKEUP_GPIO : return String("standard GPIO interrupt (Supported primarily during light sleep on ESP32, S2, and S3 chips).");
+    case ESP_SLEEP_WAKEUP_UART : return String("UART data reception (light sleep only).");
+    case ESP_SLEEP_WAKEUP_WIFI : return String("Wi-Fi MAC layer (light sleep only).");
+    case ESP_SLEEP_WAKEUP_COCPU : return String("RISC-V ULP co-processor command.");
+    default : return String("deep sleep") +  wakeup_reason;
+    }
+
+    return String("No reason");
+}
+
+bool LoraDevHW::isWakeBtn()
+{
+    return ESP_SLEEP_WAKEUP_EXT1 == mWakeUpCause;
+}
+
+bool LoraDevHW::isWakeTimer()
+{
+    return ESP_SLEEP_WAKEUP_TIMER == mWakeUpCause;
+}
+
+
+
+String reset_reason_string(int reason) {
+
+    switch(reason) {
+    case ESP_RST_UNKNOWN: return String("cannot be determined.");
+    case ESP_RST_POWERON: return String("hardware power-on event (Vbat plugged in, power cycled");
+    case ESP_RST_EXT: return String("physical external reset pin (CHIP_PU / EN pin)");
+    case ESP_RST_SW: return String("programmatically via esp_restart()");
+    case ESP_RST_PANIC: return String("core exception, crash, or panic");
+    case ESP_RST_INT_WDT: return String("Interrupt Watchdog Timer (usually code blocking interrupts too long)");
+    case ESP_RST_TASK_WDT: return String("Task Watchdog Timer (a task failed to feed the watchdog)");
+    case ESP_RST_WDT: return String("system watchdogs");
+    case ESP_RST_DEEPSLEEP: return String("exiting deep sleep mode");
+    case ESP_RST_BROWNOUT: return String("drop in supply voltage (unstable power)");
+    case ESP_RST_SDIO: return String("SDIO interface");
+    }
+
+    return String("Unknown");
+}
+
 void LoraDevHW::onSetup() {
     uint8_t mac[6] = {0};
 
     if( isWakingUp() ) {
         DBG(String("[LoraDevHW] --- Wake up ---") + mBootCount);
+        mWakeUpCause = esp_sleep_get_wakeup_cause();
     }else {
         // Get the base MAC address of the ESP32 (6 bytes unique)
         esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -69,13 +125,14 @@ void LoraDevHW::onSetup() {
         DBG(String("[LoraDevHW] Build:") + __TIME__ + "," + __DATE__);
     };
 
+    mResetReason = esp_reset_reason();
+
     DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
     DBG(String("[LoraDevHW] NKey:") + nkeyHex());
     DBG(String("[LoraDevHW] AKey:") + akeyHex());
     DBG(String("[LoraDevHW] Boot count:") + bootCount());
-    DBG(String("[LoraDevHW] Reset reason: ") + (int)esp_reset_reason());
-    DBG(String("[LoraDevHW] Wake cause: ") + (int)esp_sleep_get_wakeup_cause());
-
+    DBG(String("[LoraDevHW] Reset reason: ") + reset_reason_string(mResetReason));
+    DBG(String("[LoraDevHW] Wake cause: ") + wakeup_reason_string(mWakeUpCause));
 
 
     // 1. Map the exact Heltec WiFi LoRa 32 V4.3 internal hardware pins
@@ -226,8 +283,12 @@ float LoraDevHW::snr()
     return mRadio.getSNR();
 }
 
-bool LoraDevHW::sleep(uint64_t msec, int pinBtnWake)
+bool LoraDevHW::prepareToSleep(uint64_t msec, int pinBtnWake)
 {
+    if( !mIsDeepSleepEnabled ) {
+        return true;
+    }
+
     // Increment boot count
     LoraDevHW::incBootCount();
 
@@ -243,12 +304,24 @@ bool LoraDevHW::sleep(uint64_t msec, int pinBtnWake)
         );
     DBG(String("[LoraDevHW] EXT1 config: ") + esp_err_to_name(err));
 
+    return true;
+}
+
+
+bool LoraDevHW::sleep()
+{
+    if( !mIsDeepSleepEnabled ) {
+        return true;
+    }
+
     esp_deep_sleep_start();
 
     DBG("[LoraDevHW]Error: should not be here on a deep sleep!");
 
     return false;
 }
+
+
 
 String LoraDevHW::addrHex()
 {

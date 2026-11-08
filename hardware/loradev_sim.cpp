@@ -459,7 +459,12 @@ void LoraDevSim::updateLastSeen()
     mLastSeen.restart();
 }
 
-bool LoraDevSim::sleep(uint64_t microSecs, int pinBtnWake)
+bool LoraDevSim::prepareToSleep(uint64_t interval, int pinBtnWake)
+{
+    return true;
+}
+
+bool LoraDevSim::sleep()
 {
     return true;
 }

@@ -56,6 +56,7 @@ SOURCES += \
     hardware/collar/shock.cpp \
     hardware/collar/signaling.cpp \
     hardware/collar/sound.cpp \
+    hardware/collar/timer.cpp \
     hardware/dialogcollarsim.cpp \
     hardware/collar/screen.cpp \
     hardware/gateway/gateway.cpp \
@@ -110,6 +111,7 @@ HEADERS += \
     hardware/collar/shock.h \
     hardware/collar/signaling.h \
     hardware/collar/sound.h \
+    hardware/collar/timer.h \
     hardware/dialogcollarsim.h \
     hardware/collar/screen.h \
     hardware/defines.h \
@@ -167,6 +169,7 @@ DISTFILES += \
     res/satellite_no.png \
     res/sattelite_no.pixil \
     res/sattelite_no.png \
+    res/set-clock.svg \
     res/settings.ini \
     res/settings_external.ini \
     res/tower.pixil \

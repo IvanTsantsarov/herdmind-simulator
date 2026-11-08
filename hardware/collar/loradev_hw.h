@@ -23,6 +23,7 @@ class LoraDevHW
     static RTC_DATA_ATTR uint8_t mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
     static RTC_DATA_ATTR uint8_t mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
     static RTC_DATA_ATTR bool mLoraSessionValid;
+    static RTC_DATA_ATTR bool mIsDeepSleepEnabled;
 
     uint8_t mBufferUp[LORAWAN_APP_DATA_MAX_SIZE];
     size_t mBufferUpLen = 0;
@@ -39,6 +40,13 @@ class LoraDevHW
     SX1262 mRadio = nullptr;
     LoRaWANNode* mNode = nullptr;
 
+    esp_sleep_wakeup_cause_t mWakeUpCause = ESP_SLEEP_WAKEUP_UNDEFINED;
+    esp_reset_reason_t mResetReason = ESP_RST_UNKNOWN;
+
+protected:
+
+    bool prepareToSleep(uint64_t msec, int pinBtnWake);
+    bool sleep();
 public:
 
     LoraDevHW();
@@ -77,9 +85,11 @@ public:
     virtual float rssi();
     virtual float snr();
     static inline bool isWakingUp(){ return LoraDevHW::mBootCount > 0; };
+    bool isWakeBtn();
+    bool isWakeTimer();
     static inline int bootCount(){ return LoraDevHW::mBootCount; }
     static void incBootCount(){ LoraDevHW::mBootCount++; }
+    static void enableDeepSleep(bool is){ mIsDeepSleepEnabled = is;}
 
-    virtual bool sleep(uint64_t interval, int pinBtnWake);
 };
  // #endif

@@ -103,6 +103,8 @@ class DialogCollarSim : public QDialog
     bool mIsRequestToFlash = false;
 
     void refreshPorts();
+
+    static QString cmdTM();
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
     void loadAnimals(QList<Animal*> animals);
@@ -175,6 +177,8 @@ private slots:
     void on_checkFull_toggled(bool checked);
 
     void on_btnPortsRefresh_clicked();
+
+    void on_btnSetDateTime_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

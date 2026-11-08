@@ -573,3 +573,71 @@ String gRadioLibErrStr(int16_t errorCode) {
     return "RadioLib error";
 #endif
 }
+
+
+
+
+class ESP32Time {
+    uint32_t mEpoch = 1609459200; // default (1609459200) = 1st Jan 2021
+    uint32_t mMSec = 0;
+    QElapsedTimer mElapsed;
+
+    QDateTime dateTime() const;
+
+public:
+    ESP32Time();
+    void setTime(unsigned long epoch = 1609459200, int ms = 0);
+    // String getTime(String format) const;
+
+    String getTime() const;
+    String getDate(bool mode = false) const;
+    String getDateTime(bool mode = false) const;
+
+    unsigned long getEpoch() const ;
+
+    // unsigned long getMillis() const;
+    // unsigned long getMicros() const;
+    // int getSecond() const;
+    // int getMinute() const;
+    // int getHour(bool mode = false) const;
+    // int getDay() const;
+    // int getDayofWeek() const;
+    // int getDayofYear() const;
+    // int getMonth() const;
+    // int getYear() const;
+};
+
+
+
+QDateTime ESP32Time::dateTime() const
+{
+    QDateTime dt = QDateTime::fromMSecsSinceEpoch(mEpoch).addMSecs(mMSec);
+    return dt.addMSecs(mElapsed.elapsed());
+}
+
+void ESP32Time::setTime(unsigned long epoch, int ms)
+{
+    mEpoch = epoch;
+    mMSec = ms;
+    mElapsed.restart();
+}
+
+String ESP32Time::getTime() const
+{
+    return dateTime().time().toString("HH:mm:ss");
+}
+
+String ESP32Time::getDate(bool mode) const
+{
+    return dateTime().date().toString("dd.MMM.yy");
+}
+
+String ESP32Time::getDateTime(bool mode) const
+{
+    return dateTime().toString("HH:mm:ss, dd.MMM.yy");
+}
+
+unsigned long ESP32Time::getEpoch() const
+{
+    return dateTime().toSecsSinceEpoch();
+}

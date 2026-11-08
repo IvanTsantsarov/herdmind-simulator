@@ -13,6 +13,7 @@
 
 #define COLLAR_MAX_GPS_POINTS 500
 
+class Timer;
 class GPS;
 class Screen;
 class Button;
@@ -70,6 +71,7 @@ class Collar : public LoraDevHW
 
     bool mIsStats = true;
 
+    Timer* mTimer = nullptr;
     Screen* mScreen = nullptr;
     GPS* mGPS = nullptr;
     Button* mBtnMain = nullptr;
@@ -184,7 +186,7 @@ public:
     inline Led* led() { return mLed; }
 
     void reboot();
-    void prepareToSleep();
+    bool gotoBed();
 
 #ifdef ONPC
     virtual int rssi(); // RSSI (Received Signal Strength Indicator) in dBm
@@ -220,6 +222,9 @@ public:
 
     void execSignal(SignalType t);
 
+    void setEpoch(uint64_t secs);
+    uint64_t epoch();
+    String dateTime();
 };
 
 

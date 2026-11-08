@@ -44,6 +44,8 @@ public:
             LED,    // led on/off
             HELP,
             REBOOT,
+            SLEEP,  // Enable/Disable Deep sleep
+            TM,     // Get/Set the time
             INFO,
             VER,    // Give software version
             EUI,
@@ -51,7 +53,7 @@ public:
             BAT,
             RADIO,   // Get LoRa RSSI( Received Signal Strength Indicator), SNR(Signal-to-Noise Ratio) and SS (Signal Strength)
             NAME,   // Get/Set animal name
-            SEX,    // m or f
+            SEX,    // Get set animal gender: m or f
             NKEY,   // Set/Get network key
             AKEY,   // Set/Get application key
             ADDR,    // Set/Get address

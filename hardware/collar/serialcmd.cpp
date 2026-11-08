@@ -22,12 +22,14 @@ void SerialCmd::initCommands() {
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NONE] = "none";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::DBG] = "dbg";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::STATS] = "stats";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SLEEP] = "sleep";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGL] = "sigl";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGS] = "sigs";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGE] = "sige";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::LED] = "led";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::HELP] = "help";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::REBOOT] = "reboot";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::TM] = "tm";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INFO] = "info";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::EUI] = "eui";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::GPS] = "gps";
@@ -280,6 +282,39 @@ bool SerialCmd::execute()
                        + "SS=" + mCollar->signalStrength());
         break;
 
+
+    case Cmd::Type::SLEEP:
+    {
+        printHead();
+        if( !mIsArgument ) {
+            printError("Missing argument! (0,1,y,n)");
+            return false;
+        }
+
+        char argChar = mArgument[0];
+        bool is = (argChar == 'y' || argChar == '1' ? true : false);
+        Serial.println( String("Deep sleep is:") + (is ? "Enabled" : "Disabled") );
+        mCollar->enableDeepSleep(is);
+        break;
+    }
+    case Cmd::Type::TM:
+        if( mIsArgument ) {
+            printHead();
+            const uint64_t secsEpoch = strtoull(mArgument, NULL, 10);
+            if( secsEpoch < 1767225600) { // epoch of 01.01.20026
+                printError("Wrong time (before 01.01.2026)!");
+                return false;
+            }
+            Serial.println( String("Time set. Difference is:") + (mCollar->epoch() - secsEpoch) );
+            mCollar->setEpoch(secsEpoch);
+            printChanged();
+        }else {
+            printHead(false);
+            Serial.println(mCollar->dateTime());
+        }
+        break;
+
+
     case Cmd::Type::NKEY:
 
         if( mIsArgument ) {
@@ -407,6 +442,7 @@ bool SerialCmd::execute()
         printHead(false);
         Serial.println(COLLAR_VERSION);
         break;
+
     case Cmd::Type::RSP:
         // not receiving - just sending. Here because of the warning
         break;
@@ -430,6 +466,8 @@ bool SerialCmd::execute()
         Serial.print("---------- HELP ----------\r");
         Serial.print("stats: Toggle statistics\r");
         Serial.print("info: Common info\r");
+        Serial.print("tm: Get and Set(Epoch in seconds) time\r");
+        Serial.print("sleep: Enable/Disable deep sleep\r");
         Serial.print( "--- Animal\r");
         Serial.print("name: Set/Get animal's name\r");
         Serial.print("sex: Set/Get gender: f or m\r");

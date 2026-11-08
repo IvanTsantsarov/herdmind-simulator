@@ -140,6 +140,11 @@ void DialogCollarSim::refreshPorts()
     }
 }
 
+QString DialogCollarSim::cmdTM()
+{
+    return QString("tm %1").arg(QDateTime::currentDateTime().toSecsSinceEpoch());
+}
+
 
 void DialogCollarSim::loadAnimals(QList<Animal *> animals)
 {
@@ -796,6 +801,8 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
         sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
         sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
         sendToSerial(QString("addr %1").arg(addr));
+        sendToSerial(DialogCollarSim::cmdTM());
+
         sendToSerial("flash");
 
         QString str = QString("Collar of %1 (%2) activated! Address: %3")
@@ -869,5 +876,11 @@ void DialogCollarSim::on_checkFull_toggled(bool checked)
 void DialogCollarSim::on_btnPortsRefresh_clicked()
 {
     refreshPorts();
+}
+
+
+void DialogCollarSim::on_btnSetDateTime_clicked()
+{
+    sendToSerial( DialogCollarSim::cmdTM(), true);
 }
 

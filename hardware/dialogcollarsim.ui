@@ -907,6 +907,26 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
+        <widget class="QPushButton" name="btnSetDateTime">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Send current Date&amp;Time</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/set-clock.svg</normaloff>:/set-clock.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLineEdit" name="editSerialCmd"/>
        </item>
        <item>
