@@ -400,8 +400,15 @@ void Collar::onSetup()
 
     mScreen->setup();
 
-    if( isWakingUp() && !isWakeBtn() ) {
-        mScreen->sleep();
+    if( isWakingUp() ) {
+
+        if( isWakeBtn() ) {
+            DBG("Wake up from button. Waking up the screen..");
+            mScreen->wakeup();
+        }else {
+            mScreen->sleep();
+        }
+
     }
 
     mGPS->setup(isWakingUp());

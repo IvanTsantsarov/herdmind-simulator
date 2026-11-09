@@ -458,26 +458,6 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QPushButton" name="btnPortsRefresh">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Refresh available ports</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/reload.svg</normaloff>:/reload.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QComboBox" name="comboPorts">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -501,6 +481,20 @@
             <property name="icon">
              <iconset resource="../res/res.qrc">
               <normaloff>:/usb-cable.svg</normaloff>:/usb-cable.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkConnectAuto">
+            <property name="toolTip">
+             <string>Connect automatically </string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/reload.svg</normaloff>:/reload.svg</iconset>
             </property>
            </widget>
           </item>

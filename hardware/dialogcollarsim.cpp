@@ -16,6 +16,8 @@
 #include "ui_dialogcollarsim.h"
 
 
+#define DLGCOLLARSIM_PORTS_REFRESH_TIMEOUT 500
+
 #define DLGCOLLARSIM_SIGNAL_DURATION 3000
 #define DLGCOLLARSIM_SIGL_ON QColor(255, 255, 200)
 #define DLGCOLLARSIM_SIGL_OFF QColor(50, 50, 50)
@@ -115,10 +117,11 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
             ui->comboBaudrate->addItem(QString("%1").arg(mBaudrates[i]));
         }
 
-        refreshPorts();
-
         connect(&mPort, &QSerialPort::errorOccurred, this, &DialogCollarSim::on_serialPortError);
         connect(mDM, &DevManager::deviceActivated, this, &DialogCollarSim::on_deviceActivated );
+        connect(&mTimerRefreshPorts, &QTimer::timeout, this, &DialogCollarSim::on_refreshPorts );
+
+        mTimerRefreshPorts.start(DLGCOLLARSIM_PORTS_REFRESH_TIMEOUT);
     }
 
     // Hide for now LEDs
@@ -129,14 +132,62 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
     ui->btnGenEui->setVisible(false);
 }
 
-void DialogCollarSim::refreshPorts()
+void DialogCollarSim::on_refreshPorts()
 {
-    ui->comboPorts->clear();
-
+    bool isDifferentList = false;
+    QStringList portNames;
     // Fill with all ports
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     for( QSerialPortInfo& info:ports ) {
-        ui->comboPorts->addItem(info.portName());
+
+        // Step A: Ignore ports that lack basic USB hardware IDs (this kills ttyS* right away)
+        if (!info.hasProductIdentifier() || !info.hasVendorIdentifier()) {
+            continue;
+        }
+
+        if( !isDifferentList && (ui->comboPorts->findText(info.portName()) < 0) ) {
+            isDifferentList = true;
+        }
+
+        portNames.append(info.portName());
+    }
+
+    if( !isDifferentList) {
+        for( auto i = 0; i < ui->comboPorts->count(); i ++ )
+        {
+            if( portNames.indexOf(ui->comboPorts->itemText(i)) < 0 ) {
+                isDifferentList = true;
+                break;
+            }
+        }
+    }
+
+    if( isDifferentList ) {
+        ui->checkConnect->setStyleSheet(
+            "QCheckBox { border: 2px solid transparent; padding: 2px; }"
+            "QCheckBox:checked { border: 2px solid red; }"
+            "QCheckBox:unchecked { border: 2px solid red; }"
+            );
+
+        ui->comboPorts->clear();
+        for( QString& str:portNames ) {
+            ui->comboPorts->addItem(str);
+        }
+    }
+
+    if( !portNames.count() ) {
+        ui->comboPorts->setPlaceholderText("<no ports>");
+        ui->checkConnect->setEnabled(false);
+        ui->checkConnect->setStyleSheet("");
+    }else {
+
+        ui->comboPorts->setCurrentIndex(0);
+        ui->checkConnect->setEnabled(true);
+
+        // If automatic connect is checked, try to connect
+        if( ui->checkConnectAuto->isChecked() && !ui->checkConnect->isChecked()) {
+            ui->checkConnect->setChecked(true);
+        }
     }
 }
 
@@ -346,7 +397,10 @@ void DialogCollarSim::sendToSerial(const QString& msg, bool isRequest)
         mPort.flush();
     }
 
-    ui->editSerialCmd->clear();
+    if( msg.isEmpty()  ) {
+        ui->editSerialCmd->clear();
+    }
+
     addOutput(">" + txt, RESPONCE_COLOR_COMMAND);
 }
 
@@ -386,6 +440,8 @@ void DialogCollarSim::on_checkConnect_toggled(bool checked)
             mIsOpeningPort = false;
             return;
         }
+
+        ui->checkConnect->setStyleSheet("");
 
         log = QString("Port %1 open").arg(portName);
         addOutput( log, RESPONCE_COLOR_SUCESS );
@@ -455,6 +511,12 @@ void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
     if( QSerialPort::NoError == err ) {
         // Why the f*ck you sending no error?!
         return;
+    }
+
+    if (err == QSerialPort::ResourceError || err == QSerialPort::PermissionError) {
+        qDebug() << "Device disconnected (possibly entered deep sleep)!";
+        ui->checkConnect->setChecked(false);
+        mPort.close();
     }
 
     QString log = QString("Serial port error:(%1) %2").arg(err).arg(mPort.errorString());
@@ -871,13 +933,6 @@ void DialogCollarSim::on_checkFull_toggled(bool checked)
     ui->checkStats->setEnabled(!checked);
     ui->checkRsp->setEnabled(!checked);
 }
-
-
-void DialogCollarSim::on_btnPortsRefresh_clicked()
-{
-    refreshPorts();
-}
-
 
 void DialogCollarSim::on_btnSetDateTime_clicked()
 {

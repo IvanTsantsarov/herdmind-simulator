@@ -54,9 +54,9 @@ String wakeup_reason_string(esp_sleep_wakeup_cause_t wakeup_reason){
     {
     case ESP_SLEEP_WAKEUP_UNDEFINED: return String("exiting sleep (e.g., standard power-on reset, manual reset button, or a serial monitor connection toggling DTR/RTS).");
     case ESP_SLEEP_WAKEUP_ALL: return String("internally to disable all wakeup sources.");
-    case ESP_SLEEP_WAKEUP_EXT0 : return String("externa RTC_IO");
-    case ESP_SLEEP_WAKEUP_EXT1 : return String("external RTC_CNTL");
-    case ESP_SLEEP_WAKEUP_TIMER : return String("timer"); break;
+    case ESP_SLEEP_WAKEUP_EXT0 : return String("externa EXT0(RTC_IO)");
+    case ESP_SLEEP_WAKEUP_EXT1 : return String("external EXT1(RTC_CNTL)");
+    case ESP_SLEEP_WAKEUP_TIMER : return String("RTC timer"); break;
     case ESP_SLEEP_WAKEUP_TOUCHPAD : return String("touchpad");
     case ESP_SLEEP_WAKEUP_ULP : return String("ULP program");
     case ESP_SLEEP_WAKEUP_GPIO : return String("standard GPIO interrupt (Supported primarily during light sleep on ESP32, S2, and S3 chips).");
@@ -104,7 +104,7 @@ void LoraDevHW::onSetup() {
     uint8_t mac[6] = {0};
 
     if( isWakingUp() ) {
-        DBG(String("[LoraDevHW] --- Wake up ---") + mBootCount);
+        DBG("[LoraDevHW] --- Wake up ---");
         mWakeUpCause = esp_sleep_get_wakeup_cause();
     }else {
         // Get the base MAC address of the ESP32 (6 bytes unique)
@@ -127,10 +127,11 @@ void LoraDevHW::onSetup() {
 
     mResetReason = esp_reset_reason();
 
+    DBG(String("[LoraDevHW] Boot count:") + bootCount());
     DBG(String("[LoraDevHW] Addr:") + addrHex() + ", fport:" + fportHex());
     DBG(String("[LoraDevHW] NKey:") + nkeyHex());
     DBG(String("[LoraDevHW] AKey:") + akeyHex());
-    DBG(String("[LoraDevHW] Boot count:") + bootCount());
+
     DBG(String("[LoraDevHW] Reset reason: ") + reset_reason_string(mResetReason));
     DBG(String("[LoraDevHW] Wake cause: ") + wakeup_reason_string(mWakeUpCause));
 

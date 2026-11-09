@@ -305,7 +305,11 @@ bool SerialCmd::execute()
                 printError("Wrong time (before 01.01.2026)!");
                 return false;
             }
-            Serial.println( String("Time set. Difference is:") + (mCollar->epoch() - secsEpoch) );
+
+            int64_t diff = (int64_t)mCollar->epoch() - (int64_t)secsEpoch;
+
+            Serial.println( String("Time set to:") + mCollar->dateTime()
+                           + "\rDifference is:" + diff );
             mCollar->setEpoch(secsEpoch);
             printChanged();
         }else {

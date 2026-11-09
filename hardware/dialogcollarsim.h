@@ -1,6 +1,7 @@
 #ifndef DIALOGCOLLARSIM_H
 #define DIALOGCOLLARSIM_H
 
+#include <QTimer>
 #include <QDialog>
 #include <QSettings>
 #include <QSerialPort>
@@ -54,6 +55,7 @@ class DialogCollarSim : public QDialog
     Animal* mAnimal = nullptr;
     QString mPrevAnimal;
     QSerialPort mPort;
+    QTimer mTimerRefreshPorts;
     QSettings& mEnv;
     QIcon mIconMale, mIconFemale, mIconMaleCollar, mIconFemaleCollar;
     QIcon mIconSoundOff, mIconSoundOn;
@@ -102,7 +104,6 @@ class DialogCollarSim : public QDialog
     // flash only on request, not on each mirror device activation
     bool mIsRequestToFlash = false;
 
-    void refreshPorts();
 
     static QString cmdTM();
 public:
@@ -176,9 +177,9 @@ private slots:
 
     void on_checkFull_toggled(bool checked);
 
-    void on_btnPortsRefresh_clicked();
-
     void on_btnSetDateTime_clicked();
+
+    void on_refreshPorts();
 
 private:
     Ui::DialogCollarSim *ui;
