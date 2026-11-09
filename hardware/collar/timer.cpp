@@ -18,10 +18,11 @@ void Timer::setMsecEpoch(uint64_t msec)
     mMsecStart = millis();
 }
 
-void Timer::wakeup()
+uint64_t Timer::wakeup()
 {
     mMsecStart = millis();
     mMsec += (uint64_t) mSleepMsec + mMsecStart;
+    return mSleepMsec;
 }
 
 tm *Timer::gmt()

@@ -21,7 +21,7 @@ public:
     inline uint64_t epoch(){ return msec() / 1000ULL; }
 
     inline void sleep(uint64_t msec) { mSleepMsec = msec; }
-    void wakeup();
+    uint64_t wakeup(); // returns sleep duration
 
     struct tm* gmt();
 
