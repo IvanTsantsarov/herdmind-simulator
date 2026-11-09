@@ -23,6 +23,7 @@ void SerialCmd::initCommands() {
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::DBG] = "dbg";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::STATS] = "stats";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SLEEP] = "sleep";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INT] = "int";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGL] = "sigl";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGS] = "sigs";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGE] = "sige";
@@ -283,18 +284,35 @@ bool SerialCmd::execute()
         break;
 
 
-    case Cmd::Type::SLEEP:
+    case Cmd::Type::INT:
     {
-        printHead();
         if( !mIsArgument ) {
-            printError("Missing argument! (0,1,y,n)");
-            return false;
+            printHead(false);
+            Serial.println( String("Send/sleep inverval is: ") + mCollar->sendInterval() + " msec" );
+            return true;
         }
 
+        printHead();
+        const uint64_t msec = strtoull(mArgument, NULL, 10);
+        mCollar->setSendInterval(msec);
+        Serial.println( String("Send/sleep interval set to:") + msec + "msec" );
+        break;
+    }
+
+    case Cmd::Type::SLEEP:
+    {
+        if( !mIsArgument ) {
+            printHead(false);
+            Serial.println(String("Deep sleep is ") + (mCollar->isDeepSleep() ? "Enabled" : "Disabled"));
+            return true;
+        }
+
+        printHead();
         char argChar = mArgument[0];
         bool is = (argChar == 'y' || argChar == '1' ? true : false);
         Serial.println( String("Deep sleep is:") + (is ? "Enabled" : "Disabled") );
         mCollar->enableDeepSleep(is);
+
         break;
     }
     case Cmd::Type::TM:
@@ -471,7 +489,8 @@ bool SerialCmd::execute()
         Serial.print("stats: Toggle statistics\r");
         Serial.print("info: Common info\r");
         Serial.print("tm: Get and Set(Epoch in seconds) time\r");
-        Serial.print("sleep: Enable/Disable deep sleep\r");
+        Serial.print("sleep: Enable/Disable deep sleep (y/n and 0/1)\r");
+        Serial.print("int: Get/Set send/sleep interval in milliseconds\r");
         Serial.print( "--- Animal\r");
         Serial.print("name: Set/Get animal's name\r");
         Serial.print("sex: Set/Get gender: f or m\r");

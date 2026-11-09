@@ -225,6 +225,9 @@ public:
     void setEpoch(uint64_t secs);
     uint64_t epoch();
     String dateTime();
+
+    void setSendInterval(uint32_t msec){mSendIntervalMsec = msec;};
+    uint32_t sendInterval(){ return mSendIntervalMsec; };
 };
 
 

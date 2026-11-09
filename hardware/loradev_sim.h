@@ -183,6 +183,7 @@ public:
     QString jsonInfo(const QString &animalName = QString());
 
     static void enableDeepSleep(bool is){ }
+    static bool isDeepSleep(){ return false;};
 
 signals:
     void messageReceivedAndDecrypted(const QByteArray& addr, const QByteArray& msg);

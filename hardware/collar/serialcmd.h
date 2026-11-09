@@ -45,6 +45,7 @@ public:
             HELP,
             REBOOT,
             SLEEP,  // Enable/Disable Deep sleep
+            INT,    // Get set send (sleep) interval in seconds
             TM,     // Get/Set the time
             INFO,
             VER,    // Give software version
