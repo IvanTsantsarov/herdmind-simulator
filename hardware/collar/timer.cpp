@@ -9,7 +9,7 @@ RTC_DATA_ATTR uint32_t Timer::mSleepMsec = 0;
 
 
 Timer::Timer() {
-    mMsecStart = millis();
+    mMsec += (uint64_t) mSleepMsec;
 }
 
 void Timer::setMsecEpoch(uint64_t msec)
@@ -18,11 +18,10 @@ void Timer::setMsecEpoch(uint64_t msec)
     mMsecStart = millis();
 }
 
-uint64_t Timer::wakeup()
+void Timer::sleep(uint64_t msec)
 {
-    mMsecStart = millis();
-    mMsec += (uint64_t) mSleepMsec + mMsecStart;
-    return mSleepMsec;
+    mSleepMsec = msec;
+    mMsec += millis() - mMsecStart;
 }
 
 tm *Timer::gmt()

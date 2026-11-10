@@ -20,8 +20,8 @@ public:
     inline uint64_t msec(){ return mMsec + millis() - mMsecStart; }
     inline uint64_t epoch(){ return msec() / 1000ULL; }
 
-    inline void sleep(uint64_t msec) { mSleepMsec = msec; }
-    uint64_t wakeup(); // returns sleep duration
+    void sleep(uint64_t msec);
+    inline uint64_t sleepMsec(){ return mSleepMsec;}; // returns sleep duration
 
     struct tm* gmt();
 

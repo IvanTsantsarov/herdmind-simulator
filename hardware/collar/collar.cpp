@@ -391,7 +391,7 @@ void Collar::onSetup()
 
     if( isWakingUp() ) {
         // restore last sleeping interval
-        mSendIntervalMsec = mTimer->wakeup();
+        mSendIntervalMsec = mTimer->sleepMsec();
     }
 
     mSerialCmd->setup();
