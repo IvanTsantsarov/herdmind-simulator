@@ -595,6 +595,11 @@ void DialogCollarSim::processSerialInput()
     QString tail = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
 
     switch(cmd) {
+
+    case SerialCmd::Cmd::Type::RTM:
+        sendToSerial( DialogCollarSim::cmdTM(), true);
+        break;
+
     case SerialCmd::Cmd::Type::STATS: {
 
         if( isStats ) {
@@ -936,6 +941,7 @@ void DialogCollarSim::on_checkFull_toggled(bool checked)
 
 void DialogCollarSim::on_btnSetDateTime_clicked()
 {
-    sendToSerial( DialogCollarSim::cmdTM(), true);
+    // send a request for time sync
+    sendToSerial( "rtm", true);
 }
 

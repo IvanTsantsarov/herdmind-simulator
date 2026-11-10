@@ -524,6 +524,7 @@ void Collar::updateScreenNormal(bool isFlush)
     }
 }
 
+
 void Collar::onMainBtn() {
     mBtnMain->update();
     if( mScreen->isSleeping() ) {
@@ -563,7 +564,7 @@ void Collar::onUpdate()
     }
 #endif
 
-    mSerialCmd->update();
+    updateSerial();
 
     if( Stage::Init == mStage) {
 
@@ -634,7 +635,7 @@ void Collar::onUpdate()
             mLed->blink(10);
 
             // once again
-            mSerialCmd->update();
+            updateSerial();
 
             gotoBed();
         }else {
@@ -651,6 +652,23 @@ void Collar::onUpdate()
     #endif
 
 }
+
+
+void Collar::updateSerial()
+{
+    mSerialCmd->update();
+
+    // Wait 1 second for time sync if initiated
+    int waitingCounter = 0;
+    while( mSerialCmd->isWaitingForTimeSync() && waitingCounter < 100 ) {
+        delay(10);
+        mSerialCmd->update();
+        waitingCounter ++;
+    }
+
+    mSerialCmd->stopWaitingForTimeSync();
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 /// \brief Send/Receive

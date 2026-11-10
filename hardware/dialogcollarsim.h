@@ -106,6 +106,7 @@ class DialogCollarSim : public QDialog
 
 
     static QString cmdTM();
+
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
     void loadAnimals(QList<Animal*> animals);

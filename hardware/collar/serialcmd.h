@@ -27,6 +27,7 @@ class SerialCmd
     inline bool hasArgumentString(){ return 0 != mArgument[0]; }
 
     void skipAvailable();
+    bool mIsWaitingForTimeSync = false; // RTM command send and waiting to sync the time
 public:
 
     SerialCmd(Collar *c);
@@ -46,6 +47,7 @@ public:
             REBOOT,
             SLEEP,  // Enable/Disable Deep sleep
             INT,    // Get set send (sleep) interval in seconds
+            RTM,     // Request time (TM) message
             TM,     // Get/Set the time
             INFO,
             VER,    // Give software version
@@ -88,6 +90,9 @@ public:
     void setup();
     void update();
     void clear();
+
+    inline bool isWaitingForTimeSync(){ return mIsWaitingForTimeSync; }
+    void stopWaitingForTimeSync(){ mIsWaitingForTimeSync = false; }
 
 #ifdef ONPC
     inline void writeToSerial(const char* str) { Serial.writeIn(str); }

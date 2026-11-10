@@ -30,6 +30,7 @@ void SerialCmd::initCommands() {
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::LED] = "led";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::HELP] = "help";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::REBOOT] = "reboot";
+    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RTM] = "rtm";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::TM] = "tm";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INFO] = "info";
     SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::EUI] = "eui";
@@ -111,7 +112,7 @@ void SerialCmd::sendCmd(Cmd::Type t, const String& str)
 }
 
 
-#define SERIAL_ERROR_RETURN(__err__)  sendCmd(Cmd::Type::RSP, String("Error") + __err__); clear(); skipAvailable(); return;
+#define SERIAL_ERROR_RETURN(__err__)  sendCmd(Cmd::Type::RSP, String(mCommand) + String("=>Error:") + (__err__)); clear(); skipAvailable(); return;
 
 void SerialCmd::update()
 {
@@ -218,7 +219,7 @@ bool SerialCmd::execute()
     };
 
     auto printError = [&](const String& str) {
-        Serial.println(String(SERIAL_CMD_ERROR) + str) ;
+        Serial.println(String(SERIAL_CMD_ERROR) + ":" + str) ;
     };
 
     auto printHead = [&](bool isResponce = true) {
@@ -294,6 +295,10 @@ bool SerialCmd::execute()
 
         printHead();
         const uint64_t msec = strtoull(mArgument, NULL, 10);
+        if( msec < 1000) {
+            printError("Interval is less than a second.");
+            return false;
+        }
         mCollar->setSendInterval(msec);
         Serial.println( String("Send/sleep interval set to:") + msec + "msec" );
         break;
@@ -315,7 +320,14 @@ bool SerialCmd::execute()
 
         break;
     }
+    case Cmd::Type::RTM:
+        // Time sync requect
+        sendCmd(Cmd::Type::RTM);
+        mIsWaitingForTimeSync = true;
+        break;
     case Cmd::Type::TM:
+        mIsWaitingForTimeSync = false;
+
         if( mIsArgument ) {
             printHead();
             const uint64_t secsEpoch = strtoull(mArgument, NULL, 10);
@@ -326,10 +338,13 @@ bool SerialCmd::execute()
 
             int64_t diff = (int64_t)mCollar->epoch() - (int64_t)secsEpoch;
 
-            Serial.println( String("Time set to:") + mCollar->dateTime()
-                           + "\rDifference is:" + diff );
-            mCollar->setEpoch(secsEpoch);
-            printChanged();
+            if( diff ) {
+                mCollar->setEpoch(secsEpoch);
+                Serial.println( String("Time set to:") + mCollar->dateTime() +
+                    (diff < 0 ? "\rSecs slower:" : "\rSecs faster:") + abs(diff) );
+            }else {
+                Serial.println( "Time is the same." );
+            }
         }else {
             printHead(false);
             Serial.println(mCollar->dateTime());
