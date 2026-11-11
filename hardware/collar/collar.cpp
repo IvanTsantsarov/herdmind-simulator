@@ -613,7 +613,6 @@ void Collar::onUpdate()
             mLed->blink(10);
 
             if( !mIsSignalGPS ) {
-                DBG("!");
                 DBG( String("GPS signal arrived in ") + msec + " msec" );
                 mIsSignalGPS = true;
             }

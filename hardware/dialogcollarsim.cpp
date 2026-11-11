@@ -601,15 +601,31 @@ void DialogCollarSim::processSerialInput()
 
     case SerialCmd::Cmd::Type::TM:{
         addOutput(tail, RESPONCE_COLOR_CMD);
-        int64_t secSrv = QDateTime::currentDateTime().toSecsSinceEpoch();
-        int64_t secDev = cmdRem.toULongLong();
+        uint64_t secSrv = QDateTime::currentDateTime().toSecsSinceEpoch();
+        uint64_t secDev = cmdRem.toULongLong();
         if( secSrv == secDev) {
             addOutput( QString("Time is OK."), RESPONCE_COLOR_DIAG);
         }else {
-            addOutput( secSrv > secDev ?
-                    QString("Dev %1 secs behind").arg(secSrv - secDev) :
-                    QString("Dev %1 secs ahead").arg(secDev - secSrv),
-                      RESPONCE_COLOR_DIAG );
+            bool isBehind = secSrv > secDev;
+            uint64_t diff = 0;
+            QString str;
+
+            if( isBehind ) {
+                diff = secSrv - secDev;
+                str = "Dev %1 secs behind";
+            }else {
+                diff = secDev - secSrv;
+                str = "Dev %1 secs ahead";
+            }
+
+            addOutput( QString(str).arg(diff), RESPONCE_COLOR_DIAG );
+
+            // if diff is more then a month
+            // sync it
+            if( diff > (60*60*24*30)) {
+                addOutput("Clock is long ago. Sync...", RESPONCE_COLOR_DIAG);
+                sendToSerial( "rtm", true);
+            }
         }
 
     }
