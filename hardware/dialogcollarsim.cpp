@@ -16,7 +16,7 @@
 #include "ui_dialogcollarsim.h"
 
 
-#define DLGCOLLARSIM_PORTS_REFRESH_TIMEOUT 500
+#define DLGCOLLARSIM_PORTS_REFRESH_TIMEOUT 100
 
 #define DLGCOLLARSIM_SIGNAL_DURATION 3000
 #define DLGCOLLARSIM_SIGL_ON QColor(255, 255, 200)
@@ -534,7 +534,7 @@ void DialogCollarSim::on_btnClear_clicked()
 
 void DialogCollarSim::processSerialInput()
 {
-    auto stripCmd = [&](QString& resp) {
+    auto stripCmd = [&](QString& resp, QString &rem) {
         resp = resp.trimmed();
 
         if( resp.length() < (SERIAL_CMD_MIN_SIZE+2) ) {
@@ -549,6 +549,8 @@ void DialogCollarSim::processSerialInput()
         if( dmPos <= 0) {
             return QString();
         }
+
+        rem = resp.mid(dmPos+1).trimmed();
 
         return resp.mid(1, dmPos-1);
     };
@@ -580,7 +582,8 @@ void DialogCollarSim::processSerialInput()
         isResp = ui->checkRsp->isChecked();
     }
 
-    QString cmdStr = stripCmd(respFull);
+    QString cmdRem;
+    QString cmdStr = stripCmd(respFull, cmdRem);
 
     if( cmdStr.isEmpty()) {
         return;
@@ -595,6 +598,22 @@ void DialogCollarSim::processSerialInput()
     QString tail = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
 
     switch(cmd) {
+
+    case SerialCmd::Cmd::Type::TM:{
+        addOutput(tail, RESPONCE_COLOR_CMD);
+        int64_t secSrv = QDateTime::currentDateTime().toSecsSinceEpoch();
+        int64_t secDev = cmdRem.toULongLong();
+        if( secSrv == secDev) {
+            addOutput( QString("Time is OK."), RESPONCE_COLOR_DIAG);
+        }else {
+            addOutput( secSrv > secDev ?
+                    QString("Dev %1 secs behind").arg(secSrv - secDev) :
+                    QString("Dev %1 secs ahead").arg(secDev - secSrv),
+                      RESPONCE_COLOR_DIAG );
+        }
+
+    }
+     break;
 
     case SerialCmd::Cmd::Type::RTM:
         sendToSerial( DialogCollarSim::cmdTM(), true);
@@ -665,7 +684,7 @@ void DialogCollarSim::processSerialInput()
         break;
     case SerialCmd::Cmd::Type::RSP:
         if( isResp ) {
-            addOutput(tail);
+            addOutput(tail, RESPONCE_COLOR_CMD);
         }
         break;
     case SerialCmd::Cmd::Type::SIGL:
@@ -682,19 +701,22 @@ void DialogCollarSim::processSerialInput()
         QStringList lines = tail.split('\r');
         for(QString line: lines) {
             if( line.startsWith("---")) {
-                addOutput(line, RESPONCE_COLOR_INFO);
+                addOutput(line, RESPONCE_COLOR_HELP);
             }else {
                 int cmdEnd = line.indexOf(SERIAL_CMD_TAIL);
                 if( cmdEnd >= 0) {
                     QString cmdName = line.left(cmdEnd);
                     QString cmdInfo = line.mid(cmdEnd);
-                    addOutput( QString("<b>%1</b>%2").arg(cmdName, cmdInfo), RESPONCE_COLOR_CMD);
+                    addOutput( QString("<b>%1</b>%2").arg(cmdName, cmdInfo), RESPONCE_COLOR_HELP);
                 }
             }
         }
 
         break;
     }
+    case SerialCmd::Cmd::Type::NONE:
+        addOutput(QString("Invalid command:%1").arg(respFull), RESPONCE_COLOR_ERROR);
+        break;
     default:
         addOutput(tail, RESPONCE_COLOR_CMD);
     }

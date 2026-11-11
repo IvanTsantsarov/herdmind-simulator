@@ -109,6 +109,7 @@ void SerialCmd::sendCmd(Cmd::Type t, const String& str)
     Cmd cmd(t);
     String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + (str.length() ? str : "");
     Serial.println(r);
+    Serial.flush();
 }
 
 
@@ -346,7 +347,7 @@ bool SerialCmd::execute()
                 Serial.println( "Time is the same." );
             }
         }else {
-            printHead(false);
+            printHead(true);
             Serial.println(mCollar->dateTime());
         }
         break;

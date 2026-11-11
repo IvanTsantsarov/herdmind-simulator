@@ -433,7 +433,8 @@ void Collar::onSetup()
 
     mSetupMillis = millis();
 
-    Serial.println( String("Setup finished:") + mTimer->dateTimeStr() );
+    mSerialCmd->sendCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
+    mSerialCmd->sendCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
 
     mStage = Stage::Init;
 }

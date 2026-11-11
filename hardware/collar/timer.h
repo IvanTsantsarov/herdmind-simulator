@@ -28,8 +28,8 @@ public:
     String format(const char* fmt);
 
     inline String timeStr(){ return format("%H:%M:%S"); }
-    String dateStr(){ return format("%d.%b.%y"); }
-    String dateTimeStr(){ return format("%H:%M:%S, %d.%b.%y"); }
+    String dateStr(){ return format("%d.%m.%y"); }
+    String dateTimeStr(){ return format("%H:%M:%S, %d.%m.%y"); }
 };
 
 
