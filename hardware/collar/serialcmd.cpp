@@ -104,7 +104,7 @@ void SerialCmd::clear()
 
 }
 
-void SerialCmd::sendCmd(Cmd::Type t, const String& str)
+void SerialCmd::printCmd(Cmd::Type t, const String& str)
 {
     Cmd cmd(t);
     String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + (str.length() ? str : "");
@@ -113,7 +113,7 @@ void SerialCmd::sendCmd(Cmd::Type t, const String& str)
 }
 
 
-#define SERIAL_ERROR_RETURN(__err__)  sendCmd(Cmd::Type::RSP, String(mCommand) + String("=>Error:") + (__err__)); clear(); skipAvailable(); return;
+#define SERIAL_ERROR_RETURN(__err__)  printCmd(Cmd::Type::RSP, String(mCommand) + String("=>Error:") + (__err__)); clear(); skipAvailable(); return;
 
 void SerialCmd::update()
 {
@@ -213,22 +213,15 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 }
 
 
+
 bool SerialCmd::execute()
 {
     auto printChanged = [&]() {
-        Serial.println(String(SERIAL_CMD_STRING_CHANGED) + mArgument) ;
+        printResponce(String(SERIAL_CMD_STRING_CHANGED) + mArgument);
     };
 
-    auto printError = [&](const String& str) {
-        Serial.println(String(SERIAL_CMD_ERROR) + ":" + str) ;
-    };
-
-    auto printHead = [&](bool isResponce = true) {
-        String head = String(SERIAL_CMD_BEGIN)
-                    + ( isResponce ? Cmd::type2StrStatic(Cmd::Type::RSP) : Cmd::type2StrStatic(mCmd.type()) )
-                    + SERIAL_CMD_TAIL;
-
-        Serial.print(head);
+    auto printCommand = [&](const String& str) {
+        Serial.println(String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(mCmd.type())  + SERIAL_CMD_TAIL + str);
     };
 
     switch( mCmd.type() ) {
@@ -236,25 +229,20 @@ bool SerialCmd::execute()
         return false;
         break;
     case Cmd::Type::DBG:
-        printHead();
-        Serial.println(mCollar->toggleDbg() ? "Debug On" : "Debug Off");
+        printResponce(mCollar->toggleDbg() ? "Debug On" : "Debug Off");
         break;
     case Cmd::Type::STATS:
-        printHead();
-        Serial.println(mCollar->toggleStats() ? "Stats On" : "Stats Off");
+        printResponce(mCollar->toggleStats() ? "Stats On" : "Stats Off");
         break;
     case Cmd::Type::LED:
-        printHead();
-        Serial.println(mCollar->led()->toggle() ? "LED On" : "LED Off");
+        printResponce(mCollar->led()->toggle() ? "LED On" : "LED Off");
         break;
     case Cmd::Type::REBOOT:
-        printHead();
-        Serial.println("Rebooting...");
+        printResponce("Rebooting...");
         mCollar->reboot();
         break;
     case Cmd::Type::INFO:
-        printHead(false);
-        Serial.println( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
+        printCommand( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
                        (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
                         mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
                         mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
@@ -264,8 +252,7 @@ bool SerialCmd::execute()
         break;
 
     case Cmd::Type::GPS: {
-        printHead();
-        Serial.println( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
+        printResponce( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
                         "lat=" + String(mCollar->gps().mLat, 10) + SERIAL_CMD_PARAMS_DM +
                         "lon=" + String(mCollar->gps().mLon, 10) + SERIAL_CMD_PARAMS_DM +
                         "sat=" + mCollar->satellites() );
@@ -274,13 +261,11 @@ bool SerialCmd::execute()
 
 
     case Cmd::Type::BAT:
-        printHead(false);
-        Serial.println( mCollar->batteryInfo() );
+        printCommand( mCollar->batteryInfo() );
         break;
 
     case Cmd::Type::RADIO:
-        printHead(false);
-        Serial.println( String("RSSI=") + mCollar->rssi() + SERIAL_CMD_PARAMS_DM
+        printCommand( String("RSSI=") + mCollar->rssi() + SERIAL_CMD_PARAMS_DM
                        + "SNR=" + mCollar->snr() + SERIAL_CMD_PARAMS_DM
                        + "SS=" + mCollar->signalStrength());
         break;
@@ -289,48 +274,41 @@ bool SerialCmd::execute()
     case Cmd::Type::INT:
     {
         if( !mIsArgument ) {
-            printHead(false);
-            Serial.println( String("Send/sleep inverval is: ") + mCollar->sendInterval() + " msec" );
+            printCommand( String("Send/sleep inverval is: ") + mCollar->sendInterval() + " msec" );
             return true;
         }
 
-        printHead();
+
         const uint64_t msec = strtoull(mArgument, NULL, 10);
         if( msec < 1000) {
             printError("Interval is less than a second.");
             return false;
         }
         mCollar->setSendInterval(msec);
-        Serial.println( String("Send/sleep interval set to:") + msec + "msec" );
+        printResponce( String("Send/sleep interval set to:") + msec + "msec" );
         break;
     }
 
     case Cmd::Type::SLEEP:
     {
-        if( !mIsArgument ) {
-            printHead(false);
-            Serial.println(String("Deep sleep is ") + (mCollar->isDeepSleep() ? "Enabled" : "Disabled"));
-            return true;
+        if( mIsArgument ) {
+            char argChar = mArgument[0];
+            bool is = (argChar == 'y' || argChar == '1' ? true : false);
+            mCollar->enableDeepSleep(is);
         }
 
-        printHead();
-        char argChar = mArgument[0];
-        bool is = (argChar == 'y' || argChar == '1' ? true : false);
-        Serial.println( String("Deep sleep is:") + (is ? "Enabled" : "Disabled") );
-        mCollar->enableDeepSleep(is);
-
+        printResponce( String("Deep sleep is:") + (mCollar->isDeepSleep() ? "Enabled" : "Disabled") );
         break;
     }
     case Cmd::Type::RTM:
         // Time sync requect
-        sendCmd(Cmd::Type::RTM);
+        printCmd(Cmd::Type::RTM);
         mIsWaitingForTimeSync = true;
         break;
     case Cmd::Type::TM:
         mIsWaitingForTimeSync = false;
 
         if( mIsArgument ) {
-            printHead();
             const uint64_t secsEpoch = strtoull(mArgument, NULL, 10);
             if( secsEpoch < 1767225600) { // epoch of 01.01.20026
                 printError("Wrong time (before 01.01.2026)!");
@@ -341,22 +319,19 @@ bool SerialCmd::execute()
 
             if( diff ) {
                 mCollar->setEpoch(secsEpoch);
-                Serial.println( String("Time set to:") + mCollar->dateTime() +
+                printResponce( String("Time set to:") + mCollar->dateTime() +
                     (diff < 0 ? "\rSecs slower:" : "\rSecs faster:") + abs(diff) );
             }else {
-                Serial.println( "Time is the same." );
+                printResponce( "Time is the same." );
             }
         }else {
-            printHead(true);
-            Serial.println(mCollar->dateTime());
+            printCommand(mCollar->dateTime());
         }
         break;
-
 
     case Cmd::Type::NKEY:
 
         if( mIsArgument ) {
-            printHead();
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
                 printError( "Wrong netkey length!" );
                 return false;
@@ -364,14 +339,13 @@ bool SerialCmd::execute()
             mCollar->setNKeyHex(mArgument);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(mCollar->nkeyHex());
+            printCommand(mCollar->nkeyHex());
         }
         break;
 
     case Cmd::Type::AKEY:
         if( mIsArgument ) {
-            printHead();
+
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
                 printError("Wrong AppKey lenght!");
                 return false;
@@ -379,13 +353,11 @@ bool SerialCmd::execute()
             mCollar->setAKeyHex(mArgument);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(mCollar->akeyHex());
+            printCommand(mCollar->akeyHex());
         }
         break;
 
     case Cmd::Type::NAME:
-        printHead();
         if( mIsArgument ) {
             if( mArgumentLen < 3) {
                 printError("Wrong name lenght!");
@@ -394,14 +366,12 @@ bool SerialCmd::execute()
             mCollar->setAnimalName(mArgument);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(mCollar->animalName());
+            printCommand(mCollar->animalName());
         }
         break;
 
     case Cmd::Type::SEX:
         if( mIsArgument ) {
-            printHead();
             if( mArgumentLen != 1) {
                 printError("Wrong sex lenght!");
                 return false;
@@ -409,14 +379,13 @@ bool SerialCmd::execute()
             mCollar->setIsMale(strcmp(mArgument,"m") == 0 ? true : false);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(mCollar->isMale() ? "m" : "f");
+            printCommand(mCollar->isMale() ? "m" : "f");
         }
         break;
 
     case Cmd::Type::EUI:
         if( mIsArgument ) {
-            printHead();
+
             if( mArgumentLen != LORA_EUI_HEX_LEN) {
                 printError("Wrong EUI lenght!");
                 return false;
@@ -424,14 +393,12 @@ bool SerialCmd::execute()
             mCollar->setEuiHex(mArgument);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(mCollar->euiHex());
+            printCommand(mCollar->euiHex());
         }
         break;
 
     case Cmd::Type::ADDR:
         if( mIsArgument ) {
-            printHead();
             if( mArgumentLen != LORA_ADDR_HEX_LEN) {
                 printError("Wrong Address lenght!");
                 return false;
@@ -439,14 +406,12 @@ bool SerialCmd::execute()
             mCollar->setAddrHex(mArgument);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(mCollar->addrHex());
+            printCommand(mCollar->addrHex());
         }
         break;
 
     case Cmd::Type::FPORT:
         if( mIsArgument ) {
-            printHead();
             if( mArgumentLen != LORA_FPORT_HEX_LEN) {
                 printError("Wrong FPort lenght!");
                 return false;
@@ -454,89 +419,82 @@ bool SerialCmd::execute()
             mCollar->setFPortHex(mArgument);
             printChanged();
         }else {
-            printHead(false);
-            Serial.println(String("0x") + mCollar->fportHex());
+            printCommand(String("0x") + mCollar->fportHex());
         }
         break;
 
     case Cmd::Type::FLASH:
-        printHead();
         if( !mCollar->flash() ) {
             printError("Flashing.");
         }else {
-            Serial.println("Flashing done.");
+            printResponce("Flashing done.");
         }
         break;
     case Cmd::Type::RESTORE:
-        printHead();
+
         if( !mCollar->restore() ) {
             printError("Restoring.");
         }else {
-            Serial.println("Restoring done.");
+            printResponce("Restoring done.");
         }
         break;
 
     case Cmd::Type::VER:
-        printHead(false);
-        Serial.println(COLLAR_VERSION);
+        printCommand(COLLAR_VERSION);
         break;
 
     case Cmd::Type::RSP:
         // not receiving - just sending. Here because of the warning
         break;
     case Cmd::Type::SIGL:
-        printHead();
-        Serial.println("Executing lights...");
+        printResponce("Executing lights...");
         mCollar->execSignal(Collar::SignalType::Light);
         break;
     case Cmd::Type::SIGS:
-        printHead();
-        Serial.println("Executing sound...");
+        printResponce("Executing sound...");
         mCollar->execSignal(Collar::SignalType::Sound);
         break;
     case Cmd::Type::SIGE:
-        printHead();
-        Serial.println("Executing electric shock...");
+        printResponce("Executing electric shock...");
         mCollar->execSignal(Collar::SignalType::Shock);
         break;
     case Cmd::Type::HELP:
-        printHead(false);
-        Serial.print("---------- HELP ----------\r");
-        Serial.print("stats: Toggle statistics\r");
-        Serial.print("info: Common info\r");
-        Serial.print("tm: Get and Set(Epoch in seconds) time\r");
-        Serial.print("sleep: Enable/Disable deep sleep (y/n and 0/1)\r");
-        Serial.print("int: Get/Set send/sleep interval in milliseconds\r");
-        Serial.print( "--- Animal\r");
-        Serial.print("name: Set/Get animal's name\r");
-        Serial.print("sex: Set/Get gender: f or m\r");
-        Serial.print( "--- LoraWAN\r");
-        Serial.print("eui: Set/Get EUI of the LoraWAN module\r");
-        Serial.print("nkey: Set/Get network key (only OTA supported)\r");
-        Serial.print("akey: Set/Get app key (only OTA supported)\r");
-        Serial.print( "--- Signals\r");
-        Serial.print("sigl: execute signal Lights\r");
-        Serial.print("sigs: execute signal Sound\r");
-        Serial.print("sige: execute signal Electrick shock\r");
-        Serial.print( "--- Hardware\r");
-        Serial.print("led: enable/disable board LED\r");
-        Serial.print("gps: status(e-emulated, y-hardware present, n-no hardware), current position, sattelites count\r");
-        Serial.print("bat: Battery status\r");
-        Serial.print("radio: Get LoRa RSSI, SNR and SS\r");
-        Serial.print( "--- Program\r");
-        Serial.print("flash: Flash values into peristent memory\r");
-        Serial.print("restore: Restore values from peristent memory\r");
-        Serial.print("reboot: Restart the device\r");
-        Serial.print( "--- Legend\r");
-        Serial.print( "EUI: LoRa device unique number\r");
-        Serial.print( "RSSI: Received Signal Strength Indicator\r");
-        Serial.print( "SNR: Signal-to-Noise Ratio\r");
-        Serial.print( "SS: Signal Strength\r" );
-        Serial.print("--------------------------\r\n");
+        printCommand(
+        "---------- HELP ----------\r"
+        "stats: Toggle statistics\r"
+        "info: Common info\r"
+        "tm: Get and Set(Epoch in seconds) time\r"
+        "sleep: Enable/Disable deep sleep (y/n and 0/1)\r"
+        "int: Get/Set send/sleep interval in milliseconds\r"
+         "--- Animal\r"
+        "name: Set/Get animal's name\r"
+        "sex: Set/Get gender: f or m\r"
+         "--- LoraWAN\r"
+        "eui: Set/Get EUI of the LoraWAN module\r"
+        "nkey: Set/Get network key (only OTA supported)\r"
+        "akey: Set/Get app key (only OTA supported)\r"
+         "--- Signals\r"
+        "sigl: execute signal Lights\r"
+        "sigs: execute signal Sound\r"
+        "sige: execute signal Electrick shock\r"
+         "--- Hardware\r"
+        "led: enable/disable board LED\r"
+        "gps: status(e-emulated, y-hardware present, n-no hardware), current position, sattelites count\r"
+        "bat: Battery status\r"
+        "radio: Get LoRa RSSI, SNR and SS\r"
+         "--- Program\r"
+        "flash: Flash values into peristent memory\r"
+        "restore: Restore values from peristent memory\r"
+        "reboot: Restart the device\r"
+         "--- Legend\r"
+         "EUI: LoRa device unique number\r"
+         "RSSI: Received Signal Strength Indicator\r"
+         "SNR: Signal-to-Noise Ratio\r"
+         "SS: Signal Strength\r"
+        "--------------------------\r\n");
         break;
 
     default:
-        printHead();
         printError( String("Wrong command:") + mCmd.typeStr() );
         return false;
     }
@@ -557,7 +515,7 @@ bool gIsDbg = true;
 
 void gPrintDbg(const String &str) {
     if(gIsDbg)    {
-        SerialCmd::sendCmd(SerialCmd::Cmd::Type::DBG, str);
+        SerialCmd::printCmd(SerialCmd::Cmd::Type::DBG, str);
         Serial.flush();
     }
 }

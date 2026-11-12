@@ -347,12 +347,12 @@ bool Collar::restore()
 
 void Collar::serialRespond(const String& msg)
 {
-    mSerialCmd->sendResponce(msg);
+    mSerialCmd->printResponce(msg);
 }
 
 void Collar::serialCmd(SerialCmd::Cmd::Type t, const String& str)
 {
-    mSerialCmd->sendCmd(t, str);
+    mSerialCmd->printCmd(t, str);
 }
 
 void Collar::execSignal(SignalType t)
@@ -433,8 +433,8 @@ void Collar::onSetup()
 
     mSetupMillis = millis();
 
-    mSerialCmd->sendCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
-    mSerialCmd->sendCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
+    mSerialCmd->printCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
+    mSerialCmd->printCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
 
     mStage = Stage::Init;
 }
@@ -664,6 +664,10 @@ void Collar::updateSerial()
         delay(10);
         mSerialCmd->update();
         waitingCounter ++;
+    }
+
+    if( mSerialCmd->isWaitingForTimeSync() ) {
+        mSerialCmd->printError("Time sync failed!");
     }
 
     mSerialCmd->stopWaitingForTimeSync();

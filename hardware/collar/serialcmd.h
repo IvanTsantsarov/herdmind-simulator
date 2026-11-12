@@ -78,6 +78,7 @@ public:
 
         inline void clear(){ mT = Type::NONE; }
         bool parse(const char* buffer, int bufferLen);
+
     private:
         Type mT = Type::NONE;
     };
@@ -99,8 +100,11 @@ public:
     inline QByteArray readFromSerial() { return Serial.readOut(); }
 #endif
 
-    static void sendCmd(SerialCmd::Cmd::Type t, const String &str = String());
-    void sendResponce(const String &rsp) { sendCmd(Cmd::Type::RSP, rsp); }
+    static void printCmd(SerialCmd::Cmd::Type t, const String &str = String());
+    void printResponce(const String &str){ printCmd(Cmd::Type::RSP, str); }
+    inline void printResponce(const char* str) { printResponce(String(str)); }
+    void printError(const String &str) { printResponce( SERIAL_CMD_ERROR + str) ; }
+    inline void printError(const char* str) { printError(String(str)); }
 };
 
 #endif // SERIALCMD_H
