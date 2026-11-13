@@ -579,3 +579,8 @@ const char *esp_reset_reason_to_name(int reason)
     return "No reason on PC";
 }
 
+
+void gpio_deep_sleep_hold_en()
+{
+
+}

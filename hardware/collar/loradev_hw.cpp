@@ -23,6 +23,10 @@ Data Rate (DR)	Configuration	Bit Rate	Typical Use / Characteristics
 #define PIN_NRST  12
 #define PIN_BUSY  13
 
+#define PIN_VFEM 7
+#define PIN_CSD 2
+#define PIN_LORA_TX 5
+
 extern String gRadioLibErrStr(int16_t errorCode);
 
 // Msec to wait additionaly for the RX window
@@ -106,6 +110,7 @@ void LoraDevHW::onSetup() {
     if( isWakingUp() ) {
         DBG("[LoraDevHW] --- Wake up ---");
         mWakeUpCause = esp_sleep_get_wakeup_cause();
+        wakeup();
     }else {
         // Get the base MAC address of the ESP32 (6 bytes unique)
         esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -154,8 +159,19 @@ void LoraDevHW::onSetup() {
     }
     DBG(String("[LoraDevHW] scanGuard=") + mNode->scanGuard);
     ////////////////////////////////////////
+    ///
 
     SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_NSS);
+
+    // 1. Power ON the Heltec V4.3 Front-End Module (PA/LNA)
+    pinMode(PIN_VFEM, OUTPUT);
+    digitalWrite(PIN_VFEM, HIGH); // VFEM power ON
+
+    pinMode(PIN_CSD, OUTPUT);
+    digitalWrite(PIN_CSD, HIGH); // FEM_EN (CSD) ON
+
+    // 2. Tell RadioLib to automatically toggle GPIO 5 HIGH during TX and LOW during RX
+    mRadio.setRfSwitchPins(RADIOLIB_NC, 5);
 
     ConfigLoRa_t config{};
     config.frequency = 868; // The frequency here does not matter, as it will get changed by LoRaWAN anyway
@@ -294,7 +310,17 @@ bool LoraDevHW::prepareToSleep(uint64_t msec, int pinBtnWake)
     LoraDevHW::incBootCount();
 
     mRadio.sleep(true);
-    delay(100);
+    delay(50);
+
+    // 2. Shut down the Front-End Module (FEM)
+    digitalWrite(PIN_LORA_TX, LOW);  // TX/RX switch LOW
+    digitalWrite(PIN_CSD, LOW);  // FEM_EN (CSD) OFF
+    digitalWrite(PIN_VFEM, LOW);  // VFEM power supply OFF
+
+    // 3. Hold GPIO states during deep sleep so they don't float back HIGH
+    gpio_hold_en((gpio_num_t)PIN_CSD);
+    gpio_hold_en((gpio_num_t)PIN_VFEM);
+    gpio_deep_sleep_hold_en();
 
     esp_err_t err = esp_sleep_enable_timer_wakeup(1000ULL * msec);
     DBG(String("[LoraDevHW] Timer config: ") + esp_err_to_name(err));
@@ -320,6 +346,21 @@ bool LoraDevHW::sleep()
     DBG("[LoraDevHW]Error: should not be here on a deep sleep!");
 
     return false;
+}
+
+void LoraDevHW::wakeup()
+{
+    // At the start of LoraDevHW::onSetup(), before turning VFEM back ON:
+    gpio_hold_dis((gpio_num_t)PIN_CSD);
+    gpio_hold_dis((gpio_num_t)PIN_VFEM);
+
+    pinMode(PIN_VFEM, OUTPUT);
+    digitalWrite(7, HIGH); // VFEM power ON
+
+    pinMode(PIN_CSD, OUTPUT);
+    digitalWrite(PIN_CSD, HIGH); // FEM_EN (CSD) ON
+
+    mRadio.setRfSwitchPins(RADIOLIB_NC, PIN_LORA_TX);
 }
 
 

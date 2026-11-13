@@ -436,6 +436,7 @@ public:
     float getRSSI(){ return -30; };
     float getSNR(){ return -80; };
     void sleep(bool is){}
+    void setRfSwitchPins( int a, int b){}
 
 };
 
@@ -511,3 +512,6 @@ int esp_reset_reason();
 const char* esp_reset_reason_to_name(int reason);
 int esp_sleep_get_wakeup_cause();
 
+void gpio_deep_sleep_hold_en();
+
+#define RADIOLIB_NC 0

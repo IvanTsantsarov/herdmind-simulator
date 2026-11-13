@@ -85,7 +85,7 @@ protected:
 
     void onDevicesReady(bool isStore);
     void onGateways(const QJsonObject &jobj);
-    void onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray& msg);
+    void onDeviceMessageMqtt(const QJsonObject &jobj);
 
 public:
     DevManager(const QSettings& settings , bool isSimulation);

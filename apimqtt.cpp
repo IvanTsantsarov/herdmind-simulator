@@ -39,14 +39,6 @@ void ApiMqtt::onMessageReceived(const QByteArray &message, const QMqttTopicName 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message, &parseError);
     QJsonObject jobj = jsonDoc.object();
-    QByteArray addr = QByteArray::fromHex( jobj["devAddr"].toString().toUtf8() );
 
-    QByteArray content = QByteArray::fromBase64( jobj["data"].toString().toUtf8());
-
-    if( content.isEmpty() ) {
-        qDebug() << "Message with no data field" << jsonDoc.toJson();
-    }
-
-
-    devman()->onDeviceMessageMqtt(addr, content);
+    devman()->onDeviceMessageMqtt(jobj);
 }

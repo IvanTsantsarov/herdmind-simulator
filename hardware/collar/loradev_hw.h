@@ -47,6 +47,7 @@ protected:
 
     bool prepareToSleep(uint64_t msec, int pinBtnWake);
     bool sleep();
+    void wakeup();
 public:
 
     LoraDevHW();

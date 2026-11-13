@@ -99,7 +99,7 @@ public:
 
     struct Bolus {
 
-        enum Condition {
+        enum Condition : uint8_t {
             Normal = 0,
             Unavailable = 1,
             Atony = 2,
@@ -121,14 +121,14 @@ public:
 
         uint32_t mTimestamp = timestamp();  // unix timestamp
         uint8_t mCondition = 0;      // see bolus.h
-        uint8_t mRssi = 0;       // signal level
+        uint8_t mStatus = 0;          // status
         uint8_t mBattery = 0;        // mBattery level
 
 
         inline void fromByteArray(const uint8_t* array) {
             mTimestamp = Protocol::readUint32(array, 0);
             mCondition = array[sizeof(uint32_t)];
-            mRssi      = array[sizeof(uint32_t)+1];
+            mStatus      = array[sizeof(uint32_t)+1];
             mBattery   = array[sizeof(uint32_t)+2];
         }
 
@@ -136,7 +136,7 @@ public:
             BolusByteArray ba;
             Protocol::writeUint32(mTimestamp, ba, 0);
             ba[sizeof(uint32_t)]  = mCondition;
-            ba[sizeof(uint32_t)+1]= mRssi;
+            ba[sizeof(uint32_t)+1]= mStatus;
             ba[sizeof(uint32_t)+2]= mBattery;
             return ba;
         }
@@ -165,7 +165,7 @@ public:
         uint32_t mTimestamp = timestamp();  // unix timestamp
         uint32_t mLatitude = 0;   // positioning mLatitude
         uint32_t mLongitude = 0;  // positioning mLongitude
-        uint8_t mRssi = 0;        // signal level
+        uint8_t mStatus = 0;        // signal level
         uint8_t mBattery = 0;     // mBattery level
 
         inline void fromByteArray(const uint8_t* array) {
@@ -175,7 +175,7 @@ public:
             mLatitude = Protocol::readUint32(array,  offset); offset += sizeof(uint32_t);
             mLongitude = Protocol::readUint32(array, offset); offset += sizeof(uint32_t);
 
-            mRssi    = array[ offset++];
+            mStatus    = array[ offset++];
             mBattery = array[ offset++];
         }
 
@@ -188,7 +188,7 @@ public:
             Protocol::writeUint32(mLatitude, ba, offset); offset += sizeof(uint32_t);
             Protocol::writeUint32(mLongitude,  ba, offset); offset += sizeof(uint32_t);
 
-            ba[offset++] = mRssi;
+            ba[offset++] = mStatus;
             ba[offset++] = mBattery;
             return ba;
         }

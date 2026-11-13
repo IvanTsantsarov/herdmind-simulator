@@ -60,8 +60,8 @@ class Collar : public LoraDevHW
     friend class DialogCollarSim;
     Animal* mAnimal = nullptr;
     GeoPoint mInjectedPos;
-    int mInjectedRSSI = 0;
-    int mInjectedSNR = 0;
+    float mInjectedRSSI = 0;
+    float mInjectedSNR = 0;
     int mInjectedBat = 0;
     bool mEnableRestore = false;
 #else
@@ -159,7 +159,7 @@ public:
     inline const Animal* animal() const { return mAnimal; }
     void sendToSerial(const char* str);
     QByteArray readFromSerial();
-    void inject(GeoPoint _pos, int _sat, int _rssi, int _snr, int _bat);
+    void inject(GeoPoint _pos, int _sat, float _rssi, float _snr, int _bat);
 #else
     Collar();
     void sendStats();
@@ -190,8 +190,8 @@ public:
     bool gotoBed();
 
 #ifdef ONPC
-    virtual int rssi(); // RSSI (Received Signal Strength Indicator) in dBm
-    virtual int snr(); // SNR (Signal-to-Noise Ratio)
+    virtual float rssi(); // RSSI (Received Signal Strength Indicator) in dBm
+    virtual float snr(); // SNR (Signal-to-Noise Ratio)
 #endif
 
     char gpsStatus(); // y - has gps hardware, n - doesn't have gps harware, e - emulated gps

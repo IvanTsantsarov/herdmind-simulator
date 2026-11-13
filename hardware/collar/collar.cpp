@@ -101,7 +101,8 @@ QByteArray Collar::readFromSerial()
     return mSerialCmd->readFromSerial();
 }
 
-void Collar::inject(GeoPoint _pos, int _sat, int _rssi, int _snr, int _bat) {
+void Collar::inject(GeoPoint _pos, int _sat, float _rssi, float _snr, int _bat)
+{
     mGPS->inject(_pos, _sat), mInjectedRSSI = _rssi, mInjectedSNR = _snr, mInjectedBat = _bat;
 }
 
@@ -200,14 +201,14 @@ bool Collar::gotoBed()
 
 
 #ifdef ONPC
-int Collar::rssi()
+float Collar::rssi()
 {
-    return mInjectedRSSI;
+    return mRxInfo.rssi();
 }
 
-int Collar::snr()
+float Collar::snr()
 {
-    return mInjectedSNR;
+    return mRxInfo.snr();
 }
 #endif
 
@@ -249,19 +250,34 @@ int Collar::satellites()
 
 int Collar::signalStrength()
 {
-    // 1. Calculate Estimated Signal Power (ESP)
-    // ESP = RSSI - 10 * log10(1 + 10^(-SNR/10))
-    float esp = rssi() - 10.0 * std::log10(1.0 + std::pow(10.0, -snr() / 10.0));
+    float currentRssi = rssi();
+    float currentSnr  = snr();
 
-    // 2. Define functional hardware boundaries
-    const float ESP_MAX = -30.0;  // Perfect signal (100%)
-    const float ESP_MIN = -140.0; // Absolute noise/sensitivity floor (0%)
+    // 1. Guard against invalid sensor readings (NaN or Inf)
+    if (std::isnan(currentRssi) || std::isnan(currentSnr)) {
+        return 0;
+    }
 
-    // 3. Linear interpolation to find percentage
-    float percent = ((esp - ESP_MIN) / (ESP_MAX - ESP_MIN)) * 100.0;
+    // 2. Calculate Estimated Signal Power (ESP) in dBm
+    float esp;
+    if (currentSnr < 0.0f) {
+        // Below noise floor: Semtech standard approximation avoids power-sum distortion
+        esp = currentRssi + currentSnr;
+    } else {
+        // Above noise floor: Exact linear power separation of Signal from (Signal + Noise)
+        esp = currentRssi - 10.0f * std::log10f(1.0f + std::powf(10.0f, -currentSnr / 10.0f));
+    }
 
-    // 4. Clamp the output strictly between 0 and 100
-    int finalPercent = static_cast<int>(std::round(percent));
+    // 3. Define functional hardware boundaries (adjust ESP_MIN to your Spreading Factor)
+    // Typical sensitivity limits (125 kHz BW): SF7 = -123 dBm, SF10 = -132 dBm, SF12 = -137 dBm
+    const float ESP_MAX = -50.0f;  // Strong signal (100%)
+    const float ESP_MIN = -120.0f; // Near sensitivity limit (0%)
+
+    // 4. Linear interpolation to percentage
+    float percent = ((esp - ESP_MIN) / (ESP_MAX - ESP_MIN)) * 100.0f;
+
+    // 5. Clamp strictly between 0 and 100
+    int finalPercent = static_cast<int>(std::lround(percent));
     return std::clamp(finalPercent, 0, 100);
 }
 
@@ -691,6 +707,7 @@ void Collar::onSend()
     package.encodeLat( coord.mLat );
     package.encodeLon( coord.mLon );
     package.mBattery = mBattery->level();
+    package.mStatus = 0; // TODO
 
     sendPackage(package.toByteArray(), sizeof(Protocol::CollarByteArray));
 }

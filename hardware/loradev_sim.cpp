@@ -1,3 +1,4 @@
+#include <QDateTime>
 #include "loradev_sim.h"
 #include "hardware/collar/defines.h"
 #include "loradev_def.h"

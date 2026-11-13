@@ -415,17 +415,30 @@ void DevManager::onGateways(const QJsonObject &jobj)
 // Here receiving messages from devices
 //////////////////////////////////////////////////////////////////////////////////////////
 ///
-void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray &msg)
+void DevManager::onDeviceMessageMqtt(const QJsonObject& jobj)
 {
-    LoraDevSim* dev = findByAddress(devAddr);
+    QByteArray addr = QByteArray::fromHex( jobj["devAddr"].toString().toUtf8() );
+    LoraDevSim* dev = findByAddress(addr);
 
-    if( msg.size() < sizeof(Protocol::Collar) ) {
+    if( !dev ) {
+        qCritical() << "DevManager received message from unknown device:" << addr;
         return;
     }
 
-    if( !dev ) {
-        qCritical() << "DevManager received message from unknown device:" << devAddr;
+    QByteArray msg = QByteArray::fromBase64( jobj["data"].toString().toUtf8());
+
+    if( msg.size() < sizeof(Protocol::Collar) ) {
+        qDebug() << "Message with no data field:" << jobj;
         return;
+    }
+
+    // Read RX params
+    QJsonArray rxInfo = jobj["rxInfo"].toArray();
+    if(!rxInfo.isEmpty()) {
+        QJsonObject rxInfoObj = rxInfo[0].toObject();
+        if( !rxInfoObj.isEmpty()) {
+            dev->setRxInfo(rxInfoObj["rssi"].toDouble(), rxInfoObj["snr"].toDouble());
+        }
     }
 
     if( dev->isCollar() ) {
@@ -444,7 +457,10 @@ void DevManager::onDeviceMessageMqtt(const QByteArray &devAddr, const QByteArray
         case Protocol::Collar::Event::Package:
             Protocol::Collar package;
             package.fromByteArray((const uint8_t*)msg.data());
-            qInfo() << dev->name() << ":" << fromTimestamp(package.mTimestamp).toString("HH:mm dd.MM.yy") << package.decodeLat() << "," << package.decodeLon() << "Bat:" << package.mBattery;
+            qInfo() << dev->name() << ":" << fromTimestamp(package.mTimestamp).toString("HH:mm dd.MM.yy")
+                    << package.decodeLat() << "," << package.decodeLon()
+                    << "Bat:" << package.mBattery
+                    << "rssi:" << dev->rxInfo().rssi() << "snr:" << dev->rxInfo().snr() << "ss:" << ((Collar*)dev)->signalStrength();
             break;
         }
 
@@ -491,6 +507,10 @@ bool DevManager::setupFence(const QGeoCoordinate& center,
 
 LoraDevSim *DevManager::findByAddress(const QByteArray &address)
 {
+    if( address.isEmpty() ) {
+        return nullptr;
+    }
+
     for( LoraDevSim* dev: mDevicesList) {
         if( dev->addr() == address ) {
             return dev;

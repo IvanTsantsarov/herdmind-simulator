@@ -641,3 +641,23 @@ unsigned long ESP32Time::getEpoch() const
 {
     return dateTime().toSecsSinceEpoch();
 }
+
+
+
+int Collar::signalStrength()
+{
+    // 1. Calculate Estimated Signal Power (ESP)
+    // ESP = RSSI - 10 * log10(1 + 10^(-SNR/10))
+    float esp = rssi() - 10.0 * std::log10(1.0 + std::pow(10.0, -snr() / 10.0));
+
+    // 2. Define functional hardware boundaries
+    const float ESP_MAX = -30.0;  // Perfect signal (100%)
+    const float ESP_MIN = -140.0; // Absolute noise/sensitivity floor (0%)
+
+    // 3. Linear interpolation to find percentage
+    float percent = ((esp - ESP_MIN) / (ESP_MAX - ESP_MIN)) * 100.0;
+
+    // 4. Clamp the output strictly between 0 and 100
+    int finalPercent = static_cast<int>(std::round(percent));
+    return std::clamp(finalPercent, 0, 100);
+}

@@ -26,6 +26,17 @@ public:
         Relay = 3,
         Gateway = 4
     };
+
+    struct RxInfo {
+    protected:
+        float mRSSI;
+        float mSNR;
+    public:
+        RxInfo(float _rssi = 0, float _snr = 0) { mRSSI = _rssi, mSNR = _snr; }
+        inline float rssi() const { return mRSSI; }
+        inline float snr() const { return mSNR; }
+    };
+
 private:
 
     const bool mIsSimulation;
@@ -83,6 +94,7 @@ private:
 
 protected:
     bool isVirtual = true;
+    RxInfo mRxInfo;
 
     // send to the chirpstack
     bool uplink(const QByteArray& data);
@@ -184,6 +196,12 @@ public:
 
     static void enableDeepSleep(bool is){ }
     static bool isDeepSleep(){ return false;};
+
+    void setRxInfo(float rssi, float snr) {
+        mRxInfo = RxInfo(rssi, snr);
+    }
+
+    const RxInfo& rxInfo(){ return mRxInfo; }
 
 signals:
     void messageReceivedAndDecrypted(const QByteArray& addr, const QByteArray& msg);
