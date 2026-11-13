@@ -317,10 +317,9 @@ bool LoraDevHW::prepareToSleep(uint64_t msec, int pinBtnWake)
     digitalWrite(PIN_CSD, LOW);  // FEM_EN (CSD) OFF
     digitalWrite(PIN_VFEM, LOW);  // VFEM power supply OFF
 
-    // 3. Hold GPIO states during deep sleep so they don't float back HIGH
-    gpio_hold_en((gpio_num_t)PIN_CSD);
-    gpio_hold_en((gpio_num_t)PIN_VFEM);
-    gpio_deep_sleep_hold_en();
+    pinMode(PIN_LORA_TX, INPUT);
+    pinMode(PIN_CSD, INPUT);
+    pinMode(PIN_VFEM, INPUT);
 
     esp_err_t err = esp_sleep_enable_timer_wakeup(1000ULL * msec);
     DBG(String("[LoraDevHW] Timer config: ") + esp_err_to_name(err));
@@ -350,17 +349,14 @@ bool LoraDevHW::sleep()
 
 void LoraDevHW::wakeup()
 {
-    // At the start of LoraDevHW::onSetup(), before turning VFEM back ON:
-    gpio_hold_dis((gpio_num_t)PIN_CSD);
-    gpio_hold_dis((gpio_num_t)PIN_VFEM);
-
+    // Power ON VFEM rail first and allow capacitors to stabilize
     pinMode(PIN_VFEM, OUTPUT);
-    digitalWrite(7, HIGH); // VFEM power ON
-
+    digitalWrite(PIN_VFEM, HIGH); // VFEM power ON
+    delay(10);
+    // Enable FEM chip (CSD)
     pinMode(PIN_CSD, OUTPUT);
     digitalWrite(PIN_CSD, HIGH); // FEM_EN (CSD) ON
-
-    mRadio.setRfSwitchPins(RADIOLIB_NC, PIN_LORA_TX);
+    delay(2);
 }
 
 
