@@ -6,7 +6,7 @@
 
 TinyGPSPlus gGPS;
 
-#define EMULATE_GPS 1
+// #define EMULATE_GPS 1
 
 
 #define VGNSS_CTRL 34

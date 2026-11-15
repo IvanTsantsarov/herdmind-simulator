@@ -106,7 +106,9 @@ void pinMode(byte pin, quint8 type)
 uint8_t ScreenSim::mFont[FONT_ROWS * FONT_COLS][FONT_CY][FONT_CX];
 int ScreenSim::mLastFont = 0;
 
-Tools::Tools() {}
+Tools::Tools() {
+    mProgramTimer.start();
+}
 
 void Tools::setup()
 {

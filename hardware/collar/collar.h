@@ -65,13 +65,19 @@ class Collar : public LoraDevHW
             int64_t mMsecStarted = 0;
             int64_t mMsecDuration = 0;
             bool mIsNewSecond = false;
+            uint8_t mTicks = 0;
 
         protected:
             void set(Type t, int64_t msecD = 0) {
-                mMsecStarted = millis();
+                mSecElapsed = mMsecElapsed = 0;
+                mIsNewSecond = false;
+                mTicks = 0;
                 mMsecDuration = msecD;
+
                 mTypePrev = mType;
                 mType = t;
+
+                mMsecStarted = millis();
             }
 
             inline void setPrev() {
@@ -84,6 +90,9 @@ class Collar : public LoraDevHW
                 int64_t newSeconds = mMsecElapsed / 1000LL;
                 mIsNewSecond = newSeconds > mSecElapsed;
                 mSecElapsed = newSeconds;
+                if( mTicks < 10) {
+                    mTicks ++;
+                }
             }
 
             void restart() {
@@ -116,10 +125,13 @@ class Collar : public LoraDevHW
 
             inline int64_t elapsedMsec(){ return mMsecElapsed; }
             inline int64_t elapsedSec(){ return mSecElapsed; }
-            inline bool isElapsed(){ return elapsedMsec() > mMsecDuration; }
+            inline bool isFinished(){ return elapsedMsec() > mMsecDuration; }
             inline bool isNewSecond(){ return mIsNewSecond; }
-            inline bool isElapsed(int64_t msec){ return msec > mMsecElapsed; }
-            inline bool isElapsedSec(int64_t sec){ return sec > mSecElapsed; }
+            inline bool isElapsed(const int64_t msec){ return msec < mMsecElapsed; }
+            inline bool isElapsedSec(const int64_t sec){ return sec < mSecElapsed; }
+            inline bool isFirstTick(){ return 1 == mTicks; }
+            inline int64_t startedMsec(){ return mMsecElapsed;}
+            inline int64_t msec(){ return mMsec;}
     };
 
     int64_t mSendIntervalMsec = 30000;

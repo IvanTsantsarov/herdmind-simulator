@@ -159,12 +159,13 @@ void Collar::setAnimalName(const String &name)
 {
     mAnimalName = name;
 }
+#endif
 
 bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
     gMainButtonDown = true;
 }
-#endif
+
 
 void Collar::sendStats()
 {
@@ -185,7 +186,8 @@ bool Collar::gotoBed()
 {
     DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
     mState.set( State::Sleep, mSendIntervalMsec );
-    mScreen->off();
+    mScreen->sleep();
+    //mScreen->off();
     mGPS->sleep();
 
     prepareToSleep(mSendIntervalMsec, PIN_BTN_MAIN);
@@ -532,15 +534,18 @@ void Collar::updateScreenNormal(bool isFlush)
 
 void Collar::onMainBtn() {
     mBtnMain->update();
-    if( mScreen->isSleeping() ) {
+    if( mScreen->isSleeping() )
+    {
         DBG("Screen waking up...");
-        if( !mIsSignalGPS) {
-            updateScreenNormal(false);
+        if( mIsSignalGPS) {
+            updateScreenNormal();
+        }else {
+            updateScreenLoading();
         }
         mScreen->wakeup();
-        Serial.println("Waking up screen...");
+    }else {
+        DBG("Screen is not sleeping!");
     }
-
 
     DBG("Main button press!");
 }
@@ -569,6 +574,10 @@ void Collar::onUpdate()
     mScreen->flush();
 #endif
 
+    if( !mScreen->isSleeping() && (mScreen->msecWake() > SCREEN_AWAKE_MSEC_MAX) ) {
+        mScreen->sleep();
+    }
+
     updateSerial();
 
     if( mState.isInit() ) {
@@ -576,7 +585,7 @@ void Collar::onUpdate()
         mState.set(State::UpdateMaster);
     }else
     if( mState.isSleep() ) {
-        if( mState.isElapsed() ) {
+        if( mState.isFinished() ) {
             mState.set(State::UpdateMaster);
         }else {
             delay(100);
@@ -584,16 +593,9 @@ void Collar::onUpdate()
         }
     }
 
-    if( !mState.elapsedSec() || mState.isNewSecond() ) {
+    if( mState.isFirstTick() || mState.isNewSecond() ) {
         mBattery->update();
         mGPS->onUpdate();
-        if( mState.elapsedSec() ) {
-            updateScreenNormal();
-            if( !mScreen->isSleeping() && (mScreen->msecWake() > SCREEN_AWAKE_MSEC_MAX) ) {
-                mScreen->sleep();
-            }
-        }
-
         sendStats();
     }else {
         delay(100);
@@ -602,14 +604,14 @@ void Collar::onUpdate()
 
     updateMaster();
 
-/*
     // go to sleep if no satelite signal
     if( mState.isElapsedSec(mSecWakeInterval) ) {
         DBG(String("No GPS signal for ") + mSecWakeInterval + " sec. Preparing to sleep..");
         gotoBed();
     }
-*/
+
 }
+
 
 void Collar::updateMaster()
 {
@@ -618,6 +620,8 @@ void Collar::updateMaster()
         if( mGPS->isReady() )
         {
             mLed->blink(10);
+
+            updateScreenNormal();
 
             if( !mIsSignalGPS ) {
                 DBG( String("GPS signal arrived in ") + mState.elapsedSec() + " sec" );
