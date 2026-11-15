@@ -184,12 +184,15 @@ void Collar::sendStats()
 
 bool Collar::gotoBed()
 {
-    DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
+
     mState.set( State::Sleep, mSendIntervalMsec );
     if( !isDeepSleep() ) {
+        DBG(String("Light sleep for:") + mSendIntervalMsec);
         mScreen->sleep();
         return true;
     }
+
+    DBG(String("Deep sleep for:") + mSendIntervalMsec);
 
     mScreen->off();
     mGPS->sleep();
