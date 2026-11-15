@@ -13,7 +13,6 @@ class GPS
     bool mIsHardware = false;
 
     void powerOff();
-    void powerOn();
 
 public:
     GPS();

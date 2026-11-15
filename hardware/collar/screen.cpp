@@ -100,7 +100,7 @@ void Screen::sleep()
         return;
     }
 */
-    DBG("***************** SCR is going to sleep.");
+    DBG("Screen::sleep()");
     mLib.setPowerSave(1);
     mIsSleeping = true;
 }
@@ -113,7 +113,7 @@ void Screen::wakeup()
         return;
     }
 */
-    DBG("*****************  SCR is waiking up.");
+    DBG("Screen::wakeup()");
     mLib.setPowerSave(0);
     mIsSleeping = false;
     mWakeMsec = millis();

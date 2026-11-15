@@ -20,13 +20,41 @@ GPS::GPS() {}
 
 void GPS::setup(bool isWakeup)
 {
-
 #ifdef EMULATE_GPS
     DBG("*** GPS emulation is ON ***");
-#else
-    // Enable GNSS power
-    powerOn();
+    return;
 #endif
+
+    if( isWakeup ) {
+        // Release any previous hold locks
+        gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
+
+        // Keep GNSS power continuously ON (LOW)
+        pinMode(VGNSS_CTRL, OUTPUT);
+        digitalWrite(VGNSS_CTRL, LOW);
+    }else {
+        // Enable GNSS power
+        DBG("GPS power ON");
+
+        // Release pin locks
+        gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
+        gpio_hold_dis((gpio_num_t)GNSS_RST);
+        gpio_hold_dis((gpio_num_t)GNSS_WAKE);
+
+        // Power ON the white GNSS port
+        pinMode(VGNSS_CTRL, OUTPUT);
+        digitalWrite(VGNSS_CTRL, LOW);
+
+        pinMode(GNSS_RST, OUTPUT);
+        digitalWrite(GNSS_RST, HIGH);
+        pinMode(GNSS_WAKE, OUTPUT);
+        digitalWrite(GNSS_WAKE, HIGH);
+
+        DBG("GPS On");
+        mIsPowered = true;
+    }
+
+    Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
 
 #ifdef ONPC
     gGPS.setupSimulation();
@@ -71,43 +99,24 @@ void GPS::onUpdate()
 #endif
 }
 
-void GPS::sleep() {
+void GPS::sleep()
+{
 
     DBG("GPS going to sleep..");
-
-#ifndef EMULATE_GPS
-    powerOff();
+#ifdef EMULATE_GPS
+    return;
+    // powerOff();
 #endif
-}
 
-void GPS::powerOn()
-{
-    DBG("GPS power ON");
-
-    // Release pin locks
-    gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
-    gpio_hold_dis((gpio_num_t)GNSS_RST);
-    gpio_hold_dis((gpio_num_t)GNSS_WAKE);
-
-    // Power ON the white GNSS port
-    pinMode(VGNSS_CTRL, OUTPUT);
+    // Keep VGNSS_CTRL LOW (Power ON) during deep sleep so it never loses its fix
     digitalWrite(VGNSS_CTRL, LOW);
-
-    pinMode(GNSS_RST, OUTPUT);
-    digitalWrite(GNSS_RST, HIGH);
-    pinMode(GNSS_WAKE, OUTPUT);
-    digitalWrite(GNSS_WAKE, HIGH);
-
-    Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
-    DBG("GPS On");
-    mIsPowered = true;
+    gpio_hold_en((gpio_num_t)VGNSS_CTRL);
 }
+
 
 
 void GPS::powerOff()
 {
-    DBG("GPS power OFF");
-
     // 1. Terminate the UART connection to release internal pullups/hardware blocks
     Serial1.end();
 

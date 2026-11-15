@@ -186,10 +186,13 @@ bool Collar::gotoBed()
 {
     DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
     mState.set( State::Sleep, mSendIntervalMsec );
-    mScreen->sleep();
-    //mScreen->off();
-    mGPS->sleep();
+    if( !isDeepSleep() ) {
+        mScreen->sleep();
+        return true;
+    }
 
+    mScreen->off();
+    mGPS->sleep();
     prepareToSleep(mSendIntervalMsec, PIN_BTN_MAIN);
     mTimer->sleep(mSendIntervalMsec);
     return sleep();
@@ -597,12 +600,12 @@ void Collar::onUpdate()
         mBattery->update();
         mGPS->onUpdate();
         sendStats();
+        updateMaster();
+        mLed->blink(10);
     }else {
         delay(100);
         return;
     }
-
-    updateMaster();
 
     // go to sleep if no satelite signal
     if( mState.isElapsedSec(mSecWakeInterval) ) {
@@ -619,7 +622,7 @@ void Collar::updateMaster()
     {
         if( mGPS->isReady() )
         {
-            mLed->blink(10);
+            mLed->hwOn();
 
             updateScreenNormal();
 
@@ -641,6 +644,7 @@ void Collar::updateMaster()
             // once again
             updateSerial();
 
+            mLed->hwOff();
             gotoBed();
         }
     }
