@@ -94,20 +94,24 @@ void Screen::flush()
 
 void Screen::sleep()
 {
-    if( !mIsSleeping) {
-        mLib.setPowerSave(1);
-        mIsSleeping = true;
-        // DBG("SCR SLEEP");
+    if( mIsSleeping) {
+        DBG("SCR is sleeping - FUCK YOU!");
+        return;
     }
+    mLib.setPowerSave(1);
+    mIsSleeping = true;
 }
 
 void Screen::wakeup()
 {
-    if( mIsSleeping ) {
-        mLib.setPowerSave(0);
-        mIsSleeping = false;
-        // DBG("SCR WAKE");
+    if( !mIsSleeping ) {
+        DBG("SCR is NOT sleeping - FUCK YOU!");
+        return;
     }
+
+    mLib.setPowerSave(0);
+    mIsSleeping = false;
+    mWakeMsec = millis();
 }
 
 void Screen::off()

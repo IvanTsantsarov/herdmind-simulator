@@ -41,18 +41,91 @@ class Collar : public LoraDevHW
 {
     friend void gMainButtonInterrupt();
 
-    enum struct Stage {
-        None = 0,
-        Setup = 1,
-        Init = 2,
-        Operate = 3,
-        Sleep
+    class State {
+        friend class Collar;
+
+        public:
+            enum Type {
+                None = 0,
+                Init,
+                SetupBoot,
+                SetupWake,
+                Update,
+                UpdateMaster,
+                UpdateSlave,
+                Sleep
+            };
+
+        private:
+            Type mType = None;
+            Type mTypePrev = None;
+            int64_t mMsec = 0;
+            int64_t mMsecElapsed = 0;
+            int64_t mSecElapsed = 0;
+            int64_t mMsecStarted = 0;
+            int64_t mMsecDuration = 0;
+            bool mIsNewSecond = false;
+
+        protected:
+            void set(Type t, int64_t msecD = 0) {
+                mMsecStarted = millis();
+                mMsecDuration = msecD;
+                mTypePrev = mType;
+                mType = t;
+            }
+
+            inline void setPrev() {
+                set(mTypePrev);
+            }
+
+            void tick() {
+                mMsec = millis();
+                mMsecElapsed = mMsec - mMsecStarted;
+                int64_t newSeconds = mMsecElapsed / 1000LL;
+                mIsNewSecond = newSeconds > mSecElapsed;
+                mSecElapsed = newSeconds;
+            }
+
+            void restart() {
+                mMsecStarted = millis();
+            }
+
+        public:
+            inline Type type(){ return mType; }
+            inline bool is(const Type t){ return t == mType; }
+
+            inline bool isInit(){ return Type::Init == mType; }
+            inline bool isSleep(){ return Type::Sleep == mType; }
+
+            const char* typeStr() {
+                switch(mType) {
+                case None: return "None";
+                case Init: return "Init";
+                case SetupBoot: return "SetupBoot";
+                case SetupWake: return "SetupWake";
+                case Update: return "Update";
+                case UpdateMaster: return "UpdateMaster";
+                case UpdateSlave: return "UpdateSlave";
+                case Sleep: return "Sleep";
+                }
+            }
+
+            inline int64_t durationMsec() {
+                return mMsecDuration;
+            }
+
+            inline int64_t elapsedMsec(){ return mMsecElapsed; }
+            inline int64_t elapsedSec(){ return mSecElapsed; }
+            inline bool isElapsed(){ return elapsedMsec() > mMsecDuration; }
+            inline bool isNewSecond(){ return mIsNewSecond; }
+            inline bool isElapsed(int64_t msec){ return msec > mMsecElapsed; }
+            inline bool isElapsedSec(int64_t sec){ return sec > mSecElapsed; }
     };
 
-    int64_t mSecSleep = 0;
-    int64_t mSendIntervalMsec = 15000;
+    int64_t mSendIntervalMsec = 30000;
+    int64_t mSecWakeInterval = 30;
 
-    Stage mStage = Stage::None;
+    State mState;
     String mAnimalName;
     bool mIsMale = false;
 
@@ -65,7 +138,6 @@ class Collar : public LoraDevHW
     int mInjectedBat = 0;
     bool mEnableRestore = false;
 #else
-    int64_t mStatsMsec = 0;
     bool mEnableRestore = true;
 #endif
 
@@ -84,9 +156,6 @@ class Collar : public LoraDevHW
     Shock* mShock = nullptr;
 
     uint16_t mSequence = 0;
-    int64_t mSetupMillis = 0;
-    int64_t mAwakeningMillisScreen = 0;
-
 
     bool mIsSignalGPS = false;
     GeoPoint readGPS();
@@ -128,6 +197,7 @@ class Collar : public LoraDevHW
     void commonConstructor();
     void updateScreenLoading(bool isFlush = true);
     void updateScreenNormal(bool isFlush = true);
+    void updateMaster();
     void updateSerial();
 
     enum struct UpdateInterval{
@@ -162,8 +232,8 @@ public:
     void inject(GeoPoint _pos, int _sat, float _rssi, float _snr, int _bat);
 #else
     Collar();
-    void sendStats();
 #endif
+    void sendStats();
 
     ~Collar();
 

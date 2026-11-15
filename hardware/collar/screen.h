@@ -22,6 +22,7 @@ class Screen
     ScreenLib mLib;
     Collar* mCollar;
     bool mIsSleeping = false;
+    int64_t mWakeMsec = 0;
 public:
     struct CenterH {
         int x1, x2;
@@ -43,6 +44,7 @@ public:
     void wakeup();
     void off();
     inline bool isSleeping(){ return mIsSleeping; }
+    inline int64_t msecWake(){ return millis() - mWakeMsec; }
 
     ScreenLib& lib(){ return mLib;}
 };

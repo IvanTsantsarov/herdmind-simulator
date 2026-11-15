@@ -281,10 +281,6 @@ void LoraDevHW::sendPackage(void *data, size_t len)
     }
 }
 
-void LoraDevHW::onUpdate()
-{
-}
-
 void LoraDevHW::onReceive(uint8_t *data, uint32_t size)
 {
     DBG("[LoraDevHW] Collar::onReceive() Not implemented!");

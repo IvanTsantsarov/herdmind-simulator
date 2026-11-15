@@ -17,8 +17,6 @@
 
 #define COLLAR_DBG_INTERVAL 2000
 
-#define COLLAR_WAKE_TIMEOUT 2000
-
 // interval for sending data to collars/gateways
 #define COLLAR_SEND_INTERVAL 100
 
@@ -166,6 +164,7 @@ bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
     gMainButtonDown = true;
 }
+#endif
 
 void Collar::sendStats()
 {
@@ -173,24 +172,19 @@ void Collar::sendStats()
         return;
     }
 
-    String statsStr = String(SERIAL_CMD_BEGIN) + "stats:gps=" + satellites() + SERIAL_CMD_COMMA + gpsStr()
-                    + "|rssi=" + rssi()
-                    + "|snr=" + snr()
-                    + "|bat=" + batteryInfo()
-                    + "|btn=" + (gMainButtonDown ? "y":"n");
 
-    Serial.println(statsStr);
+    String statsStr = String("gps=") + satellites() + SERIAL_CMD_COMMA + gpsStr()
+                      + "|rssi=" + rssi()
+                      + "|snr=" + snr()
+                      + "|bat=" + batteryInfo();
 
+    mSerialCmd->printCmd(SerialCmd::Cmd::Type::STATS, statsStr);
 }
-
-#endif
 
 bool Collar::gotoBed()
 {
-    mStage = Stage::Sleep;
-
     DBG(String("Time to go sleep for ms:") + mSendIntervalMsec);
-    mSecSleep = millis();
+    mState.set( State::Sleep, mSendIntervalMsec );
     mScreen->off();
     mGPS->sleep();
 
@@ -403,21 +397,15 @@ String Collar::dateTime()
 
 void Collar::onSetup()
 {
-    mStage = Stage::Setup;
-
-    if( isWakingUp() ) {
-        // restore last sleeping interval
-        mSendIntervalMsec = mTimer->sleepMsec();
-    }
+    mState.set( isWakingUp() ? State::SetupWake : State::SetupBoot );
 
     mSerialCmd->setup();
-
-    // Bring back all the saved data
-    restore();
 
     mScreen->setup();
 
     if( isWakingUp() ) {
+        // restore last sleeping interval
+        mSendIntervalMsec = mTimer->sleepMsec();
 
         if( isWakeBtn() ) {
             DBG("Wake up from button. Waking up the screen..");
@@ -426,6 +414,9 @@ void Collar::onSetup()
             mScreen->sleep();
         }
 
+    }else {
+        // Bring back all the saved data
+        restore();
     }
 
     mGPS->setup(isWakingUp());
@@ -447,12 +438,10 @@ void Collar::onSetup()
     LoraDevSim::onSetup();
 #endif
 
-    mSetupMillis = millis();
-
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
 
-    mStage = Stage::Init;
+    mState.set( State::Init );
 }
 
 
@@ -541,18 +530,17 @@ void Collar::updateScreenNormal(bool isFlush)
     }
 }
 
-
 void Collar::onMainBtn() {
     mBtnMain->update();
     if( mScreen->isSleeping() ) {
+        DBG("Screen waking up...");
         if( !mIsSignalGPS) {
             updateScreenNormal(false);
         }
         mScreen->wakeup();
-        mScreen->flush();
         Serial.println("Waking up screen...");
     }
-    mAwakeningMillisScreen = millis();
+
 
     DBG("Main button press!");
 }
@@ -565,63 +553,66 @@ void Collar::onMainBtn() {
 
 void Collar::onUpdate()
 {
-    int64_t msec = millis();
+    mState.tick();
 
 #ifndef ONPC
     // after waking up
     if( gMainButtonDown ) {
         onMainBtn();
-        sendStats();
         gMainButtonDown = false;
-        mStatsMsec = msec;
-    }else
-    if( COLLAR_DBG_INTERVAL < (msec - mStatsMsec) ) {
-        sendStats();
-        mStatsMsec = msec;
+
+        if( mState.isSleep() ) {
+            mState.setPrev();
+        }
     }
+#else
+    mScreen->flush();
 #endif
 
     updateSerial();
 
-    if( Stage::Init == mStage) {
-
+    if( mState.isInit() ) {
         updateScreenLoading();
-
-        // Wait loading interval
-        if( SCREEN_LOADING_MSEC < (msec - mSetupMillis)  ) {
-            mStage = Stage::Operate;
-            mAwakeningMillisScreen = msec;
-            DBG("Time to change init with operate state...");
-        }
-    }
-
-    if( Stage::Sleep == mStage) {
-
-        if( (msec - mSecSleep) < mSendIntervalMsec ) {
+        mState.set(State::UpdateMaster);
+    }else
+    if( mState.isSleep() ) {
+        if( mState.isElapsed() ) {
+            mState.set(State::UpdateMaster);
+        }else {
+            delay(100);
             return;
         }
-
-        DBG("Wake up and operate...");
-        mStage = Stage::Operate;
     }
 
-    mBattery->update();
+    if( !mState.elapsedSec() || mState.isNewSecond() ) {
+        mBattery->update();
+        mGPS->onUpdate();
+        if( mState.elapsedSec() ) {
+            updateScreenNormal();
+            if( !mScreen->isSleeping() && (mScreen->msecWake() > SCREEN_AWAKE_MSEC_MAX) ) {
+                mScreen->sleep();
+            }
+        }
 
-    // Check screen if it's time to sleep
-    uint32_t msecAwakenScreen = millis() - mAwakeningMillisScreen;
-    if( !mScreen->isSleeping() && (msecAwakenScreen > SCREEN_AWAKE_MSEC_MAX) ) {
-
-        mScreen->sleep();
-
-#ifdef ONPC
-        mScreen->flush();
-#endif
+        sendStats();
+    }else {
+        delay(100);
+        return;
     }
 
-    mGPS->onUpdate();
+    updateMaster();
 
-    updateScreenNormal();
+/*
+    // go to sleep if no satelite signal
+    if( mState.isElapsedSec(mSecWakeInterval) ) {
+        DBG(String("No GPS signal for ") + mSecWakeInterval + " sec. Preparing to sleep..");
+        gotoBed();
+    }
+*/
+}
 
+void Collar::updateMaster()
+{
     if( mGPS->isConnection() )
     {
         if( mGPS->isReady() )
@@ -629,45 +620,28 @@ void Collar::onUpdate()
             mLed->blink(10);
 
             if( !mIsSignalGPS ) {
-                DBG( String("GPS signal arrived in ") + msec + " msec" );
+                DBG( String("GPS signal arrived in ") + mState.elapsedSec() + " sec" );
                 mIsSignalGPS = true;
             }
 
             updateTrajectory(mGPS->pos());
 
-            #ifdef ONPC
+#ifdef ONPC
             // Do not send information when there is no simulation
             if( isSimulation() ) {
                 onSend();
             }
-            #else
-                onSend();
-            #endif
-
-            delay(COLLAR_WAKE_TIMEOUT);
-
-            mLed->blink(10);
-            delay(80);
-            mLed->blink(10);
-
+#else
+            onSend();
+#endif
             // once again
             updateSerial();
 
             gotoBed();
-        }else {
-            Serial.print("-");
-            mLed->updateOn(50, 1000);
         }
-    }else {
-        Serial.print(".");
-        mLed->updateOn(10, 500);
     }
-
-    #ifndef ONPC
-        LoraDevHW::onUpdate();
-    #endif
-
 }
+
 
 
 void Collar::updateSerial()

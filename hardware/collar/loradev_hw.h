@@ -80,7 +80,6 @@ public:
     void sendPackage(void* data, size_t len);
 
     virtual void onSetup();
-    virtual void onUpdate();
     virtual void onReceive(uint8_t* data, uint32_t size); // data receiving
 
     virtual float rssi();
