@@ -8,7 +8,6 @@
     #include <Arduino.h>
 
 #if USING_LORA == LORA_RADIOLIB
-    #include <TimeLib.h>
     #include <RadioLib.h>
     #include <TinyGPS++.h>
 #elif USING_LORA == LORA_HELTEC
