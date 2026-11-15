@@ -421,9 +421,12 @@ void Collar::onSetup()
             mScreen->sleep();
         }
 
+        mState.set( State::UpdateMaster );
+
     }else {
         // Bring back all the saved data
         restore();
+        mState.set( State::Init );
     }
 
     mGPS->setup(isWakingUp());
@@ -447,8 +450,6 @@ void Collar::onSetup()
 
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
-
-    mState.set( State::Init );
 }
 
 
