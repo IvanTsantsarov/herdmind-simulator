@@ -184,7 +184,6 @@ void Collar::sendStats()
 
 bool Collar::gotoBed()
 {
-
     mState.set( State::Sleep, mSendIntervalMsec );
     if( !isDeepSleep() ) {
         DBG(String("Light sleep for:") + mSendIntervalMsec);

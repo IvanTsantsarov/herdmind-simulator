@@ -117,6 +117,7 @@ void Screen::wakeup()
     mLib.setPowerSave(0);
     mIsSleeping = false;
     mWakeMsec = millis();
+    delay(100);
 }
 
 void Screen::off()

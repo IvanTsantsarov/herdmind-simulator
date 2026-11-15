@@ -42,7 +42,7 @@ RTC_DATA_ATTR uint32_t LoraDevHW::mAddr = 0;
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE] = {0};
 RTC_DATA_ATTR bool LoraDevHW::mLoraSessionValid = false;
-RTC_DATA_ATTR bool LoraDevHW::mIsDeepSleepEnabled = false;
+RTC_DATA_ATTR bool LoraDevHW::mIsDeepSleepEnabled = true;
 
 LoraDevHW::LoraDevHW() {
     // Only one instance is allowed of this type
