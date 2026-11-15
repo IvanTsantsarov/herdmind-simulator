@@ -561,6 +561,11 @@ void gpio_hold_dis(gpio_num_t num)
 
 }
 
+void gpio_deep_sleep_hold_dis()
+{
+
+}
+
 int esp_reset_reason()
 {
     return 0;

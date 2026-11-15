@@ -446,6 +446,8 @@ typedef int gpio_num_t;
 void gpio_hold_en( gpio_num_t num );
 void gpio_hold_dis( gpio_num_t num );
 
+void gpio_deep_sleep_hold_dis();
+
 #define RADIOLIB_LORAWAN_SESSION_BUF_SIZE 64
 #define RADIOLIB_LORAWAN_NONCES_BUF_SIZE 64
 

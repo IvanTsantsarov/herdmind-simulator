@@ -25,34 +25,12 @@ void GPS::setup(bool isWakeup)
     return;
 #endif
 
-    if( isWakeup ) {
-        // Release any previous hold locks
-        gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
+    // 1. Release the deep sleep hold lock so the CPU can control the pin again
+    gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
+    gpio_deep_sleep_hold_dis();
 
-        // Keep GNSS power continuously ON (LOW)
-        pinMode(VGNSS_CTRL, OUTPUT);
-        digitalWrite(VGNSS_CTRL, LOW);
-    }else {
-        // Enable GNSS power
-        DBG("GPS power ON");
-
-        // Release pin locks
-        gpio_hold_dis((gpio_num_t)VGNSS_CTRL);
-        gpio_hold_dis((gpio_num_t)GNSS_RST);
-        gpio_hold_dis((gpio_num_t)GNSS_WAKE);
-
-        // Power ON the white GNSS port
-        pinMode(VGNSS_CTRL, OUTPUT);
-        digitalWrite(VGNSS_CTRL, LOW);
-
-        pinMode(GNSS_RST, OUTPUT);
-        digitalWrite(GNSS_RST, HIGH);
-        pinMode(GNSS_WAKE, OUTPUT);
-        digitalWrite(GNSS_WAKE, HIGH);
-
-        DBG("GPS On");
-        mIsPowered = true;
-    }
+    pinMode(VGNSS_CTRL, OUTPUT);
+    digitalWrite(VGNSS_CTRL, LOW);
 
     Serial1.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
 
@@ -108,9 +86,13 @@ void GPS::sleep()
     // powerOff();
 #endif
 
-    // Keep VGNSS_CTRL LOW (Power ON) during deep sleep so it never loses its fix
+    // 1. Keep GNSS power ON (LOW) so L76K retains satellite ephemeris in RAM
+    pinMode(VGNSS_CTRL, OUTPUT);
     digitalWrite(VGNSS_CTRL, LOW);
+
+    // 2. Lock the pin state across deep sleep (ESP32-S3 requires BOTH calls)
     gpio_hold_en((gpio_num_t)VGNSS_CTRL);
+    gpio_deep_sleep_hold_en();
 }
 
 
