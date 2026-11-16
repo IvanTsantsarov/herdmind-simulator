@@ -425,7 +425,7 @@ void Collar::onSetup()
 
         mState.set( State::UpdateMaster );
         mSound->setVolume(50);
-        mSound->play("A4E4", 500);
+        mSound->play("B5F6", 50);
     }else {
         // Bring back all the saved data
         restore();
