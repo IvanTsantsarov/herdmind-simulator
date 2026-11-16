@@ -410,6 +410,8 @@ void Collar::onSetup()
 
     mScreen->setup();
 
+    mSound->setup();
+
     if( isWakingUp() ) {
         // restore last sleeping interval
         mSendIntervalMsec = mTimer->sleepMsec();
@@ -422,11 +424,14 @@ void Collar::onSetup()
         }
 
         mState.set( State::UpdateMaster );
-
+        mSound->setVolume(50);
+        mSound->play("A4E4", 500);
     }else {
         // Bring back all the saved data
         restore();
         mState.set( State::Init );
+        mSound->setVolume(128);
+        mSound->play("A4B4C4D4E4", 100);
     }
 
     mGPS->setup(isWakingUp());
@@ -552,6 +557,8 @@ void Collar::onMainBtn() {
     }else {
         DBG("Screen is not sleeping!");
     }
+
+    mSound->execute(); // trash
 
     DBG("Main button press!");
 }

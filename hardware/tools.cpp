@@ -591,3 +591,23 @@ void gpio_deep_sleep_hold_en()
 {
 
 }
+
+void analogWriteFreq(int freq)
+{
+
+}
+
+void ledcAttach(int pin, int freq, uint8_t resolution)
+{
+
+}
+
+void ledcWrite(int pin, uint8_t volume)
+{
+
+}
+
+void ledcChangeFrequency(int pin, int freq, uint8_t resolution)
+{
+
+}
