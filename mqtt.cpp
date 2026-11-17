@@ -29,6 +29,12 @@ Mqtt::Mqtt(const QSettings &settings, QObject *parent)
 
     connect(&mClient, &QMqttClient::disconnected, this, [=]() {
         qInfo() << "MQTT disconnected:" << mAddr << ":" << mPort;
+
+        // reconnect if once connected
+        if( mIsAlreadyConnected ) {
+            qInfo() << "MQTT trying to reconnect:" << mAddr << ":" << mPort;
+            connectToHost();
+        }
     });
 
     connect(&mClient, &QMqttClient::errorChanged,
@@ -55,6 +61,9 @@ Mqtt::~Mqtt()
 bool Mqtt::subscribe(const QString &topic)
 {
     QMqttSubscription* subscription = mClient.subscribe(topic, 0);
+    if( !mTopics.contains(topic)) {
+        mTopics.append(topic);
+    }
 
     if (!subscription) {
         qCritical() << "Mqtt subscription failed to:"<< topic;
@@ -141,6 +150,14 @@ void Mqtt::onConnected()
     // gMainWindow->onMqttConnected();
 #endif
 
+    // if already connected = resubscribe to all topics
+    if( mIsAlreadyConnected ) {
+        for(const QString& topic:mTopics) {
+            subscribe(topic);
+        }
+    }
+
+    mIsAlreadyConnected = true;
 }
 
 void Mqtt::onMessageSent(quint32 id)

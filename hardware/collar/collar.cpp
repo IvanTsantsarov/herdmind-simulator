@@ -424,8 +424,6 @@ void Collar::onSetup()
         }
 
         mState.set( State::UpdateMaster );
-        mSound->setVolume(50);
-        mSound->play("B5F6", 50);
     }else {
         // Bring back all the saved data
         restore();
@@ -558,7 +556,7 @@ void Collar::onMainBtn() {
         DBG("Screen is not sleeping!");
     }
 
-    mSound->execute(); // trash
+    mSound->play("B5F6", 50); // plays chirp sound
 
     DBG("Main button press!");
 }

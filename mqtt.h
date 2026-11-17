@@ -10,9 +10,11 @@ class Mqtt : public QObject
     Q_OBJECT
     QMqttClient mClient;
     QList<QMqttSubscription*> mSubscribtions;
+    QStringList mTopics;
 
     bool mIsDestructing = false;
     void updateMessages();
+    bool mIsAlreadyConnected = false;
 
 protected:
     QString mAddr;

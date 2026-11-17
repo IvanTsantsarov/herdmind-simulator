@@ -20,8 +20,7 @@ void Sound::kill()
 
 void Sound::execute()
 {
-    // respondCmd(SerialCmd::Cmd::Type::SIGS);
-    // delay(3000);
+    respondCmd(SerialCmd::Cmd::Type::SIGS);
     play("A4B4A4B4A4B4A4B4", 100);
 }
 
