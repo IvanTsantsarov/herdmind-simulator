@@ -22,7 +22,7 @@ public:
     bool readAddrHex(char *toAddr);
 
     bool writeName(String from);
-    bool readName( String& to );
+    bool readName(char *to );
 
     bool writeSex( bool isMale);
     bool readSex( bool& isMale);

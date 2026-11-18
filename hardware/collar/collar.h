@@ -138,8 +138,7 @@ class Collar : public LoraDevHW
     int64_t mSecWakeInterval = 30;
 
     State mState;
-    String mAnimalName;
-    bool mIsMale = false;
+
 
 #ifdef ONPC
     friend class DialogCollarSim;
@@ -249,11 +248,6 @@ public:
 
     ~Collar();
 
-    void setAnimalName(const String& name);
-    inline void setIsMale(bool is){ mIsMale = is; }
-
-    inline String& animalName() { return mAnimalName; }
-    inline bool isMale(){ return mIsMale; }
     void onSetup();
     void onUpdate();
     void onSend();
@@ -303,7 +297,7 @@ public:
         Shock
     };
 
-    void execSignal(SignalType t);
+    void execSignal(SignalType t, int mode = 0);
 
     void setEpoch(uint64_t secs);
     uint64_t epoch();

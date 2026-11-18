@@ -32,6 +32,9 @@ extern String gRadioLibErrStr(int16_t errorCode);
 // Msec to wait additionaly for the RX window
 #define LORAWAN_RX_WINDOW 250
 
+RTC_DATA_ATTR char LoraDevHW::mAnimalName[LORA_NAME_MAX_LEN] = {0};
+RTC_DATA_ATTR bool LoraDevHW::mIsMale = false;
+
 RTC_DATA_ATTR uint32_t LoraDevHW::mBootCount = 0;
 RTC_DATA_ATTR uint8_t LoraDevHW::mFPort = LORA_FPORT;
 RTC_DATA_ATTR uint8_t LoraDevHW::mEui[LORA_EUI_LEN] = {0};
@@ -51,8 +54,6 @@ LoraDevHW::LoraDevHW() {
 }
 
 String wakeup_reason_string(esp_sleep_wakeup_cause_t wakeup_reason){
-
-    wakeup_reason = esp_sleep_get_wakeup_cause();
 
     switch(wakeup_reason)
     {
@@ -414,6 +415,10 @@ String LoraDevHW::toHex(uint8_t* a, int len)
     return result;
 }
 
+void LoraDevHW::setAnimalName(const char *name)
+{
+    strncpy( mAnimalName, name, LORA_NAME_MAX_LEN);
+}
 
 
 void LoraDevHW::fromHex(const char *src, uint8_t *dst, int srcLen)

@@ -60,7 +60,7 @@ void Screen::drawArray(int x, int y, int cx, int cy, uint8_t *pixels)
     }
 }
 
-void Screen::drawText(int x, int y, String &str)
+void Screen::drawText(int x, int y, const String &str)
 {
     mLib.drawStr(x, y, str.c_str() );
 }
@@ -71,12 +71,12 @@ void Screen::drawText(int x, int y, const char* str)
 }
 
 
-void Screen::drawTextTable(int col, int row, String &str, int offsetCol, int offsetRow)
+void Screen::drawTextTable(int col, int row, const String &str, int offsetCol, int offsetRow)
 {
     mLib.drawStr(col * FONT_CX + offsetCol, row * FONT_CY + offsetRow, str.c_str() );
 }
 
-Screen::CenterH Screen::drawTextTableCenterH(int row, String &str, int offsetY)
+Screen::CenterH Screen::drawTextTableCenterH(int row, const String &str, int offsetY)
 {
     CenterH c;
     int width = str.length() * FONT_CX;

@@ -14,6 +14,8 @@
 
 class LoraDevHW
 {
+    static RTC_DATA_ATTR char mAnimalName[LORA_NAME_MAX_LEN];
+    static RTC_DATA_ATTR bool mIsMale;
     static RTC_DATA_ATTR uint32_t mBootCount;
     static RTC_DATA_ATTR uint8_t mFPort;
     static RTC_DATA_ATTR uint8_t mEui[LORA_EUI_LEN];
@@ -24,6 +26,7 @@ class LoraDevHW
     static RTC_DATA_ATTR uint8_t mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
     static RTC_DATA_ATTR bool mLoraSessionValid;
     static RTC_DATA_ATTR bool mIsDeepSleepEnabled;
+
 
     uint8_t mBufferUp[LORAWAN_APP_DATA_MAX_SIZE];
     size_t mBufferUpLen = 0;
@@ -45,6 +48,8 @@ class LoraDevHW
 
 protected:
 
+
+
     bool prepareToSleep(uint64_t msec, int pinBtnWake);
     bool sleep();
     void wakeup();
@@ -53,6 +58,12 @@ public:
     LoraDevHW();
 
     inline uint8_t fport(){ return mFPort; }
+
+    void setAnimalName(const char* name);
+    inline String animalName() { return String(mAnimalName); }
+
+    inline void setIsMale(bool is){ mIsMale = is; }
+    inline bool isMale(){ return mIsMale; }
 
     String euiHex(){ return toHex(mEui, LORA_EUI_LEN); }
 

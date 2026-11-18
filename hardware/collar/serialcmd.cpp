@@ -242,7 +242,8 @@ bool SerialCmd::execute()
         mCollar->reboot();
         break;
     case Cmd::Type::INFO:
-        printCommand( mCollar->animalName() + SERIAL_CMD_PARAMS_DM +
+    {
+        printCommand( String(mCollar->animalName()) + SERIAL_CMD_PARAMS_DM +
                        (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
                         mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
                         mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
@@ -250,6 +251,7 @@ bool SerialCmd::execute()
                         mCollar->addrHex() + SERIAL_CMD_PARAMS_DM +
                         mCollar->fport() );
         break;
+    }
 
     case Cmd::Type::GPS: {
         printResponce( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +

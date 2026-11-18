@@ -70,10 +70,9 @@ bool Memory::writeName(String from)
     return write("name", from.c_str(), len) == len;
 }
 
-bool Memory::readName(String& to)
+bool Memory::readName(char* to)
 {
     int len = 0;
-    char buff[LORA_NAME_MAX_LEN + 1] = {0};
     if( sizeof(len) != read("nameLen", (char*) &len, sizeof(len)) ) {
         return false;
     }
@@ -82,11 +81,9 @@ bool Memory::readName(String& to)
         return false;
     }
 
-    if( len != read("name", buff, len) ) {
+    if( len != read("name", to, len) ) {
         return false;
     }
-
-    to = buff;
 
     return true;
 }

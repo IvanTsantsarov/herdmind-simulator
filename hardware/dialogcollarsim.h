@@ -184,6 +184,8 @@ private slots:
 
     void on_refreshPorts();
 
+    void on_btnOutputLayout_clicked();
+
 private:
     Ui::DialogCollarSim *ui;
 };

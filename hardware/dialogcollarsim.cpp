@@ -130,6 +130,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
     ui->widgetScreen->image() = mImageDisconnected;
 
     ui->btnGenEui->setVisible(false);
+
+    // ui->editOutput->createStandardContextMenu()
 }
 
 void DialogCollarSim::on_refreshPorts()
@@ -521,7 +523,7 @@ void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
 
     QString log = QString("Serial port error:(%1) %2").arg(err).arg(mPort.errorString());
     addOutput(log, RESPONCE_COLOR_ERROR);
-    qWarning() << log;
+    qCritical() << log;
 }
 
 
@@ -873,7 +875,7 @@ void DialogCollarSim::on_btnStore_clicked()
     }
 
     // Update mirror collar
-    mMirror->setAnimalName(mAnimal->name());
+    mMirror->setAnimalName(mAnimal->name().toLatin1().data());
     mMirror->setIsMale(mAnimal->isMale());
     mMirror->setKeysHex( ui->editEui->text(), ui->editAddr->text(), ui->editAKey->text(), ui->editNKey->text());
     mAnimal->putCollar(mMirror);
@@ -894,14 +896,14 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
         QString addr = dev->addr().toHex();
 
         ui->editAddr->setText( addr );
-        ui->editAnimalName->setText( mMirror->animalName().toQString() );
+        ui->editAnimalName->setText( mMirror->animalName() );
         mMirror->setAddrHex(addr.toLatin1());
 /*
         if( ui->checkFlashEui->isChecked() ) {
             sendToSerial(QString("eui %1").arg(ui->editEui->text()));
         }
 */
-        sendToSerial(QString("name %1").arg(mMirror->animalName().toQString()) );
+        sendToSerial(QString("name %1").arg(mMirror->animalName()) );
         sendToSerial(QString("sex %1").arg(mMirror->isMale() ? "m" : "f"));
         sendToSerial(QString("akey %1").arg(ui->editAKey->text()));
         sendToSerial(QString("nkey %1").arg(ui->editNKey->text()));
@@ -911,7 +913,7 @@ void DialogCollarSim::on_deviceActivated(LoraDevSim *dev)
         sendToSerial("flash");
 
         QString str = QString("Collar of %1 (%2) activated! Address: %3")
-                          .arg(mMirror->animalName().toQString())
+                          .arg(mMirror->animalName())
                           .arg(mMirror->euiHex())
                           .arg(addr);
 
@@ -981,5 +983,21 @@ void DialogCollarSim::on_btnSetDateTime_clicked()
 {
     // send a request for time sync
     sendToSerial( "rtm", true);
+}
+
+
+void DialogCollarSim::on_btnOutputLayout_clicked()
+{
+    if( ui->btnOutputLayout->isChecked()) {
+        ui->layoutOutput->removeWidget(ui->editOutput);
+        ui->verticalLayoutSecond->addWidget(ui->editOutput);
+        ui->editOutput->setLayout(ui->verticalLayoutSecond);
+        ui->btnOutputLayout->setText("=>");
+    }else {
+        ui->verticalLayoutSecond->removeWidget(ui->editOutput);
+        ui->layoutOutput->addWidget(ui->editOutput);
+        ui->editOutput->setLayout(ui->layoutOutput);
+        ui->btnOutputLayout->setText("<=");
+    }
 }
 

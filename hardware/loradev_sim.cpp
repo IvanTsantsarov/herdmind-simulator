@@ -572,3 +572,9 @@ QString LoraDevSim::addrHex()
 {
     return mAddr.toHex();
 }
+
+
+void LoraDevSim::setAnimalName(const char* name)
+{
+    mAnimalName = SimTools::translateCyrilic( name );
+}

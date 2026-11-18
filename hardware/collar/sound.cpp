@@ -18,7 +18,7 @@ void Sound::kill()
     ledcWrite(PIN_SOUND, 0);
 }
 
-void Sound::execute()
+void Sound::execute(uint8_t mode)
 {
     respondCmd(SerialCmd::Cmd::Type::SIGS);
     play("A4B4A4B4A4B4A4B4", 100);

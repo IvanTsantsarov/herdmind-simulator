@@ -194,7 +194,7 @@ enum StringNumberType
 };
 
 #define FLOAT_PRECISION 5
-#define SIM_STRING_CONSTRUCTOR_NUMBER(__type__) String( __type__ value, StringNumberType type = DEC ) { mString = QString("%1").arg(value, 0, baseFromNumberType(type)); }
+#define SIM_STRING_CONSTRUCTOR_NUMBER(__type__) String( __type__ value, StringNumberType type = DEC ) { mString = QString("%1").arg(value, 0, baseFromNumberType(type)); createLocal(); }
 
 
 class String
@@ -202,13 +202,18 @@ class String
     QString mString;
     QByteArray mLocalStr;
 
+    void createLocal() {
+        mLocalStr = mString.toLocal8Bit();
+        mLocalStr.append(1, 0);
+    }
+
 public:
     String(){}
-    String(const char *cstr) : mString(cstr) {}
+    String(const char *cstr) : mString(cstr) {createLocal(); }
 
-    String(const String& str) : mString(str.mString) {}
-    String(const QString& str) : mString(str) {}
-    String(char ch) {mString.append(ch);}
+    String(const String& str) : mString(str.mString) { createLocal(); }
+    String(const QString& str) : mString(str) { createLocal(); }
+    String(char ch) {mString.append(ch); createLocal(); }
     SIM_STRING_CONSTRUCTOR_NUMBER(byte)
     SIM_STRING_CONSTRUCTOR_NUMBER(long)
     SIM_STRING_CONSTRUCTOR_NUMBER(ulong)
@@ -221,7 +226,7 @@ public:
     inline char operator [](uint index) { return mString[index].toLatin1(); }
 
     String operator+(const String& str) const{ return String(mString + str.mString); }
-    void operator +=(const String& str){ mString += str.mString; }
+    void operator +=(const String& str){ mString += str.mString; createLocal(); }
     bool operator ==(const String& str) const{ return mString == str.mString; }
     String operator +(const char str[]) const{ return String(mString + String(str).mString); }
 
@@ -235,15 +240,9 @@ public:
     void replace(char what, char with);
 
     static int baseFromNumberType(StringNumberType type);
-    char* data()
-    {
-        mLocalStr = mString.toLocal8Bit();
-        mLocalStr.append(1, 0);
-        return mLocalStr.data();
-    }
+    const char* data() const { return mLocalStr.data(); }
 
-
-    char* c_str(){ return data(); }
+    const char* c_str() const { return data(); }
 
     String substring(uint left, uint right) const;
     int indexOf(char ch) const;

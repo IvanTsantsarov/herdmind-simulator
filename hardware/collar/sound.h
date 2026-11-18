@@ -35,7 +35,7 @@ public:
     const char* name() { return "Sound"; }
 
     void kill();
-    void execute();
+    void execute(uint8_t mode = 0);
 
     void setVolume(uint8_t v){ mVolume = v;}
 

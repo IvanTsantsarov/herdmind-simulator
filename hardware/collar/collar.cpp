@@ -47,8 +47,8 @@ Collar::Collar(Animal* animal, bool isSimulation,
     commonConstructor();
 
     // TODO: this should not happened here, but must be send from chirpstack
-    mAnimalName = SimTools::translateCyrilic( animal->name() );
-    mIsMale = animal->isMale();
+    setAnimalName( SimTools::translateCyrilic(animal->name()).toLatin1().data() );
+    setIsMale(animal->isMale());
 }
 
 // Contructor called when NO simulation
@@ -60,9 +60,10 @@ Collar::Collar(QString animalName, bool isMale,
     : LoraDevSim(false, QString("%1 collar").arg(animalName),
                 LoraDevSim::Profile::Collar,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
-                devEUI, appKey, nwkKey), mIsMale(isMale)
+                devEUI, appKey, nwkKey)
 {
-    mAnimalName = SimTools::translateCyrilic( animalName );
+    setAnimalName( SimTools::translateCyrilic(animalName).toLatin1().data() );
+    setIsMale(isMale);
     setAddrHex(addrHex);
     commonConstructor();
 }
@@ -147,19 +148,6 @@ Collar::~Collar()
     delete mSound;
     delete mShock;
 }
-
-
-#ifdef ONPC
-void Collar::setAnimalName(const String &name)
-{
-    mAnimalName = SimTools::translateCyrilic( name.toQString() );
-}
-#else
-void Collar::setAnimalName(const String &name)
-{
-    mAnimalName = name;
-}
-#endif
 
 bool gMainButtonDown = false;
 void gMainButtonInterrupt() {
@@ -304,11 +292,11 @@ bool Collar::flash()
         return false;
     }
 
-    if( !mMemory->writeName(mAnimalName) ) {
+    if( !mMemory->writeName(animalName()) ) {
         return false;
     }
 
-    if( !mMemory->writeSex(mIsMale)) {
+    if( !mMemory->writeSex(isMale())) {
         return false;
     }
 
@@ -344,13 +332,19 @@ bool Collar::restore()
 
     setAddrHex(addrBufferHex);
 
-    if( !mMemory->readName(mAnimalName)) {
+    char animalName[LORA_NAME_MAX_LEN + 1] = {0};
+    if( !mMemory->readName(animalName)) {
         return false;
     }
 
-    if( !mMemory->readSex(mIsMale)) {
+    setAnimalName(animalName);
+
+    bool isMale;
+    if( !mMemory->readSex(isMale)) {
         return false;
     }
+
+    setIsMale(isMale);
 
     uint8_t fp = 0;
     if( !mMemory->readFPort(fp)) {
@@ -372,7 +366,7 @@ void Collar::serialCmd(SerialCmd::Cmd::Type t, const String& str)
     mSerialCmd->printCmd(t, str);
 }
 
-void Collar::execSignal(SignalType t)
+void Collar::execSignal(SignalType t, int mode)
 {
     switch(t) {
     case SignalType::Light: mLights->execute(); break;
@@ -412,26 +406,6 @@ void Collar::onSetup()
 
     mSound->setup();
 
-    if( isWakingUp() ) {
-        // restore last sleeping interval
-        mSendIntervalMsec = mTimer->sleepMsec();
-
-        if( isWakeBtn() ) {
-            DBG("Wake up from button. Waking up the screen..");
-            mScreen->wakeup();
-        }else {
-            mScreen->sleep();
-        }
-
-        mState.set( State::UpdateMaster );
-    }else {
-        // Bring back all the saved data
-        restore();
-        mState.set( State::Init );
-        mSound->setVolume(128);
-        mSound->play("A4B4C4D4E4", 100);
-    }
-
     mGPS->setup(isWakingUp());
 
     mBtnMain->setup();
@@ -453,6 +427,26 @@ void Collar::onSetup()
 
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
+
+    if( isWakingUp() ) {
+        // restore last sleeping interval
+        mSendIntervalMsec = mTimer->sleepMsec();
+
+        if( isWakeBtn() ) {
+            DBG("Wake up from button. Waking up the screen..");
+            mScreen->wakeup();
+        }else {
+            mScreen->sleep();
+        }
+
+        mState.set( State::UpdateMaster );
+    }else {
+        // Bring back all the saved data
+        restore();
+        mState.set( State::Init );
+        mSound->setVolume(128);
+        mSound->play("A4B4C4D4E4", 100);
+    }
 }
 
 
@@ -476,6 +470,8 @@ void Collar::updateScreenLoading(bool isFlush)
     if( isFlush){
         mScreen->flush();
     }
+
+    DBG("Screen LOADING updated.");
 }
 
 
@@ -483,8 +479,8 @@ void Collar::updateScreenNormal(bool isFlush)
 {
     mScreen->clear();
 
-    Screen::CenterH c = mScreen->drawTextTableCenterH( 1, mAnimalName, 6 );
-    mScreen->drawArray( c.x2 + 2*FONT_CX, 4, 12, 12, mIsMale ? male_12x12 : female_12x12);
+    Screen::CenterH c = mScreen->drawTextTableCenterH( 1, animalName(), 6 );
+    mScreen->drawArray( c.x2 + 2*FONT_CX, 4, 12, 12, isMale() ? male_12x12 : female_12x12);
 
     // Draw satellite icon
     if( !satellites() ) {
@@ -539,6 +535,8 @@ void Collar::updateScreenNormal(bool isFlush)
     if( isFlush ) {
         mScreen->flush();
     }
+
+    DBG("Screen NORMAL updated.");
 }
 
 void Collar::onMainBtn() {

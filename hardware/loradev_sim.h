@@ -42,6 +42,9 @@ private:
     const bool mIsSimulation;
 
     QString mName;
+    QString mAnimalName;
+    bool mIsMale = false;
+
     Profile mProfile = LoraDevSim::Profile::None;
     QElapsedTimer mLastSeen;
 
@@ -113,6 +116,12 @@ public:
     QString profileString();
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
+
+    inline const QString& animalName() { return mAnimalName; }
+    void setAnimalName(const char* name);
+
+    inline void setIsMale(bool is){ mIsMale = is; }
+    inline bool isMale(){ return mIsMale; }
 
     QString akeyHex();
     QString nkeyHex();

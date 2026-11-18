@@ -2,7 +2,7 @@
 
 Shock::Shock(Collar *c) : Signaling(c) {}
 
-void Shock::execute()
+void Shock::execute(uint8_t mode)
 {
     respondCmd(SerialCmd::Cmd::Type::SIGE);
     // delay(3000);
