@@ -139,6 +139,23 @@ class Collar : public LoraDevHW
 
     State mState;
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    enum ScreenMode : uint8_t {
+        Product = 0,
+        Info,
+        Last
+    };
+
+    ScreenMode mScreenMode = ScreenMode::Product;
+
+    void incrementScreenMode() {
+        mScreenMode = (ScreenMode)((uint8_t)mScreenMode + 1);
+        if( mScreenMode >= ScreenMode::Last) {
+            mScreenMode = ScreenMode::Product;
+        }
+    }
+
+
 
 #ifdef ONPC
     friend class DialogCollarSim;
@@ -206,10 +223,13 @@ class Collar : public LoraDevHW
     void onMainBtn();
     void updateTrajectory(const GeoPoint &geoPt);
     void commonConstructor();
-    void updateScreenLoading(bool isFlush = true);
-    void updateScreenNormal(bool isFlush = true);
     void updateMaster();
     void updateSerial();
+
+    void updateScreen(bool isIncrement = false);
+    void updateScreenProduct(bool isFlush = true);
+    void updateScreenInfo(bool isFlush = true);
+
 
     enum struct UpdateInterval{
         Battery = 6000,

@@ -450,7 +450,7 @@ void Collar::onSetup()
 }
 
 
-void Collar::updateScreenLoading(bool isFlush)
+void Collar::updateScreenProduct(bool isFlush)
 {
     // Clear the internal buffer
     mScreen->clear();
@@ -475,7 +475,7 @@ void Collar::updateScreenLoading(bool isFlush)
 }
 
 
-void Collar::updateScreenNormal(bool isFlush)
+void Collar::updateScreenInfo(bool isFlush)
 {
     mScreen->clear();
 
@@ -544,15 +544,13 @@ void Collar::onMainBtn() {
     if( mScreen->isSleeping() )
     {
         DBG("Screen waking up...");
-        if( mIsSignalGPS) {
-            updateScreenNormal();
-        }else {
-            updateScreenLoading();
-        }
-        mScreen->wakeup();
+        updateScreen(false);
     }else {
+        updateScreen(true);
         DBG("Screen is not sleeping!");
     }
+
+    mScreen->wakeup();
 
     mSound->play("B5F6", 50); // plays chirp sound
 
@@ -590,7 +588,7 @@ void Collar::onUpdate()
     updateSerial();
 
     if( mState.isInit() ) {
-        updateScreenLoading();
+        updateScreen();
         mState.set(State::UpdateMaster);
     }else
     if( mState.isSleep() ) {
@@ -630,7 +628,7 @@ void Collar::updateMaster()
         {
             mLed->hwOn();
 
-            updateScreenNormal();
+            updateScreen();
 
             if( !mIsSignalGPS ) {
                 DBG( String("GPS signal arrived in ") + mState.elapsedSec() + " sec" );
@@ -675,6 +673,19 @@ void Collar::updateSerial()
     }
 
     mSerialCmd->stopWaitingForTimeSync();
+}
+
+void Collar::updateScreen(bool isIncrement)
+{
+    switch(mScreenMode) {
+    case ScreenMode::Product: updateScreenProduct(); break;
+    case ScreenMode::Info: updateScreenInfo(); break;
+    default: break;
+    }
+
+    if( isIncrement ) {
+        incrementScreenMode();
+    }
 }
 
 
