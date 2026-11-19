@@ -457,14 +457,19 @@ void Collar::updateScreenProduct(bool isFlush)
 
     mScreen->drawArray(2, 2, 44, 44, vector_mono_44x44);
     // Draw static strings (X position, Y position, String)
-    String v("Herdmind ");
-    v += COLLAR_VERSION;
+    String v("Herdmind");
     mScreen->drawText(2, 2 + 44 + FONT_CY, v);
 
     // TODO: send animal name to the collar
     // mLib.drawStr(2, 2 + 44 + FONT_CY, mCollar->animalName().c_str());
+    int dx = 44 + FONT_CX + 6;
+    int dy = FONT_CY;
 
-    mScreen->drawText(44 + FONT_CX + 6, 32, ("Loading...") );
+    mScreen->drawText(dx, dy, animalName() ); dy += FONT_CY + 1;
+    mScreen->drawText(dx, dy, "Build:" ); dy += FONT_CY + 1;
+    mScreen->drawText(dx, dy, String(__TIME__) ); dy += FONT_CY + 1;
+    mScreen->drawText(dx, dy, String(__DATE__) ); dy += FONT_CY + 1;
+
 
     // Push the buffer contents to the physical screen hardware
     if( isFlush){

@@ -1,7 +1,7 @@
 #ifndef COLLAR_DEFINES_H
 #define COLLAR_DEFINES_H
 
-#define COLLAR_VERSION "0.81"
+#define COLLAR_VERSION "0.9"
 
 #define LORA_FPORT 2
 
