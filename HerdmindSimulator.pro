@@ -41,6 +41,7 @@ SOURCES += \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/bolus/loradev_bolus.cpp \
+    hardware/collar/bluetooth.cpp \
     hardware/collar/button.cpp \
     hardware/collar/collar.cpp \
     hardware/collar/collar_gps.cpp \
@@ -96,6 +97,7 @@ HEADERS += \
     hardware/bolus/includes.h \
     hardware/bolus/loradev.h \
     hardware/bolus/loradev_bolus.h \
+    hardware/collar/bluetooth.h \
     hardware/collar/button.h \
     hardware/collar/collar.h \
     defines.h \

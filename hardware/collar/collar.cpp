@@ -10,6 +10,10 @@
 #include "sound.h"
 #include "shock.h"
 #include "timer.h"
+#include "bluetooth.h"
+
+
+#define COLLAR_MAIN_BTN_BLE_INTERVAL 3000
 
 
 // interval for reading the sensors
@@ -132,6 +136,7 @@ void Collar::commonConstructor()
     mLights = new Lights(this);
     mSound = new Sound(this);
     mShock = new Shock(this);
+    mBle = new Ble();
 }
 
 
@@ -147,13 +152,8 @@ Collar::~Collar()
     delete mLights;
     delete mSound;
     delete mShock;
+    delete mBle;
 }
-
-bool gMainButtonDown = false;
-void gMainButtonInterrupt() {
-    gMainButtonDown = true;
-}
-
 
 void Collar::sendStats()
 {
@@ -394,9 +394,15 @@ String Collar::dateTime()
 /// \brief Setup
 ///
 ////////////////////////////////////////////////////////////////////////
+bool gMainButtonClicked = false;
+int64_t gMainButtonMsec = 0;
+void onMainBtnClicked(int64_t msecDown)
+{
+    gMainButtonMsec = msecDown;
+    gMainButtonClicked = true;
+}
 
-
-void Collar::onSetup()
+void Collar::setup()
 {
     mState.set( isWakingUp() ? State::SetupWake : State::SetupBoot );
 
@@ -408,22 +414,13 @@ void Collar::onSetup()
 
     mGPS->setup(isWakingUp());
 
-    mBtnMain->setup();
+    mBtnMain->setup(onMainBtnClicked);
 
     mLed->setup(PIN_LED_MAIN);
 
     mBattery->setup();
 
-#ifndef ONPC
-    attachInterrupt(
-        digitalPinToInterrupt(mBtnMain->pin()),
-        gMainButtonInterrupt,
-        FALLING
-        );
-    LoraDevHW::onSetup();
-#else
-    LoraDevSim::onSetup();
-#endif
+    onSetup();
 
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
     mSerialCmd->printCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
@@ -544,8 +541,8 @@ void Collar::updateScreenInfo(bool isFlush)
     DBG("Screen NORMAL updated.");
 }
 
-void Collar::onMainBtn() {
-    mBtnMain->update();
+void Collar::onMainBtn(int64_t msecPress) {
+
     if( mScreen->isSleeping() )
     {
         DBG("Screen waking up...");
@@ -557,34 +554,38 @@ void Collar::onMainBtn() {
 
     mScreen->wakeup();
 
-    mSound->play("B5F6", 50); // plays chirp sound
+    if( mState.isSleep() ) {
+        mState.setPrev();
+    }
 
-    DBG("Main button press!");
+    if( COLLAR_MAIN_BTN_BLE_INTERVAL > msecPress) {
+        DBG("Main button press short!");
+        mSound->play("B5F6", 50); // plays chirp sound
+
+    }else {
+        DBG("Main button press long!");
+        mSound->play("A5C5E5", 200); // plays chirp sound
+        mBle->on( animalName() );
+    }
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////
 /// \brief Update
 ///
 ////////////////////////////////////////////////////////////////////////
+///
 
-
-void Collar::onUpdate()
+void Collar::update()
 {
     mState.tick();
 
-#ifndef ONPC
     // after waking up
-    if( gMainButtonDown ) {
-        onMainBtn();
-        gMainButtonDown = false;
-
-        if( mState.isSleep() ) {
-            mState.setPrev();
-        }
+    if( gMainButtonClicked ) {
+        onMainBtn(gMainButtonMsec);
+        gMainButtonClicked = false;
     }
-#else
-    mScreen->flush();
-#endif
 
     if( !mScreen->isSleeping() && (mScreen->msecWake() > SCREEN_AWAKE_MSEC_MAX) ) {
         mScreen->sleep();

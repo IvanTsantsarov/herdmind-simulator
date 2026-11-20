@@ -4,10 +4,10 @@ Collar collar;
 
 void setup() {
   // put your setup code here, to run once:
-  collar.onSetup();
+  collar.setup();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  collar.onUpdate();
+  collar.update();
 }

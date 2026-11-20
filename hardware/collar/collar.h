@@ -24,6 +24,7 @@ class Memory;
 class Lights;
 class Sound;
 class Shock;
+class Ble;
 
 #ifdef ONPC
     #include <QPointF>
@@ -39,7 +40,6 @@ class Collar : public LoraDevHW
 #endif
 
 {
-    friend void gMainButtonInterrupt();
 
     class State {
         friend class Collar;
@@ -182,6 +182,7 @@ class Collar : public LoraDevHW
     Lights* mLights = nullptr;
     Sound* mSound = nullptr;
     Shock* mShock = nullptr;
+    Ble* mBle = nullptr;
 
     uint16_t mSequence = 0;
 
@@ -220,7 +221,8 @@ class Collar : public LoraDevHW
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 
-    void onMainBtn();
+    void onMainBtn(int64_t msecPress);
+
     void updateTrajectory(const GeoPoint &geoPt);
     void commonConstructor();
     void updateMaster();
@@ -268,8 +270,8 @@ public:
 
     ~Collar();
 
-    void onSetup();
-    void onUpdate();
+    void setup();
+    void update();
     void onSend();
     void onReceive(uint8_t* data, uint32_t size);
     inline Button* btnMain(){ return mBtnMain; }

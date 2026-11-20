@@ -15,6 +15,7 @@
     #include <HT_TinyGPS++.h>
 #endif
 
+    #include <NimBLEDevice.h>
 
     #include <esp_mac.h> // Required for ESP32 MAC/ChipID functions
 #endif

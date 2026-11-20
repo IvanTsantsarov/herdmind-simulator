@@ -47,7 +47,8 @@ enum INTERRUPT_TYPE
     UP = 0,
     DOWN = 1,
     CHANGE = 2,
-    FALLING = 3
+    FALLING = 3,
+    RISING = 4
 };
 
 
@@ -520,3 +521,77 @@ void gpio_deep_sleep_hold_en();
 void ledcAttach(int pin, int freq, uint8_t resolution);
 void ledcWrite(int pin, uint8_t volume);
 void ledcChangeFrequency(int pin, int freq, uint8_t resolution);
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+namespace NIMBLE_PROPERTY {
+enum {
+    NOTIFY = 1,
+    WRITE = 2,
+    WRITE_NR = 4
+    };
+}
+
+
+
+class NimBLEAdvertising {
+public:
+    void addServiceUUID(const char* uuid){ }
+    void start(){}
+};
+
+class NimBLEConnInfo {
+public:
+    uint16_t getConnHandle(){ return 0; }
+};
+
+class NimBLECharacteristic;
+class NimBLECharacteristicCallbacks {
+    public:
+    virtual void onWrite(NimBLECharacteristic* characteristic, NimBLEConnInfo&) = 0;
+};
+
+class NimBLECharacteristic {
+    std::string mValue;
+public:
+    void setCallbacks(NimBLECharacteristicCallbacks* cb){}
+    void setValue(const char* val){mValue = val;}
+    std::string getValue() { return mValue; }
+    void notify(){}
+};
+
+class NimBLEService {
+public:
+    NimBLECharacteristic* createCharacteristic( const char* bleServiceUUID, uint32_t property){ return new NimBLECharacteristic; }
+    void start(){}
+};
+
+
+
+class NimBLEServer;
+
+class NimBLEServerCallbacks  {
+public:
+    virtual void onConnect(NimBLEServer*, NimBLEConnInfo& info) = 0;
+    virtual void onDisconnect(NimBLEServer*, NimBLEConnInfo& info, int) = 0;
+};
+
+
+class NimBLEServer {
+public:
+    NimBLEService* createService(const char* bleServiceUUID){ return new NimBLEService; }
+    void setCallbacks(NimBLEServerCallbacks* cb){}
+    void disconnect(uint16_t connHadle){}
+};
+
+class NimBLEDevice {
+public:
+    static void init(const char* deviceName){ };
+    static NimBLEAdvertising* getAdvertising(){ return new NimBLEAdvertising; }
+    static NimBLEServer* createServer(){ return new NimBLEServer; }
+    static void deinit(bool is){}
+};
+

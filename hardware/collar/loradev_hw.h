@@ -48,8 +48,6 @@ class LoraDevHW
 
 protected:
 
-
-
     bool prepareToSleep(uint64_t msec, int pinBtnWake);
     bool sleep();
     void wakeup();
@@ -90,7 +88,7 @@ public:
 
     void sendPackage(void* data, size_t len);
 
-    virtual void onSetup();
+    void onSetup();
     virtual void onReceive(uint8_t* data, uint32_t size); // data receiving
 
     virtual float rssi();

@@ -117,7 +117,7 @@ public:
     inline QByteArray appSKey(){ return mAppSKey; }
     inline QByteArray nwkSKey(){ return mNwkSKey; }
 
-    inline const QString& animalName() { return mAnimalName; }
+    inline const char* animalName() { return mAnimalName.toLocal8Bit().data(); }
     void setAnimalName(const char* name);
 
     inline void setIsMale(bool is){ mIsMale = is; }
@@ -181,8 +181,8 @@ public:
 
     static inline int bootCount(){ return 0; }
 
-    virtual void onSetup(){}; // On regular sensors setup
-    virtual void onUpdate() = 0; // On regular sensors update
+    void onSetup(){}; // On regular sensors setup
+    void onUpdate(){ }; // On regular sensors update
     virtual void onSend() = 0; // On timeout for sending
     virtual void onReceive(uint8_t* data, uint32_t size) = 0; // data receiving
     void updateLastSeen();

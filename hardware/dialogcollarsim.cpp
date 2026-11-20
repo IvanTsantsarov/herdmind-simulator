@@ -339,12 +339,12 @@ void ScreenWidget::paintEvent(QPaintEvent *event)
 void DialogCollarSim::on_btnMain_pressed()
 {
     if( mMirror ) {
-        mMirror->onMainBtn();
+        mMirror->onMainBtn(0);
         return;
     }
 
     if( mAnimal) {
-        mAnimal->collar()->onMainBtn();
+        mAnimal->collar()->onMainBtn(0);
         return;
     }
 }

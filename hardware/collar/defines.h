@@ -18,4 +18,8 @@
 #define SERIAL_CMD_SIZE 7
 #define SERIAL_CMD_MIN_SIZE 2
 
+#define BLE_SE_UUID "4a811733-2bbe-48ef-88e3-8ee8e05e4063"
+#define BLE_RX_UUID "80280b51-af7b-4d18-8f81-11e470c0d917"
+#define BLE_TX_UUID "4ed901cb-e459-4b24-9c31-758db22de2fe"
+
 #endif // COLLAR_DEFINES_H
