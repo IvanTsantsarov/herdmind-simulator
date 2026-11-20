@@ -58,7 +58,7 @@ public:
     inline uint8_t fport(){ return mFPort; }
 
     void setAnimalName(const char* name);
-    inline String animalName() { return String(mAnimalName); }
+    inline const char* animalName() { return mAnimalName; }
 
     inline void setIsMale(bool is){ mIsMale = is; }
     inline bool isMale(){ return mIsMale; }

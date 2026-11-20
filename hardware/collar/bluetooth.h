@@ -4,13 +4,33 @@
 
 #include "defines.h"
 
+class Collar;
+
 class Ble {
+
+    int64_t mOnMsec = 0;
 public:
+    enum struct Event
+    {
+        None = 0,
+        Connect,
+        Disconnect,
+        Error,
+    };
+
+    struct EventContex {
+        Event mEvent;
+        String mOther;
+        Collar* mCollar;
+    };
+
+    typedef void (*BleEventCallback)(EventContex* ctx);
+
 
     Ble() {}
     ~Ble() {off();}
 
-    void on(const char* deviceName = "MyHeltecDevice");
+    void on(const char* deviceName, BleEventCallback calback, Collar* collar);
     void off();
     bool available() const { return mIsReceived; }
     String read();
@@ -22,12 +42,17 @@ public:
         return mIsConnected;
     }
 
+
 private:
     class ServerCallbacks : public NimBLEServerCallbacks {
+
+        Collar* mCollar = nullptr;
+        BleEventCallback mCallback = nullptr;
+
     public:
-        explicit ServerCallbacks(Ble* owner) : mOwner(owner) {}
+        explicit ServerCallbacks(Ble* owner, BleEventCallback callback, Collar* collar);
         void onConnect(NimBLEServer*, NimBLEConnInfo& info) override;
-        void onDisconnect(NimBLEServer*, NimBLEConnInfo&, int) override;
+        void onDisconnect(NimBLEServer*, NimBLEConnInfo& info, int) override;
 
     private:
         Ble* mOwner;

@@ -541,16 +541,28 @@ void Collar::updateScreenInfo(bool isFlush)
     DBG("Screen NORMAL updated.");
 }
 
+void Collar::onBleConnect(String str)
+{
+    mSound->play("A5C5E5", 200); // plays connect sound
+}
+
+void Collar::onBleDisconnect(String str)
+{
+    mSound->play("E5C5A5", 200); // plays disconnect sound
+}
+
+
+void onBleEvent(Ble::EventContex* ctx)
+{
+    switch(ctx->mEvent) {
+    case Ble::Event::Connect: ctx->mCollar->onBleConnect(ctx->mOther); break;
+    case Ble::Event::Disconnect: ctx->mCollar->onBleDisconnect(ctx->mOther); break;
+    default: break;
+    }
+}
+
 void Collar::onMainBtn(int64_t msecPress) {
 
-    if( mScreen->isSleeping() )
-    {
-        DBG("Screen waking up...");
-        updateScreen(false);
-    }else {
-        updateScreen(true);
-        DBG("Screen is not sleeping!");
-    }
 
     mScreen->wakeup();
 
@@ -559,17 +571,25 @@ void Collar::onMainBtn(int64_t msecPress) {
     }
 
     if( COLLAR_MAIN_BTN_BLE_INTERVAL > msecPress) {
-        DBG("Main button press short!");
-        mSound->play("B5F6", 50); // plays chirp sound
 
+        if( mScreen->isSleeping() )
+        {
+            DBG("Screen waking up...");
+            updateScreen(false);
+        }else {
+            updateScreen(true);
+            DBG("Screen is not sleeping!");
+        }
+
+        DBG("Main button press short!");
     }else {
         DBG("Main button press long!");
-        mSound->play("A5C5E5", 200); // plays chirp sound
-        mBle->on( animalName() );
+        mSound->play("B5F6", 50); // plays chirp sound
+        mBle->on( animalName(), onBleEvent, this );
     }
 
-
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 /// \brief Update

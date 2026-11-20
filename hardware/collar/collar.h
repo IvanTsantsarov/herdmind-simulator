@@ -143,7 +143,8 @@ class Collar : public LoraDevHW
     enum ScreenMode : uint8_t {
         Product = 0,
         Info,
-        Last
+        Last,
+        Bluetooth
     };
 
     ScreenMode mScreenMode = ScreenMode::Product;
@@ -327,6 +328,9 @@ public:
 
     void setSendInterval(uint32_t msec){mSendIntervalMsec = msec;};
     uint32_t sendInterval(){ return mSendIntervalMsec; };
+
+    void onBleConnect(String str);
+    void onBleDisconnect(String str);
 };
 
 

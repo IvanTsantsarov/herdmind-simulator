@@ -1,12 +1,16 @@
 #include "bluetooth.h"
 
-void Ble::on(const char *deviceName) {
-    if (mIsOn) return;
+void Ble::on(const char *deviceName, BleEventCallback calback, Collar* collar) {
+    if (mIsOn) {
+        return;
+    }
+
+    mOnMsec = millis();
 
     NimBLEDevice::init(deviceName);
 
     mServer = NimBLEDevice::createServer();
-    mServer->setCallbacks(new ServerCallbacks(this));
+    mServer->setCallbacks(new ServerCallbacks(this, calback, collar));
 
     NimBLEService* service = mServer->createService(BLE_SE_UUID);
 
@@ -64,16 +68,39 @@ void Ble::send(const String &message)
     mTxCharacteristic->notify();
 }
 
+Ble::ServerCallbacks::ServerCallbacks(Ble *owner, BleEventCallback callback, Collar *collar)
+    : mCollar(collar), mCallback(callback), mOwner(owner)
+{
+
+}
+
 void Ble::ServerCallbacks::onConnect(NimBLEServer *, NimBLEConnInfo &info)
 {
     mOwner->mConnectionHandle = info.getConnHandle();
     mOwner->mIsConnected = true;
     DBG("[Ble]Client connected");
+
+    if( mCallback ) {
+        EventContex ctx;
+        ctx.mCollar = mCollar;
+        ctx.mEvent = Event::Connect;
+        // ctx.mOther = info.
+        mCallback( &ctx );
+    }
 }
 
-void Ble::ServerCallbacks::onDisconnect(NimBLEServer *, NimBLEConnInfo &, int) {
+void Ble::ServerCallbacks::onDisconnect(NimBLEServer *, NimBLEConnInfo &info, int) {
     mOwner->mIsConnected = false;
     DBG("[Ble]Client disconnected");
+
+    if( mCallback ) {
+        EventContex ctx;
+        ctx.mCollar = mCollar;
+        ctx.mEvent = Event::Disconnect;
+        // ctx.mOther = info.
+        mCallback( &ctx );
+    }
+
 }
 
 void Ble::RxCallbacks::onWrite(NimBLECharacteristic *characteristic, NimBLEConnInfo &)
