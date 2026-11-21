@@ -11,8 +11,6 @@
 #include "geometry.h"
 #include "serialcmd.h"
 
-#define COLLAR_MAX_GPS_POINTS 500
-
 class Timer;
 class GPS;
 class Screen;
@@ -190,41 +188,20 @@ class Collar : public LoraDevHW
     bool mIsSignalGPS = false;
     GeoPoint readGPS();
     void printGPS();
-    GeoPoint mLastGeoPos;
-    Point mLastPoint;
 
     float mFenceDistanceSound1;
     float mFenceDistanceSound2;
     float mFenceDistanceSoundShock;
     bool mIsInsideFence = true;
 
-    GeoPoint mGeoCenter;
-    int mFencePointsCount = 0;
-    GeoPoint mFenceGeoPoints[VIRTUAL_FENCE_MAX_POINTS];
-    Point mFencePoints[VIRTUAL_FENCE_MAX_POINTS];
-    Border mFenceBorders[VIRTUAL_FENCE_MAX_POINTS];
-
-    Border* mFenceClosestBorder = nullptr;
-    Point mFenceClosestPoint;
-    double mFenceClosestDistSq;
-    double mFenceDistance;
-    bool mFenceIsGoingAway = false;
-
-    int mTrajectoryPointsCount = 0;
-    GeoPoint mTrajectoryPoints[COLLAR_MAX_GPS_POINTS];
-
-    void testFence();
     Protocol::Collar mPackage;
 
-    void onSetupFence(uint8_t count,
-                      const GeoPoint &center,
-                      const uint8_t *offsetsPtr);
+    void onSetupFence(uint8_t count, const GeoPoint &center, const uint8_t *offsetsPtr);
 
     void sendEvent(Protocol::Collar::Event event, uint32_t value);
 
     void onMainBtn(int64_t msecPress);
 
-    void updateTrajectory(const GeoPoint &geoPt);
     void commonConstructor();
     void updateMaster();
     void updateSerial();
@@ -277,11 +254,6 @@ public:
     void onReceive(uint8_t* data, uint32_t size);
     inline Button* btnMain(){ return mBtnMain; }
 
-    inline bool isFence(){ return mFencePointsCount > 0; }
-    inline bool isInsideFence(){ return mIsInsideFence; }
-    inline bool isGoingAwayFromFence(){ return mFenceIsGoingAway; }
-    inline double fanceDistance(){ return mFenceDistance; }
-    inline bool hasClosestFenceBorder(){ return nullptr != mFenceClosestBorder ; }
     inline Screen *screen() { return mScreen; }
     inline Led* led() { return mLed; }
 
@@ -294,7 +266,8 @@ public:
 #endif
 
     char gpsStatus(); // y - has gps hardware, n - doesn't have gps harware, e - emulated gps
-    GeoPoint gps();
+    GeoPoint gpsPos();
+    inline GPS* gps(){ return mGPS; }
     String gpsStr();
     int satellites();
 

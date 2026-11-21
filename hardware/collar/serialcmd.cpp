@@ -255,8 +255,8 @@ bool SerialCmd::execute()
 
     case Cmd::Type::GPS: {
         printResponce( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
-                        "lat=" + String(mCollar->gps().mLat, 10) + SERIAL_CMD_PARAMS_DM +
-                        "lon=" + String(mCollar->gps().mLon, 10) + SERIAL_CMD_PARAMS_DM +
+                        "lat=" + String(mCollar->gpsPos().mLat, 10) + SERIAL_CMD_PARAMS_DM +
+                        "lon=" + String(mCollar->gpsPos().mLon, 10) + SERIAL_CMD_PARAMS_DM +
                         "sat=" + mCollar->satellites() );
     }
     break;

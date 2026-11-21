@@ -378,11 +378,13 @@ QString Animal::info()
         .arg(hasCollar() ? collar()->lastSeenInfo() : "N/A");
 #endif
 
+    /*
     QString fenceString;
     if(hasCollar() && collar()->isFence()) {
         Collar* c = collar();
         result.append( QString("\nFence:%1m %2").arg(c->fanceDistance(), 3,'g', 2).arg(c->isInsideFence() ? "✓" : "❗" ) );
     }
+    */
 
 
     return result;

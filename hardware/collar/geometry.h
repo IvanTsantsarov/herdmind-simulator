@@ -12,7 +12,7 @@
 struct GeoPoint {
     float mLat, mLon, mAlt;
     inline GeoPoint(): mLat{0.0f}, mLon{0.0f}, mAlt{0.0f}{};
-    inline GeoPoint(float lat, float lon): mLat{lat}, mLon{lon}{};
+    inline GeoPoint(float lat, float lon): mLat{lat}, mLon{lon}, mAlt{0.0f}{};
 };
 
 struct Point {

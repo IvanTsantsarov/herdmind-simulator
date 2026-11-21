@@ -76,22 +76,22 @@ Collar::Collar(QString animalName, bool isMale,
 Protocol::Collar Collar::getPackageOut(){ return mPackage; }
 
 QLine Collar::fenceClosestBorder() {
-    if( !mFenceClosestBorder ) {
+    if( !mGPS->hasClosestFenceBorder() ) {
         return QLine();
     }
 
-    return QLine(mFenceClosestBorder->begin().mX,
-                 mFenceClosestBorder->begin().mY,
-                 mFenceClosestBorder->end().mX,
-                 mFenceClosestBorder->end().mY);
+    return QLine(mGPS->fenceClosestBorder()->begin().mX,
+                 mGPS->fenceClosestBorder()->begin().mY,
+                 mGPS->fenceClosestBorder()->end().mX,
+                 mGPS->fenceClosestBorder()->end().mY);
 }
 
 QPointF Collar::fenceClosestPoint() {
-    if( !mFenceClosestBorder ) {
+    if( !mGPS->hasClosestFenceBorder() ) {
         return QPointF();
     }
 
-    return QPointF(mFenceClosestPoint.mX, mFenceClosestPoint.mY);
+    return QPointF(mGPS->fenceClosestPoint().mX, mGPS->fenceClosestPoint().mY);
 }
 
 void Collar::sendToSerial(const char *str)
@@ -209,7 +209,7 @@ char Collar::gpsStatus()
 
 
 
-GeoPoint Collar::gps()
+GeoPoint Collar::gpsPos()
 {
     if( !mGPS) {
         return GeoPoint();
@@ -220,7 +220,7 @@ GeoPoint Collar::gps()
 
 String Collar::gpsStr()
 {
-    GeoPoint pos = gps();
+    GeoPoint pos = gpsPos();
     String lat (pos.mLat, 10);
     String lon (pos.mLon, 10);
     return lat + "," + lon;
@@ -563,7 +563,6 @@ void onBleEvent(Ble::EventContex* ctx)
 
 void Collar::onMainBtn(int64_t msecPress) {
 
-
     mScreen->wakeup();
 
     if( mState.isSleep() ) {
@@ -661,8 +660,6 @@ void Collar::updateMaster()
                 mIsSignalGPS = true;
             }
 
-            updateTrajectory(mGPS->pos());
-
 #ifdef ONPC
             // Do not send information when there is no simulation
             if( isSimulation() ) {
@@ -671,6 +668,12 @@ void Collar::updateMaster()
 #else
             onSend();
 #endif
+            if( mGPS->hasFence() ) {
+                if( mGPS->isGoingAwayFromFence() && mGPS->isOutOfMaxDistance() ) {
+                    // TODO: send allert here
+                }
+            }
+
             // once again
             updateSerial();
 

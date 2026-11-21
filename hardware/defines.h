@@ -5,6 +5,8 @@
 // message will be 42 bytes
 #define VIRTUAL_FENCE_MAX_POINTS 8
 
+#define TRAJECTORY_MAX_POINTS 500
+
 #define SCREEN_CX 128
 #define SCREEN_CY 64
 

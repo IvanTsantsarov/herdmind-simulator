@@ -8,6 +8,7 @@
 #include "defines.h"
 #include "hardware/bolus/bolus.h"
 #include "hardware/gateway/gateway.h"
+#include "hardware/collar/gps.h"
 #include "hardware/defines.h"
 #include "network.h"
 #include "mainwindow.h"
@@ -137,7 +138,7 @@ void Scene::recreateFenceBorderItem()
 
     if( mAnimalItemSelected && mIsActiveFence && mAnimalItemSelected->animal()->hasCollar() ) {
         Collar* c = mAnimalItemSelected->animal()->collar();
-        if( c->hasClosestFenceBorder() ) {
+        if( c->gps()->hasClosestFenceBorder() ) {
             mFenceClosestBorder = addLine(c->fenceClosestBorder(), FENCE_CLOSEST_BORDER_PEN );
             QRectF r( c->fenceClosestPoint(), QSizeF(FENCE_CLOSEST_BORDER_POINT_SIZE, FENCE_CLOSEST_BORDER_POINT_SIZE) );
             mFenceClosestPoint = addEllipse(r, FENCE_CLOSEST_BORDER_POINT_PEN);
@@ -361,9 +362,9 @@ void Scene::update(Herd *herd, Meadow *meadow, Network* network, bool isInitial,
                              QPen(colPen, ITEM_PEN_WIDTH) );
         }
 
-        if( animal->hasCollar() && animal->collar()->isFence()) {
+        if( animal->hasCollar() && animal->collar()->gps()->hasFence() ) {
 
-            if( !animal->collar()->isInsideFence() ) {
+            if( !animal->collar()->gps()->isInsideFence() ) {
                 item->setBrush(ITEM_BRUSH_OUTSIDE_FENCE);
             }else {
                 item->setBrush(item->mBrush);

@@ -7,6 +7,8 @@
 #else
     #include <Arduino.h>
 
+    #include "defines.h"
+
 #if USING_LORA == LORA_RADIOLIB
     #include <RadioLib.h>
     #include <TinyGPS++.h>
