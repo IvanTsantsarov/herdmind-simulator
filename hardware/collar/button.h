@@ -16,7 +16,8 @@ public:
 
 private:
     int mPin = -1;
-    bool mIsDown, mIsEvent;
+    bool mIsDown = false;
+    bool mIsEvent = false;
     int64_t mMsecEvent = 0;
     Collar* mCollar = nullptr;
     EventCallback mEventCallback = nullptr;

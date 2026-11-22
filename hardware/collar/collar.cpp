@@ -592,7 +592,7 @@ void Collar::update()
             }
         }
     }else {
-        if( mBtnMain->isCurrentlyDown() && (mBtnMain->interval() > COLLAR_MAIN_BTN_BLE_INTERVAL) ) {
+        if( mBtnMain->isDown() && mBtnMain->isCurrentlyDown() && (mBtnMain->interval() > COLLAR_MAIN_BTN_BLE_INTERVAL) ) {
             DBG("[Collar] Turning Bluetooth on..");
             if( !mBle->isOn() ) {
                 mBle->on(animalName(), onBleEvent, this);
