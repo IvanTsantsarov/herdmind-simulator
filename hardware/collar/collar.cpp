@@ -394,13 +394,6 @@ String Collar::dateTime()
 /// \brief Setup
 ///
 ////////////////////////////////////////////////////////////////////////
-bool gMainButtonClicked = false;
-int64_t gMainButtonMsec = 0;
-void onMainBtnClicked(int64_t msecDown)
-{
-    gMainButtonMsec = msecDown;
-    gMainButtonClicked = true;
-}
 
 void Collar::setup()
 {
@@ -414,7 +407,7 @@ void Collar::setup()
 
     mGPS->setup(isWakingUp());
 
-    mBtnMain->setup(onMainBtnClicked);
+    mBtnMain->setup();
 
     mLed->setup(PIN_LED_MAIN);
 
@@ -428,14 +421,6 @@ void Collar::setup()
     if( isWakingUp() ) {
         // restore last sleeping interval
         mSendIntervalMsec = mTimer->sleepMsec();
-
-        if( isWakeBtn() ) {
-            DBG("Wake up from button. Waking up the screen..");
-            mScreen->wakeup();
-        }else {
-            mScreen->sleep();
-        }
-
         mState.set( State::UpdateMaster );
     }else {
         // Bring back all the saved data
@@ -568,25 +553,6 @@ void Collar::onMainBtn(int64_t msecPress) {
     if( mState.isSleep() ) {
         mState.setPrev();
     }
-
-    if( COLLAR_MAIN_BTN_BLE_INTERVAL > msecPress) {
-
-        if( mScreen->isSleeping() )
-        {
-            DBG("Screen waking up...");
-            updateScreen(false);
-        }else {
-            updateScreen(true);
-            DBG("Screen is not sleeping!");
-        }
-
-        DBG("Main button press short!");
-    }else {
-        DBG("Main button press long!");
-        mSound->play("B5F6", 50); // plays chirp sound
-        mBle->on( animalName(), onBleEvent, this );
-    }
-
 }
 
 
@@ -600,20 +566,44 @@ void Collar::update()
 {
     mState.tick();
 
-    // after waking up
-    if( gMainButtonClicked ) {
-        onMainBtn(gMainButtonMsec);
-        gMainButtonClicked = false;
-    }
-
     if( !mScreen->isSleeping() && (mScreen->msecWake() > SCREEN_AWAKE_MSEC_MAX) ) {
         mScreen->sleep();
     }
 
     updateSerial();
 
+    if( mBtnMain->update() ) {
+        if( mBtnMain->isDown() ) {
+
+            mScreen->wakeup();
+
+            if( mScreen->isSleeping()) {
+                mScreenMode = ScreenMode::Product;
+                updateScreen();
+            }else {
+                updateScreen(true);
+            }
+            mSound->play("B5F6", 50); // plays chirp sound
+            DBG("[Collar] Screen wake up.");
+
+            // if not deep sleeping - return last state
+            if( mState.isSleep() ) {
+                mState.setPrev();
+            }
+        }
+    }else {
+        if( mBtnMain->isCurrentlyDown() && (mBtnMain->interval() > COLLAR_MAIN_BTN_BLE_INTERVAL) ) {
+            DBG("[Collar] Turning Bluetooth on..");
+            if( !mBle->isOn() ) {
+                mBle->on(animalName(), onBleEvent, this);
+                mSound->play("A5F5G5", 100);
+            }else {
+                mSound->play("A5", 500);
+            }
+        }
+    }
+
     if( mState.isInit() ) {
-        updateScreen();
         mState.set(State::UpdateMaster);
     }else
     if( mState.isSleep() ) {
@@ -638,7 +628,7 @@ void Collar::update()
 
     // go to sleep if no satelite signal
     if( mState.isElapsedSec(mSecWakeInterval) && mScreen->isSleeping() ) {
-        DBG(String("No GPS signal for ") + mSecWakeInterval + " sec. Preparing to sleep..");
+        DBG(String("[Collar]No GPS signal for ") + mSecWakeInterval + " sec. Preparing to sleep..");
         gotoBed();
     }
 
@@ -706,14 +696,14 @@ void Collar::updateSerial()
 
 void Collar::updateScreen(bool isIncrement)
 {
+    if( isIncrement ) {
+        incrementScreenMode();
+    }
+
     switch(mScreenMode) {
     case ScreenMode::Product: updateScreenProduct(); break;
     case ScreenMode::Info: updateScreenInfo(); break;
     default: break;
-    }
-
-    if( isIncrement ) {
-        incrementScreenMode();
     }
 }
 

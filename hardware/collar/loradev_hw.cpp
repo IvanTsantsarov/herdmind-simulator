@@ -2,6 +2,8 @@
 
 #include <cstdio>
 
+#define DEEP_SLEEP_ENABLED true
+
 /*
 // EU868
 Data Rate (DR)	Configuration	Bit Rate	Typical Use / Characteristics
@@ -45,7 +47,7 @@ RTC_DATA_ATTR uint32_t LoraDevHW::mAddr = 0;
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
 RTC_DATA_ATTR uint8_t LoraDevHW::mLoraNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE] = {0};
 RTC_DATA_ATTR bool LoraDevHW::mLoraSessionValid = false;
-RTC_DATA_ATTR bool LoraDevHW::mIsDeepSleepEnabled = true;
+RTC_DATA_ATTR bool LoraDevHW::mIsDeepSleepEnabled = DEEP_SLEEP_ENABLED;
 
 LoraDevHW::LoraDevHW() {
     // Only one instance is allowed of this type

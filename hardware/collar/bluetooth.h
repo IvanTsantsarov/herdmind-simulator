@@ -32,6 +32,7 @@ public:
 
     void on(const char* deviceName, BleEventCallback calback, Collar* collar);
     void off();
+    inline bool isOn(){ return mIsOn; }
     bool available() const { return mIsReceived; }
     String read();
 
