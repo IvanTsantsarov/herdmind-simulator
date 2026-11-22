@@ -541,6 +541,8 @@ class NimBLEAdvertising {
 public:
     void addServiceUUID(const char* uuid){ }
     void start(){}
+    void setName(const char* name) { }
+    void enableScanResponse(bool is){ }
 };
 
 class NimBLEConnInfo {

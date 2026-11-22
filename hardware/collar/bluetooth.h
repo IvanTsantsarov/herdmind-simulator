@@ -35,6 +35,7 @@ public:
     inline bool isOn(){ return mIsOn; }
     bool available() const { return mIsReceived; }
     String read();
+    int64_t onMsec();
 
     // The phone must subscribe to TX notifications to receive this.
     void send(const String& message);

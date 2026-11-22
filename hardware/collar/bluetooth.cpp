@@ -25,10 +25,14 @@ void Ble::on(const char *deviceName, BleEventCallback calback, Collar* collar) {
 
     NimBLEAdvertising* advertising = NimBLEDevice::getAdvertising();
     advertising->addServiceUUID(BLE_SE_UUID);
+    advertising->setName(deviceName);
+    advertising->enableScanResponse(true);
     advertising->start();
 
     mIsOn = true;
-    DBG("[Ble]Advertising started");
+    DBG(String("[Ble]Advertising started as <") + deviceName + ">");
+
+    mOnMsec = millis();
 }
 
 void Ble::off() {
@@ -48,6 +52,7 @@ void Ble::off() {
     mIsOn = false;
     mIsConnected = false;
     mIsReceived = false;
+    mOnMsec = 0;
 
     DBG("[Ble]Stopped");
 }
@@ -58,6 +63,11 @@ String Ble::read()
     String message = mIncoming;
     mIncoming = "";
     return message;
+}
+
+int64_t Ble::onMsec()
+{
+    return millis() - mOnMsec;
 }
 
 void Ble::send(const String &message)

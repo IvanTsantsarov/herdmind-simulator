@@ -627,7 +627,7 @@ void Collar::update()
     }
 
     // go to sleep if no satelite signal
-    if( mState.isElapsedSec(mSecWakeInterval) && mScreen->isSleeping() ) {
+    if( mState.isElapsedSec(mSecWakeInterval) && mScreen->isSleeping() && !mBle->isOn()) {
         DBG(String("[Collar]No GPS signal for ") + mSecWakeInterval + " sec. Preparing to sleep..");
         gotoBed();
     }
