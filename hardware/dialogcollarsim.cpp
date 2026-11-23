@@ -14,7 +14,6 @@
 #include "../mainwindow.h"
 #include "dialogcollarsim.h"
 
-#include "bluetooth.h"
 #include "ui_dialogcollarsim.h"
 
 
@@ -135,6 +134,8 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
 
     // ui->editOutput->createStandardContextMenu()
     ui->widgetBluetooth->setVisible(false);
+
+    connect(&mScannerBT, &BluetoothScanner::newEvent, this, &DialogCollarSim::onBluetoothEvent);
 }
 
 void DialogCollarSim::on_refreshPorts()
@@ -999,7 +1000,9 @@ void DialogCollarSim::on_radioConnectionBT_toggled(bool checked)
 void DialogCollarSim::on_checkScanBT_toggled(bool checked)
 {
     if( checked ) {
+        ui->comboDevicesBT->clear();
         ui->comboDevicesBT->setPlaceholderText("<Scanning...>");
+        mScannerBT.startScan();
     }else {
         ui->comboDevicesBT->setPlaceholderText("<Scanning done.>");
     }
@@ -1008,5 +1011,45 @@ void DialogCollarSim::on_checkScanBT_toggled(bool checked)
 void DialogCollarSim::on_checkConnectBT_toggled(bool checked)
 {
 
+}
+
+void DialogCollarSim::onBluetoothEvent(BluetoothScanner::Event e, const QString &desc)
+{
+    switch(e) {
+    case BluetoothScanner::Event::Ok: break;
+    case BluetoothScanner::Event::NewDevice: {
+        QStringList str = desc.split('|');
+        QString name = str[0];
+        QString id = str[1];
+        int rssi = str[2].toInt();
+
+        int i = 0;
+        for( ; i < ui->comboDevicesBT->count(); i ++) {
+            int itemRssi = ui->comboDevicesBT->itemData(i).toInt();
+            if( itemRssi < rssi) {
+                break;
+            }
+        }
+
+        ui->comboDevicesBT->insertItem( i, name, rssi );
+        ui->comboDevicesBT->setCurrentIndex(0);
+
+        break;
+    }
+
+    case BluetoothScanner::Event::PermissionDenied:
+        ui->checkScanBT->setChecked(false);
+        break;
+
+    case BluetoothScanner::Event::PermissionGranted:
+        break;
+
+    case BluetoothScanner::Event::ScanFinished:
+        ui->checkScanBT->setChecked(false);
+        break;
+    case BluetoothScanner::Event::ScanError:
+        ui->checkScanBT->setChecked(false);
+        break;
+    }
 }
 
