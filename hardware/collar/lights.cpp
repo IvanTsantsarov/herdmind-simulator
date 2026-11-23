@@ -8,6 +8,6 @@ Lights::Lights(Collar *c) : Signaling(c)
 
 void Lights::execute(uint8_t mode)
 {
-    respondCmd(SerialCmd::Cmd::Type::SIGL);
+    respondCmd(CLI::Cmd::Type::SIGL);
     // delay(3000);
 }

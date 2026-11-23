@@ -583,17 +583,20 @@ public:
 
 
 class NimBLEServer {
+    QList<NimBLEService*> mServices;
 public:
     NimBLEService* createService(const char* bleServiceUUID){ return new NimBLEService; }
     void setCallbacks(NimBLEServerCallbacks* cb){}
-    void disconnect(uint16_t connHadle){}
+    void disconnect(uint16_t connHadle);
 };
 
 class NimBLEDevice {
+    static QList<NimBLEAdvertising*> mAdverts;
+    static QList<NimBLEServer*> mServers;
 public:
     static void init(const char* deviceName){ };
     static NimBLEAdvertising* getAdvertising(){ return new NimBLEAdvertising; }
     static NimBLEServer* createServer(){ return new NimBLEServer; }
-    static void deinit(bool is){}
+    static void deinit(bool is);
 };
 

@@ -1,6 +1,6 @@
-#include "bluetooth.h"
+#include "ble.h"
 
-void Ble::on(const char *deviceName, BleEventCallback calback, Collar* collar) {
+void Ble::on(const char *deviceName, BleEventCallback callback, Collar* collar) {
     if (mIsOn) {
         return;
     }
@@ -10,7 +10,8 @@ void Ble::on(const char *deviceName, BleEventCallback calback, Collar* collar) {
     NimBLEDevice::init(deviceName);
 
     mServer = NimBLEDevice::createServer();
-    mServer->setCallbacks(new ServerCallbacks(this, calback, collar));
+    mServer->setCallbacks(&mServerCallbacks);
+    mServerCallbacks.setParams(callback, collar);
 
     NimBLEService* service = mServer->createService(BLE_SE_UUID);
 
@@ -19,7 +20,7 @@ void Ble::on(const char *deviceName, BleEventCallback calback, Collar* collar) {
 
     mRxCharacteristic = service->createCharacteristic(
         BLE_RX_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
-    mRxCharacteristic->setCallbacks(new RxCallbacks(this));
+    mRxCharacteristic->setCallbacks(&mRxCallbacks);
 
     service->start();
 
@@ -57,12 +58,32 @@ void Ble::off() {
     DBG("[Ble]Stopped");
 }
 
-String Ble::read()
+bool Ble::update()
 {
+    if( !isOn() || !mIsReceived ) {
+        return false;
+    }
+
+    mBuffer += mIncoming;
+    mBufferLen = mBuffer.length();
     mIsReceived = false;
-    String message = mIncoming;
     mIncoming = "";
-    return message;
+    return true;
+}
+
+char Ble::read()
+{
+    if( !mBufferLen) {
+        return 0;
+    }
+
+    if( mBufferPos >= mBufferLen ) {
+        mBufferPos = 0;
+        mBuffer = "";
+        return 0;
+    }
+
+    return mBuffer[mBufferPos++];
 }
 
 int64_t Ble::onMsec()
@@ -78,10 +99,15 @@ void Ble::send(const String &message)
     mTxCharacteristic->notify();
 }
 
-Ble::ServerCallbacks::ServerCallbacks(Ble *owner, BleEventCallback callback, Collar *collar)
-    : mCollar(collar), mCallback(callback), mOwner(owner)
+Ble::ServerCallbacks::ServerCallbacks(Ble *owner)
+    : mOwner(owner)
 {
 
+}
+
+void Ble::ServerCallbacks::setParams(BleEventCallback callback, Collar *collar)
+{
+    mCollar = collar, mCallback = callback;
 }
 
 void Ble::ServerCallbacks::onConnect(NimBLEServer *, NimBLEConnInfo &info)

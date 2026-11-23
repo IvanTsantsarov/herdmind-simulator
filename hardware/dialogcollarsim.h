@@ -2,9 +2,11 @@
 #define DIALOGCOLLARSIM_H
 
 #include <QTimer>
+#include <QImage>
 #include <QDialog>
 #include <QSettings>
 #include <QSerialPort>
+#include <QBluetoothDeviceInfo>
 
 class Animal;
 class Collar;
@@ -12,6 +14,7 @@ class QSerialPort;
 class DevManager;
 class LoraDevSim;
 class QLineEdit;
+class BluetoothScanner;
 
 #define RESPONCE_COLOR_NORMAL QColor(0, 0, 0)
 #define RESPONCE_COLOR_ERROR QColor(150, 0, 0)
@@ -62,6 +65,8 @@ class DialogCollarSim : public QDialog
     QIcon mIconMale, mIconFemale, mIconMaleCollar, mIconFemaleCollar;
     QIcon mIconSoundOff, mIconSoundOn;
     QIcon mIconShockOff, mIconShockOn;
+    BluetoothScanner* mScanner = nullptr;
+
 
     Collar* mMirror = nullptr;
     void createMirror(const QString &animalName,
@@ -184,7 +189,12 @@ private slots:
 
     void on_refreshPorts();
 
-    void on_btnOutputLayout_clicked();
+
+    void on_radioConnectionBT_toggled(bool checked);
+
+    void on_checkScanBT_toggled(bool checked);
+
+    void on_checkConnectBT_toggled(bool checked);
 
 private:
     Ui::DialogCollarSim *ui;

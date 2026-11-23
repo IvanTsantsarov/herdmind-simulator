@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>435</width>
-    <height>613</height>
+    <width>845</width>
+    <height>545</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -26,10 +26,138 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_10">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayoutSecond"/>
+    <layout class="QVBoxLayout" name="verticalLayoutSecond">
+     <property name="sizeConstraint">
+      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+     </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QPushButton" name="btnSetDateTime">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Send current Date&amp;Time</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/set-clock.svg</normaloff>:/set-clock.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="editSerialCmd"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSend">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnClear">
+         <property name="toolTip">
+          <string>Clear output</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/cross.svg</normaloff>:/cross.svg</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QTextEdit" name="editOutput">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkRsp">
+         <property name="text">
+          <string>Responce</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkDbg">
+         <property name="text">
+          <string>Debug</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkStats">
+         <property name="text">
+          <string>Stats</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkFull">
+         <property name="text">
+          <string>Full</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+     </property>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
@@ -453,458 +581,199 @@
       </layout>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupPorts">
+      <widget class="QGroupBox" name="groupConnection">
        <property name="title">
-        <string>Serial (USB) port</string>
+        <string>Connection</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QComboBox" name="comboPorts">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBaudrate"/>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkConnect">
-            <property name="toolTip">
-             <string>Connect to selected port</string>
-            </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="radioConnectionUSB">
             <property name="text">
-             <string/>
+             <string>USB</string>
             </property>
             <property name="icon">
              <iconset resource="../res/res.qrc">
-              <normaloff>:/usb-cable.svg</normaloff>:/usb-cable.svg</iconset>
+              <normaloff>:/usb.svg</normaloff>:/usb.svg</iconset>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkConnectAuto">
-            <property name="toolTip">
-             <string>Connect automatically </string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/reload.svg</normaloff>:/reload.svg</iconset>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="editAKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>App key</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="checkAddr">
-            <property name="toolTip">
-             <string>Edit address</string>
-            </property>
-            <property name="text">
-             <string>Addr</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QPushButton" name="btnGenAKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Generate App Key</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
-            <item>
-             <widget class="QLineEdit" name="editAddr">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>Network key</string>
-              </property>
-              <property name="readOnly">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkFPort">
-              <property name="text">
-               <string>FPort</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="editFPort">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="5" column="3">
-           <widget class="QPushButton" name="btnCopyAddr">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Copy NwkKey in the clipboard</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="editEui">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>EUI</string>
-            </property>
-            <property name="readOnly">
+            <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>AppKey</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3">
-           <widget class="QPushButton" name="btnCopyAKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Copy AppKey in the clipboard</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="editAnimalName">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>EUI</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QPushButton" name="btnCopyEui">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Copy EUI in the clipboard</string>
-            </property>
+           <widget class="QRadioButton" name="radioConnectionBT">
             <property name="text">
-             <string/>
+             <string>Bluetooth</string>
             </property>
             <property name="icon">
              <iconset resource="../res/res.qrc">
-              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="btnSex">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>24</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>Animal gender</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Animal</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>NwkKey</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="editNKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>Network key</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="btnGenNKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Generate Nwk Key</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3">
-           <widget class="QPushButton" name="btnCopyNKey">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Copy NwkKey in the clipboard</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>EUI</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="btnGenEui">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Generate EUI</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
+              <normaloff>:/bluetooth.svg</normaloff>:/bluetooth.svg</iconset>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QPushButton" name="btnStore">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
-            </property>
-            <property name="text">
-             <string>Store</string>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnReload">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>Reread collar info from serial</string>
-            </property>
-            <property name="text">
-             <string>Reload</string>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/reload.svg</normaloff>:/reload.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnFlash">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="toolTip">
-             <string>Store AppKey and NwkKey in the connected wtih USB device. EUI is stored only if checked.</string>
-            </property>
-            <property name="text">
-             <string>Flash</string>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/res.qrc">
-              <normaloff>:/flash.svg</normaloff>:/flash.svg</iconset>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="widgetUSB" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayoutUSB">
+             <item>
+              <widget class="QComboBox" name="comboPorts">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBaudrate"/>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkConnect">
+               <property name="toolTip">
+                <string>Connect to selected port</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/res.qrc">
+                 <normaloff>:/usb-cable.svg</normaloff>:/usb-cable.svg</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkConnectAuto">
+               <property name="toolTip">
+                <string>Connect automatically </string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/res.qrc">
+                 <normaloff>:/reload.svg</normaloff>:/reload.svg</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widgetBluetooth" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayoutBluetooth">
+             <item>
+              <widget class="QComboBox" name="comboDevicesBT">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>Available devices</string>
+               </property>
+               <property name="placeholderText">
+                <string>&lt;Press scan check&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkConnectBT">
+               <property name="toolTip">
+                <string>Bluetooth Connect</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/res.qrc">
+                 <normaloff>:/link.svg</normaloff>:/link.svg</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkScanBT">
+               <property name="toolTip">
+                <string>Bluetooth Scan </string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/res.qrc">
+                 <normaloff>:/bluetooth-signal.svg</normaloff>:/bluetooth-signal.svg</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QPushButton" name="btnSetDateTime">
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="editAKey">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>App key</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QCheckBox" name="checkAddr">
+         <property name="toolTip">
+          <string>Edit address</string>
+         </property>
+         <property name="text">
+          <string>Addr</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QPushButton" name="btnGenAKey">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -912,64 +781,164 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>Send current Date&amp;Time</string>
+          <string>Generate App Key</string>
          </property>
          <property name="text">
           <string/>
          </property>
          <property name="icon">
           <iconset resource="../res/res.qrc">
-           <normaloff>:/set-clock.svg</normaloff>:/set-clock.svg</iconset>
+           <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QLineEdit" name="editSerialCmd"/>
+       <item row="5" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_11">
+         <item>
+          <widget class="QLineEdit" name="editAddr">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Network key</string>
+           </property>
+           <property name="readOnly">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkFPort">
+           <property name="text">
+            <string>FPort</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="editFPort">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
-       <item>
-        <widget class="QPushButton" name="btnSend">
+       <item row="5" column="3">
+        <widget class="QPushButton" name="btnCopyAddr">
          <property name="enabled">
           <bool>false</bool>
          </property>
-         <property name="text">
-          <string>Send</string>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnClear">
          <property name="toolTip">
-          <string>Clear output</string>
+          <string>Copy NwkKey in the clipboard</string>
          </property>
          <property name="text">
           <string/>
          </property>
          <property name="icon">
           <iconset resource="../res/res.qrc">
-           <normaloff>:/cross.svg</normaloff>:/cross.svg</iconset>
+           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="layoutOutput">
-       <item>
-        <widget class="QTextEdit" name="editOutput">
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="editEui">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>EUI</string>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_9">
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QPushButton" name="btnOutputLayout">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>AppKey</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QPushButton" name="btnCopyAKey">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Copy AppKey in the clipboard</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="editAnimalName">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>EUI</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="btnCopyEui">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Copy EUI in the clipboard</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="btnSex">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -978,20 +947,141 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>30</width>
-           <height>16777215</height>
+           <width>24</width>
+           <height>24</height>
           </size>
          </property>
-         <property name="text">
-          <string>&lt;=</string>
+         <property name="toolTip">
+          <string>Animal gender</string>
          </property>
-         <property name="checkable">
-          <bool>true</bool>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Animal</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>NwkKey</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="editNKey">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Network key</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="btnGenNKey">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Generate Nwk Key</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QPushButton" name="btnCopyNKey">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Copy NwkKey in the clipboard</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/copy.svg</normaloff>:/copy.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>EUI</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="btnGenEui">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Generate EUI</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/gears.svg</normaloff>:/gears.svg</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <widget class="QPushButton" name="btnStore">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
+         </property>
+         <property name="text">
+          <string>Store</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_4">
+        <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
          </property>
@@ -1004,43 +1094,56 @@
         </spacer>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkRsp">
-         <property name="text">
-          <string>Responce</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkDbg">
-         <property name="text">
-          <string>Debug</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkStats">
-         <property name="text">
-          <string>Stats</string>
-         </property>
-         <property name="checked">
+        <widget class="QPushButton" name="btnReload">
+         <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="toolTip">
+          <string>Reread collar info from serial</string>
+         </property>
+         <property name="text">
+          <string>Reload</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/reload.svg</normaloff>:/reload.svg</iconset>
+         </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkFull">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnFlash">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Store AppKey and NwkKey in the connected wtih USB device. EUI is stored only if checked.</string>
+         </property>
          <property name="text">
-          <string>Full</string>
+          <string>Flash</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/flash.svg</normaloff>:/flash.svg</iconset>
          </property>
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="layoutOutput"/>
      </item>
     </layout>
    </item>

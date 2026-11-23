@@ -2,7 +2,7 @@
 #define SIGNALING_H
 
 #include "../arduino.h"
-#include "serialcmd.h"
+#include "cli.h"
 
 
 
@@ -21,7 +21,7 @@ public:
     virtual void execute(uint8_t mode) = 0;
     virtual const char* name() = 0;
     void respond(const String& msg);
-    void respondCmd(SerialCmd::Cmd::Type t);
+    void respondCmd(CLI::Cmd::Type t);
 };
 
 #endif // SIGNALING_H

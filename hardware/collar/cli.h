@@ -1,5 +1,5 @@
-#ifndef SERIALCMD_H
-#define SERIALCMD_H
+#ifndef CLI_H
+#define CLI_H
 
 #include "../arduino.h"
 
@@ -12,12 +12,14 @@
 
 
 class Collar;
+class Ble;
 
-class SerialCmd
+class CLI
 {
     char* mCommand = nullptr;
     int mCommandLen = 0;
     Collar* mCollar = nullptr;
+    Ble* mBle = nullptr;
     char* mArgument = nullptr;
     int mArgumentLen = 0;
     bool mIsArgument = false;
@@ -30,8 +32,8 @@ class SerialCmd
     bool mIsWaitingForTimeSync = false; // RTM command send and waiting to sync the time
 public:
 
-    SerialCmd(Collar *c);
-    ~SerialCmd();
+    CLI(Collar *c);
+    ~CLI();
     struct Cmd {
 
         enum struct Type {
@@ -84,11 +86,12 @@ public:
     };
 
     Cmd mCmd;
-    static const char* mCommands[(int)SerialCmd::Cmd::Type::LAST];
+    static const char* mCommands[(int)CLI::Cmd::Type::LAST];
     static void initCommands();
 
+    inline bool hasBle(){ return mBle; }
 
-    void setup();
+    void setup(Ble* ble = nullptr);
     void update();
     void clear();
 
@@ -100,11 +103,14 @@ public:
     inline QByteArray readFromSerial() { return Serial.readOut(); }
 #endif
 
-    static void printCmd(SerialCmd::Cmd::Type t, const String &str = String());
-    void printResponce(const String &str){ printCmd(Cmd::Type::RSP, str); }
-    inline void printResponce(const char* str) { printResponce(String(str)); }
-    void printError(const String &str) { printResponce( SERIAL_CMD_ERROR + str) ; }
-    inline void printError(const char* str) { printError(String(str)); }
+    static void sendCommandSerial(Cmd::Type t, const String& str = String() );
+
+    void sendCommand(CLI::Cmd::Type t, const String &str = String());
+    inline void sendCommand(CLI::Cmd::Type t, const char* str) { sendCommand(t, String(str)); };
+    void sendResponce(const String &str){ sendCommand(Cmd::Type::RSP, str); }
+    inline void sendResponce(const char* str) { sendCommand(Cmd::Type::RSP, str); }
+    void sendError(const String &str) { sendResponce( SERIAL_CMD_ERROR + str) ; }
+    inline void sendError(const char* str) { sendError(String(str)); }
 };
 
-#endif // SERIALCMD_H
+#endif // CLI_H

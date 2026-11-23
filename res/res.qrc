@@ -41,5 +41,12 @@
         <file>reload.svg</file>
         <file>disconnected.png</file>
         <file>set-clock.svg</file>
+        <file>bluetooth.svg</file>
+        <file>usb.svg</file>
+        <file>bluetooth_frame.svg</file>
+        <file>usb_frame.svg</file>
+        <file>bluetooth-signal.svg</file>
+        <file>link.svg</file>
+        <file>radar.svg</file>
     </qresource>
 </RCC>

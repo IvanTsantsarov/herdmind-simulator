@@ -1,4 +1,4 @@
-QT       += core gui widgets positioning network mqtt serialport
+QT       += core gui widgets positioning network mqtt serialport bluetooth
 
 CONFIG += c++17
 
@@ -37,12 +37,14 @@ SOURCES += \
     dialogregisteranimal.cpp \
     dialogsettings.cpp \
     grpc.cpp \
+    hardware/bluetooth.cpp \
     hardware/collar//battery.cpp \
     hardware/bolus/accel.cpp \
     hardware/bolus/bolus.cpp \
     hardware/bolus/loradev_bolus.cpp \
-    hardware/collar/bluetooth.cpp \
+    hardware/collar/ble.cpp \
     hardware/collar/button.cpp \
+    hardware/collar/cli.cpp \
     hardware/collar/collar.cpp \
     hardware/collar/collar_gps.cpp \
     hardware/collar/geometry.cpp \
@@ -53,7 +55,6 @@ SOURCES += \
     hardware/collar/memory.cpp \
     hardware/collar/radiolib_erros.cpp \
     hardware/collar/res.cpp \
-    hardware/collar/serialcmd.cpp \
     hardware/collar/shock.cpp \
     hardware/collar/signaling.cpp \
     hardware/collar/sound.cpp \
@@ -91,14 +92,16 @@ HEADERS += \
     dialogsettings.h \
     grpc.h \
     hardware/arduino.h \
+    hardware/bluetooth.h \
     hardware/collar/battery.h \
     hardware/bolus/accel.h \
     hardware/bolus/bolus.h \
     hardware/bolus/includes.h \
     hardware/bolus/loradev.h \
     hardware/bolus/loradev_bolus.h \
-    hardware/collar/bluetooth.h \
+    hardware/collar/ble.h \
     hardware/collar/button.h \
+    hardware/collar/cli.h \
     hardware/collar/collar.h \
     defines.h \
     hardware/collar/defines.h \
@@ -109,7 +112,6 @@ HEADERS += \
     hardware/collar/loradev_hw.h \
     hardware/collar/memory.h \
     hardware/collar/res.h \
-    hardware/collar/serialcmd.h \
     hardware/collar/shock.h \
     hardware/collar/signaling.h \
     hardware/collar/sound.h \
@@ -166,6 +168,7 @@ DISTFILES += \
     res/battery_no.png \
     res/environment.ini \
     res/lora.png \
+    res/radar.svg \
     res/satellite.pixil \
     res/satellite_no.pixil \
     res/satellite_no.png \

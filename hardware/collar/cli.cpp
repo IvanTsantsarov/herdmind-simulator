@@ -1,7 +1,8 @@
-#include "serialcmd.h"
+#include "cli.h"
 
 #include "collar.h"
 #include "led.h"
+#include "ble.h"
 #include "defines.h"
 
 #define SERIAL_TX_BUFFER_SIZE 1024
@@ -12,47 +13,47 @@
 
 #define SERIAL_CMD_STRING_CHANGED "->"
 
-const char* SerialCmd::mCommands[] = { "" };
+const char* CLI::mCommands[] = { "" };
 
-void SerialCmd::initCommands() {
+void CLI::initCommands() {
     if( mCommands[0][0] ) {
         return;
     }
 
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NONE] = "none";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::DBG] = "dbg";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::STATS] = "stats";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SLEEP] = "sleep";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INT] = "int";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGL] = "sigl";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGS] = "sigs";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SIGE] = "sige";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::LED] = "led";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::HELP] = "help";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::REBOOT] = "reboot";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RTM] = "rtm";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::TM] = "tm";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::INFO] = "info";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::EUI] = "eui";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::GPS] = "gps";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::BAT] = "bat";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RADIO] = "radio";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NKEY] = "nkey";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::AKEY] = "akey";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::ADDR] = "addr";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::FLASH] = "flash";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RESTORE] = "restore";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::NAME] = "name";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::SEX] = "sex";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::VER] = "ver";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::RSP] = "rsp";
-    SerialCmd::mCommands[(int)SerialCmd::Cmd::Type::FPORT] = "fport";
+    CLI::mCommands[(int)CLI::Cmd::Type::NONE] = "none";
+    CLI::mCommands[(int)CLI::Cmd::Type::DBG] = "dbg";
+    CLI::mCommands[(int)CLI::Cmd::Type::STATS] = "stats";
+    CLI::mCommands[(int)CLI::Cmd::Type::SLEEP] = "sleep";
+    CLI::mCommands[(int)CLI::Cmd::Type::INT] = "int";
+    CLI::mCommands[(int)CLI::Cmd::Type::SIGL] = "sigl";
+    CLI::mCommands[(int)CLI::Cmd::Type::SIGS] = "sigs";
+    CLI::mCommands[(int)CLI::Cmd::Type::SIGE] = "sige";
+    CLI::mCommands[(int)CLI::Cmd::Type::LED] = "led";
+    CLI::mCommands[(int)CLI::Cmd::Type::HELP] = "help";
+    CLI::mCommands[(int)CLI::Cmd::Type::REBOOT] = "reboot";
+    CLI::mCommands[(int)CLI::Cmd::Type::RTM] = "rtm";
+    CLI::mCommands[(int)CLI::Cmd::Type::TM] = "tm";
+    CLI::mCommands[(int)CLI::Cmd::Type::INFO] = "info";
+    CLI::mCommands[(int)CLI::Cmd::Type::EUI] = "eui";
+    CLI::mCommands[(int)CLI::Cmd::Type::GPS] = "gps";
+    CLI::mCommands[(int)CLI::Cmd::Type::BAT] = "bat";
+    CLI::mCommands[(int)CLI::Cmd::Type::RADIO] = "radio";
+    CLI::mCommands[(int)CLI::Cmd::Type::NKEY] = "nkey";
+    CLI::mCommands[(int)CLI::Cmd::Type::AKEY] = "akey";
+    CLI::mCommands[(int)CLI::Cmd::Type::ADDR] = "addr";
+    CLI::mCommands[(int)CLI::Cmd::Type::FLASH] = "flash";
+    CLI::mCommands[(int)CLI::Cmd::Type::RESTORE] = "restore";
+    CLI::mCommands[(int)CLI::Cmd::Type::NAME] = "name";
+    CLI::mCommands[(int)CLI::Cmd::Type::SEX] = "sex";
+    CLI::mCommands[(int)CLI::Cmd::Type::VER] = "ver";
+    CLI::mCommands[(int)CLI::Cmd::Type::RSP] = "rsp";
+    CLI::mCommands[(int)CLI::Cmd::Type::FPORT] = "fport";
 }
 
 
-SerialCmd::SerialCmd(Collar* c)
+CLI::CLI(Collar* c)
 {
-    SerialCmd::initCommands();
+    CLI::initCommands();
 
     mCollar = c;
 
@@ -62,7 +63,7 @@ SerialCmd::SerialCmd(Collar* c)
     clear();
 }
 
-SerialCmd::~SerialCmd()
+CLI::~CLI()
 {
     if( mCommand) {
         delete [] mCommand;
@@ -77,23 +78,29 @@ SerialCmd::~SerialCmd()
     }
 }
 
-void SerialCmd::setup()
+void CLI::setup(Ble *ble)
 {
-    // allocate TX buffer for non-blocking sends
-    Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
+    if( !ble) {
+        // allocate TX buffer for non-blocking sends
+        Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
 
-    Serial.begin(SERIAL_BAUDRATE);
+        Serial.begin(SERIAL_BAUDRATE);
 
-    /////////////////////////////////////////////////
-    // Do not block here, because if it's disconected
-    // from USB it will never start !
-    // while(!Serial);
+        /////////////////////////////////////////////////
+        // Do not block here, because if it's disconected
+        // from USB it will never start !
+        // while(!Serial);
 
-    delay(100);
-    DBG("Print \"help\" for more info...");
+        delay(100);
+        DBG("[CLI]: Serial setup done.");
+    }else {
+        DBG("[CLI]: Bluetooth setup done.");
+    }
+
+    DBG("[CLI] Print \"help\" for more info...");
 }
 
-void SerialCmd::clear()
+void CLI::clear()
 {
     mCmd.clear();
     mCommand[0] = 0;
@@ -104,31 +111,54 @@ void SerialCmd::clear()
 
 }
 
-void SerialCmd::printCmd(Cmd::Type t, const String& str)
+void CLI::sendCommand(Cmd::Type t, const String& str)
 {
     Cmd cmd(t);
-    String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + (str.length() ? str : "");
+    String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + str;
+
+    if( hasBle() ) {
+        mBle->send(r);
+    }else {
+        Serial.println(r);
+        Serial.flush();
+    }
+}
+
+
+void CLI::sendCommandSerial(Cmd::Type t, const String& str)
+{
+    Cmd cmd(t);
+    String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + str;
     Serial.println(r);
     Serial.flush();
 }
 
 
-#define SERIAL_ERROR_RETURN(__err__)  printCmd(Cmd::Type::RSP, String(mCommand) + String("=>Error:") + (__err__)); clear(); skipAvailable(); return;
+#define SERIAL_UPDATE_ERROR(__err__)  sendError(String(mCommand) + ":" + (__err__)); clear(); skipAvailable(); return;
 
-void SerialCmd::update()
+void CLI::update()
 {
+
     if( !mCommand ||!mCollar) {
         return;
     }
 
-    while( Serial.available() ) {
+    auto dataAvailable = [&]() {
+        return hasBle() ?  mBle->available() : Serial.available();
+    };
+
+    auto dataRead = [&]() {
+        return hasBle() ?  mBle->read() : Serial.read();
+    };
+
+    while( dataAvailable() ) {
 
         // Read and tap the buffer
-        char ch = Serial.read();
+        char ch = dataRead();
 
         if( SERIAL_CMD_IS_SPACE(ch)) {
             if( mIsArgument ) {
-                SERIAL_ERROR_RETURN("Second delimeter!");
+                SERIAL_UPDATE_ERROR("Second delimeter!");
             }
 
             mIsArgument = true;
@@ -137,11 +167,11 @@ void SerialCmd::update()
 
         if( SERIAL_CMD_END(ch) ) {
             if( !mCmd.parse(mCommand, mCommandLen) ) {
-                SERIAL_ERROR_RETURN("Unknown command!");
+                SERIAL_UPDATE_ERROR("Unknown command!");
             }
 
             if( mIsArgument && !hasArgumentString() ) {
-                SERIAL_ERROR_RETURN("Missing argument!");
+                SERIAL_UPDATE_ERROR("Missing argument!");
             }
 
             execute();
@@ -151,7 +181,7 @@ void SerialCmd::update()
             if( mIsArgument ) {
 
                 if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
-                    SERIAL_ERROR_RETURN("Argument too long!");
+                    SERIAL_UPDATE_ERROR("Argument too long!");
                 }
 
                 mArgument[mArgumentLen++] = ch;
@@ -159,7 +189,7 @@ void SerialCmd::update()
 
             }else {
                 if( mCommandLen >= SERIAL_CMD_SIZE ) {
-                    SERIAL_ERROR_RETURN("Command too long!");
+                    SERIAL_UPDATE_ERROR("Command too long!");
                 }
                 mCommand[mCommandLen++] = ch;
                 mCommand[mCommandLen] = 0;
@@ -169,18 +199,18 @@ void SerialCmd::update()
 }
 
 
-const char *SerialCmd::Cmd::typeStr()
+const char *CLI::Cmd::typeStr()
 {
-    return SerialCmd::Cmd::type2StrStatic(this->mT);
+    return CLI::Cmd::type2StrStatic(this->mT);
 }
 
-const char* SerialCmd::Cmd::type2StrStatic(Type t)
+const char* CLI::Cmd::type2StrStatic(Type t)
 {
-    assert(t < SerialCmd::Cmd::Type::LAST);
+    assert(t < CLI::Cmd::Type::LAST);
     return mCommands[(int)t];
 }
 
-SerialCmd::Cmd::Type SerialCmd::Cmd::str2TypeStatic(const char* str)
+CLI::Cmd::Type CLI::Cmd::str2TypeStatic(const char* str)
 {
     for( auto t = Type::NONE; t < Type::LAST; t = Type((int)t + 1)) {
         if( !strcmp(type2StrStatic(t), str) ) {
@@ -191,7 +221,7 @@ SerialCmd::Cmd::Type SerialCmd::Cmd::str2TypeStatic(const char* str)
     return Type::NONE;
 }
 
-bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
+bool CLI::Cmd::parse(const char *buffer, int bufferLen)
  {
     int len = 0;
     char ch = buffer[len];
@@ -214,14 +244,14 @@ bool SerialCmd::Cmd::parse(const char *buffer, int bufferLen)
 
 
 
-bool SerialCmd::execute()
+bool CLI::execute()
 {
     auto printChanged = [&]() {
-        printResponce(String(SERIAL_CMD_STRING_CHANGED) + mArgument);
+        sendResponce(String(SERIAL_CMD_STRING_CHANGED) + mArgument);
     };
 
-    auto printCommand = [&](const String& str) {
-        Serial.println(String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(mCmd.type())  + SERIAL_CMD_TAIL + str);
+    auto responceCommand = [&](const String& str) {
+        sendCommand(mCmd.type(), str);
     };
 
     switch( mCmd.type() ) {
@@ -229,21 +259,21 @@ bool SerialCmd::execute()
         return false;
         break;
     case Cmd::Type::DBG:
-        printResponce(mCollar->toggleDbg() ? "Debug On" : "Debug Off");
+        sendResponce(mCollar->toggleDbg() ? "Debug On" : "Debug Off");
         break;
     case Cmd::Type::STATS:
-        printResponce(mCollar->toggleStats() ? "Stats On" : "Stats Off");
+        sendResponce(mCollar->toggleStats() ? "Stats On" : "Stats Off");
         break;
     case Cmd::Type::LED:
-        printResponce(mCollar->led()->toggle() ? "LED On" : "LED Off");
+        sendResponce(mCollar->led()->toggle() ? "LED On" : "LED Off");
         break;
     case Cmd::Type::REBOOT:
-        printResponce("Rebooting...");
+        sendResponce("Rebooting...");
         mCollar->reboot();
         break;
     case Cmd::Type::INFO:
     {
-        printCommand( String(mCollar->animalName()) + SERIAL_CMD_PARAMS_DM +
+        responceCommand( String(mCollar->animalName()) + SERIAL_CMD_PARAMS_DM +
                        (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
                         mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
                         mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
@@ -254,7 +284,7 @@ bool SerialCmd::execute()
     }
 
     case Cmd::Type::GPS: {
-        printResponce( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
+        sendResponce( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
                         "lat=" + String(mCollar->gpsPos().mLat, 10) + SERIAL_CMD_PARAMS_DM +
                         "lon=" + String(mCollar->gpsPos().mLon, 10) + SERIAL_CMD_PARAMS_DM +
                         "sat=" + mCollar->satellites() );
@@ -263,11 +293,11 @@ bool SerialCmd::execute()
 
 
     case Cmd::Type::BAT:
-        printCommand( mCollar->batteryInfo() );
+        responceCommand( mCollar->batteryInfo() );
         break;
 
     case Cmd::Type::RADIO:
-        printCommand( String("RSSI=") + mCollar->rssi() + SERIAL_CMD_PARAMS_DM
+        responceCommand( String("RSSI=") + mCollar->rssi() + SERIAL_CMD_PARAMS_DM
                        + "SNR=" + mCollar->snr() + SERIAL_CMD_PARAMS_DM
                        + "SS=" + mCollar->signalStrength());
         break;
@@ -276,18 +306,18 @@ bool SerialCmd::execute()
     case Cmd::Type::INT:
     {
         if( !mIsArgument ) {
-            printCommand( String("Send/sleep inverval is: ") + mCollar->sendInterval() + " msec" );
+            responceCommand( String("Send/sleep inverval is: ") + mCollar->sendInterval() + " msec" );
             return true;
         }
 
 
         const uint64_t msec = strtoull(mArgument, NULL, 10);
         if( msec < 1000) {
-            printError("Interval is less than a second.");
+            sendError("Interval is less than a second.");
             return false;
         }
         mCollar->setSendInterval(msec);
-        printResponce( String("Send/sleep interval set to:") + msec + "msec" );
+        sendResponce( String("Send/sleep interval set to:") + msec + "msec" );
         break;
     }
 
@@ -299,12 +329,12 @@ bool SerialCmd::execute()
             mCollar->enableDeepSleep(is);
         }
 
-        printResponce( String("Deep sleep is:") + (mCollar->isDeepSleep() ? "Enabled" : "Disabled") );
+        sendResponce( String("Deep sleep is:") + (mCollar->isDeepSleep() ? "Enabled" : "Disabled") );
         break;
     }
     case Cmd::Type::RTM:
         // Time sync requect
-        printCmd(Cmd::Type::RTM);
+        sendCommandSerial(Cmd::Type::RTM);
         mIsWaitingForTimeSync = true;
         break;
     case Cmd::Type::TM:
@@ -313,7 +343,7 @@ bool SerialCmd::execute()
         if( mIsArgument ) {
             const uint64_t secsEpoch = strtoull(mArgument, NULL, 10);
             if( secsEpoch < 1767225600) { // epoch of 01.01.20026
-                printError("Wrong time (before 01.01.2026)!");
+                sendError("Wrong time (before 01.01.2026)!");
                 return false;
             }
 
@@ -321,13 +351,13 @@ bool SerialCmd::execute()
 
             if( diff ) {
                 mCollar->setEpoch(secsEpoch);
-                printResponce( String("Time set to:") + mCollar->dateTime() +
+                sendResponce( String("Time set to:") + mCollar->dateTime() +
                     (diff < 0 ? "\rSecs slower:" : "\rSecs faster:") + abs(diff) );
             }else {
-                printResponce( "Time is the same." );
+                sendResponce( "Time is the same." );
             }
         }else {
-            printCommand(mCollar->dateTime());
+            responceCommand(mCollar->dateTime());
         }
         break;
 
@@ -335,13 +365,13 @@ bool SerialCmd::execute()
 
         if( mIsArgument ) {
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
-                printError( "Wrong netkey length!" );
+                sendError( "Wrong netkey length!" );
                 return false;
             }
             mCollar->setNKeyHex(mArgument);
             printChanged();
         }else {
-            printCommand(mCollar->nkeyHex());
+            responceCommand(mCollar->nkeyHex());
         }
         break;
 
@@ -349,39 +379,39 @@ bool SerialCmd::execute()
         if( mIsArgument ) {
 
             if( mArgumentLen != LORA_KEY_HEX_LEN) {
-                printError("Wrong AppKey lenght!");
+                sendError("Wrong AppKey lenght!");
                 return false;
             }
             mCollar->setAKeyHex(mArgument);
             printChanged();
         }else {
-            printCommand(mCollar->akeyHex());
+            responceCommand(mCollar->akeyHex());
         }
         break;
 
     case Cmd::Type::NAME:
         if( mIsArgument ) {
             if( mArgumentLen < 3) {
-                printError("Wrong name lenght!");
+                sendError("Wrong name lenght!");
                 return false;
             }
             mCollar->setAnimalName(mArgument);
             printChanged();
         }else {
-            printCommand(mCollar->animalName());
+            responceCommand(mCollar->animalName());
         }
         break;
 
     case Cmd::Type::SEX:
         if( mIsArgument ) {
             if( mArgumentLen != 1) {
-                printError("Wrong sex lenght!");
+                sendError("Wrong sex lenght!");
                 return false;
             }
             mCollar->setIsMale(strcmp(mArgument,"m") == 0 ? true : false);
             printChanged();
         }else {
-            printCommand(mCollar->isMale() ? "m" : "f");
+            responceCommand(mCollar->isMale() ? "m" : "f");
         }
         break;
 
@@ -389,79 +419,79 @@ bool SerialCmd::execute()
         if( mIsArgument ) {
 
             if( mArgumentLen != LORA_EUI_HEX_LEN) {
-                printError("Wrong EUI lenght!");
+                sendError("Wrong EUI lenght!");
                 return false;
             }
             mCollar->setEuiHex(mArgument);
             printChanged();
         }else {
-            printCommand(mCollar->euiHex());
+            responceCommand(mCollar->euiHex());
         }
         break;
 
     case Cmd::Type::ADDR:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_ADDR_HEX_LEN) {
-                printError("Wrong Address lenght!");
+                sendError("Wrong Address lenght!");
                 return false;
             }
             mCollar->setAddrHex(mArgument);
             printChanged();
         }else {
-            printCommand(mCollar->addrHex());
+            responceCommand(mCollar->addrHex());
         }
         break;
 
     case Cmd::Type::FPORT:
         if( mIsArgument ) {
             if( mArgumentLen != LORA_FPORT_HEX_LEN) {
-                printError("Wrong FPort lenght!");
+                sendError("Wrong FPort lenght!");
                 return false;
             }
             mCollar->setFPortHex(mArgument);
             printChanged();
         }else {
-            printCommand(String("0x") + mCollar->fportHex());
+            responceCommand(String("0x") + mCollar->fportHex());
         }
         break;
 
     case Cmd::Type::FLASH:
         if( !mCollar->flash() ) {
-            printError("Flashing.");
+            sendError("Flashing.");
         }else {
-            printResponce("Flashing done.");
+            sendResponce("Flashing done.");
         }
         break;
     case Cmd::Type::RESTORE:
 
         if( !mCollar->restore() ) {
-            printError("Restoring.");
+            sendError("Restoring.");
         }else {
-            printResponce("Restoring done.");
+            sendResponce("Restoring done.");
         }
         break;
 
     case Cmd::Type::VER:
-        printCommand(COLLAR_VERSION);
+        responceCommand(COLLAR_VERSION);
         break;
 
     case Cmd::Type::RSP:
         // not receiving - just sending. Here because of the warning
         break;
     case Cmd::Type::SIGL:
-        printResponce("Executing lights...");
+        sendResponce("Executing lights...");
         mCollar->execSignal(Collar::SignalType::Light);
         break;
     case Cmd::Type::SIGS:
-        printResponce("Executing sound...");
+        sendResponce("Executing sound...");
         mCollar->execSignal(Collar::SignalType::Sound);
         break;
     case Cmd::Type::SIGE:
-        printResponce("Executing electric shock...");
+        sendResponce("Executing electric shock...");
         mCollar->execSignal(Collar::SignalType::Shock);
         break;
     case Cmd::Type::HELP:
-        printCommand(
+        responceCommand(
         "---------- HELP ----------\r"
         "stats: Toggle statistics\r"
         "info: Common info\r"
@@ -497,14 +527,14 @@ bool SerialCmd::execute()
         break;
 
     default:
-        printError( String("Wrong command:") + mCmd.typeStr() );
+        sendError( String("Wrong command:") + mCmd.typeStr() );
         return false;
     }
 
     return true;
 }
 
-void SerialCmd::skipAvailable()
+void CLI::skipAvailable()
 {
     // Flush the old content
     while(Serial.available()) {
@@ -517,7 +547,7 @@ bool gIsDbg = true;
 
 void gPrintDbg(const String &str) {
     if(gIsDbg)    {
-        SerialCmd::printCmd(SerialCmd::Cmd::Type::DBG, str);
+        CLI::sendCommandSerial(CLI::Cmd::Type::DBG, str);
         Serial.flush();
     }
 }

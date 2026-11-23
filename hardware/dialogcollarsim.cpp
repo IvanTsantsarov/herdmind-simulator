@@ -5,7 +5,7 @@
 
 #include "hardware/collar/button.h"
 #include "hardware/collar/defines.h"
-#include "hardware/collar/serialcmd.h"
+#include "hardware/collar/cli.h"
 #include "tools.h"
 #include "devmanager.h"
 #include "collar/screen.h"
@@ -13,6 +13,8 @@
 #include "../animal.h"
 #include "../mainwindow.h"
 #include "dialogcollarsim.h"
+
+#include "bluetooth.h"
 #include "ui_dialogcollarsim.h"
 
 
@@ -109,7 +111,7 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
     SimTools::setWidgetBackColor( ui->btnLedMain, Qt::black);
 
     // In simulation mode SerialPort is not used
-    ui->groupPorts->setVisible(!gMainWindow->isSimulation());
+    ui->groupConnection->setVisible(!gMainWindow->isSimulation());
 
     if( !gMainWindow->isSimulation() ) {
         int baudratesCount = sizeof(mBaudrates)/sizeof(uint32_t);
@@ -132,6 +134,7 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
     ui->btnGenEui->setVisible(false);
 
     // ui->editOutput->createStandardContextMenu()
+    ui->widgetBluetooth->setVisible(false);
 }
 
 void DialogCollarSim::on_refreshPorts()
@@ -595,13 +598,13 @@ void DialogCollarSim::processSerialInput()
         return;
     }
 
-    SerialCmd::Cmd::Type cmd = SerialCmd::Cmd::str2TypeStatic(cmdStr.toLatin1().data());
+    CLI::Cmd::Type cmd = CLI::Cmd::str2TypeStatic(cmdStr.toLatin1().data());
 
     QString tail = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
 
     switch(cmd) {
 
-    case SerialCmd::Cmd::Type::TM:{
+    case CLI::Cmd::Type::TM:{
         addOutput(tail, RESPONCE_COLOR_CMD);
         uint64_t secSrv = QDateTime::currentDateTime().toSecsSinceEpoch();
         uint64_t secDev = cmdRem.toULongLong();
@@ -633,11 +636,11 @@ void DialogCollarSim::processSerialInput()
     }
      break;
 
-    case SerialCmd::Cmd::Type::RTM:
+    case CLI::Cmd::Type::RTM:
         sendToSerial( DialogCollarSim::cmdTM(), true);
         break;
 
-    case SerialCmd::Cmd::Type::STATS: {
+    case CLI::Cmd::Type::STATS: {
 
         if( isStats ) {
             addOutput(tail, RESPONCE_COLOR_STATS);
@@ -678,7 +681,7 @@ void DialogCollarSim::processSerialInput()
 
         return;
     }
-    case SerialCmd::Cmd::Type::INFO:
+    case CLI::Cmd::Type::INFO:
     {
         QStringList args = tail.split("|");
         ui->editAnimalName->setText(args[0]);
@@ -695,26 +698,26 @@ void DialogCollarSim::processSerialInput()
         }
         break;
     }
-    case SerialCmd::Cmd::Type::DBG:
+    case CLI::Cmd::Type::DBG:
         if( isDbg ) {
             addOutput(tail, RESPONCE_COLOR_DBG);
         }
         break;
-    case SerialCmd::Cmd::Type::RSP:
+    case CLI::Cmd::Type::RSP:
         if( isResp ) {
             addOutput(tail, RESPONCE_COLOR_CMD);
         }
         break;
-    case SerialCmd::Cmd::Type::SIGL:
+    case CLI::Cmd::Type::SIGL:
         signalL();
     break;
-    case SerialCmd::Cmd::Type::SIGS:
+    case CLI::Cmd::Type::SIGS:
         signalS();
         break;
-    case SerialCmd::Cmd::Type::SIGE:
+    case CLI::Cmd::Type::SIGE:
         signalE();
         break;
-    case SerialCmd::Cmd::Type::HELP:
+    case CLI::Cmd::Type::HELP:
     {
         QStringList lines = tail.split('\r');
         for(QString line: lines) {
@@ -732,7 +735,7 @@ void DialogCollarSim::processSerialInput()
 
         break;
     }
-    case SerialCmd::Cmd::Type::NONE:
+    case CLI::Cmd::Type::NONE:
         addOutput(QString("Invalid command:%1").arg(respFull), RESPONCE_COLOR_ERROR);
         break;
     default:
@@ -986,18 +989,24 @@ void DialogCollarSim::on_btnSetDateTime_clicked()
 }
 
 
-void DialogCollarSim::on_btnOutputLayout_clicked()
+void DialogCollarSim::on_radioConnectionBT_toggled(bool checked)
 {
-    if( ui->btnOutputLayout->isChecked()) {
-        ui->layoutOutput->removeWidget(ui->editOutput);
-        ui->verticalLayoutSecond->addWidget(ui->editOutput);
-        ui->editOutput->setLayout(ui->verticalLayoutSecond);
-        ui->btnOutputLayout->setText("=>");
+    ui->widgetBluetooth->setVisible(checked);
+    ui->widgetUSB->setVisible(!checked);
+}
+
+
+void DialogCollarSim::on_checkScanBT_toggled(bool checked)
+{
+    if( checked ) {
+        ui->comboDevicesBT->setPlaceholderText("<Scanning...>");
     }else {
-        ui->verticalLayoutSecond->removeWidget(ui->editOutput);
-        ui->layoutOutput->addWidget(ui->editOutput);
-        ui->editOutput->setLayout(ui->layoutOutput);
-        ui->btnOutputLayout->setText("<=");
+        ui->comboDevicesBT->setPlaceholderText("<Scanning done.>");
     }
+}
+
+void DialogCollarSim::on_checkConnectBT_toggled(bool checked)
+{
+
 }
 

@@ -661,3 +661,19 @@ int Collar::signalStrength()
     int finalPercent = static_cast<int>(std::round(percent));
     return std::clamp(finalPercent, 0, 100);
 }
+
+
+void DialogCollarSim::on_btnOutputLayout_clicked()
+{
+    if( ui->btnOutputLayout->isChecked()) {
+        ui->layoutOutput->removeWidget(ui->editOutput);
+        ui->verticalLayoutSecond->addWidget(ui->editOutput);
+        ui->editOutput->setLayout(ui->verticalLayoutSecond);
+        ui->btnOutputLayout->setText("=>");
+    }else {
+        ui->verticalLayoutSecond->removeWidget(ui->editOutput);
+        ui->layoutOutput->addWidget(ui->editOutput);
+        ui->editOutput->setLayout(ui->layoutOutput);
+        ui->btnOutputLayout->setText("<=");
+    }
+}

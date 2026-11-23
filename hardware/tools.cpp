@@ -612,3 +612,30 @@ void ledcChangeFrequency(int pin, int freq, uint8_t resolution)
 {
 
 }
+
+void NimBLEServer::disconnect(uint16_t connHadle)
+{
+    for( NimBLEService* s : mServices) {
+        delete s;
+    }
+
+    mServices.clear();
+}
+
+
+QList<NimBLEAdvertising*> NimBLEDevice::mAdverts;
+QList<NimBLEServer*> NimBLEDevice::mServers;
+
+void NimBLEDevice::deinit(bool is)
+{
+    for( NimBLEAdvertising* a : mAdverts ) {
+        delete a;
+    }
+    mAdverts.clear();
+
+    for( NimBLEServer* s : mServers ) {
+        delete s;
+    }
+
+    mServers.clear();
+}

@@ -10,7 +10,7 @@
 #include "sound.h"
 #include "shock.h"
 #include "timer.h"
-#include "bluetooth.h"
+#include "ble.h"
 
 
 #define COLLAR_MAIN_BTN_BLE_INTERVAL 3000
@@ -130,13 +130,14 @@ void Collar::commonConstructor()
     mGPS = new GPS;
     mBtnMain = new Button(PIN_BTN_MAIN);
     mLed = new Led;
-    mSerialCmd = new SerialCmd(this);
+    mSerialCmd = new CLI(this);
     mBattery = new Battery;
     mMemory = new Memory;
     mLights = new Lights(this);
     mSound = new Sound(this);
     mShock = new Shock(this);
     mBle = new Ble();
+    mBleCmd = new CLI(this);
 }
 
 
@@ -153,6 +154,7 @@ Collar::~Collar()
     delete mSound;
     delete mShock;
     delete mBle;
+    delete mBleCmd;
 }
 
 void Collar::sendStats()
@@ -161,13 +163,12 @@ void Collar::sendStats()
         return;
     }
 
-
     String statsStr = String("gps=") + satellites() + SERIAL_CMD_COMMA + gpsStr()
                       + "|rssi=" + rssi()
                       + "|snr=" + snr()
                       + "|bat=" + batteryInfo();
 
-    mSerialCmd->printCmd(SerialCmd::Cmd::Type::STATS, statsStr);
+    mSerialCmd->sendCommand(CLI::Cmd::Type::STATS, statsStr);
 }
 
 bool Collar::gotoBed()
@@ -358,12 +359,12 @@ bool Collar::restore()
 
 void Collar::serialRespond(const String& msg)
 {
-    mSerialCmd->printResponce(msg);
+    mSerialCmd->sendResponce(msg);
 }
 
-void Collar::serialCmd(SerialCmd::Cmd::Type t, const String& str)
+void Collar::serialCmd(CLI::Cmd::Type t, const String& str)
 {
-    mSerialCmd->printCmd(t, str);
+    mSerialCmd->sendCommand(t, str);
 }
 
 void Collar::execSignal(SignalType t, int mode)
@@ -415,8 +416,8 @@ void Collar::setup()
 
     onSetup();
 
-    mSerialCmd->printCmd( SerialCmd::Cmd::Type::DBG, mTimer->dateTimeStr() );
-    mSerialCmd->printCmd( SerialCmd::Cmd::Type::TM, String(mTimer->epoch()) );
+    mSerialCmd->sendCommand( CLI::Cmd::Type::DBG, mTimer->dateTimeStr() );
+    mSerialCmd->sendCommand( CLI::Cmd::Type::TM, String(mTimer->epoch()) );
 
     if( isWakingUp() ) {
         // restore last sleeping interval
@@ -688,7 +689,7 @@ void Collar::updateSerial()
     }
 
     if( mSerialCmd->isWaitingForTimeSync() ) {
-        mSerialCmd->printError("Time sync failed!");
+        mSerialCmd->sendError("Time sync failed!");
     }
 
     mSerialCmd->stopWaitingForTimeSync();

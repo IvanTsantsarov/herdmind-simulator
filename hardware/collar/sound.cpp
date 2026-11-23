@@ -20,7 +20,7 @@ void Sound::kill()
 
 void Sound::execute(uint8_t mode)
 {
-    respondCmd(SerialCmd::Cmd::Type::SIGS);
+    respondCmd(CLI::Cmd::Type::SIGS);
     play("A4B4A4B4A4B4A4B4", 100);
 }
 

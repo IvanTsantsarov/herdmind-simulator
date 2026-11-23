@@ -33,6 +33,43 @@ The `.pro` file is `HerdmindSimulator.pro`. The project uses `ONPC` as a qmake d
 - Docker Compose v2 (`docker compose`)
 - Ports available on the host as listed below
 
+## Build and Install Qt MQTT
+
+Clone the official Qt MQTT module matching the installed Qt version:
+
+```bash
+cd ~/Projects
+
+git clone --branch 6.11.0 https://github.com/qt/qtmqtt.git
+
+cd qtmqtt
+```
+
+Configure:
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/Qt/6.11.0/gcc_64 -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.11.0/gcc_64
+```
+
+Build:
+
+```bash
+cmake --build build -j$(nproc)
+```
+
+Install:
+
+```bash
+cmake --install build
+```
+
+Verify installation:
+
+```bash
+find $HOME/Qt/6.11.0/gcc_64 -iname "*mqtt*"
+```
+
+
 ## Build and run the desktop application
 
 From the repository root:

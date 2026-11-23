@@ -13,7 +13,7 @@ void Signaling::respond(const String &msg)
     mCollar->serialRespond(msg);
 }
 
-void Signaling::respondCmd(SerialCmd::Cmd::Type t)
+void Signaling::respondCmd(CLI::Cmd::Type t)
 {
     mCollar->serialCmd(t);
 }

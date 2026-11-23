@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 {
     gOoriginalHandler = qInstallMessageHandler(gMessagehHandler);
 
-    SerialCmd::initCommands();
+    CLI::initCommands();
 
     // restore environemnt
     if( !SimTools::fileExists(ENVIRONMENT_INI) ) {

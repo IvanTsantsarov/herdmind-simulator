@@ -9,14 +9,14 @@
 #include "defines.h"
 #include "../protocol.h"
 #include "geometry.h"
-#include "serialcmd.h"
+#include "cli.h"
 
 class Timer;
 class GPS;
 class Screen;
 class Button;
 class Led;
-class SerialCmd;
+class CLI;
 class Battery;
 class Memory;
 class Lights;
@@ -175,13 +175,14 @@ class Collar : public LoraDevHW
     GPS* mGPS = nullptr;
     Button* mBtnMain = nullptr;
     Led* mLed = nullptr;
-    SerialCmd* mSerialCmd = nullptr;
+    CLI* mSerialCmd = nullptr;
     Battery* mBattery = nullptr;
     Memory* mMemory = nullptr;
     Lights* mLights = nullptr;
     Sound* mSound = nullptr;
     Shock* mShock = nullptr;
     Ble* mBle = nullptr;
+    CLI* mBleCmd = nullptr;
 
     uint16_t mSequence = 0;
 
@@ -213,7 +214,7 @@ class Collar : public LoraDevHW
 
     enum struct UpdateInterval{
         Battery = 6000,
-        SerialCmd = 40,
+        CLI = 40,
         GPS = 1000
     };
 
@@ -279,7 +280,7 @@ public:
     bool restore();
 
     void serialRespond(const String &msg);
-    void serialCmd(SerialCmd::Cmd::Type t, const String &str = String());
+    void serialCmd(CLI::Cmd::Type t, const String &str = String());
 
     inline void setStats(bool is){ mIsStats = is; }
     inline bool toggleStats(){ mIsStats = !mIsStats; return mIsStats; }
