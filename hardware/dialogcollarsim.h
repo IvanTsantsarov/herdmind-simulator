@@ -199,6 +199,8 @@ private slots:
 
     void onBluetoothEvent(BluetoothScanner::Event e, const QString& desc);
 
+    void on_btnBuild_clicked();
+
 private:
     Ui::DialogCollarSim *ui;
 };

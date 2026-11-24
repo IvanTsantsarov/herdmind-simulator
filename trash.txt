@@ -458,7 +458,7 @@ auto stripResponce = [&](QString& resp, const QString& cmd) {
         return false;
     }
 
-    QString head = QString("%1%2:").arg(SERIAL_CMD_BEGIN).arg(cmd);
+    QString head = QString("%1%2:").arg(CLI_CMD_BEGIN).arg(cmd);
 
     if( resp.left(head.length()) != head ) {
         return false;

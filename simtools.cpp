@@ -390,5 +390,35 @@ QString SimTools::profileId(LoraDevSim::Profile profile) {
 }
 
 
+#define KiB 1024ULL
+#define MiB (KiB*KiB)
+#define GiB (KiB*MiB)
+#define TiB (KiB*GiB)
 
+QString SimTools::bytes2str(quint64 val)
+{
+    qreal result;
+    qreal div;
+    QString suffix;
 
+    if( val > TiB ) {
+        suffix = "TiB";
+        div = static_cast<qreal>(TiB);
+    } else  if( val > GiB ) {
+        suffix = "GiB";
+        div = static_cast<qreal>(GiB);
+    } else if( val > MiB ) {
+        suffix = "MiB";
+        div = static_cast<qreal>(MiB);
+    } else if( val > KiB ) {
+        suffix = "KiB";
+        div = static_cast<qreal>(KiB);
+    } else  {
+        suffix = "B";
+        div = 1;
+    }
+
+    result = static_cast<qreal>(val) / div;
+
+    return QString("%1 %2").arg(result, 0, 'f', 1).arg(suffix);
+}

@@ -7,6 +7,7 @@
 #include "hardware/collar/defines.h"
 #include "hardware/collar/cli.h"
 #include "tools.h"
+#include "os.h"
 #include "devmanager.h"
 #include "collar/screen.h"
 #include "collar/led.h"
@@ -508,9 +509,6 @@ void DialogCollarSim::on_btnGenEui_clicked()
 }
 
 
-void DialogCollarSim::on_btnFlash_clicked()
-{
-}
 
 void DialogCollarSim::on_serialPortError(QSerialPort::SerialPortError err)
 {
@@ -543,15 +541,15 @@ void DialogCollarSim::processSerialInput()
     auto stripCmd = [&](QString& resp, QString &rem) {
         resp = resp.trimmed();
 
-        if( resp.length() < (SERIAL_CMD_MIN_SIZE+2) ) {
+        if( resp.length() < (CLI_CMD_MIN_SIZE+2) ) {
             return QString();
         }
 
-        if( SERIAL_CMD_BEGIN != resp[0] ) {
+        if( CLI_CMD_BEGIN != resp[0] ) {
             return QString();
         }
 
-        int dmPos = resp.indexOf(SERIAL_CMD_TAIL);
+        int dmPos = resp.indexOf(CLI_CMD_TAIL);
         if( dmPos <= 0) {
             return QString();
         }
@@ -599,13 +597,13 @@ void DialogCollarSim::processSerialInput()
         return;
     }
 
-    CLI::Cmd::Type cmd = CLI::Cmd::str2TypeStatic(cmdStr.toLatin1().data());
+    CLI::Cmd cmd = CLI::Cmd::str2TypeStatic(cmdStr.toLatin1().data());
 
-    QString tail = respFull.right(respFull.length() - respFull.indexOf(SERIAL_CMD_TAIL) - 1);
+    QString tail = respFull.right(respFull.length() - respFull.indexOf(CLI_CMD_TAIL) - 1);
 
     switch(cmd) {
 
-    case CLI::Cmd::Type::TM:{
+    case CLI::Cmd::TM:{
         addOutput(tail, RESPONCE_COLOR_CMD);
         uint64_t secSrv = QDateTime::currentDateTime().toSecsSinceEpoch();
         uint64_t secDev = cmdRem.toULongLong();
@@ -637,11 +635,11 @@ void DialogCollarSim::processSerialInput()
     }
      break;
 
-    case CLI::Cmd::Type::RTM:
+    case CLI::Cmd::RTM:
         sendToSerial( DialogCollarSim::cmdTM(), true);
         break;
 
-    case CLI::Cmd::Type::STATS: {
+    case CLI::Cmd::STATS: {
 
         if( isStats ) {
             addOutput(tail, RESPONCE_COLOR_STATS);
@@ -653,11 +651,11 @@ void DialogCollarSim::processSerialInput()
         GeoPoint pos;
         int snr, rssi, bat, sat;
 
-        QStringList params = tail.split(SERIAL_CMD_PARAMS_DM);
+        QStringList params = tail.split(CLI_CMD_PARAMS_DM);
         for(QString param : params) {
-            QStringList pair = param.split(SERIAL_CMD_EQUAL);
+            QStringList pair = param.split(CLI_CMD_EQUAL);
             if( pair.count() >= 2 ) {
-                QStringList args = pair[1].split(SERIAL_CMD_COMMA);
+                QStringList args = pair[1].split(CLI_CMD_COMMA);
                 if( pair.first() == "gps") {
                     sat = args[0].toInt();
                     pos.mLat = args[1].toFloat();
@@ -682,7 +680,7 @@ void DialogCollarSim::processSerialInput()
 
         return;
     }
-    case CLI::Cmd::Type::INFO:
+    case CLI::Cmd::INFO:
     {
         QStringList args = tail.split("|");
         ui->editAnimalName->setText(args[0]);
@@ -699,33 +697,33 @@ void DialogCollarSim::processSerialInput()
         }
         break;
     }
-    case CLI::Cmd::Type::DBG:
+    case CLI::Cmd::DBG:
         if( isDbg ) {
             addOutput(tail, RESPONCE_COLOR_DBG);
         }
         break;
-    case CLI::Cmd::Type::RSP:
+    case CLI::Cmd::RSP:
         if( isResp ) {
             addOutput(tail, RESPONCE_COLOR_CMD);
         }
         break;
-    case CLI::Cmd::Type::SIGL:
+    case CLI::Cmd::SIGL:
         signalL();
     break;
-    case CLI::Cmd::Type::SIGS:
+    case CLI::Cmd::SIGS:
         signalS();
         break;
-    case CLI::Cmd::Type::SIGE:
+    case CLI::Cmd::SIGE:
         signalE();
         break;
-    case CLI::Cmd::Type::HELP:
+    case CLI::Cmd::HELP:
     {
         QStringList lines = tail.split('\r');
         for(QString line: lines) {
             if( line.startsWith("---")) {
                 addOutput(line, RESPONCE_COLOR_HELP);
             }else {
-                int cmdEnd = line.indexOf(SERIAL_CMD_TAIL);
+                int cmdEnd = line.indexOf(CLI_CMD_TAIL);
                 if( cmdEnd >= 0) {
                     QString cmdName = line.left(cmdEnd);
                     QString cmdInfo = line.mid(cmdEnd);
@@ -736,7 +734,19 @@ void DialogCollarSim::processSerialInput()
 
         break;
     }
-    case CLI::Cmd::Type::NONE:
+    case CLI::Cmd::MEM:
+    {
+        QStringList mems = tail.split(CLI_CMD_TAIL);
+        QString result;
+        for( QString pair:mems ){
+            QStringList both = pair.split(":");
+            result += QString("%1:%2\r").arg(both[0]).arg(SimTools::bytes2str(both[1].toLongLong()));
+        }
+
+        addOutput(result);
+        break;
+    }
+    case CLI::Cmd::NONE:
         addOutput(QString("Invalid command:%1").arg(respFull), RESPONCE_COLOR_ERROR);
         break;
     default:
@@ -1053,3 +1063,13 @@ void DialogCollarSim::onBluetoothEvent(BluetoothScanner::Event e, const QString 
     }
 }
 
+
+void DialogCollarSim::on_btnBuild_clicked()
+{
+    gOS.runShellCmd("Arduino Build", "");
+}
+
+void DialogCollarSim::on_btnFlash_clicked()
+{
+    gOS.runShellCmd("Arduino Flash", "");
+}

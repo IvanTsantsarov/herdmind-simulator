@@ -639,3 +639,17 @@ void NimBLEDevice::deinit(bool is)
 
     mServers.clear();
 }
+
+
+int esp_get_free_heap_size() {
+    return 0;
+}
+int esp_get_minimum_free_heap_size(){
+    return 0;
+}
+int heap_caps_get_free_size(int mode){
+    return 0;
+}
+int heap_caps_get_largest_free_block(int mode){
+    return 0;
+}

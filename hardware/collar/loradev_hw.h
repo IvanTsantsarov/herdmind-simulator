@@ -100,7 +100,5 @@ public:
     static void incBootCount(){ LoraDevHW::mBootCount++; }
     static void enableDeepSleep(bool is){ mIsDeepSleepEnabled = is;}
     static bool isDeepSleep(){ return mIsDeepSleepEnabled;};
-
-
 };
  // #endif

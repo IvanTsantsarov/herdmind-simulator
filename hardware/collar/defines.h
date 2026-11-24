@@ -15,8 +15,8 @@
 #define LORA_ADDR_HEX_LEN 8
 #define LORA_NAME_MAX_LEN 32
 
-#define SERIAL_CMD_SIZE 7
-#define SERIAL_CMD_MIN_SIZE 2
+#define CLI_CMD_SIZE 7
+#define CLI_CMD_MIN_SIZE 2
 
 #define BLE_SE_UUID "4a811733-2bbe-48ef-88e3-8ee8e05e4063"
 #define BLE_RX_UUID "80280b51-af7b-4d18-8f81-11e470c0d917"

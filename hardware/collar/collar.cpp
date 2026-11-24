@@ -163,7 +163,7 @@ void Collar::sendStats()
         return;
     }
 
-    String statsStr = String("gps=") + satellites() + SERIAL_CMD_COMMA + gpsStr()
+    String statsStr = String("gps=") + satellites() + CLI_CMD_COMMA + gpsStr()
                       + "|rssi=" + rssi()
                       + "|snr=" + snr()
                       + "|bat=" + batteryInfo();
@@ -786,5 +786,25 @@ void Collar::sendEvent(Protocol::Collar::Event event, uint32_t value)
 #endif
 }
 
+String Collar::getMemInfo()
+{
+    // 1. Standard ESP-IDF functions (Internal SRAM)
+    uint32_t freeHeap = esp_get_free_heap_size();
+    uint32_t minFreeHeap = esp_get_minimum_free_heap_size(); // Lowest point since boot
 
+    // 2. Capability-based functions (Explicitly separate Internal RAM vs. PSRAM)
+    size_t freeInternal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    size_t freePsram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 
+    // 3. Largest contiguous free block (useful for checking fragmentation)
+    size_t maxBlockInternal = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL);
+    size_t maxBlockPsram = heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
+
+    return String("") +
+           "HEAP:" + freeHeap + "|" +
+           "HEAPMIN:" + minFreeHeap + "|" +
+           "INT:" + freeInternal + "|" +
+           "INTMAX:" + maxBlockInternal + "|" +
+           "PS:" + freePsram + "|" +
+           "PSMAX:" + maxBlockPsram;
+}

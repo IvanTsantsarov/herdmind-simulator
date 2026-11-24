@@ -8,10 +8,10 @@
 #define SERIAL_TX_BUFFER_SIZE 1024
 #define SERIAL_ARGUMENT_SIZE 32
 
-#define SERIAL_CMD_IS_SPACE(__char__) (__char__ == ' ')
-#define SERIAL_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
+#define CLI_CMD_IS_SPACE(__char__) (__char__ == ' ')
+#define CLI_CMD_END(__char__) (__char__ == '\r' || __char__ == '\n')
 
-#define SERIAL_CMD_STRING_CHANGED "->"
+#define CLI_CMD_STRING_CHANGED "->"
 
 const char* CLI::mCommands[] = { "" };
 
@@ -20,34 +20,36 @@ void CLI::initCommands() {
         return;
     }
 
-    CLI::mCommands[(int)CLI::Cmd::Type::NONE] = "none";
+    CLI::mCommands[(int)CLI::Cmd::Type::ADDR] = "addr";
+    CLI::mCommands[(int)CLI::Cmd::Type::AKEY] = "akey";
+    CLI::mCommands[(int)CLI::Cmd::Type::BAT] = "bat";
     CLI::mCommands[(int)CLI::Cmd::Type::DBG] = "dbg";
-    CLI::mCommands[(int)CLI::Cmd::Type::STATS] = "stats";
-    CLI::mCommands[(int)CLI::Cmd::Type::SLEEP] = "sleep";
+    CLI::mCommands[(int)CLI::Cmd::Type::EUI] = "eui";
+    CLI::mCommands[(int)CLI::Cmd::Type::FENCE] = "fence";
+    CLI::mCommands[(int)CLI::Cmd::Type::FLASH] = "flash";
+    CLI::mCommands[(int)CLI::Cmd::Type::FPORT] = "fport";
+    CLI::mCommands[(int)CLI::Cmd::Type::GPS] = "gps";
+    CLI::mCommands[(int)CLI::Cmd::Type::HELP] = "help";
+    CLI::mCommands[(int)CLI::Cmd::Type::INFO] = "info";
     CLI::mCommands[(int)CLI::Cmd::Type::INT] = "int";
+    CLI::mCommands[(int)CLI::Cmd::Type::LED] = "led";
+    CLI::mCommands[(int)CLI::Cmd::Type::MEM] = "mem";
+    CLI::mCommands[(int)CLI::Cmd::Type::NAME] = "name";
+    CLI::mCommands[(int)CLI::Cmd::Type::NKEY] = "nkey";
+    CLI::mCommands[(int)CLI::Cmd::Type::NONE] = "none";
+    CLI::mCommands[(int)CLI::Cmd::Type::RADIO] = "radio";
+    CLI::mCommands[(int)CLI::Cmd::Type::REBOOT] = "reboot";
+    CLI::mCommands[(int)CLI::Cmd::Type::RESTORE] = "restore";
+    CLI::mCommands[(int)CLI::Cmd::Type::RSP] = "rsp";
+    CLI::mCommands[(int)CLI::Cmd::Type::RTM] = "rtm";
+    CLI::mCommands[(int)CLI::Cmd::Type::SEX] = "sex";
+    CLI::mCommands[(int)CLI::Cmd::Type::SIGE] = "sige";
     CLI::mCommands[(int)CLI::Cmd::Type::SIGL] = "sigl";
     CLI::mCommands[(int)CLI::Cmd::Type::SIGS] = "sigs";
-    CLI::mCommands[(int)CLI::Cmd::Type::SIGE] = "sige";
-    CLI::mCommands[(int)CLI::Cmd::Type::LED] = "led";
-    CLI::mCommands[(int)CLI::Cmd::Type::HELP] = "help";
-    CLI::mCommands[(int)CLI::Cmd::Type::REBOOT] = "reboot";
-    CLI::mCommands[(int)CLI::Cmd::Type::RTM] = "rtm";
+    CLI::mCommands[(int)CLI::Cmd::Type::STATS] = "stats";
+    CLI::mCommands[(int)CLI::Cmd::Type::SLEEP] = "sleep";
     CLI::mCommands[(int)CLI::Cmd::Type::TM] = "tm";
-    CLI::mCommands[(int)CLI::Cmd::Type::INFO] = "info";
-    CLI::mCommands[(int)CLI::Cmd::Type::EUI] = "eui";
-    CLI::mCommands[(int)CLI::Cmd::Type::GPS] = "gps";
-    CLI::mCommands[(int)CLI::Cmd::Type::BAT] = "bat";
-    CLI::mCommands[(int)CLI::Cmd::Type::RADIO] = "radio";
-    CLI::mCommands[(int)CLI::Cmd::Type::NKEY] = "nkey";
-    CLI::mCommands[(int)CLI::Cmd::Type::AKEY] = "akey";
-    CLI::mCommands[(int)CLI::Cmd::Type::ADDR] = "addr";
-    CLI::mCommands[(int)CLI::Cmd::Type::FLASH] = "flash";
-    CLI::mCommands[(int)CLI::Cmd::Type::RESTORE] = "restore";
-    CLI::mCommands[(int)CLI::Cmd::Type::NAME] = "name";
-    CLI::mCommands[(int)CLI::Cmd::Type::SEX] = "sex";
     CLI::mCommands[(int)CLI::Cmd::Type::VER] = "ver";
-    CLI::mCommands[(int)CLI::Cmd::Type::RSP] = "rsp";
-    CLI::mCommands[(int)CLI::Cmd::Type::FPORT] = "fport";
 }
 
 
@@ -58,7 +60,7 @@ CLI::CLI(Collar* c)
     mCollar = c;
 
     // Create the buffer
-    mCommand = new char[SERIAL_CMD_SIZE + 1];
+    mCommand = new char[CLI_CMD_SIZE + 1];
     mArgument = new char[SERIAL_ARGUMENT_SIZE + 1];
     clear();
 }
@@ -114,7 +116,7 @@ void CLI::clear()
 void CLI::sendCommand(Cmd::Type t, const String& str)
 {
     Cmd cmd(t);
-    String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + str;
+    String r = String(CLI_CMD_BEGIN) + Cmd::type2StrStatic(t) + CLI_CMD_TAIL + str;
 
     if( hasBle() ) {
         mBle->send(r);
@@ -128,7 +130,7 @@ void CLI::sendCommand(Cmd::Type t, const String& str)
 void CLI::sendCommandSerial(Cmd::Type t, const String& str)
 {
     Cmd cmd(t);
-    String r = String(SERIAL_CMD_BEGIN) + Cmd::type2StrStatic(t) + SERIAL_CMD_TAIL + str;
+    String r = String(CLI_CMD_BEGIN) + Cmd::type2StrStatic(t) + CLI_CMD_TAIL + str;
     Serial.println(r);
     Serial.flush();
 }
@@ -156,7 +158,7 @@ void CLI::update()
         // Read and tap the buffer
         char ch = dataRead();
 
-        if( SERIAL_CMD_IS_SPACE(ch)) {
+        if( CLI_CMD_IS_SPACE(ch)) {
             if( mIsArgument ) {
                 SERIAL_UPDATE_ERROR("Second delimeter!");
             }
@@ -165,7 +167,7 @@ void CLI::update()
             continue;
         }
 
-        if( SERIAL_CMD_END(ch) ) {
+        if( CLI_CMD_END(ch) ) {
             if( !mCmd.parse(mCommand, mCommandLen) ) {
                 SERIAL_UPDATE_ERROR("Unknown command!");
             }
@@ -188,7 +190,7 @@ void CLI::update()
                 mArgument[mArgumentLen] = 0;
 
             }else {
-                if( mCommandLen >= SERIAL_CMD_SIZE ) {
+                if( mCommandLen >= CLI_CMD_SIZE ) {
                     SERIAL_UPDATE_ERROR("Command too long!");
                 }
                 mCommand[mCommandLen++] = ch;
@@ -247,7 +249,7 @@ bool CLI::Cmd::parse(const char *buffer, int bufferLen)
 bool CLI::execute()
 {
     auto printChanged = [&]() {
-        sendResponce(String(SERIAL_CMD_STRING_CHANGED) + mArgument);
+        sendResponce(String(CLI_CMD_STRING_CHANGED) + mArgument);
     };
 
     auto responceCommand = [&](const String& str) {
@@ -273,20 +275,20 @@ bool CLI::execute()
         break;
     case Cmd::Type::INFO:
     {
-        responceCommand( String(mCollar->animalName()) + SERIAL_CMD_PARAMS_DM +
-                       (mCollar->isMale() ? "m":"f") + SERIAL_CMD_PARAMS_DM +
-                        mCollar->euiHex() + SERIAL_CMD_PARAMS_DM +
-                        mCollar->akeyHex() + SERIAL_CMD_PARAMS_DM +
-                        mCollar->nkeyHex() + SERIAL_CMD_PARAMS_DM +
-                        mCollar->addrHex() + SERIAL_CMD_PARAMS_DM +
+        responceCommand( String(mCollar->animalName()) + CLI_CMD_PARAMS_DM +
+                       (mCollar->isMale() ? "m":"f") + CLI_CMD_PARAMS_DM +
+                        mCollar->euiHex() + CLI_CMD_PARAMS_DM +
+                        mCollar->akeyHex() + CLI_CMD_PARAMS_DM +
+                        mCollar->nkeyHex() + CLI_CMD_PARAMS_DM +
+                        mCollar->addrHex() + CLI_CMD_PARAMS_DM +
                         mCollar->fport() );
         break;
     }
 
     case Cmd::Type::GPS: {
-        sendResponce( String("gps=") + mCollar->gpsStatus() + SERIAL_CMD_PARAMS_DM +
-                        "lat=" + String(mCollar->gpsPos().mLat, 10) + SERIAL_CMD_PARAMS_DM +
-                        "lon=" + String(mCollar->gpsPos().mLon, 10) + SERIAL_CMD_PARAMS_DM +
+        sendResponce( String("gps=") + mCollar->gpsStatus() + CLI_CMD_PARAMS_DM +
+                        "lat=" + String(mCollar->gpsPos().mLat, 10) + CLI_CMD_PARAMS_DM +
+                        "lon=" + String(mCollar->gpsPos().mLon, 10) + CLI_CMD_PARAMS_DM +
                         "sat=" + mCollar->satellites() );
     }
     break;
@@ -297,8 +299,8 @@ bool CLI::execute()
         break;
 
     case Cmd::Type::RADIO:
-        responceCommand( String("RSSI=") + mCollar->rssi() + SERIAL_CMD_PARAMS_DM
-                       + "SNR=" + mCollar->snr() + SERIAL_CMD_PARAMS_DM
+        responceCommand( String("RSSI=") + mCollar->rssi() + CLI_CMD_PARAMS_DM
+                       + "SNR=" + mCollar->snr() + CLI_CMD_PARAMS_DM
                        + "SS=" + mCollar->signalStrength());
         break;
 
@@ -490,11 +492,15 @@ bool CLI::execute()
         sendResponce("Executing electric shock...");
         mCollar->execSignal(Collar::SignalType::Shock);
         break;
+    case Cmd::Type::MEM:
+        responceCommand( mCollar->getMemInfo() );
+        break;
     case Cmd::Type::HELP:
         responceCommand(
         "---------- HELP ----------\r"
         "stats: Toggle statistics\r"
         "info: Common info\r"
+        "mem: Get available memory\r"
         "tm: Get and Set(Epoch in seconds) time\r"
         "sleep: Enable/Disable deep sleep (y/n and 0/1)\r"
         "int: Get/Set send/sleep interval in milliseconds\r"
@@ -506,12 +512,13 @@ bool CLI::execute()
         "nkey: Set/Get network key (only OTA supported)\r"
         "akey: Set/Get app key (only OTA supported)\r"
          "--- Signals\r"
-        "sigl: execute signal Lights\r"
-        "sigs: execute signal Sound\r"
-        "sige: execute signal Electrick shock\r"
+        "sigl: Execute signal Lights\r"
+        "sigs: Execute signal Sound\r"
+        "sige: Execute signal Electrick shock\r"
+        "fence: Enable/Disable fence and Get/Set fence points. Usage: fence 0/1|point_lat,point_lon|...\r"
          "--- Hardware\r"
-        "led: enable/disable board LED\r"
-        "gps: status(e-emulated, y-hardware present, n-no hardware), current position, sattelites count\r"
+        "led: Enable/disable board LED\r"
+        "gps: Status(e-emulated, y-hardware present, n-no hardware), current position, sattelites count\r"
         "bat: Battery status\r"
         "radio: Get LoRa RSSI, SNR and SS\r"
          "--- Program\r"

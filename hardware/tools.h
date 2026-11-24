@@ -32,6 +32,16 @@ inline void esp_read_mac(uint8_t mac[], int arg1) {
     (void) mac, (void) arg1;
 };
 
+
+#define MALLOC_CAP_INTERNAL 0
+#define MALLOC_CAP_SPIRAM 1
+
+
+int esp_get_free_heap_size();
+int esp_get_minimum_free_heap_size();
+int heap_caps_get_free_size(int mode);
+int heap_caps_get_largest_free_block(int mode);
+
 class DialogCollarSim;
 class Animal;
 

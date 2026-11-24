@@ -312,3 +312,57 @@ Keep API tokens, network session keys, application keys and other credentials ou
 * The default root password for Heltec devices is heltec.org
 * Then execute: root@HT-M7603:~#> /var/lora_pkt_fwd.log
 * with ">"
+# Arduino CLI: Heltec WiFi LoRa 32 V4
+
+This guide uses Arduino CLI to compile and upload sketches without opening Arduino IDE.
+
+## Install the Heltec board package
+
+Install Arduino CLI first (on Kubuntu, for example: `sudo apt install arduino-cli`). Then run:
+
+```bash
+arduino-cli config init
+arduino-cli config add board_manager.additional_urls \
+  https://resource.heltec.cn/download/package_heltec_esp32_index.json
+arduino-cli core update-index
+arduino-cli core install Heltec-esp32:esp32
+```
+
+## Find the board and serial port
+
+```bash
+arduino-cli board listall | grep -i 'wifi lora 32'
+arduino-cli board list
+```
+
+The expected board FQBN is:
+
+```text
+Heltec-esp32:esp32:heltec_wifi_lora_32_V4
+```
+
+Check the available board options and match the LoRa FEM option to your board's hardware revision:
+
+```bash
+arduino-cli board details --fqbn Heltec-esp32:esp32:heltec_wifi_lora_32_V4
+```
+
+## Compile and upload
+
+Replace `/path/to/SketchFolder` with the folder containing your sketch, and `/dev/ttyACM0` with the port shown by `arduino-cli board list`:
+
+```bash
+arduino-cli compile --fqbn Heltec-esp32:esp32:heltec_wifi_lora_32_V4 /path/to/SketchFolder
+arduino-cli upload -p /dev/ttyACM0 \
+  --fqbn Heltec-esp32:esp32:heltec_wifi_lora_32_V4 /path/to/SketchFolder
+```
+
+Install any libraries required by your sketch. If using Heltec display or LoRa APIs, follow Heltec's library instructions. If Linux reports permission denied for the serial port, add your user to `dialout` and sign out and back in:
+
+```bash
+sudo usermod -aG dialout "$USER"
+```
+
+References: [Heltec ESP32 quick start](https://docs.heltec.org/en/node/esp32/esp32_general_docs/quick_start.html) · [WiFi LoRa 32 V4 details](https://wiki.heltec.org/docs/devices/open-source-hardware/esp32-series/lora-32/wifi-lora-32-v4/)
+
+

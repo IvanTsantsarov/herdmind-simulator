@@ -305,6 +305,8 @@ public:
 
     void onBleConnect(String str);
     void onBleDisconnect(String str);
+
+    String getMemInfo();
 };
 
 

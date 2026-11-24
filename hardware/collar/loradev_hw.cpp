@@ -86,8 +86,6 @@ bool LoraDevHW::isWakeTimer()
     return ESP_SLEEP_WAKEUP_TIMER == mWakeUpCause;
 }
 
-
-
 String reset_reason_string(int reason) {
 
     switch(reason) {

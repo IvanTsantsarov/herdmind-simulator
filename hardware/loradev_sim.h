@@ -212,6 +212,7 @@ public:
 
     const RxInfo& rxInfo(){ return mRxInfo; }
 
+
 signals:
     void messageReceivedAndDecrypted(const QByteArray& addr, const QByteArray& msg);
 

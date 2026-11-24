@@ -3,12 +3,12 @@
 
 #include "../arduino.h"
 
-#define SERIAL_CMD_BEGIN 'S'
-#define SERIAL_CMD_PARAMS_DM '|'
-#define SERIAL_CMD_COMMA ','
-#define SERIAL_CMD_TAIL ':'
-#define SERIAL_CMD_EQUAL '='
-#define SERIAL_CMD_ERROR "Error:"
+#define CLI_CMD_BEGIN 'S'
+#define CLI_CMD_PARAMS_DM '|'
+#define CLI_CMD_COMMA ','
+#define CLI_CMD_TAIL ':'
+#define CLI_CMD_EQUAL '='
+#define CLI_CMD_ERROR "Error:"
 
 
 class Collar;
@@ -36,7 +36,7 @@ public:
     ~CLI();
     struct Cmd {
 
-        enum struct Type {
+        enum Type {
             NONE = 0,
             STATS,   // Statistics
             DBG,    // Debug info
@@ -65,6 +65,8 @@ public:
             FPORT,  // Set/Get FPort
             FLASH,    // Store in memory
             RESTORE,   // Restore from memory
+            MEM,       // Get free memory
+            FENCE,      // Get/Set fence points
             LAST
         };
 
@@ -109,7 +111,7 @@ public:
     inline void sendCommand(CLI::Cmd::Type t, const char* str) { sendCommand(t, String(str)); };
     void sendResponce(const String &str){ sendCommand(Cmd::Type::RSP, str); }
     inline void sendResponce(const char* str) { sendCommand(Cmd::Type::RSP, str); }
-    void sendError(const String &str) { sendResponce( SERIAL_CMD_ERROR + str) ; }
+    void sendError(const String &str) { sendResponce( CLI_CMD_ERROR + str) ; }
     inline void sendError(const char* str) { sendError(String(str)); }
 };
 

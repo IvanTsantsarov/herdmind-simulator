@@ -72,6 +72,7 @@ SOURCES += \
     meadow.cpp \
     mqtt.cpp \
     network.cpp \
+    os.cpp \
     scene.cpp \
     sceneview.cpp \
     shepherd.cpp \
@@ -126,10 +127,12 @@ HEADERS += \
     hardware/protocol.h \
     hardware/tools.h \
     herd.h \
+    macros_str.h \
     mainwindow.h \
     meadow.h \
     mqtt.h \
     network.h \
+    os.h \
     scene.h \
     sceneview.h \
     shepherd.h \

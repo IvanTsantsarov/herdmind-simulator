@@ -124,6 +124,8 @@ public:
 
     static QString translateCyrilic(const QString& str);
 
+    static QString bytes2str(quint64 val);
+
 };
 
 extern SimTools* gSimTools;

@@ -1064,15 +1064,15 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7">
        <item>
-        <widget class="QPushButton" name="btnStore">
+        <widget class="QPushButton" name="btnBuild">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="toolTip">
-          <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
+          <string>Arduino Build project</string>
          </property>
          <property name="text">
-          <string>Store</string>
+          <string>Build</string>
          </property>
          <property name="icon">
           <iconset resource="../res/res.qrc">
@@ -1081,7 +1081,37 @@
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_3">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnFlash">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>Arduino Flash build</string>
+         </property>
+         <property name="text">
+          <string>Flash</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../res/res.qrc">
+           <normaloff>:/flash.svg</normaloff>:/flash.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
          </property>
@@ -1111,7 +1141,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_2">
+        <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
          </property>
@@ -1124,19 +1154,19 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="btnFlash">
+        <widget class="QPushButton" name="btnStore">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="toolTip">
-          <string>Store AppKey and NwkKey in the connected wtih USB device. EUI is stored only if checked.</string>
+          <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
          </property>
          <property name="text">
-          <string>Flash</string>
+          <string>Store</string>
          </property>
          <property name="icon">
           <iconset resource="../res/res.qrc">
-           <normaloff>:/flash.svg</normaloff>:/flash.svg</iconset>
+           <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
          </property>
         </widget>
        </item>
