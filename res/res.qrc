@@ -49,5 +49,8 @@
         <file>link.svg</file>
         <file>radar.svg</file>
         <file>crane.svg</file>
+        <file>gear.svg</file>
+        <file>dots-horizontal.svg</file>
+        <file>dots-horizontal-big.svg</file>
     </qresource>
 </RCC>

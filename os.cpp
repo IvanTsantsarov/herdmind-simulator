@@ -187,17 +187,23 @@ QString OS::getEnvVar(const QString &name)
 
 }
 
-bool OS::runShellCmd(const QString& name, const QString &cmd, int delayMsec, ProcessContext *context)
+bool OS::runShellCmd(const QString& name, const QString &cmd, const QStringList& args, int delayMsec, ProcessContext *context)
 {
-    qDebug() << "[OS]Running" << name << cmd;
+    qInfo() << "[OS]Run" << name << cmd;
 
-    new ProcessShell(name, cmd, delayMsec, context);
+    new ProcessShell(name, cmd, args, delayMsec, context);
     return true;
 }
 
-ProcessShell::ProcessShell(const QString &name, const QString &cmd, int delayMsec, ProcessContext *context) :
-    QProcess (), mName(name), mShellCmd(cmd), mContext(context)
+ProcessShell::ProcessShell(const QString &name, const QString &cmd, const QStringList& args, int delayMsec, ProcessContext *context) :
+    QProcess (), mName(name), mShellCmd(cmd), mArgs(args), mContext(context)
 {
+
+    connect(this, &QProcess::errorOccurred, this, [this](QProcess::ProcessError) {
+        qCritical() << "[OS]Process error:" << mName << errorString();
+    });
+
+
     connect( this, SIGNAL(readyReadStandardOutput()), this, SLOT(onReadyReadStdout()) );
     connect( this, SIGNAL(readyReadStandardError()), this, SLOT(onReadyReadError()) );
 
@@ -211,6 +217,8 @@ ProcessShell::ProcessShell(const QString &name, const QString &cmd, int delayMse
              mContext->mExitStatus = status;
         }
 
+        qInfo() << "[OS]Process"  << mName << "finished!";
+
         this->deleteLater();
     });
 
@@ -219,6 +227,8 @@ ProcessShell::ProcessShell(const QString &name, const QString &cmd, int delayMse
         if( mContext ) {
              mContext->mIsStarted = true;
         }
+
+        qInfo() << "[OS]Process"  << mName << "started!";
     });
 
 
@@ -231,8 +241,7 @@ ProcessShell::ProcessShell(const QString &name, const QString &cmd, int delayMse
 
 void ProcessShell::onShellCmd()
 {
-    start( mShellCmd );
-    qDebug() << STR1("runShellCmd %1 started", mShellCmd);
+    start( mShellCmd, mArgs );
 }
 
 
@@ -242,7 +251,7 @@ void ProcessShell::onReadyReadStdout()
     QString strUtf8 = QString::fromUtf8(ba);
     // mOutInternal.append(strUtf8);
     qInfo() << STR1("[%1]", mName) << strUtf8;
-    // gLog.info(2, str);
+
 }
 
 void ProcessShell::onReadyReadError()

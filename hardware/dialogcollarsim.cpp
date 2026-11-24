@@ -143,6 +143,7 @@ void DialogCollarSim::on_refreshPorts()
 {
     bool isDifferentList = false;
     QStringList portNames;
+    QStringList portPaths;
     // Fill with all ports
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     for( QSerialPortInfo& info:ports ) {
@@ -157,6 +158,7 @@ void DialogCollarSim::on_refreshPorts()
         }
 
         portNames.append(info.portName());
+        portPaths.append(info.systemLocation());
     }
 
     if( !isDifferentList) {
@@ -177,8 +179,8 @@ void DialogCollarSim::on_refreshPorts()
             );
 
         ui->comboPorts->clear();
-        for( QString& str:portNames ) {
-            ui->comboPorts->addItem(str);
+        for( auto i = 0; i < portNames.length(); i ++ ) {
+            ui->comboPorts->addItem(portNames[i], portPaths[i]);
         }
     }
 
@@ -202,6 +204,7 @@ QString DialogCollarSim::cmdTM()
 {
     return QString("tm %1").arg(QDateTime::currentDateTime().toSecsSinceEpoch());
 }
+
 
 
 void DialogCollarSim::loadAnimals(QList<Animal *> animals)
@@ -1066,10 +1069,42 @@ void DialogCollarSim::onBluetoothEvent(BluetoothScanner::Event e, const QString 
 
 void DialogCollarSim::on_btnBuild_clicked()
 {
-    gOS.runShellCmd("Arduino Build", "");
+    QStringList args = {
+         "compile",
+         "--verbose",
+         "--log-level",
+        ui->comboBuildVerbose->currentText(),
+         "--fqbn", "Heltec-esp32:esp32:heltec_wifi_lora_32_V4",
+        QString( "%1/hardware/collar").arg(pathToProject())
+    };
+
+    gOS.runShellCmd("Arduino Build", "arduino-cli", args);
 }
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
-    gOS.runShellCmd("Arduino Flash", "");
+    QStringList args = {
+        "upload",
+        "-p",
+        ui->comboPorts->currentData().toString(),
+        "--fqbn", "Heltec-esp32:esp32:heltec_wifi_lora_32_V4",
+        QString("%1/hardware/collar").arg(pathToProject())
+    };
+
+    gOS.runShellCmd("Arduino Flash", "arduino-cli", args);
+}
+
+void DialogCollarSim::on_btnBuildSettings_clicked()
+{
+    QString oldPath = mEnv.value("Path/Src").toString();
+    QString newPath = QFileDialog::getExistingDirectory(this, "Select path to the project...", oldPath);
+    if( !newPath.isEmpty() ) {
+        mEnv.setValue("Path/Src", newPath);
+        qInfo() << "Path to source selected:" << newPath;
+    }
+}
+
+QString DialogCollarSim::pathToProject()
+{
+    return mEnv.value("Path/Src").toString();
 }

@@ -1096,6 +1096,71 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
+           <widget class="QPushButton" name="btnBuildSettings">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Build settings</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/dots-horizontal-big.svg</normaloff>:/dots-horizontal-big.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBuildVerbose">
+            <property name="toolTip">
+             <string>Build Verbose level</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>panic</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>fatal</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>error</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>warn</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>info</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>debug</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>trace</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="btnBuild">
             <property name="enabled">
              <bool>true</bool>

@@ -115,6 +115,7 @@ class DialogCollarSim : public QDialog
 
 
     static QString cmdTM();
+    QString pathToProject();
 
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
@@ -200,6 +201,8 @@ private slots:
     void onBluetoothEvent(BluetoothScanner::Event e, const QString& desc);
 
     void on_btnBuild_clicked();
+
+    void on_btnBuildSettings_clicked();
 
 private:
     Ui::DialogCollarSim *ui;

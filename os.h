@@ -55,7 +55,8 @@ public:
 
 	void init();
 	void setSuPassword(const QString& pass){ mSuPass = pass; }
-    bool runShellCmd(const QString &name, const QString& cmd, int delayMsec = 300, ProcessContext* context = nullptr );
+    bool runShellCmd(const QString &name, const QString& cmd, const QStringList &args = QStringList(),
+                     int delayMsec = 300, ProcessContext* context = nullptr );
     QProcess *runProcess(QString cmd, bool isDetached);
 
     void chmod(QString path, QString mode, bool isRoot = false);
@@ -87,10 +88,11 @@ class ProcessShell : public QProcess
 {
     Q_OBJECT
 public:
-    ProcessShell(const QString& name, const QString& cmd, int delayMsec, ProcessContext* context);
+    ProcessShell(const QString& name, const QString& cmd, const QStringList &args, int delayMsec, ProcessContext* context);
 
 private:
     QString mName, mShellCmd;
+    QStringList mArgs;
     QString mOutInternal, mErrInternal;
     ProcessContext *mContext = nullptr;
 
