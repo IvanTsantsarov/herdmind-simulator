@@ -48,5 +48,6 @@
         <file>bluetooth-signal.svg</file>
         <file>link.svg</file>
         <file>radar.svg</file>
+        <file>crane.svg</file>
     </qresource>
 </RCC>

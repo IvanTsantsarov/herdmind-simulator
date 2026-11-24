@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>845</width>
-    <height>545</height>
+    <width>782</width>
+    <height>598</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -1059,71 +1059,7 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_7">
-       <item>
-        <widget class="QPushButton" name="btnBuild">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="toolTip">
-          <string>Arduino Build project</string>
-         </property>
-         <property name="text">
-          <string>Build</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../res/res.qrc">
-           <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnFlash">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="toolTip">
-          <string>Arduino Flash build</string>
-         </property>
-         <property name="text">
-          <string>Flash</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../res/res.qrc">
-           <normaloff>:/flash.svg</normaloff>:/flash.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
+       <item row="0" column="3">
         <widget class="QPushButton" name="btnReload">
          <property name="enabled">
           <bool>false</bool>
@@ -1132,7 +1068,7 @@
           <string>Reread collar info from serial</string>
          </property>
          <property name="text">
-          <string>Reload</string>
+          <string/>
          </property>
          <property name="icon">
           <iconset resource="../res/res.qrc">
@@ -1140,37 +1076,106 @@
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnStore">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
-         </property>
-         <property name="text">
-          <string>Store</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../res/res.qrc">
-           <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
-         </property>
-        </widget>
-       </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QFrame" name="frame">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Shadow::Raised</enum>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QPushButton" name="btnBuild">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Arduino Build project</string>
+            </property>
+            <property name="text">
+             <string>Build</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/crane.svg</normaloff>:/crane.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnFlash">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Arduino Flash build</string>
+            </property>
+            <property name="text">
+             <string>Flash</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/flash.svg</normaloff>:/flash.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnStore">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string>Store collar into devices file, activate the device and update the addres. You may flash once again the device with the new address.</string>
+            </property>
+            <property name="text">
+             <string>Store</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/res.qrc">
+              <normaloff>:/register.svg</normaloff>:/register.svg</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="layoutOutput"/>
