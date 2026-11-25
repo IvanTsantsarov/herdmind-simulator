@@ -441,7 +441,6 @@ void Collar::setup()
     }
 }
 
-
 void Collar::updateScreenProduct(bool isFlush)
 {
     // Clear the internal buffer

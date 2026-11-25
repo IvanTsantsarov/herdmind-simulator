@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#define DEEP_SLEEP_ENABLED false
+#define DEEP_SLEEP_ENABLED true
 
 /*
 // EU868
