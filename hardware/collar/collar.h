@@ -134,6 +134,7 @@ class Collar : public LoraDevHW
 
     int64_t mSendIntervalMsec = 30000;
     int64_t mSecWakeInterval = 30;
+    int64_t mSleepIntervalMsec = 60000;
 
     State mState;
 
@@ -302,6 +303,10 @@ public:
 
     void setSendInterval(uint32_t msec){mSendIntervalMsec = msec;};
     uint32_t sendInterval(){ return mSendIntervalMsec; };
+
+    void setSleepInterval(uint32_t msec){mSleepIntervalMsec = msec;};
+    int64_t sleepInterval(){ return mSleepIntervalMsec; }
+
 
     void onBleConnect(String str);
     void onBleDisconnect(String str);

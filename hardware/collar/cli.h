@@ -48,7 +48,8 @@ public:
             HELP,
             REBOOT,
             SLEEP,  // Enable/Disable Deep sleep
-            INT,    // Get set send (sleep) interval in seconds
+            SENDI,    // Get set send (sleep) interval in seconds
+            SLEEPI,    // Get set send (sleep) interval in seconds
             RTM,     // Request time (TM) message
             TM,     // Get/Set the time
             INFO,

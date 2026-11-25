@@ -1084,6 +1084,13 @@ void DialogCollarSim::on_btnBuild_clicked()
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
+    // dissconnect usb port first
+    if( mPort.isOpen() || ui->checkConnect->isChecked() || ui->checkConnectAuto->isChecked() ) {
+        mPort.close();
+        ui->checkConnect->setChecked(false);
+        ui->checkConnectAuto->setChecked(false);
+    }
+
     QStringList args = {
         "upload",
         "-p",

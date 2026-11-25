@@ -31,7 +31,8 @@ void CLI::initCommands() {
     CLI::mCommands[(int)CLI::Cmd::Type::GPS] = "gps";
     CLI::mCommands[(int)CLI::Cmd::Type::HELP] = "help";
     CLI::mCommands[(int)CLI::Cmd::Type::INFO] = "info";
-    CLI::mCommands[(int)CLI::Cmd::Type::INT] = "int";
+    CLI::mCommands[(int)CLI::Cmd::Type::SLEEPI] = "sleepi";
+    CLI::mCommands[(int)CLI::Cmd::Type::SENDI] = "sendi";
     CLI::mCommands[(int)CLI::Cmd::Type::LED] = "led";
     CLI::mCommands[(int)CLI::Cmd::Type::MEM] = "mem";
     CLI::mCommands[(int)CLI::Cmd::Type::NAME] = "name";
@@ -323,13 +324,29 @@ bool CLI::execute()
         break;
 
 
-    case Cmd::Type::INT:
+    case Cmd::Type::SLEEPI:
     {
         if( !mIsArgument ) {
-            responceCommand( String("Send/sleep inverval is: ") + mCollar->sendInterval() + " msec" );
+            sendResponce( String("Sleep inverval is: ") + mCollar->sleepInterval() + " msec" );
             return true;
         }
 
+        const uint64_t msec = strtoull(mArgument, NULL, 10);
+        if( msec < 1000) {
+            sendError("Interval is less than a second.");
+            return false;
+        }
+        mCollar->setSleepInterval(msec);
+        sendResponce( String("Sleep interval set to:") + msec + "msec" );
+        break;
+    }
+
+    case Cmd::Type::SENDI:
+    {
+        if( !mIsArgument ) {
+            sendResponce( String("Send inverval is: ") + mCollar->sendInterval() + " msec" );
+            return true;
+        }
 
         const uint64_t msec = strtoull(mArgument, NULL, 10);
         if( msec < 1000) {
@@ -337,7 +354,7 @@ bool CLI::execute()
             return false;
         }
         mCollar->setSendInterval(msec);
-        sendResponce( String("Send/sleep interval set to:") + msec + "msec" );
+        sendResponce( String("Send interval set to:") + msec + "msec" );
         break;
     }
 
@@ -521,7 +538,8 @@ bool CLI::execute()
         "mem: Get available memory\r"
         "tm: Get and Set(Epoch in seconds) time\r"
         "sleep: Enable/Disable deep sleep (y/n and 0/1)\r"
-        "int: Get/Set send/sleep interval in milliseconds\r"
+        "sendi: Get/Set Send interval in milliseconds\r"
+        "sleepi: Get/Set Sleep interval in milliseconds\r"
          "--- Animal\r"
         "name: Set/Get animal's name\r"
         "sex: Set/Get gender: f or m\r"

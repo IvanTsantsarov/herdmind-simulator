@@ -72,7 +72,7 @@ Collar::Collar(QString animalName, bool isMale,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
                 devEUI, appKey, nwkKey)
 {
-    mSendIntervalMsec = COLLAR_DEEP_SLEEP_INTERVAL;
+    mSleepIntervalMsec = COLLAR_DEEP_SLEEP_INTERVAL;
     setAnimalName( SimTools::translateCyrilic(animalName).toLatin1().data() );
     setIsMale(isMale);
     setAddrHex(addrHex);
@@ -180,19 +180,19 @@ void Collar::sendStats()
 
 bool Collar::gotoBed()
 {
-    mState.set( State::Sleep, mSendIntervalMsec );
+    mState.set( State::Sleep, mSleepIntervalMsec );
     if( !isDeepSleep() ) {
-        DBG(String("Light sleep for:") + mSendIntervalMsec);
+        DBG(String("Light sleep for:") + mSleepIntervalMsec);
         mScreen->sleep();
         return true;
     }
 
-    DBG(String("Deep sleep for:") + mSendIntervalMsec);
+    DBG(String("Deep sleep for:") + mSleepIntervalMsec);
 
     mScreen->off();
     mGPS->sleep();
-    prepareToSleep(mSendIntervalMsec, PIN_BTN_MAIN);
-    mTimer->sleep(mSendIntervalMsec);
+    prepareToSleep(mSleepIntervalMsec, PIN_BTN_MAIN);
+    mTimer->sleep(mSleepIntervalMsec);
     return sleep();
 }
 
@@ -439,8 +439,6 @@ void Collar::setup()
         mSound->setVolume(128);
         mSound->play("A4B4C4D4E4", 100);
     }
-
-    mSerialCmd->sendResponce("!!!FUCKING BUILD!!!!");
 }
 
 
@@ -620,6 +618,7 @@ void Collar::update()
     }else
     if( mState.isSleep() ) {
         if( mState.isFinished() ) {
+            DBG("[Collar]Light sleep finished.");
             mState.set(State::UpdateMaster);
         }else {
             delay(100);
