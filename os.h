@@ -55,7 +55,7 @@ public:
 
 	void init();
 	void setSuPassword(const QString& pass){ mSuPass = pass; }
-    bool runShellCmd(const QString &name, const QString& cmd, const QStringList &args = QStringList(),
+    ProcessShell *runShellCmd(const QString &name, const QString& cmd, const QStringList &args = QStringList(),
                      int delayMsec = 300, ProcessContext* context = nullptr );
     QProcess *runProcess(QString cmd, bool isDetached);
 
@@ -101,6 +101,13 @@ private slots:
     void onReadyReadStdout();
     void onReadyReadError();
     void onShellCmd();
+
+signals:
+
+    void onStarted();
+    void onStdOut(const QString& str);
+    void onStdErr(const QString& str);
+    void onFinished(bool isError);
 
 };
 

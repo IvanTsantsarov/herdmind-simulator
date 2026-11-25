@@ -145,13 +145,7 @@ void DialogConsole::on_btnGo_clicked()
         return;
     }
 
-    int blockIndex = ui->comboImportant->currentData().toInt();
-    QTextBlock block = ui->out->document()->findBlockByNumber(blockIndex);
-    if (block.isValid()) {
-        QTextCursor cursor(block);
-        ui->out->setTextCursor(cursor);
-        ui->out->ensureCursorVisible();
-    }
+    SimTools::textEditJump(ui->out, ui->comboImportant->currentData().toInt());
 }
 
 

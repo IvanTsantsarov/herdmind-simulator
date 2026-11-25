@@ -10,6 +10,7 @@
 #define AES_BYTES_LEN 16
 
 class QPushButton;
+class QTextEdit;
 
 class SimTools
 {
@@ -125,6 +126,9 @@ public:
     static QString translateCyrilic(const QString& str);
 
     static QString bytes2str(quint64 val);
+
+    static QString textEditAnsi(QTextEdit* edit, const QString& txt);
+    static bool textEditJump(QTextEdit* edit, int blockNumber);
 
 };
 

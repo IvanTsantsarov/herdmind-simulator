@@ -42,6 +42,7 @@ public:
     void warning(const QString& msg);
     void info(const QString& msg);
     void debug(const QString& msg);
+    // void ansi(const QString& msg);
 
     bool isDebugInfo();
     void setDebugInfo(bool is);

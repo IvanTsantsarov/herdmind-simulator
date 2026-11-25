@@ -187,12 +187,11 @@ QString OS::getEnvVar(const QString &name)
 
 }
 
-bool OS::runShellCmd(const QString& name, const QString &cmd, const QStringList& args, int delayMsec, ProcessContext *context)
+ProcessShell* OS::runShellCmd(const QString& name, const QString &cmd, const QStringList& args, int delayMsec, ProcessContext *context)
 {
     qInfo() << "[OS]Run" << name << cmd;
 
-    new ProcessShell(name, cmd, args, delayMsec, context);
-    return true;
+    return new ProcessShell(name, cmd, args, delayMsec, context);
 }
 
 ProcessShell::ProcessShell(const QString &name, const QString &cmd, const QStringList& args, int delayMsec, ProcessContext *context) :
@@ -218,7 +217,7 @@ ProcessShell::ProcessShell(const QString &name, const QString &cmd, const QStrin
         }
 
         qInfo() << "[OS]Process"  << mName << "finished!";
-
+        emit onFinished(QProcess::ExitStatus::NormalExit != status);
         this->deleteLater();
     });
 
@@ -229,6 +228,7 @@ ProcessShell::ProcessShell(const QString &name, const QString &cmd, const QStrin
         }
 
         qInfo() << "[OS]Process"  << mName << "started!";
+        emit onStarted();
     });
 
 
@@ -250,8 +250,8 @@ void ProcessShell::onReadyReadStdout()
     QByteArray ba = readAllStandardOutput();
     QString strUtf8 = QString::fromUtf8(ba);
     // mOutInternal.append(strUtf8);
-    qInfo() << STR1("[%1]", mName) << strUtf8;
-
+    // qInfo() << STR1("[%1]", mName) << strUtf8;
+    emit onStdOut(strUtf8);
 }
 
 void ProcessShell::onReadyReadError()
@@ -259,7 +259,8 @@ void ProcessShell::onReadyReadError()
     QByteArray ba = readAllStandardError();
     QString strUtf8 = QString::fromUtf8(ba);
     // mErrInternal.append(strUtf8);
-    qCritical() << STR1("[%1]", mName) << strUtf8;
+    // qCritical() << STR1("[%1]", mName) << strUtf8;
+    emit onStdErr(strUtf8);
 }
 
 

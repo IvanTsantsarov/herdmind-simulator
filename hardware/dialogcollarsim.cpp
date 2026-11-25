@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include <QPainter>
 #include <QSerialPortInfo>
+#include <QFontDatabase>
 
 #include "hardware/collar/button.h"
 #include "hardware/collar/defines.h"
@@ -135,6 +136,15 @@ DialogCollarSim::DialogCollarSim(QSettings& env, DevManager* dm, QWidget *parent
 
     // ui->editOutput->createStandardContextMenu()
     ui->widgetBluetooth->setVisible(false);
+
+    QPalette p = ui->editOutput->palette();
+
+    p.setColor(QPalette::Base, Qt::black); // BG
+    ui->editOutput->setPalette(p);
+    ui->editOutput->setTextBackgroundColor(Qt::black);
+
+    QFont fnt = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    ui->editOutput->setFont( fnt );
 
     connect(&mScannerBT, &BluetoothScanner::newEvent, this, &DialogCollarSim::onBluetoothEvent);
 }
@@ -1066,9 +1076,30 @@ void DialogCollarSim::onBluetoothEvent(BluetoothScanner::Event e, const QString 
     }
 }
 
+void DialogCollarSim::on_btnBuildSettings_clicked()
+{
+    QString oldPath = mEnv.value("Path/Src").toString();
+    QString newPath = QFileDialog::getExistingDirectory(this, "Select path to the project...", oldPath);
+    if( !newPath.isEmpty() ) {
+        mEnv.setValue("Path/Src", newPath);
+        qInfo() << "Path to source selected:" << newPath;
+    }
+}
+
+QString DialogCollarSim::pathToProject()
+{
+    return mEnv.value("Path/Src").toString();
+}
+
+int DialogCollarSim::outputLinesCount()
+{
+    return ui->editOutput->document()->blockCount();
+}
 
 void DialogCollarSim::on_btnBuild_clicked()
 {
+    ui->comboErrors->clear();
+
     QStringList args = {
          "compile",
          "--verbose",
@@ -1079,11 +1110,30 @@ void DialogCollarSim::on_btnBuild_clicked()
         QString( "%1/hardware/collar").arg(pathToProject())
     };
 
-    gOS.runShellCmd("Arduino Build", "arduino-cli", args);
+    ProcessShell* process = gOS.runShellCmd("Arduino Build", "arduino-cli", args);
+
+    connect(process, &ProcessShell::onStdOut, this, [this](const QString& text) {
+        SimTools::textEditAnsi(ui->editOutput, text);
+    });
+
+    connect(process, &ProcessShell::onStdErr, this, [this](const QString& text) {
+        ui->comboErrors->addItem(text, outputLinesCount() );
+        addOutput(text, RESPONCE_COLOR_ERROR);
+    });
+
+    connect(process, &ProcessShell::onFinished, this, [this](bool isError) {
+        if( isError ) {
+        }else {
+            addOutput("Build finished!", RESPONCE_COLOR_SUCESS);
+        }
+    });
+
 }
 
 void DialogCollarSim::on_btnFlash_clicked()
 {
+    ui->comboErrors->clear();
+
     // dissconnect usb port first
     if( mPort.isOpen() || ui->checkConnect->isChecked() || ui->checkConnectAuto->isChecked() ) {
         mPort.close();
@@ -1100,20 +1150,31 @@ void DialogCollarSim::on_btnFlash_clicked()
         QString("%1/hardware/collar").arg(pathToProject())
     };
 
-    gOS.runShellCmd("Arduino Flash", "arduino-cli", args);
+    ProcessShell* process = gOS.runShellCmd("Arduino Flash", "arduino-cli", args);
+
+    connect(process, &ProcessShell::onStdOut, this, [this](const QString& text) {
+        SimTools::textEditAnsi(ui->editOutput, text);
+    });
+
+    connect(process, &ProcessShell::onStdErr, this, [this](const QString& text) {
+        ui->comboErrors->addItem(text, outputLinesCount());
+        addOutput(text, RESPONCE_COLOR_ERROR);
+    });
+
+    connect(process, &ProcessShell::onFinished, this, [this](bool isError) {
+        if( isError ) {
+            qCritical() << "Flashing error!";
+        }else {
+            addOutput("Flash finished!", RESPONCE_COLOR_SUCESS);
+        }
+    });
+
 }
 
-void DialogCollarSim::on_btnBuildSettings_clicked()
+
+
+void DialogCollarSim::on_comboErrors_activated(int index)
 {
-    QString oldPath = mEnv.value("Path/Src").toString();
-    QString newPath = QFileDialog::getExistingDirectory(this, "Select path to the project...", oldPath);
-    if( !newPath.isEmpty() ) {
-        mEnv.setValue("Path/Src", newPath);
-        qInfo() << "Path to source selected:" << newPath;
-    }
+    SimTools::textEditJump(ui->editOutput, ui->comboErrors->currentData().toInt());
 }
 
-QString DialogCollarSim::pathToProject()
-{
-    return mEnv.value("Path/Src").toString();
-}

@@ -12,6 +12,7 @@
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QPushButton>
+#include <QTextBlock>
 
 #include "simtools.h"
 #include "defines_settings.h"
@@ -421,4 +422,122 @@ QString SimTools::bytes2str(quint64 val)
     result = static_cast<qreal>(val) / div;
 
     return QString("%1 %2").arg(result, 0, 'f', 1).arg(suffix);
+}
+
+#include <QTextEdit>
+
+QString SimTools::textEditAnsi(QTextEdit *edit, const QString &txt)
+{
+    QString text = txt;
+    text.replace("\\n", "\n");
+    text.replace("\\r", "\r");
+    text.replace("\\t", "\t");
+
+    QString chunk;
+    QString stripped;
+
+    // 1. Optional: Convert literal "\uXXXX" strings into actual Unicode characters
+    // (Skip this if your strings are already decoded UTF-8/QStrings)
+    static const QRegularExpression unicodeRegex(R"(\\u([0-9a-fA-F]{4}))");
+    QRegularExpressionMatchIterator uIt = unicodeRegex.globalMatch(text);
+    // Replace backwards so indices stay valid
+    QList<QRegularExpressionMatch> matches;
+    while (uIt.hasNext()) matches.append(uIt.next());
+    for (int i = matches.size() - 1; i >= 0; --i) {
+        bool ok;
+        ushort code = matches[i].captured(1).toUShort(&ok, 16);
+        if (ok) {
+            text.replace(matches[i].capturedStart(), 6, QChar(code));
+        }
+    }
+
+    // 2. Parse ANSI escape sequences: ESC [ <codes> m
+    static const QRegularExpression ansiRegex(R"(\x1b\[([0-9;]*)m)");
+
+    QTextCursor cursor = edit->textCursor();
+    cursor.movePosition(QTextCursor::End);
+
+    QTextCharFormat defaultFormat;
+    defaultFormat.setForeground(Qt::white); // Adjust to match your QTextEdit theme
+    QTextCharFormat currentFormat = defaultFormat;
+
+    int lastPos = 0;
+    QRegularExpressionMatchIterator it = ansiRegex.globalMatch(text);
+
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+
+        // Insert plain text before this escape code using current format
+        if (match.capturedStart() > lastPos) {
+            QString chunk = text.mid(lastPos, match.capturedStart() - lastPos);
+            cursor.insertText(chunk, currentFormat);
+            stripped.append(chunk);
+        }
+
+        // Process semicolon-separated parameters (e.g., "1;31" or "38;2;255;0;0")
+        QStringList codes = match.captured(1).split(';', Qt::SkipEmptyParts);
+        if (codes.isEmpty()) codes << "0"; // \x1b[m acts as reset
+
+        for (int i = 0; i < codes.size(); ++i) {
+            int code = codes[i].toInt();
+
+            if (code == 0) {
+                currentFormat = defaultFormat; // Reset all
+            } else if (code == 1) {
+                currentFormat.setFontWeight(QFont::Bold);
+            } else if (code == 3) {
+                currentFormat.setFontItalic(true);
+            } else if (code == 4) {
+                currentFormat.setFontUnderline(true);
+            } else if (code >= 30 && code <= 37) {
+                // Standard Foreground Colors
+                static const QColor colors[] = {
+                    Qt::black, Qt::darkRed, Qt::darkGreen, Qt::darkYellow,
+                    Qt::darkBlue, Qt::darkMagenta, Qt::darkCyan, Qt::lightGray
+                };
+                currentFormat.setForeground(colors[code - 30]);
+            } else if (code >= 90 && code <= 97) {
+                // Bright Foreground Colors
+                static const QColor brightColors[] = {
+                    Qt::darkGray, Qt::red, Qt::green, Qt::yellow,
+                    Qt::blue, Qt::magenta, Qt::cyan, Qt::white
+                };
+                currentFormat.setForeground(brightColors[code - 90]);
+            } else if (code == 39) {
+                currentFormat.setForeground(defaultFormat.foreground());
+            } else if (code == 38 && i + 4 < codes.size() && codes[i + 1].toInt() == 2) {
+                // TrueColor RGB: 38;2;R;G;B
+                int r = codes[i + 2].toInt();
+                int g = codes[i + 3].toInt();
+                int b = codes[i + 4].toInt();
+                currentFormat.setForeground(QColor(r, g, b));
+                i += 4;
+            }
+        }
+
+        lastPos = match.capturedEnd();
+    }
+
+    // Insert any remaining text after the last escape code
+    if (lastPos < text.length()) {
+        chunk = text.mid(lastPos);
+        cursor.insertText(chunk, currentFormat);
+        stripped.append(chunk);
+    }
+
+    edit->setTextCursor(cursor);
+
+    return stripped;
+}
+
+bool SimTools::textEditJump(QTextEdit* edit, int blockNumber)
+{
+    QTextBlock block = edit->document()->findBlockByNumber(blockNumber);
+    if (!block.isValid()) {
+        return false;
+    }
+    QTextCursor cursor(block);
+    edit->setTextCursor(cursor);
+    edit->ensureCursorVisible();
+    return true;
 }

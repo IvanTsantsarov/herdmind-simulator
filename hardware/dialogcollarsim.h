@@ -18,18 +18,18 @@ class LoraDevSim;
 class QLineEdit;
 
 #define RESPONCE_COLOR_NORMAL QColor(0, 0, 0)
-#define RESPONCE_COLOR_ERROR QColor(150, 0, 0)
-#define RESPONCE_COLOR_WARNING QColor(150, 150, 0)
-#define RESPONCE_COLOR_SUCESS QColor(0, 0, 150)
-#define RESPONCE_COLOR_COMMAND QColor(128, 64, 128)
-#define RESPONCE_COLOR_RESPONCE QColor(110, 99, 184)
+#define RESPONCE_COLOR_ERROR QColor(250, 0, 0)
+#define RESPONCE_COLOR_WARNING QColor(250, 250, 0)
+#define RESPONCE_COLOR_SUCESS QColor(0, 0, 250)
+#define RESPONCE_COLOR_COMMAND QColor(228, 164, 228)
+#define RESPONCE_COLOR_RESPONCE QColor(210, 99, 200)
 #define RESPONCE_COLOR_RESPONCE_ERROR QColor(220, 50, 50)
 #define RESPONCE_COLOR_INFO QColor(100, 100, 100)
 #define RESPONCE_COLOR_STATS QColor(110, 184, 99)
 #define RESPONCE_COLOR_DBG QColor(100, 120, 120)
 #define RESPONCE_COLOR_CMD QColor(50, 150, 180)
-#define RESPONCE_COLOR_DIAG QColor(120, 80, 40)
-#define RESPONCE_COLOR_HELP QColor(180, 160, 70)
+#define RESPONCE_COLOR_DIAG QColor(220, 80, 40)
+#define RESPONCE_COLOR_HELP QColor(220, 160, 70)
 
 
 
@@ -68,7 +68,6 @@ class DialogCollarSim : public QDialog
     QIcon mIconShockOff, mIconShockOn;
     BluetoothScanner mScannerBT;
     BleClient mClientBT;
-
 
     Collar* mMirror = nullptr;
     void createMirror(const QString &animalName,
@@ -116,6 +115,8 @@ class DialogCollarSim : public QDialog
 
     static QString cmdTM();
     QString pathToProject();
+
+    int outputLinesCount();
 
 public:
     explicit DialogCollarSim(QSettings &env, DevManager *dm, QWidget *parent = nullptr);
@@ -203,6 +204,8 @@ private slots:
     void on_btnBuild_clicked();
 
     void on_btnBuildSettings_clicked();
+
+    void on_comboErrors_activated(int index);
 
 private:
     Ui::DialogCollarSim *ui;
