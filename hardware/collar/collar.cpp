@@ -439,6 +439,8 @@ void Collar::setup()
         mSound->setVolume(128);
         mSound->play("A4B4C4D4E4", 100);
     }
+
+    mSerialCmd->sendResponce("!!!FUCKING BUILD!!!!");
 }
 
 
@@ -580,7 +582,7 @@ void Collar::update()
         mScreen->sleep();
     }
 
-    updateSerial();
+    updateCommunications();
 
     if( mBtnMain->update() ) {
         if( mBtnMain->isDown() ) {
@@ -675,7 +677,7 @@ void Collar::updateMaster()
             }
 
             // once again
-            updateSerial();
+            updateCommunications();
 
             mLed->hwOff();
             gotoBed();
@@ -683,23 +685,10 @@ void Collar::updateMaster()
     }
 }
 
-void Collar::updateSerial()
+void Collar::updateCommunications()
 {
     mSerialCmd->update();
-
-    // Wait 1 second for time sync if initiated
-    int waitingCounter = 0;
-    while( mSerialCmd->isWaitingForTimeSync() && waitingCounter < 100 ) {
-        delay(10);
-        mSerialCmd->update();
-        waitingCounter ++;
-    }
-
-    if( mSerialCmd->isWaitingForTimeSync() ) {
-        mSerialCmd->sendError("Time sync failed!");
-    }
-
-    mSerialCmd->stopWaitingForTimeSync();
+    mBleCmd->update();
 }
 
 void Collar::updateScreen(bool isIncrement)

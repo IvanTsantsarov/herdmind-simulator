@@ -205,7 +205,7 @@ class Collar : public LoraDevHW
 
     void commonConstructor();
     void updateMaster();
-    void updateSerial();
+    void updateCommunications();
 
     void updateScreen(bool isIncrement = false);
     void updateScreenProduct(bool isFlush = true);

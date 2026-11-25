@@ -142,6 +142,7 @@ void CLI::update()
         return;
     }
 
+
     auto dataAvailable = [&]() {
         return hasBle() ?  mBle->available() : Serial.available();
     };
@@ -150,50 +151,70 @@ void CLI::update()
         return hasBle() ?  mBle->read() : Serial.read();
     };
 
-    while( dataAvailable() ) {
-
-        // Read and tap the buffer
-        char ch = dataRead();
-
-        if( CLI_CMD_IS_SPACE(ch)) {
-            if( mIsArgument ) {
-                CLI_UPDATE_ERROR("Second delimeter!");
-            }
-
-            mIsArgument = true;
-            continue;
+    int waitingTimeSyncCounter = 0;
+    do{
+        if( hasBle() ) {
+            mBle->update();
         }
 
-        if( CLI_CMD_END(ch) ) {
-            if( !mCmd.parse(mCommand, mCommandLen) ) {
-                CLI_UPDATE_ERROR("Unknown command!");
-            }
+        while( dataAvailable() ) {
 
-            if( mIsArgument && !hasArgumentString() ) {
-                CLI_UPDATE_ERROR("Missing argument!");
-            }
+            // Read and tap the buffer
+            char ch = dataRead();
 
-            execute();
-            clear();
-            return;
-        }else {
-            if( mIsArgument ) {
-
-                if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
-                    CLI_UPDATE_ERROR("Argument too long!");
+            if( CLI_CMD_IS_SPACE(ch)) {
+                if( mIsArgument ) {
+                    CLI_UPDATE_ERROR("Second delimeter!");
                 }
 
-                mArgument[mArgumentLen++] = ch;
-                mArgument[mArgumentLen] = 0;
+                mIsArgument = true;
+                continue;
+            }
 
+            if( CLI_CMD_END(ch) ) {
+                if( !mCmd.parse(mCommand, mCommandLen) ) {
+                    CLI_UPDATE_ERROR("Unknown command!");
+                }
+
+                if( mIsArgument && !hasArgumentString() ) {
+                    CLI_UPDATE_ERROR("Missing argument!");
+                }
+
+                execute();
+                clear();
+
+                // break outside from reading bytes
+                // to check for time sync condition (while)
+                break;
             }else {
-                if( mCommandLen >= CLI_CMD_SIZE ) {
-                    CLI_UPDATE_ERROR("Command too long!");
+                if( mIsArgument ) {
+
+                    if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
+                        CLI_UPDATE_ERROR("Argument too long!");
+                    }
+
+                    mArgument[mArgumentLen++] = ch;
+                    mArgument[mArgumentLen] = 0;
+
+                }else {
+                    if( mCommandLen >= CLI_CMD_SIZE ) {
+                        CLI_UPDATE_ERROR("Command too long!");
+                    }
+                    mCommand[mCommandLen++] = ch;
+                    mCommand[mCommandLen] = 0;
                 }
-                mCommand[mCommandLen++] = ch;
-                mCommand[mCommandLen] = 0;
             }
+        } // end readyng byte by byte
+
+        if( mIsWaitingForTimeSync) {
+            delay(100);
+            waitingTimeSyncCounter ++;
         }
+    }while(mIsWaitingForTimeSync && (waitingTimeSyncCounter < 10));
+
+    if( mIsWaitingForTimeSync ) {
+        sendError("Waiting for time sync failed");
+        mIsWaitingForTimeSync = false;
     }
 }
 

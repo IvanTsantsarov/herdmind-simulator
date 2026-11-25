@@ -97,9 +97,6 @@ public:
     void update();
     void clear();
 
-    inline bool isWaitingForTimeSync(){ return mIsWaitingForTimeSync; }
-    void stopWaitingForTimeSync(){ mIsWaitingForTimeSync = false; }
-
 #ifdef ONPC
     inline void writeToSerial(const char* str) { Serial.writeIn(str); }
     inline QByteArray readFromSerial() { return Serial.readOut(); }

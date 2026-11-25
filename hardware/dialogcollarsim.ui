@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
+    <width>836</width>
     <height>598</height>
    </rect>
   </property>
@@ -50,6 +50,9 @@
           <iconset resource="../res/res.qrc">
            <normaloff>:/set-clock.svg</normaloff>:/set-clock.svg</iconset>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -76,6 +79,9 @@
          <property name="icon">
           <iconset resource="../res/res.qrc">
            <normaloff>:/cross.svg</normaloff>:/cross.svg</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

@@ -1075,6 +1075,7 @@ void DialogCollarSim::on_btnBuild_clicked()
          "--log-level",
         ui->comboBuildVerbose->currentText(),
          "--fqbn", "Heltec-esp32:esp32:heltec_wifi_lora_32_V4",
+        "--board-options", "CDCOnBoot=cdc",
         QString( "%1/hardware/collar").arg(pathToProject())
     };
 
@@ -1088,6 +1089,7 @@ void DialogCollarSim::on_btnFlash_clicked()
         "-p",
         ui->comboPorts->currentData().toString(),
         "--fqbn", "Heltec-esp32:esp32:heltec_wifi_lora_32_V4",
+        "--board-options", "CDCOnBoot=cdc",
         QString("%1/hardware/collar").arg(pathToProject())
     };
 
