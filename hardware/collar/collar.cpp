@@ -13,8 +13,11 @@
 #include "ble.h"
 
 
-#define COLLAR_MAIN_BTN_BLE_INTERVAL 3000
+// initial deep sleep interval
+#define COLLAR_DEEP_SLEEP_INTERVAL 2*60000
 
+// msec to wait while main btn is pressed to turn on the ble
+#define COLLAR_MAIN_BTN_BLE_INTERVAL 3000
 
 // interval for reading the sensors
 #define COLLAR_UPDATE_INTERVAL 100
@@ -24,10 +27,13 @@
 // interval for sending data to collars/gateways
 #define COLLAR_SEND_INTERVAL 100
 
+// inverval to wait before turning off the screen
 #define SCREEN_AWAKE_MSEC_MAX 5000
-#define SCREEN_LOADING_MSEC 2000
 
+// pin of the main button
 #define PIN_BTN_MAIN 0
+
+// pin of the oled screen
 #define PIN_LED_MAIN 35
 
 #ifdef ONPC
@@ -66,6 +72,7 @@ Collar::Collar(QString animalName, bool isMale,
                 COLLAR_UPDATE_INTERVAL, COLLAR_SEND_INTERVAL,
                 devEUI, appKey, nwkKey)
 {
+    mSendIntervalMsec = COLLAR_DEEP_SLEEP_INTERVAL;
     setAnimalName( SimTools::translateCyrilic(animalName).toLatin1().data() );
     setIsMale(isMale);
     setAddrHex(addrHex);
@@ -402,6 +409,8 @@ void Collar::setup()
 
     mSerialCmd->setup();
 
+    mBleCmd->setup(mBle);
+
     mScreen->setup();
 
     mSound->setup();
@@ -673,8 +682,6 @@ void Collar::updateMaster()
         }
     }
 }
-
-
 
 void Collar::updateSerial()
 {

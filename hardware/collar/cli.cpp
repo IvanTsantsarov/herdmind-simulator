@@ -82,7 +82,7 @@ CLI::~CLI()
 
 void CLI::setup(Ble *ble)
 {
-    if( !ble) {
+    if( nullptr == ble) {
         // allocate TX buffer for non-blocking sends
         Serial.setTxBufferSize(SERIAL_TX_BUFFER_SIZE);
 
@@ -110,13 +110,13 @@ void CLI::clear()
     mArgument[0] = 0;
     mArgumentLen = 0;
     mIsArgument = false;
-
 }
+
+#define CLI_BUILD_COMMAND(__cmd_type__, __args__) String(CLI_CMD_BEGIN) + Cmd::type2StrStatic(__cmd_type__) + CLI_CMD_TAIL + __args__
 
 void CLI::sendCommand(Cmd::Type t, const String& str)
 {
-    Cmd cmd(t);
-    String r = String(CLI_CMD_BEGIN) + Cmd::type2StrStatic(t) + CLI_CMD_TAIL + str;
+    String r = CLI_BUILD_COMMAND(t, str);
 
     if( hasBle() ) {
         mBle->send(r);
@@ -129,18 +129,15 @@ void CLI::sendCommand(Cmd::Type t, const String& str)
 
 void CLI::sendCommandSerial(Cmd::Type t, const String& str)
 {
-    Cmd cmd(t);
-    String r = String(CLI_CMD_BEGIN) + Cmd::type2StrStatic(t) + CLI_CMD_TAIL + str;
+    String r = CLI_BUILD_COMMAND(t, str);
     Serial.println(r);
-    Serial.flush();
 }
 
 
-#define SERIAL_UPDATE_ERROR(__err__)  sendError(String(mCommand) + ":" + (__err__)); clear(); skipAvailable(); return;
+#define CLI_UPDATE_ERROR(__err__)  sendError(String(mCommand) + ":" + (__err__)); clear(); skipAvailable(); return;
 
 void CLI::update()
 {
-
     if( !mCommand ||!mCollar) {
         return;
     }
@@ -160,7 +157,7 @@ void CLI::update()
 
         if( CLI_CMD_IS_SPACE(ch)) {
             if( mIsArgument ) {
-                SERIAL_UPDATE_ERROR("Second delimeter!");
+                CLI_UPDATE_ERROR("Second delimeter!");
             }
 
             mIsArgument = true;
@@ -169,11 +166,11 @@ void CLI::update()
 
         if( CLI_CMD_END(ch) ) {
             if( !mCmd.parse(mCommand, mCommandLen) ) {
-                SERIAL_UPDATE_ERROR("Unknown command!");
+                CLI_UPDATE_ERROR("Unknown command!");
             }
 
             if( mIsArgument && !hasArgumentString() ) {
-                SERIAL_UPDATE_ERROR("Missing argument!");
+                CLI_UPDATE_ERROR("Missing argument!");
             }
 
             execute();
@@ -183,7 +180,7 @@ void CLI::update()
             if( mIsArgument ) {
 
                 if( mArgumentLen >= SERIAL_ARGUMENT_SIZE ) {
-                    SERIAL_UPDATE_ERROR("Argument too long!");
+                    CLI_UPDATE_ERROR("Argument too long!");
                 }
 
                 mArgument[mArgumentLen++] = ch;
@@ -191,7 +188,7 @@ void CLI::update()
 
             }else {
                 if( mCommandLen >= CLI_CMD_SIZE ) {
-                    SERIAL_UPDATE_ERROR("Command too long!");
+                    CLI_UPDATE_ERROR("Command too long!");
                 }
                 mCommand[mCommandLen++] = ch;
                 mCommand[mCommandLen] = 0;
@@ -555,7 +552,6 @@ bool gIsDbg = true;
 void gPrintDbg(const String &str) {
     if(gIsDbg)    {
         CLI::sendCommandSerial(CLI::Cmd::Type::DBG, str);
-        Serial.flush();
     }
 }
 

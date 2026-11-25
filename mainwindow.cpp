@@ -248,8 +248,6 @@ bool MainWindow::create(bool isLoad, const QString& dir)
         return false;
     }
 
-
-
     // create scene
     mScene->create(mSceneView, mHerd, mNetwork,
                    mMeadow->dim(),
@@ -696,6 +694,11 @@ void MainWindow::updateFenceButtons()
 
 bool MainWindow::syncDevices()
 {
+    if( !ui->checkSimulationSyncDevices->isChecked() ) {
+        qWarning() << "Devices sync disable. Chirpstack will not be updated!";
+        return true;
+    }
+
     if( !mDevManager->syncDevices( mHerd->jsonAnimalsList(true).toUtf8(), mHerd->gatherDevices(), mNetwork->edge() ) ) {
         errorMsgBox("MainWindow: Error sync devices! See console.");
         return false;

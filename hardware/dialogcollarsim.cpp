@@ -739,10 +739,10 @@ void DialogCollarSim::processSerialInput()
     }
     case CLI::Cmd::MEM:
     {
-        QStringList mems = tail.split(CLI_CMD_TAIL);
+        QStringList mems = tail.split(CLI_CMD_PARAMS_DM);
         QString result;
         for( QString pair:mems ){
-            QStringList both = pair.split(":");
+            QStringList both = pair.split(CLI_CMD_TAIL);
             result += QString("%1:%2\r").arg(both[0]).arg(SimTools::bytes2str(both[1].toLongLong()));
         }
 
