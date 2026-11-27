@@ -16,9 +16,9 @@ public:
 
 private:
     int mPin = -1;
-    bool mIsDown = false;
-    bool mIsEvent = false;
-    int64_t mMsecEvent = 0;
+    volatile bool mIsDown = false;
+    volatile bool mIsEvent = false;
+    volatile int64_t mMsecEvent = 0;
     Collar* mCollar = nullptr;
     EventCallback mEventCallback = nullptr;
 
@@ -27,10 +27,6 @@ private:
     static Button* InterruptsTable[BUTTON_INTERRUPTS_COUNT];
     void onUp();
     void onDown();
-
-    template <int N>
-    static void interruptUp() {
-    }
 
     template <int N>
     static void interruptDown() {

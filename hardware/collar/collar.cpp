@@ -582,23 +582,20 @@ void Collar::update()
     updateCommunications();
 
     if( mBtnMain->update() ) {
-        if( mBtnMain->isDown() ) {
+        mScreen->wakeup();
 
-            mScreen->wakeup();
+        if( mScreen->isSleeping()) {
+            mScreenMode = ScreenMode::Product;
+            updateScreen();
+        }else {
+            updateScreen(true);
+        }
+        mSound->play("B5F6", 50); // plays chirp sound
+        DBG("[Collar] Screen wake up.");
 
-            if( mScreen->isSleeping()) {
-                mScreenMode = ScreenMode::Product;
-                updateScreen();
-            }else {
-                updateScreen(true);
-            }
-            mSound->play("B5F6", 50); // plays chirp sound
-            DBG("[Collar] Screen wake up.");
-
-            // if not deep sleeping - return last state
-            if( mState.isSleep() ) {
-                mState.setPrev();
-            }
+        // if not deep sleeping - return last state
+        if( mState.isSleep() ) {
+            mState.setPrev();
         }
     }else {
         if( mBtnMain->isDown() && mBtnMain->isCurrentlyDown() && (mBtnMain->interval() > COLLAR_MAIN_BTN_BLE_INTERVAL) ) {
